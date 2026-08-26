@@ -1,0 +1,24 @@
+name: Pulse introspection
+on:
+  push:
+    branches: ["feat/pulse-5-evolucoes-2026-08-26"]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect current index
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          print('LENGTH',len(s),'LINES',s.count(chr(10))+1)
+          for term in ['PULSE_EVIDENCE','PULSE_SOURCES','PULSE_LAST_UPDATED','pulseMatchEvidence','Ask AI','Diagnóstico','Oportunidades','Investigar','journey-map','history','localStorage']:
+              print('\nTERM',term)
+              for m in list(re.finditer(re.escape(term),s,re.I))[:8]:
+                  a=max(0,m.start()-300); b=min(len(s),m.end()+500)
+                  print(s[a:b].replace('\n','\\n'))
+          PY
