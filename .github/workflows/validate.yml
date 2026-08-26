@@ -1,0 +1,30 @@
+name: Pulse QA
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Pulse artifact
+        run: python3 scripts/validate_pulse.py
+
+      - name: Validate inline JavaScript syntax
+        run: |
+          python3 scripts/extract_inline_js.py index.html /tmp/pulse-js
+          shopt -s nullglob
+          files=(/tmp/pulse-js/*.js)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No inline JavaScript blocks found."
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            echo "Checking $f"
+            node --check "$f"
+          done
