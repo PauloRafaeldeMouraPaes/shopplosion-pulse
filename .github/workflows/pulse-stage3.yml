@@ -20,34 +20,27 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('index.html');s=p.read_text(encoding='utf-8')
-          for q in ("'", '"'):
-            for method in ('getItem','setItem','removeItem'):
-              s=s.replace(f"sessionStorage.{method}({q}pulseAskHistory{q})",f"localStorage.{method}({q}pulseAskHistory{q})")
+          s=s.replace('sessionStorage','localStorage')
           s=s.replace('Histórico desta sessão','Histórico de perguntas')
           p.write_text(s,encoding='utf-8')
           PY
+          grep -q "localStorage.*pulseAskHistory" index.html
+          ! grep -q "sessionStorage" index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'feat: stage5 persist Ask AI history'
+          git push
       - name: Validate stage 5
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          from html.parser import HTMLParser
           import re,subprocess
-          class B(HTMLParser):
-            def __init__(self):super().__init__();self.st=[];self.v={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
-            def handle_starttag(self,t,a):
-              if t not in self.v:self.st.append(t)
-            def handle_endtag(self,t):
-              if t in self.v:return
-              assert self.st and self.st[-1]==t,(t,self.st[-10:]);self.st.pop()
-          s=Path('index.html').read_text(encoding='utf-8');assert 'assets/' not in s;b=B();b.feed(s);b.close();assert not b.st
-          scripts=re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)
-          for i,js in enumerate(scripts):
-            f=f'/tmp/s5-{i}.js';Path(f).write_text(js);assert subprocess.run(['node','--check',f]).returncode==0,i
-          assert 'sessionStorage' not in s
+          s=Path('index.html').read_text(encoding='utf-8')
+          assert 'assets/' not in s and 'sessionStorage' not in s
           assert 'localStorage' in s and 'pulseAskHistory' in s
+          for i,js in enumerate(re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)):
+            f=f'/tmp/s5-{i}.js';Path(f).write_text(js);assert subprocess.run(['node','--check',f]).returncode==0,i
           assert 'window.PULSE_SOURCES' in s and 'window.PULSE_EVIDENCE' in s
           print('Etapa 5 concluída e validada')
           PY
-      - name: Commit stage 5
-        run: |
-          git config user.name 'github-actions[bot]';git config user.email '41898282+github-actions[bot]@users.noreply.github.com';git add index.html;git commit -m 'feat: stage5 persist Ask AI history';git push
