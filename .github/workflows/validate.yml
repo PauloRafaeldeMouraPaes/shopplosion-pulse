@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Pulse artifact
+      - name: Validate legacy Pulse artifact checks
         run: python3 scripts/validate_pulse.py
 
       - name: Validate inline JavaScript syntax
@@ -28,3 +28,9 @@ jobs:
             echo "Checking $f"
             node --check "$f"
           done
+
+      - name: Run Pulse structural validation
+        run: node scripts/validate-pulse.js index.html
+
+      - name: Run Ask AI regression tests
+        run: node scripts/test-pulse-ask-ai.js index.html
