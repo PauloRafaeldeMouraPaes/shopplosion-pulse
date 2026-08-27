@@ -1,0 +1,29 @@
+name: Apply Pulse runtime fix
+
+on:
+  push:
+    branches: [fix/pulse-pr2-runtime-issues]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply deterministic fix
+        run: python3 scripts/fix_pr2_runtime.py
+      - name: Commit corrected index.html
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'No changes produced.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'fix: restore Pulse runtime functions and matching score'
+          git push
