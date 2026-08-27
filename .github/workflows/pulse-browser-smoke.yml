@@ -1,0 +1,21 @@
+name: Pulse Browser Smoke
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Run attachment smoke tests
+        run: npx --yes @playwright/test@1.55.0 scripts/browser-tests/pulse-attachment.spec.js
