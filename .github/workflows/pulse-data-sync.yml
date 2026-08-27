@@ -40,7 +40,7 @@ jobs:
             exit 0
           fi
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+users.noreply.github.com'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           git commit -m 'chore: sync and normalize Pulse artifact'
           git push origin HEAD:${{ github.head_ref || github.ref_name }}
