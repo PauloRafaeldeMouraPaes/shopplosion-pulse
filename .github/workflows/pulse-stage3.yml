@@ -46,7 +46,7 @@ jobs:
           assert 'sessionStorage' not in s
           assert 'localStorage' in s and 'pulseAskHistory' in s
           start=s.find('window.PULSE_EVIDENCE');end=s.find('function pulseNormalize',start);block=s[start:end]
-          assert block.count('proxima_revisao:')==11 and block.count('categoria:')==11
+          n=len(re.findall(r'\bid:"([^"]+)"',block));assert n>0 and block.count('proxima_revisao:')==n and block.count('categoria:')==n
           assert 'window.PULSE_SOURCES' in s and 'window.PULSE_EVIDENCE' in s
           print('Etapa 5 concluída e validada')
           PY
