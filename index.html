@@ -579,43 +579,6 @@ function pulseFuzzyTokenScore(a,b){if(a===b)return 3;if(a.length>=4&&b.length>=4
 function pulseFuzzyPhraseScore(qTokens,kTokens){var score=0,used={};qTokens.forEach(function(qt){var best=0,bestI=-1;kTokens.forEach(function(kt,i){if(used[i])return;var v=pulseFuzzyTokenScore(qt,kt);if(v>best){best=v;bestI=i;}});if(best){score+=best;used[bestI]=1;}});return score;}
 function pulseMatchEvidence(question){var q=pulseNormalize(question).trim();if(!q)return null;var qTokens=pulseEvidenceTokens(q),best=null,second=null,bestScore=0,secondScore=0,generic={canal:1,varejo:1,loja:1,consumo:1,volume:1,preco:1,mercado:1,brasil:1,compra:1,compras:1};window.PULSE_EVIDENCE.forEach(function(item){var score=0,matched=0,phrase=0;(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k),kt=pulseEvidenceTokens(nk),raw=kt.length>=2&&q.indexOf(nk)!==-1?10+kt.length*2:0;if(raw){score+=raw;phrase++;matched++;return;}var fuzzy=pulseFuzzyPhraseScore(qTokens,kt);if(fuzzy>=2){score+=fuzzy+(kt.length>=2?2:0);matched++;}});var itemText=pulseNormalize([item.id,item.fato,item.contexto,item.interpretacao].join(" "));qTokens.forEach(function(t){if(t.length>=4){itemText.split(/\s+/).forEach(function(it){var v=pulseFuzzyTokenScore(t,it);if(v>=2)score+=0.5;});}});if(matched>=2)score+=3;if(phrase>=1)score+=3;if(generic[pulseEvidenceTokens(item.id)[0]])score-=0.25;if(score>bestScore){second=best;secondScore=bestScore;best=item;bestScore=score;}else if(score>secondScore){second=item;secondScore=score;}});if(!best||bestScore<5)return null;if(second&&bestScore<9&&(bestScore-secondScore)<2)return null;return best;}
 function pulseRankEvidence(question){var q=pulseNormalize(question).trim();if(!q)return [];var qTokens=pulseEvidenceTokens(q);return window.PULSE_EVIDENCE.map(function(item){var score=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens((item.keywords||[]).join(" ")));score+=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens([item.id,item.fato,item.contexto].join(" ")))*0.5;return {item:item,score:score};}).filter(function(x){return x.score>1;}).sort(function(a,b){return b.score-a.score;}).slice(0,3).map(function(x){return x.item;});}
-function pulseEscape(text){return String(text||"").replace(/[<>&"']/g,function(m){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[m];});}
-function pulseSaveHistory(question,match){try{var h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]');h.unshift({q:question,id:match?match.id:null,ts:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('pulseAskHistory',JSON.stringify(h.slice(0,8)));pulseRenderHistory();}catch(e){}}
-function pulseRenderHistory(){var el=document.getElementById('pulse-history-list');if(!el)return;var h=[];try{h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]')}catch(e){}el.innerHTML=h.length?h.map(function(x,i){return '<div class="history-item"><button type="button" data-history-index="'+i+'">'+pulseEscape(x.q)+'</button><span>'+pulseEscape(x.ts)+'</span></div>';}).join(''):'<div class="empty-note">Nenhuma pergunta nesta sessão.</div>';el.querySelectorAll('[data-history-index]').forEach(function(b){b.addEventListener('click',function(){var x=h[Number(b.dataset.historyIndex)],input=document.getElementById('pulse-question');if(input){input.value=x.q;input.focus();location.hash='#answer-custom';}});});}
-
-function pulseRenderCustomAnswer(){
-  var box = document.getElementById("pulse-question");
-  var titleEl = document.getElementById("pulse-custom-title");
-  var subtitleEl = document.getElementById("pulse-custom-subtitle");
-  var bodyEl = document.getElementById("pulse-custom-body");
-  if (!bodyEl) return;
-  var question = box ? box.value : "";
-  var match = pulseMatchEvidence(question);
-  var proprietaryCount = window.PULSE_UPLOADED_FILES ? window.PULSE_UPLOADED_FILES.length : 0;
-  var propBanner = "";
-  if (proprietaryCount > 0) {
-    propBanner = '<div class="upload"><div><b>' + proprietaryCount + ' estudo(s) proprietário(s) adicionado(s)</b>' +
-      '<p>Ainda não há extração automática neste protótipo (isso é P0/P1 no roadmap técnico). Os arquivos ficarão disponíveis para cruzamento assim que o backend de ingestão estiver conectado — nunca serão misturados aos dados públicos sem identificar a origem.</p></div></div>';
-  }
-  if (!match) {
-    var near = pulseRankEvidence(question);
-    if (titleEl) titleEl.textContent = question ? "Ainda não temos evidência suficiente para essa pergunta" : "Digite ou escolha uma pergunta";
-    if (subtitleEl) subtitleEl.textContent = "O Pulse só responde com base em evidências publicadas — nunca inventa um número.";
-    var nearHtml = near.length ? '<div class="nearby"><b>Evidências mais próximas</b>' + near.map(function(x){ return '<a href="#answer-custom" data-near-id="'+pulseEscape(x.id)+'">'+pulseEscape(x.id)+' · '+pulseEscape(x.fato.slice(0,120))+'…</a>'; }).join('') + '</div>' : '<p class="empty-note">Tente termos como canal, ocasião, pack, premium, promoção, frequência ou confiança financeira.</p>';
-    bodyEl.innerHTML = '<div class="box"><span class="confidence">SEM EVIDÊNCIA</span><h2>Não encontramos evidência suficiente para "' + pulseEscape(question || "sua pergunta") + '"</h2><p>Isso não significa que a resposta não exista — significa que o Pulse não encontrou evidência suficiente na base atual.</p>' + nearHtml + '</div>' + propBanner;
-    return;
-  }
-  if (titleEl) titleEl.textContent = "Fato → Contexto → Interpretação → Hipótese → Ação";
-  if (subtitleEl) subtitleEl.textContent = "Resposta composta a partir da base de evidências do Pulse para: “" + question + "”";
-  bodyEl.innerHTML =
-    '<div class="box"><span class="confidence">EVIDÊNCIA · ' + match.confianca + '</span><h2>FATO</h2><p>' + match.fato + '</p>' +
-    '<div class="source-line">Fonte: ' + match.fonte + ' · Período: ' + match.periodo + ' · Confiança: ' + match.confianca + '</div></div>' +
-    '<div class="box"><h2>CONTEXTO</h2><p>' + match.contexto + '</p></div>' +
-    '<div class="box"><h2>INTERPRETAÇÃO</h2><p>' + match.interpretacao + '</p></div>' +
-    '<div class="hypo"><b>HIPÓTESE A VALIDAR</b><p>' + match.hipotese + '</p></div>' +
-    '<div class="box"><h2>AÇÃO SUGERIDA</h2><p>' + match.acao + '</p></div>' +
-    propBanner;
-}
 
 /* v30: single navigation controller. It owns screen visibility, active nav and journey state. */
 var PULSE_NAV_SECTIONS={
