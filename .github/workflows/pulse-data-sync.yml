@@ -21,9 +21,8 @@ jobs:
 
       - name: Validate generated Pulse
         run: |
-          node --check scripts/test-pulse-ask-ai.js
+          node scripts/test-pulse-ask-ai.js index.html
           python3 scripts/validate_pulse.py
-          python3 scripts/test_pulse_ask_ai.py
 
       - name: Commit generated index.html
         run: |
