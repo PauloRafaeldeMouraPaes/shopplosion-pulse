@@ -40,7 +40,10 @@ const match = html.match(/<script[^>]*id=["']pulse-evidence-engine["'][^>]*>([\s
 if (!match) {
   failures.push('evidence engine: script block not found');
 } else {
-  const context = { window: {} };
+  const noop = () => {};
+  const documentStub = new Proxy({}, { get: () => noop });
+  const windowStub = { addEventListener: noop, removeEventListener: noop };
+  const context = { window: windowStub, document: documentStub, console };
   vm.createContext(context);
   try {
     vm.runInContext(match[1], context, { timeout: 1000 });
