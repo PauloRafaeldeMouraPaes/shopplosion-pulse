@@ -82,7 +82,8 @@
     ].filter(([,re]) => re.test(clean.toLowerCase())).map(([x]) => x);
     return { excerpt: clean, sentences, keywords, topics, chars: clean.length, extraction: clean ? 'textual' : 'empty' };
   };
-  const fingerprint = async (name, size, lastModified, text) => hash([name, size, lastModified, text].join('|'));
+  // Fingerprint is content-stable: browser-generated lastModified values must not make identical files unique.
+  const fingerprint = async (name, size, text) => hash([name, size, normalize(text)].join('|'));
 
   const ensurePanel = () => {
     let panel = document.querySelector('#pulse-study-intelligence');
@@ -105,7 +106,7 @@
     for (const file of files) {
       const text = await extract(file), summary = summarize(text);
       if (!summary.excerpt) continue;
-      const id = await fingerprint(file.name, file.size, file.lastModified, text);
+      const id = await fingerprint(file.name, file.size, text);
       if (existing.has(id)) continue;
       await put({ id, name: file.name, type: file.type || 'application/octet-stream', size: file.size, lastModified: file.lastModified, summary, processedAt: new Date().toISOString(), provenance: { sourceName: file.name, extractionMethod: summary.extraction, evidenceType: 'user-provided-study', confidence: 'descriptive' } });
       existing.add(id);
