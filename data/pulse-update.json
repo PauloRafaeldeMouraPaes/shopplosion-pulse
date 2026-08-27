@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Canonical update queue for Pulse evidence and sources. ChatGPT/Codex edits this file; GitHub Actions synchronizes index.html and validates the generated artifact.",
+  "description": "Canonical update queue for Pulse evidence and sources. ChatGPT/Codex edits this file; GitHub Actions synchronizes index.html and validates the generated artifact. Workflow trigger test.",
   "evidence": [],
   "sources": []
 }
