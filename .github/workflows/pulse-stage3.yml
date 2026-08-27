@@ -40,7 +40,7 @@ jobs:
               if t in self.v:return
               assert self.st and self.st[-1]==t,(t,self.st[-10:]);self.st.pop()
           s=Path('index.html').read_text(encoding='utf-8');assert 'assets/' not in s;b=B();b.feed(s);b.close();assert not b.st
-          scripts=re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I')
+          scripts=re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)
           for i,js in enumerate(scripts):
             f=f'/tmp/s5-{i}.js';Path(f).write_text(js);assert subprocess.run(['node','--check',f]).returncode==0,i
           assert 'sessionStorage' not in s
