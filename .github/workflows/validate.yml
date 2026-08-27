@@ -45,11 +45,19 @@ jobs:
           python3 scripts/extract_inline_js.py index.html /tmp/pulse-js
           shopt -s nullglob
           files=(/tmp/pulse-js/*.js)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "No inline JavaScript blocks found."
-            exit 1
-          fi
-          for f in "${files[@]}"; do
-            echo "Checking $f"
-            node --check "$f"
-          done
+          if [ ${#files[@]} -eq 0 ]; then echo "No inline JavaScript blocks found."; exit 1; fi
+          for f in "${files[@]}"; do node --check "$f"; done
+
+      - name: Validate required stage fields
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          assert 'assets/' not in s
+          assert 'sessionStorage' not in s
+          assert 'localStorage' in s and 'pulseAskHistory' in s
+          start=s.find('window.PULSE_EVIDENCE'); end=s.find('function pulseNormalize',start); block=s[start:end]
+          assert block.count('proxima_revisao:')==11
+          assert block.count('categoria:')==11
+          print('Final required fields validated')
+          PY
