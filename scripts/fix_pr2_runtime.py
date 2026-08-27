@@ -36,7 +36,7 @@ custom=extract_function(main,'pulseRenderCustomAnswer')
 if not re.search(r'function\s+pulseRenderCustomAnswer\s*\(',s):
     marker='<script id="pulse-enhancements">'
     if marker not in s: raise RuntimeError('Ask AI insertion marker missing')
-    s=s.replace(marker,custom+'\n\n'+marker,1)
+    s=s.replace(marker,'<script id="pulse-custom-answer-runtime">\n'+custom+'\n</script>\n\n'+marker,1)
 
 history_names=['pulseSaveHistory','pulseRenderHistory']
 history_blocks=[]
