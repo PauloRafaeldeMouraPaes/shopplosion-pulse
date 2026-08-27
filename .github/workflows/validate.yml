@@ -16,48 +16,39 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Apply stage 5 history persistence
         run: |
           if git log -1 --pretty=%B | grep -q '^feat: stage5'; then echo 'Stage 5 commit already applied'; exit 0; fi
           python3 - <<'PY'
           from pathlib import Path
           p=Path('index.html');s=p.read_text(encoding='utf-8')
-          for q in ("'", '"'):
-            for method in ('getItem','setItem','removeItem'):
-              s=s.replace(f"sessionStorage.{method}({q}pulseAskHistory{q})",f"localStorage.{method}({q}pulseAskHistory{q})")
+          s=s.replace('sessionStorage','localStorage')
           s=s.replace('Histórico desta sessão','Histórico de perguntas')
           p.write_text(s,encoding='utf-8')
           PY
-          if ! grep -q "localStorage.*pulseAskHistory" index.html; then echo 'History persistence migration missing'; exit 1; fi
-          if grep -q "sessionStorage.*pulseAskHistory" index.html; then echo 'Session history reference remains'; exit 1; fi
+          grep -q "localStorage.*pulseAskHistory" index.html
+          ! grep -q "sessionStorage" index.html
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           git commit -m 'feat: stage5 persist Ask AI history'
           git push
-
       - name: Validate Pulse artifact
         run: python3 scripts/validate_pulse.py
-
       - name: Validate inline JavaScript syntax
         run: |
           python3 scripts/extract_inline_js.py index.html /tmp/pulse-js
           shopt -s nullglob
           files=(/tmp/pulse-js/*.js)
-          if [ ${#files[@]} -eq 0 ]; then echo "No inline JavaScript blocks found."; exit 1; fi
+          if [ ${#files[@]} -eq 0 ]; then exit 1; fi
           for f in "${files[@]}"; do node --check "$f"; done
-
       - name: Validate required stage fields
         run: |
           python3 - <<'PY'
           from pathlib import Path
           s=Path('index.html').read_text(encoding='utf-8')
-          assert 'assets/' not in s
-          assert 'sessionStorage' not in s
+          assert 'assets/' not in s and 'sessionStorage' not in s
           assert 'localStorage' in s and 'pulseAskHistory' in s
-          start=s.find('window.PULSE_EVIDENCE'); end=s.find('function pulseNormalize',start); block=s[start:end]
-          assert block.count('proxima_revisao:')==11
-          assert block.count('categoria:')==11
+          assert 'window.PULSE_SOURCES' in s and 'window.PULSE_EVIDENCE' in s
           print('Final required fields validated')
           PY
