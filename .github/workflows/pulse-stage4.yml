@@ -1,4 +1,4 @@
-name: Pulse Stage 4
+name: Pulse Final Repair Runner
 on:
   push:
     branches:
@@ -6,57 +6,38 @@ on:
 permissions:
   contents: write
 jobs:
-  stage4:
+  repair:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Skip generated stage commit
+      - name: Skip repair commit
         run: |
-          if git log -1 --pretty=%B | grep -q '^feat: stage4'; then echo 'stage 4 already applied'; exit 0; fi
-      - name: Apply stage 4
+          if git log -1 --pretty=%B | grep -q '^fix: stage5'; then echo 'repair already committed'; exit 0; fi
+      - name: Repair history functions
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
           import re
           p=Path('index.html');s=p.read_text(encoding='utf-8')
-          extra={'canal':['ponto de venda','canal de compra','atacarejo','supermercado','loja física','loja online','comércio eletrônico','e-commerce','distribuição'],'ocasiao':['ocasiões de consumo','consumo fora de casa','fora de casa','bar','restaurante','bebida','bebidas','frequência de ocasião'],'pack':['pack menor','packs menores','embalagem menor','formato menor','gramatura','tamanho da embalagem','redução de volume','menos unidades','cesta menor'],'premium':['valor premium','premiumização','produto premium','marca premium','chocolate premium','preço premium','luxo acessível','qualidade percebida'],'promocao':['oferta','ofertas','desconto','descontos','preço promocional','preço em promoção','liquidação','preço mais baixo','promoções'],'frequencia':['mais visitas','compras mais frequentes','frequência de compra','cesta fragmentada','cesta menor','marcas diferentes','troca de marca','reposição','comprar mais vezes'],'confianca-financeira':['consumidor sem dinheiro','aperto no bolso','renda menor','renda apertada','orçamento apertado','pressão no orçamento','dinheiro curto','poder de compra menor','poder de compra','situação financeira ruim'],'varejo-geral':['vendas no varejo','comércio varejista','varejo brasileiro','crescimento do varejo','inflação','preços','custo de vida','mercado varejista'],'saude-bemestar':['saúde','bem estar','bem-estar','funcional','proteína','suplementos','alimentação funcional','wellness','produto saudável'],'indulgencia-seletiva':['indulgência','pequeno luxo','mimo','se presentear','autopresente','chocolate premium','cerveja premium','agrado','recompensa'],'scanntech-radar':['varejo alimentar','tíquete','cesta','itens por compra','itens por tíquete','ticket médio','ticket','comprar menos itens','cesta menor']}
-          for id,adds in extra.items():
-            m=re.search(r'(id:"'+re.escape(id)+r'",[\s\S]*?keywords:\[)([^\]]*)(\])',s);assert m,id
-            vals=m.group(2).strip();add=','.join('"'+x.replace('"','\\"')+'"' for x in adds)
-            # Avoid duplicate synonyms if this workflow is re-run.
-            existing=m.group(2)
-            missing=[x for x in adds if ('"'+x.replace('"','\\"')+'"') not in existing]
-            if missing:
-              add=','.join('"'+x.replace('"','\\"')+'"' for x in missing);s=s[:m.start(2)]+vals+(',' if vals else '')+add+s[m.end(2):]
-          oldfun=re.search(r'function pulseNormalize\(str\)\{[\s\S]*?function pulseRankEvidence\(question\)\{[\s\S]*?\n\}',s);assert oldfun
-          newfun='''function pulseNormalize(str){return (str||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[’']/g,"").replace(/[^a-z0-9\\s-]+/g," ").replace(/\\s+/g," ").trim();}\nfunction pulseEvidenceTokens(text){var stop={de:1,da:1,do:1,das:1,dos:1,em:1,no:1,na:1,nos:1,nas:1,para:1,por:1,com:1,sem:1,e:1,a:1,o:1,as:1,os:1,um:1,uma:1,uns:1,umas:1,que:1};return pulseNormalize(text).split(/[^a-z0-9]+/).map(function(t){if(t.length>4&&t.endsWith("oes"))t=t.slice(0,-3)+"ao";else if(t.length>4&&t.endsWith("s")&&!t.endsWith("ss"))t=t.slice(0,-1);return t;}).filter(function(t){return t.length>=3&&!stop[t];});}\nfunction pulseFuzzyTokenScore(a,b){if(a===b)return 3;if(a.length>=4&&b.length>=4&&(a.indexOf(b)===0||b.indexOf(a)===0))return 2;if(a.length>=5&&b.length>=5&&(a.indexOf(b)!==-1||b.indexOf(a)!==-1))return 1;return 0;}\nfunction pulseFuzzyPhraseScore(qTokens,kTokens){var score=0,used={};qTokens.forEach(function(qt){var best=0,bestI=-1;kTokens.forEach(function(kt,i){if(used[i])return;var v=pulseFuzzyTokenScore(qt,kt);if(v>best){best=v;bestI=i;}});if(best){score+=best;used[bestI]=1;}});return score;}\nfunction pulseMatchEvidence(question){var q=pulseNormalize(question).trim();if(!q)return null;var qTokens=pulseEvidenceTokens(q),best=null,second=null,bestScore=0,secondScore=0,generic={canal:1,varejo:1,loja:1,consumo:1,volume:1,preco:1,mercado:1,brasil:1,compra:1,compras:1};window.PULSE_EVIDENCE.forEach(function(item){var score=0,matched=0,phrase=0;(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k),kt=pulseEvidenceTokens(nk),raw=kt.length>=2&&q.indexOf(nk)!==-1?10+kt.length*2:0;if(raw){score+=raw;phrase++;matched++;return;}var fuzzy=pulseFuzzyPhraseScore(qTokens,kt);if(fuzzy>=2){score+=fuzzy+(kt.length>=2?2:0);matched++;}});var itemText=pulseNormalize([item.id,item.fato,item.contexto,item.interpretacao].join(" "));qTokens.forEach(function(t){if(t.length>=4){itemText.split(/\\s+/).forEach(function(it){var v=pulseFuzzyTokenScore(t,it);if(v>=2)score+=0.5;});}});if(matched>=2)score+=3;if(phrase>=1)score+=3;if(generic[pulseEvidenceTokens(item.id)[0]])score-=0.25;if(score>bestScore){second=best;secondScore=bestScore;best=item;bestScore=score;}else if(score>secondScore){second=item;secondScore=score;}});if(!best||bestScore<5)return null;if(second&&bestScore<9&&(bestScore-secondScore)<2)return null;return best;}\nfunction pulseRankEvidence(question){var q=pulseNormalize(question).trim();if(!q)return [];var qTokens=pulseEvidenceTokens(q);return window.PULSE_EVIDENCE.map(function(item){var score=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens((item.keywords||[]).join(" ")));score+=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens([item.id,item.fato,item.contexto].join(" ")))*0.5;return {item:item,score:score};}).filter(function(x){return x.score>1;}).sort(function(a,b){return b.score-a.score;}).slice(0,3).map(function(x){return x.item;});}'''
-          s=s[:oldfun.start()]+newfun+s[oldfun.end():]
+          s=s.replace('sessionStorage','localStorage').replace('Histórico desta sessão','Histórico de perguntas')
+          good='function pulseEscape(text){return String(text||"").replace(/[<>&]/g,function(m){return ({"<":"&lt;",">":"&gt;","&":"&amp;"})[m];});}'
+          if 'function pulseSaveHistory' in s:
+            s=re.sub(r'function pulseEscape\(text\)\{[\s\S]*?\nfunction pulseSaveHistory', good+'\nfunction pulseSaveHistory', s, count=1)
+          else:
+            history=good+'''\nfunction pulseSaveHistory(question,match){try{var h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]');h.unshift({q:question,id:match?match.id:null,ts:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('pulseAskHistory',JSON.stringify(h.slice(0,8)));pulseRenderHistory();}catch(e){}}\nfunction pulseRenderHistory(){var el=document.getElementById('pulse-history-list');if(!el)return;var h=[];try{h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]')}catch(e){}el.innerHTML=h.length?h.map(function(x,i){return '<div class="history-item"><button type="button" data-history-index="'+i+'">'+pulseEscape(x.q)+'</button><span>'+pulseEscape(x.ts)+'</span></div>';}).join(''):'<div class="empty-note">Nenhuma pergunta salva.</div>';el.querySelectorAll('[data-history-index]').forEach(function(b){b.addEventListener('click',function(){var x=h[Number(b.dataset.historyIndex)],input=document.getElementById('pulse-question');if(input){input.value=x.q;input.focus();location.hash='#answer-custom';}});});}\n'''
+            marker='/* v30: single navigation controller.';assert marker in s;s=s.replace(marker,history+marker,1)
           p.write_text(s,encoding='utf-8')
           PY
-      - name: Validate stage 4
-        run: |
-          python - <<'PY'
+          grep -q 'function pulseSaveHistory' index.html
+          ! grep -q 'sessionStorage' index.html
+          python3 - <<'PY'
           from pathlib import Path
-          from html.parser import HTMLParser
           import re,subprocess
-          class B(HTMLParser):
-            def __init__(self):super().__init__();self.st=[];self.v={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
-            def handle_starttag(self,t,a):
-              if t not in self.v:self.st.append(t)
-            def handle_endtag(self,t):
-              if t in self.v:return
-              assert self.st and self.st[-1]==t,(t,self.st[-10:]);self.st.pop()
-          s=Path('index.html').read_text();assert 'assets/' not in s;b=B();b.feed(s);b.close();assert not b.st
+          s=Path('index.html').read_text(encoding='utf-8')
           for i,js in enumerate(re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)):
-            f=f'/tmp/s4-{i}.js';Path(f).write_text(js);assert subprocess.run(['node','--check',f]).returncode==0,i
-          block=s[s.find('window.PULSE_EVIDENCE'):s.find('];\n\nfunction pulseNormalize')];assert block.count('proxima_revisao:')==11 and block.count('categoria:')==11
-          for phrase in ['consumidor sem dinheiro','aperto no bolso','renda menor','ponto de venda','ocasiões de consumo','pack menor']:assert phrase in block,phrase
-          assert 'pulseFuzzyTokenScore' in s and 'pulseFuzzyPhraseScore' in s and 'function pulseMatchEvidence' in s
-          assert 'sessionStorage' not in s
-          print('Etapa 4 concluída e validada')
+            f=f'/tmp/final-{i}.js';Path(f).write_text(js);r=subprocess.run(['node','--check',f]);assert r.returncode==0,i
+          assert 'window.PULSE_SOURCES' in s and 'window.PULSE_EVIDENCE' in s
           PY
-      - name: Commit stage 4
-        run: |
-          git config user.name 'github-actions[bot]';git config user.email '41898282+github-actions[bot]@users.noreply.github.com';git add index.html;git commit -m 'feat: stage4 semantic fuzzy Ask AI';git push
+          git config user.name 'github-actions[bot]';git config user.email '41898282+github-actions[bot]@users.noreply.github.com';git add index.html;git commit -m 'fix: stage5 repair Ask AI history syntax';git push
