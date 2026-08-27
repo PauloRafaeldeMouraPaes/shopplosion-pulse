@@ -34,7 +34,7 @@ if not re.search(r'function\s+pulseRoute\s*\(',s):
 
 custom=extract_function(main,'pulseRenderCustomAnswer')
 if not re.search(r'function\s+pulseRenderCustomAnswer\s*\(',s):
-    marker='/* v30: single navigation controller.'
+    marker='<script id="pulse-enhancements">'
     if marker not in s: raise RuntimeError('Ask AI insertion marker missing')
     s=s.replace(marker,custom+'\n\n'+marker,1)
 
@@ -60,7 +60,6 @@ for name in history_names:
     history_blocks.append(s[m.start():i+1]); s=s[:m.start()]+s[i+1:]
 marker='<script id="pulse-enhancements">'
 if marker not in s: raise RuntimeError('enhancement script marker missing')
-s=s.replace('\n\n'.join(history_blocks)+'\n\n','\n',1)
 s=s.replace(marker,'<script id="pulse-history-runtime">\n'+'\n\n'.join(history_blocks)+'\n</script>\n\n'+marker,1)
 
 old=r'''(item.keywords||\[\]\).forEach\(function\(k\)\{var nk=pulseNormalize\(k\),kt=pulseEvidenceTokens\(nk\),raw=kt.length>=2&&q.indexOf\(nk\)!==-1\?10\+kt.length\*2:0;if\(raw\)\{score\+=raw;phrase\+\+;matched\+\+;return;\}var fuzzy=pulseFuzzyPhraseScore\(qTokens,kt\);if\(fuzzy>=2\)\{score\+=fuzzy\+\(kt.length>=2\?2:0\);matched\+\+;\}\}\);'''
