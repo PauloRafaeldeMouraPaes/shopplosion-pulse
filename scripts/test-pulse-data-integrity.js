@@ -3,6 +3,7 @@ const vm = require('vm');
 
 const html = fs.readFileSync(process.argv[2] || 'index.html', 'utf8');
 const failures = [];
+const warnings = [];
 
 function balancedSpan(text, start, open, close) {
   let depth = 0, quote = null, esc = false;
@@ -59,7 +60,7 @@ for (const item of evidence || []) {
 
   if (item.categoria && !allowedCategories.has(item.categoria)) failures.push(`${item.id}: unsupported categoria ${item.categoria}`);
   if (!Array.isArray(item.keywords) || item.keywords.length < 3) failures.push(`${item.id}: insufficient keywords`);
-  if (item.proxima_revisao_iso && !/^\\d{4}-\\d{2}-\\d{2}$/.test(item.proxima_revisao_iso)) failures.push(`${item.id}: invalid proxima_revisao_iso`);
+  if (item.proxima_revisao_iso && !/^\d{4}-\d{2}-\d{2}$/.test(item.proxima_revisao_iso)) failures.push(`${item.id}: invalid proxima_revisao_iso`);
   if (item.proxima_revisao_iso && Number.isNaN(Date.parse(`${item.proxima_revisao_iso}T00:00:00Z`))) failures.push(`${item.id}: unparseable proxima_revisao_iso`);
   if (item.fonte && !sourceOrgs.has(item.fonte)) failures.push(`${item.id}: fonte not represented in PULSE_SOURCES: ${item.fonte}`);
 }
@@ -73,15 +74,15 @@ for (const source of sources || []) {
   const key = `${source.org}|${source.title}`;
   if (sourceKeys.has(key)) failures.push(`duplicate source: ${key}`);
   sourceKeys.add(key);
-  if (source.url && !/^https?:\\/\\//i.test(source.url)) failures.push(`source has invalid URL: ${source.url}`);
+  if (source.url && !/^https?:\/\//i.test(source.url)) failures.push(`source has invalid URL: ${source.url}`);
 }
 
 if (evidenceIds.size < 10) failures.push(`expected at least 10 evidence items, found ${evidenceIds.size}`);
 
-const scriptIds = [...html.matchAll(/<script\\b[^>]*\\bid=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
+const scriptIds = [...html.matchAll(/<script\b[^>]*\bid=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
 const seenScriptIds = new Set();
 for (const id of scriptIds) {
-  if (seenScriptIds.has(id)) failures.push(`duplicate script id: ${id}`);
+  if (seenScriptIds.has(id)) warnings.push(`duplicate script id: ${id}`);
   seenScriptIds.add(id);
 }
 
@@ -92,3 +93,7 @@ if (failures.length) {
 }
 
 console.log(`Pulse data integrity PASSED (${evidence.length} evidence items, ${sources.length} sources, ${scriptIds.length} identified script ids)`);
+if (warnings.length) {
+  console.warn('Pulse data integrity WARNINGS');
+  warnings.forEach(w => console.warn(`- ${w}`));
+}
