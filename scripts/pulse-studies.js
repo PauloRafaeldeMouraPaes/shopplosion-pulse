@@ -1,6 +1,6 @@
-/* Shopplosion Pulse — study intelligence v2
+/* Shopplosion Pulse — study intelligence v3
  * Client-side, privacy-first processing. Files stay in the browser.
- * Produces provenance-rich evidence blocks for Ask AI without silently changing user input.
+ * Produces provenance-rich, claim-oriented evidence blocks for Ask AI.
  */
 (() => {
   'use strict';
@@ -66,6 +66,28 @@
     return raw;
   };
   const STOP = new Set('sobre entre todos todas foram pelos pelas para como mais muito muito esta este esse essa seus suas uma umas dos das que com sem por nos nas pelos pela from that which their there these those and the with this have has para porque quando onde sobre também ainda sendo foram eram'.split(' '));
+  const topicRules = [
+    ['preço', /preço|preco|promoção|promocao|desconto|barato|caro/],
+    ['canal', /canal|varejo|atacarejo|supermercado|e-commerce|ecommerce/],
+    ['shopper', /shopper|consumidor|compra|comprador|jornada/],
+    ['marca', /marca|brand|concorr/],
+    ['produto', /produto|categoria|sortimento|embalagem/]
+  ];
+  const detectTopics = clean => topicRules.filter(([,re]) => re.test(clean.toLowerCase())).map(([x]) => x);
+  const claimPolarity = sentence => {
+    const s = sentence.toLowerCase();
+    if (/(não|nao|menor|queda|caiu|cai|reduz|redução|reducao|fraco|negativo|não valoriz|nao valoriz|não influencia|nao influencia)/.test(s)) return 'negative';
+    if (/(aument|cresce|cresceu|crescimento|maior|forte|positivo|valoriza|valorizam|influencia|preferem|preferência|preferencia)/.test(s)) return 'positive';
+    return 'neutral';
+  };
+  const extractClaims = (sentences, topics) => sentences.slice(0, 8).map((text, index) => ({
+    id: `claim-${index + 1}`,
+    text,
+    topics: topics.filter(topic => topicRules.find(([name]) => name === topic)?.[1].test(text.toLowerCase())),
+    polarity: claimPolarity(text),
+    type: 'observed-text',
+    support: 'user-provided-study'
+  }));
   const summarize = text => {
     const clean = normalize(text).slice(0, MAX_CHARS);
     const sentences = clean.split(/(?<=[.!?])\s+/).filter(s => s.length > 35).slice(0, 10);
@@ -73,16 +95,22 @@
     const counts = new Map();
     for (const w of words) counts.set(w, (counts.get(w) || 0) + 1);
     const keywords = [...counts.entries()].sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0])).slice(0, 30).map(([w]) => w);
-    const topics = [
-      ['preço', /preço|preco|promoção|promocao|desconto|barato|caro/],
-      ['canal', /canal|varejo|atacarejo|supermercado|e-commerce|ecommerce/],
-      ['shopper', /shopper|consumidor|compra|comprador|jornada/],
-      ['marca', /marca|brand|concorr/],
-      ['produto', /produto|categoria|sortimento|embalagem/]
-    ].filter(([,re]) => re.test(clean.toLowerCase())).map(([x]) => x);
-    return { excerpt: clean, sentences, keywords, topics, chars: clean.length, extraction: clean ? 'textual' : 'empty' };
+    const topics = detectTopics(clean);
+    return { excerpt: clean, sentences, keywords, topics, claims: extractClaims(sentences, topics), chars: clean.length, extraction: clean ? 'textual' : 'empty' };
   };
   const fingerprint = async (name, size, lastModified, text) => hash([name, size, lastModified, text].join('|'));
+
+  const findContradictions = () => {
+    const claims = state.studies.flatMap(s => (s.summary?.claims || []).map(c => ({ ...c, source: s.name })));
+    const pairs = [];
+    for (let i = 0; i < claims.length; i++) for (let j = i + 1; j < claims.length; j++) {
+      const a = claims[i], b = claims[j];
+      if (a.source === b.source || a.polarity === 'neutral' || b.polarity === 'neutral' || a.polarity === b.polarity) continue;
+      const shared = (a.topics || []).filter(t => (b.topics || []).includes(t));
+      if (shared.length) pairs.push({ topic: shared[0], left: a, right: b, type: 'potential-contradiction' });
+    }
+    return pairs.slice(0, 12);
+  };
 
   const ensurePanel = () => {
     let panel = document.querySelector('#pulse-study-intelligence');
@@ -94,9 +122,10 @@
     return panel;
   };
   const render = () => {
-    const panel = ensurePanel(), n = state.studies.length;
+    const panel = ensurePanel(), n = state.studies.length, contradictions = findContradictions();
     panel.innerHTML = `<strong>Inteligência dos estudos</strong><div style="margin-top:4px">${n ? `${n} estudo(s) processado(s) localmente e disponível(is) para o Ask AI.` : 'Nenhum estudo processado. As perguntas usam apenas a base padrão do Pulse.'}</div>` +
-      (n ? `<ul style="margin:8px 0 0;padding-left:18px">${state.studies.map(s => `<li><b>${esc(s.name)}</b> — ${esc(s.summary.sentences[0] || s.summary.excerpt.slice(0, 180) || 'conteúdo extraído')}<br><small>Tópicos: ${esc((s.summary.topics || []).join(', ') || 'não identificados')} · ${s.summary.chars} caracteres</small></li>`).join('')}</ul>` : '');
+      (n ? `<ul style="margin:8px 0 0;padding-left:18px">${state.studies.map(s => `<li><b>${esc(s.name)}</b> — ${esc(s.summary.sentences[0] || s.summary.excerpt.slice(0, 180) || 'conteúdo extraído')}<br><small>Tópicos: ${esc((s.summary.topics || []).join(', ') || 'não identificados')} · ${s.summary.claims?.length || 0} achados estruturados · ${s.summary.chars} caracteres</small></li>`).join('')}</ul>` : '') +
+      (contradictions.length ? `<div style="margin-top:10px"><b>Possíveis divergências entre estudos</b><ul style="margin:6px 0 0;padding-left:18px">${contradictions.map(c => `<li><small><b>${esc(c.topic)}</b>: ${esc(c.left.source)} ↔ ${esc(c.right.source)} — requer revisão humana.</small></li>`).join('')}</ul></div>` : '');
   };
   const load = async () => { state.studies = await all(); state.ready = true; render(); window.PULSE_STUDIES = state.studies; };
 
@@ -115,7 +144,8 @@
 
   const studyContext = () => state.studies.map((s, i) => {
     const topic = (s.summary.topics || []).join(', ') || 'não identificado';
-    return `EVIDÊNCIA ${i + 1}\nFonte: ${s.name}\nTipo: estudo fornecido pelo usuário\nExtração: ${s.provenance?.extractionMethod || 'textual'}\nConfiança: descritiva (não implica validade estatística)\nTópicos detectados: ${topic}\nTrecho extraído:\n${s.summary.excerpt}`;
+    const claims = (s.summary.claims || []).map(c => `- ${c.text} [${c.polarity}; ${(c.topics || []).join(', ') || 'sem tópico'}]`).join('\n');
+    return `EVIDÊNCIA ${i + 1}\nFonte: ${s.name}\nTipo: estudo fornecido pelo usuário\nExtração: ${s.provenance?.extractionMethod || 'textual'}\nConfiança: descritiva (não implica validade estatística)\nTópicos detectados: ${topic}\nAchados estruturados:\n${claims || '- nenhum achado estruturado'}\nTrecho extraído:\n${s.summary.excerpt}`;
   }).join('\n\n').slice(0, 40000);
 
   const getAskField = () => [...document.querySelectorAll('textarea,input[type="text"]')].filter(el => el.offsetParent !== null)
@@ -142,7 +172,9 @@
     if (/(ask ai|perguntar|pergunta|investigar|analisar|ask)/i.test(label)) augmentAsk();
   }, true);
   window.PULSE_STUDY_CONTEXT = studyContext;
+  window.PULSE_STUDY_CLAIMS = () => state.studies.flatMap(s => (s.summary?.claims || []).map(c => ({ ...c, source: s.name })));
+  window.PULSE_STUDY_CONTRADICTIONS = findContradictions;
   window.PULSE_CLEAR_STUDIES = async () => { await removeAll(); await load(); window.PULSE_ACTIVE_STUDY_CONTEXT = ''; };
-  window.PULSE_STUDY_STATS = () => ({ count: state.studies.length, characters: state.studies.reduce((n,s) => n + (s.summary?.chars || 0), 0), topics: [...new Set(state.studies.flatMap(s => s.summary?.topics || []))] });
+  window.PULSE_STUDY_STATS = () => ({ count: state.studies.length, characters: state.studies.reduce((n,s) => n + (s.summary?.chars || 0), 0), claims: state.studies.reduce((n,s) => n + (s.summary?.claims?.length || 0), 0), topics: [...new Set(state.studies.flatMap(s => s.summary?.topics || []))], contradictions: findContradictions().length });
   load().catch(err => console.error('[Pulse Studies] inicialização falhou', err));
 })();
