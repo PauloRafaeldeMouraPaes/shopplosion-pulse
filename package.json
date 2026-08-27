@@ -1,0 +1,8 @@
+{
+  "name": "shopplosion-pulse",
+  "private": true,
+  "scripts": {
+    "validate:pulse": "node scripts/validate-pulse.js index.html",
+    "test:ask-ai": "node scripts/test-pulse-ask-ai.js index.html"
+  }
+}
