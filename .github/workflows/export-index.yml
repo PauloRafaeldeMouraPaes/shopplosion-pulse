@@ -19,9 +19,10 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
           p=Path('index.html');s=p.read_text(encoding='utf-8')
-          s=re.sub(r'sessionStorage\.(getItem|setItem|removeItem)\((\'|\")pulseAskHistory\2\)',r'localStorage.\1(\2pulseAskHistory\2)',s)
+          for q in ("'", '"'):
+            for method in ('getItem','setItem','removeItem'):
+              s=s.replace(f"sessionStorage.{method}({q}pulseAskHistory{q})",f"localStorage.{method}({q}pulseAskHistory{q})")
           s=s.replace('Histórico desta sessão','Histórico de perguntas')
           p.write_text(s,encoding='utf-8')
           PY
