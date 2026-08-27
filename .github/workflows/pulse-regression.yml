@@ -15,5 +15,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
+      - name: Run semantic data integrity checks
+        run: node scripts/test-pulse-data-integrity.js index.html
       - name: Run Ask AI behavioral regression
         run: node scripts/test-pulse-ask-ai.js index.html
