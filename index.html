@@ -577,12 +577,77 @@ function pulseNormalize(str){return (str||"").toLowerCase().normalize("NFD").rep
 function pulseEvidenceTokens(text){var stop={de:1,da:1,do:1,das:1,dos:1,em:1,no:1,na:1,nos:1,nas:1,para:1,por:1,com:1,sem:1,e:1,a:1,o:1,as:1,os:1,um:1,uma:1,uns:1,umas:1,que:1};return pulseNormalize(text).split(/[^a-z0-9]+/).map(function(t){if(t.length>4&&t.endsWith("oes"))t=t.slice(0,-3)+"ao";else if(t.length>4&&t.endsWith("s")&&!t.endsWith("ss"))t=t.slice(0,-1);return t;}).filter(function(t){return t.length>=3&&!stop[t];});}
 function pulseFuzzyTokenScore(a,b){if(a===b)return 3;if(a.length>=4&&b.length>=4&&(a.indexOf(b)===0||b.indexOf(a)===0))return 2;if(a.length>=5&&b.length>=5&&(a.indexOf(b)!==-1||b.indexOf(a)!==-1))return 1;return 0;}
 function pulseFuzzyPhraseScore(qTokens,kTokens){var score=0,used={};qTokens.forEach(function(qt){var best=0,bestI=-1;kTokens.forEach(function(kt,i){if(used[i])return;var v=pulseFuzzyTokenScore(qt,kt);if(v>best){best=v;bestI=i;}});if(best){score+=best;used[bestI]=1;}});return score;}
-function pulseMatchEvidence(question){var q=pulseNormalize(question).trim();if(!q)return null;var qTokens=pulseEvidenceTokens(q),best=null,second=null,bestScore=0,secondScore=0,generic={canal:1,varejo:1,loja:1,consumo:1,volume:1,preco:1,mercado:1,brasil:1,compra:1,compras:1};window.PULSE_EVIDENCE.forEach(function(item){var score=0,matched=0,phrase=0;(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k),kt=pulseEvidenceTokens(nk),raw=kt.length>=2&&q.indexOf(nk)!==-1?10+kt.length*2:0;if(raw){score+=raw;phrase++;matched++;return;}var fuzzy=pulseFuzzyPhraseScore(qTokens,kt);if(fuzzy>=2){score+=fuzzy+(kt.length>=2?2:0);matched++;}});var itemText=pulseNormalize([item.id,item.fato,item.contexto,item.interpretacao].join(" "));qTokens.forEach(function(t){if(t.length>=4){itemText.split(/\s+/).forEach(function(it){var v=pulseFuzzyTokenScore(t,it);if(v>=2)score+=0.5;});}});if(matched>=2)score+=3;if(phrase>=1)score+=3;if(generic[pulseEvidenceTokens(item.id)[0]])score-=0.25;if(score>bestScore){second=best;secondScore=bestScore;best=item;bestScore=score;}else if(score>secondScore){second=item;secondScore=score;}});if(!best||bestScore<5)return null;if(second&&bestScore<9&&(bestScore-secondScore)<2)return null;return best;}
+function pulseMatchEvidence(question){var q=pulseNormalize(question).trim();if(!q)return null;var qTokens=pulseEvidenceTokens(q),best=null,second=null,bestScore=0,secondScore=0,generic={canal:1,varejo:1,loja:1,consumo:1,volume:1,preco:1,mercado:1,brasil:1,compra:1,compras:1};window.PULSE_EVIDENCE.forEach(function(item){var score=0,matched=0,phrase=0;(function(){var keywordScores=[];(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k),kt=pulseEvidenceTokens(nk),raw=kt.length>=2&&q.indexOf(nk)!==-1?10+kt.length*2:0;if(raw){keywordScores.push(raw);phrase++;return;}var fuzzy=pulseFuzzyPhraseScore(qTokens,kt);if(fuzzy>=2)keywordScores.push(fuzzy+(kt.length>=2?2:0));});if(keywordScores.length){keywordScores.sort(function(a,b){return b-a;});score+=keywordScores[0];matched=1;}})();;var itemText=pulseNormalize([item.id,item.fato,item.contexto,item.interpretacao].join(" "));qTokens.forEach(function(t){if(t.length>=4){itemText.split(/\s+/).forEach(function(it){var v=pulseFuzzyTokenScore(t,it);if(v>=2)score+=0.5;});}});if(matched>=2)score+=3;if(phrase>=1)score+=3;if(generic[pulseEvidenceTokens(item.id)[0]])score-=0.25;if(score>bestScore){second=best;secondScore=bestScore;best=item;bestScore=score;}else if(score>secondScore){second=item;secondScore=score;}});if(!best||bestScore<5)return null;if(second&&bestScore<9&&(bestScore-secondScore)<2)return null;return best;}
 function pulseRankEvidence(question){var q=pulseNormalize(question).trim();if(!q)return [];var qTokens=pulseEvidenceTokens(q);return window.PULSE_EVIDENCE.map(function(item){var score=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens((item.keywords||[]).join(" ")));score+=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens([item.id,item.fato,item.contexto].join(" ")))*0.5;return {item:item,score:score};}).filter(function(x){return x.score>1;}).sort(function(a,b){return b.score-a.score;}).slice(0,3).map(function(x){return x.item;});}
+function pulseRoute(){
+  var hash=location.hash||"#overview";
+  var target=document.querySelector(hash);
+  if(!target||!target.classList.contains("screen")){hash="#overview";target=document.querySelector(hash);if(location.hash!==hash)history.replaceState(null,"",hash);}
+  document.querySelectorAll("main .screen").forEach(function(screen){
+    var active=screen===target;
+    screen.style.display=active?"block":"none";
+    screen.setAttribute("aria-hidden",active?"false":"true");
+  });
+  var matched="#overview";
+  Object.keys(PULSE_NAV_SECTIONS).forEach(function(k){if(PULSE_NAV_SECTIONS[k].indexOf(hash)!==-1)matched=k;});
+  document.querySelectorAll("aside .nav").forEach(function(link){
+    var active=link.getAttribute("href")===matched;
+    link.classList.toggle("active",active);
+    if(active)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");
+  });
+  var stepMap={"#overview":1,"#signals":2,"#diagnostic":3,"#opportunities":4,"#investigate":5,"#answer-custom":5,"#answer-channel":5,"#answer-occasion":5,"#answer-pack":5,"#answer-premium":5};
+  var step=stepMap[hash]||1;
+  var labels={1:"Comece aqui",2:"O que mudou?",3:"Por que mudou?",4:"Onde crescer?",5:"Investigar"};
+  document.querySelectorAll(".journey-map-global .journey-step").forEach(function(el){var n=Number(el.dataset.step);el.classList.toggle("is-current",n===step);el.classList.toggle("is-complete",n<step);if(n===step)el.setAttribute("aria-current","step");else el.removeAttribute("aria-current");});
+  var current=document.getElementById("journey-current-step"),label=document.getElementById("journey-current-label");
+  if(current)current.textContent=String(step).padStart(2,"0");
+  if(label)label.textContent=labels[step];
+  if(hash==="#answer-custom" && typeof pulseRenderCustomAnswer==="function")pulseRenderCustomAnswer();
+}
 window.addEventListener("hashchange",pulseRoute);
 document.addEventListener("DOMContentLoaded",pulseRoute);
 </script>
 
+
+function pulseRenderCustomAnswer(){
+  var box = document.getElementById("pulse-question");
+  var titleEl = document.getElementById("pulse-custom-title");
+  var subtitleEl = document.getElementById("pulse-custom-subtitle");
+  var bodyEl = document.getElementById("pulse-custom-body");
+  if (!bodyEl) return;
+  var question = box ? box.value : "";
+  var match = pulseMatchEvidence(question);
+  var proprietaryCount = window.PULSE_UPLOADED_FILES ? window.PULSE_UPLOADED_FILES.length : 0;
+  var propBanner = "";
+  if (proprietaryCount > 0) {
+    propBanner = '<div class="upload"><div><b>' + proprietaryCount + ' estudo(s) proprietário(s) adicionado(s)</b>' +
+      '<p>Ainda não há extração automática neste protótipo (isso é P0/P1 no roadmap técnico). Os arquivos ficarão disponíveis para cruzamento assim que o backend de ingestão estiver conectado — nunca serão misturados aos dados públicos sem identificar a origem.</p></div></div>';
+  }
+  if (!match) {
+    var near = pulseRankEvidence(question);
+    if (titleEl) titleEl.textContent = question ? "Ainda não temos evidência suficiente para essa pergunta" : "Digite ou escolha uma pergunta";
+    if (subtitleEl) subtitleEl.textContent = "O Pulse só responde com base em evidências publicadas — nunca inventa um número.";
+    var nearHtml = near.length ? '<div class="nearby"><b>Evidências mais próximas</b>' + near.map(function(x){ return '<a href="#answer-custom" data-near-id="'+pulseEscape(x.id)+'">'+pulseEscape(x.id)+' · '+pulseEscape(x.fato.slice(0,120))+'…</a>'; }).join('') + '</div>' : '<p class="empty-note">Tente termos como canal, ocasião, pack, premium, promoção, frequência ou confiança financeira.</p>';
+    bodyEl.innerHTML = '<div class="box"><span class="confidence">SEM EVIDÊNCIA</span><h2>Não encontramos evidência suficiente para "' + pulseEscape(question || "sua pergunta") + '"</h2><p>Isso não significa que a resposta não exista — significa que o Pulse não encontrou evidência suficiente na base atual.</p>' + nearHtml + '</div>' + propBanner;
+    return;
+  }
+  if (titleEl) titleEl.textContent = "Fato → Contexto → Interpretação → Hipótese → Ação";
+  if (subtitleEl) subtitleEl.textContent = "Resposta composta a partir da base de evidências do Pulse para: “" + question + "”";
+  bodyEl.innerHTML =
+    '<div class="box"><span class="confidence">EVIDÊNCIA · ' + match.confianca + '</span><h2>FATO</h2><p>' + match.fato + '</p>' +
+    '<div class="source-line">Fonte: ' + match.fonte + ' · Período: ' + match.periodo + ' · Confiança: ' + match.confianca + '</div></div>' +
+    '<div class="box"><h2>CONTEXTO</h2><p>' + match.contexto + '</p></div>' +
+    '<div class="box"><h2>INTERPRETAÇÃO</h2><p>' + match.interpretacao + '</p></div>' +
+    '<div class="hypo"><b>HIPÓTESE A VALIDAR</b><p>' + match.hipotese + '</p></div>' +
+    '<div class="box"><h2>AÇÃO SUGERIDA</h2><p>' + match.acao + '</p></div>' +
+    propBanner;
+}
+
+<script id="pulse-history-runtime">
+function pulseSaveHistory(question,match){try{var h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]');h.unshift({q:question,id:match?match.id:null,ts:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('pulseAskHistory',JSON.stringify(h.slice(0,8)));pulseRenderHistory();}catch(e){}}
+
+function pulseRenderHistory(){var el=document.getElementById('pulse-history-list');if(!el)return;var h=[];try{h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]')}catch(e){}el.innerHTML=h.length?h.map(function(x,i){return '<div class="history-item"><button type="button" data-history-index="'+i+'">'+pulseEscape(x.q)+'</button><span>'+pulseEscape(x.ts)+'</span></div>';}).join(''):'<div class="empty-note">Nenhuma pergunta salva.</div>';el.querySelectorAll('[data-history-index]').forEach(function(b){b.addEventListener('click',function(){var x=h[Number(b.dataset.historyIndex)],input=document.getElementById('pulse-question');if(input){input.value=x.q;input.focus();location.hash='#answer-custom';}});});}
+</script>
 
 <script id="pulse-enhancements">(function(){
 function qs(a,b){return (b||document).querySelector(a)}
@@ -690,6 +755,6 @@ function render(){var root=document.getElementById("investigate");if(!root||docu
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
 })();</script>
 <script id="pulse-stage2-category">(function(){function getCategory(id){var item=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===id;});return item?String(item.categoria||"geral"):"geral";}function apply(){var select=document.getElementById("pulse-category-select");if(!select)return;var chosen=select.value||"all";try{localStorage.setItem("pulsePrimaryCategory",chosen)}catch(e){};["#signals .rows","#opportunities .opp"].forEach(function(sel){var root=document.querySelector(sel);if(!root)return;var cards=Array.prototype.slice.call(root.querySelectorAll("[data-evidence-id]"));cards.forEach(function(card,i){if(!card.dataset.pulseOrder)card.dataset.pulseOrder=String(i);var badge=card.querySelector(":scope > .pulse-category-badge");if(!badge){badge=document.createElement("span");badge.className="pulse-category-badge";card.insertBefore(badge,card.firstChild);}var cat=getCategory(card.dataset.evidenceId),specific=chosen!=="all"&&cat===chosen;badge.textContent=specific?"Específico da sua categoria":"Sinal geral do mercado";badge.classList.toggle("is-specific",specific);badge.classList.toggle("is-general",!specific);card.classList.toggle("pulse-category-sorted",specific);});if(chosen!=="all"){cards.sort(function(a,b){var as=getCategory(a.dataset.evidenceId)===chosen,bs=getCategory(b.dataset.evidenceId)===chosen;return as===bs?Number(a.dataset.pulseOrder)-Number(b.dataset.pulseOrder):(bs?1:0)-(as?1:0);}).forEach(function(card){root.appendChild(card);});}else{cards.sort(function(a,b){return Number(a.dataset.pulseOrder)-Number(b.dataset.pulseOrder);}).forEach(function(card){root.appendChild(card);});}});}function init(){var select=document.getElementById("pulse-category-select");if(!select)return;try{var saved=localStorage.getItem("pulsePrimaryCategory");if(saved&&select.querySelector('option[value="'+saved+'"]'))select.value=saved;}catch(e){}select.addEventListener("change",apply);apply();}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script><script id="pulse-stage3-export">(function(){function sourceText(ids){return ids.map(function(id){var ev=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===id;});return ev?ev.fonte+' · '+ev.periodo+' · '+ev.confianca:null;}).filter(Boolean).join(' | ');}function addButton(screenId){var screen=document.getElementById(screenId);if(!screen||screen.querySelector('.pulse-export-btn'))return;var btn=document.createElement('button');btn.type='button';btn.className='secondary pulse-export-btn';btn.textContent='Exportar';btn.setAttribute('aria-label','Exportar relatório executivo');btn.addEventListener('click',function(){document.body.classList.add('pulse-printing');document.querySelectorAll('main .screen').forEach(function(x){x.classList.remove('pulse-print-target');});screen.classList.add('pulse-print-target');var old=screen.querySelector('.pulse-print-only');if(!old){old=document.createElement('div');old.className='pulse-print-only sources';old.innerHTML='<b>FONTES CITADAS</b><p>'+sourceText(screenId==='diagnostic'?['promocao','premium','confianca-financeira']:['pack','premium','frequencia','indulgencia-seletiva'])+'</p>'+(screenId==='diagnostic'?'<p><strong>LEITURA EXECUTIVA:</strong> O shopper está ajustando a forma de comprar — preço, formato, frequência e mix — e a interpretação causal deve ser validada por categoria, canal e pack-size.</p>':'');screen.appendChild(old);}window.setTimeout(function(){window.print();},30);});var intro=screen.querySelector('.intro');if(intro)intro.appendChild(btn);}function init(){addButton('diagnostic');addButton('opportunities');window.addEventListener('afterprint',function(){document.body.classList.remove('pulse-printing');document.querySelectorAll('.pulse-print-target').forEach(function(x){x.classList.remove('pulse-print-target');});});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script><script id="pulse-history-persistence">function pulseEscape(text){return String(text||"").replace(/[<>&]/g,function(m){return ({"<":"&lt;",">":"&gt;","&":"&amp;"})[m];});}
-function pulseSaveHistory(question,match){try{var h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]');h.unshift({q:question,id:match?match.id:null,ts:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('pulseAskHistory',JSON.stringify(h.slice(0,8)));pulseRenderHistory();}catch(e){}}
-function pulseRenderHistory(){var el=document.getElementById('pulse-history-list');if(!el)return;var h=[];try{h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]')}catch(e){}el.innerHTML=h.length?h.map(function(x,i){return '<div class="history-item"><button type="button" data-history-index="'+i+'">'+pulseEscape(x.q)+'</button><span>'+pulseEscape(x.ts)+'</span></div>';}).join(''):'<div class="empty-note">Nenhuma pergunta salva.</div>';el.querySelectorAll('[data-history-index]').forEach(function(b){b.addEventListener('click',function(){var x=h[Number(b.dataset.historyIndex)],input=document.getElementById('pulse-question');if(input){input.value=x.q;input.focus();location.hash='#answer-custom';}});});}
+
+
 </script></body></html>
