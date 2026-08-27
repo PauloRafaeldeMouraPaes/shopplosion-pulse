@@ -62,9 +62,10 @@ marker='<script id="pulse-enhancements">'
 if marker not in s: raise RuntimeError('enhancement script marker missing')
 s=s.replace(marker,'<script id="pulse-history-runtime">\n'+'\n\n'.join(history_blocks)+'\n</script>\n\n'+marker,1)
 
-old=r'''(item.keywords||\[\]\).forEach\(function\(k\)\{var nk=pulseNormalize\(k\),kt=pulseEvidenceTokens\(nk\),raw=kt.length>=2&&q.indexOf\(nk\)!==-1\?10\+kt.length\*2:0;if\(raw\)\{score\+=raw;phrase\+\+;matched\+\+;return;\}var fuzzy=pulseFuzzyPhraseScore\(qTokens,kt\);if\(fuzzy>=2\)\{score\+=fuzzy\+\(kt.length>=2\?2:0\);matched\+\+;\}\}\);'''
-replacement='''(function(){var keywordScores=[];(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k),kt=pulseEvidenceTokens(nk),raw=kt.length>=2&&q.indexOf(nk)!==-1?10+kt.length*2:0;if(raw){keywordScores.push(raw);phrase++;return;}var fuzzy=pulseFuzzyPhraseScore(qTokens,kt);if(fuzzy>=2)keywordScores.push(fuzzy+(kt.length>=2?2:0));});if(keywordScores.length){keywordScores.sort(function(a,b){return b-a;});score+=keywordScores[0];matched=1;}})();'''
-s2,n=re.subn(old,replacement,s,count=1)
-if n!=1: raise RuntimeError('pulseMatchEvidence scoring block not found')
-s=s2
+start=s.find('(item.keywords||[]).forEach(function(k){')
+if start<0: raise RuntimeError('pulseMatchEvidence keyword loop not found')
+end=s.find('});var itemText=',start)
+if end<0: raise RuntimeError('pulseMatchEvidence keyword loop end not found')
+replacement='(function(){var keywordScores=[];(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k),kt=pulseEvidenceTokens(nk),raw=kt.length>=2&&q.indexOf(nk)!==-1?10+kt.length*2:0;if(raw){keywordScores.push(raw);phrase++;return;}var fuzzy=pulseFuzzyPhraseScore(qTokens,kt);if(fuzzy>=2)keywordScores.push(fuzzy+(kt.length>=2?2:0));});if(keywordScores.length){keywordScores.sort(function(a,b){return b-a;});score+=keywordScores[0];matched=1;}})();'
+s=s[:start]+replacement+s[end+2:]
 path.write_text(s,encoding='utf-8')
