@@ -30,3 +30,5 @@ test('remover todos os estudos remove a evidência do contexto do Ask AI', async
   const after = await page.evaluate(() => window.PULSE_STUDY_CONTEXT());
   expect(after).toBe('');
 });
+
+// Keep this spec as the behavioral contract for study evidence in Ask AI.
