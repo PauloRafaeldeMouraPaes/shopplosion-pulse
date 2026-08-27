@@ -23,11 +23,7 @@
 
   function qs(selector, root){ return (root || document).querySelector(selector); }
   function qsa(selector, root){ return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
-  function normalizeHash(hash){
-    var value = hash || '#overview';
-    return NAV[value] ? value : '#overview';
-  }
-
+  function normalizeHash(hash){ var value = hash || '#overview'; return NAV[value] ? value : '#overview'; }
   function getActiveNav(hash){ return NAV[hash] || '#overview'; }
 
   function setJourney(step){
@@ -48,8 +44,8 @@
     hash = normalizeHash(hash);
     var targetHash = getActiveNav(hash);
     qsa('main .screen').forEach(function(screen){
-      var active = screen.id === targetHash || (targetHash === '#investigate' && screen.id === hash.slice(1));
-      if(hash === '#answer-custom') active = screen.id === 'investigate' || screen.id === 'answer-custom';
+      var active = screen.id === targetHash.slice(1);
+      if(hash === '#answer-custom') active = screen.id === 'answer-custom' || screen.id === 'investigate';
       if(hash === '#answer-channel') active = screen.id === 'answer-channel';
       if(hash === '#answer-occasion') active = screen.id === 'answer-occasion';
       if(hash === '#answer-pack') active = screen.id === 'answer-pack';
@@ -66,15 +62,9 @@
       if(active) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
     });
 
-    var stepMap = {
-      '#overview':1,'#signals':2,'#diagnostic':3,'#opportunities':4,
-      '#investigate':5,'#answer-custom':5,'#answer-channel':5,'#answer-occasion':5,'#answer-pack':5,'#answer-premium':5
-    };
+    var stepMap = {'#overview':1,'#signals':2,'#diagnostic':3,'#opportunities':4,'#investigate':5,'#answer-custom':5,'#answer-channel':5,'#answer-occasion':5,'#answer-pack':5,'#answer-premium':5};
     setJourney(stepMap[hash] || 1);
-
-    if(replace) history.replaceState(null,'',hash);
-    else if(location.hash !== hash) history.pushState(null,'',hash);
-
+    if(replace) history.replaceState(null,'',hash); else if(location.hash !== hash) history.pushState(null,'',hash);
     window.scrollTo({top:0, behavior:'smooth'});
     if(hash === '#answer-custom' && typeof window.pulseRenderCustomAnswer === 'function') window.pulseRenderCustomAnswer();
   }
@@ -83,86 +73,53 @@
     qsa('a[href^="#"]').forEach(function(link){
       var href = link.getAttribute('href');
       if(!NAV[href]) return;
-      link.addEventListener('click', function(event){
-        event.preventDefault();
-        route(href, false);
-      });
+      link.addEventListener('click', function(event){ event.preventDefault(); route(href, false); });
     });
     window.addEventListener('hashchange', function(){ route(location.hash, true); });
     window.addEventListener('popstate', function(){ route(location.hash, true); });
   }
 
   function classify(id){
-    for(var key in CATEGORY_META){
-      if(CATEGORY_META[key].ids.indexOf(id) !== -1) return key;
-    }
+    for(var key in CATEGORY_META){ if(CATEGORY_META[key].ids.indexOf(id) !== -1) return key; }
     return 'geral';
   }
 
   function setupCategoryFilter(){
     var select = document.getElementById('pulse-category-select');
     if(!select) return;
-
-    var desired = [
-      ['all','Todas as categorias'],
-      ['chocolates','Chocolates'],
-      ['bebidas','Bebidas'],
-      ['saude','Saúde & bem-estar'],
-      ['geral','Visão transversal']
-    ];
+    var desired = [['all','Todas as categorias'],['chocolates','Chocolates'],['bebidas','Bebidas'],['saude','Saúde & bem-estar'],['geral','Visão transversal']];
     select.innerHTML = desired.map(function(item){ return '<option value="'+item[0]+'">'+item[1]+'</option>'; }).join('');
-
-    try{
-      var saved = localStorage.getItem('pulsePrimaryCategory');
-      if(saved && desired.some(function(item){ return item[0] === saved; })) select.value = saved;
-    }catch(e){}
+    try{ var saved = localStorage.getItem('pulsePrimaryCategory'); if(saved && desired.some(function(item){ return item[0] === saved; })) select.value = saved; }catch(e){}
 
     function apply(){
       var chosen = select.value || 'all';
       try{ localStorage.setItem('pulsePrimaryCategory', chosen); }catch(e){}
-
       ['#signals .rows', '#opportunities .opp'].forEach(function(rootSelector){
         var root = qs(rootSelector); if(!root) return;
-        var cards = qsa('[data-evidence-id]', root);
-        cards.forEach(function(card, index){
+        qsa('[data-evidence-id]', root).forEach(function(card, index){
           if(!card.dataset.pulseUxOrder) card.dataset.pulseUxOrder = String(index);
-          var id = card.dataset.evidenceId;
-          var category = classify(id);
+          var category = classify(card.dataset.evidenceId);
           var specific = chosen === 'all' || category === chosen;
           card.classList.toggle('pulse-category-hidden', !specific);
           card.classList.toggle('pulse-category-match', chosen !== 'all' && category === chosen);
           card.dataset.pulseCategory = category;
-
           var badge = card.querySelector(':scope > .pulse-category-badge');
-          if(!badge){
-            badge = document.createElement('span');
-            badge.className = 'pulse-category-badge';
-            card.insertBefore(badge, card.firstChild);
-          }
+          if(!badge){ badge = document.createElement('span'); badge.className = 'pulse-category-badge'; card.insertBefore(badge, card.firstChild); }
           badge.textContent = chosen !== 'all' && category === chosen ? 'DA SUA CATEGORIA' : (category === 'geral' ? 'VISÃO TRANSVERSAL' : CATEGORY_META[category].label.toUpperCase());
           badge.classList.toggle('is-specific', chosen !== 'all' && category === chosen);
           badge.classList.toggle('is-general', chosen === 'all' || category === 'geral');
         });
       });
-
-      qsa('[data-filter-summary="signals"]').forEach(function(el){
-        var visible = qsa('#signals .rows [data-evidence-id]:not(.pulse-category-hidden)').length;
-        el.textContent = visible + ' sinais exibidos';
-      });
-      qsa('[data-filter-summary="opportunities"]').forEach(function(el){
-        var visible = qsa('#opportunities .opp [data-evidence-id]:not(.pulse-category-hidden)').length;
-        el.textContent = visible + ' oportunidades exibidas';
-      });
+      qsa('[data-filter-summary="signals"]').forEach(function(el){ el.textContent = qsa('#signals .rows [data-evidence-id]:not(.pulse-category-hidden)').length + ' sinais exibidos'; });
+      qsa('[data-filter-summary="opportunities"]').forEach(function(el){ el.textContent = qsa('#opportunities .opp [data-evidence-id]:not(.pulse-category-hidden)').length + ' oportunidades exibidas'; });
     }
-
     select.addEventListener('change', apply);
     apply();
   }
 
   function addStyles(){
     if(document.getElementById('pulse-ux-fixes-styles')) return;
-    var style = document.createElement('style');
-    style.id = 'pulse-ux-fixes-styles';
+    var style = document.createElement('style'); style.id = 'pulse-ux-fixes-styles';
     style.textContent = '\n'
       + 'aside .nav.is-active,aside .nav.active{background:#1f3b6d!important;color:#fff!important;font-weight:900!important;border-radius:10px!important;}\n'
       + 'aside .nav.is-active .nav-sub,aside .nav.active .nav-sub{color:#dbe7ff!important;}\n'
@@ -177,13 +134,7 @@
     document.head.appendChild(style);
   }
 
-  function init(){
-    addStyles();
-    bindNavigation();
-    setupCategoryFilter();
-    route(location.hash || '#overview', true);
-  }
-
+  function init(){ addStyles(); bindNavigation(); setupCategoryFilter(); route(location.hash || '#overview', true); }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   window.PULSE_NAV_SECTIONS = NAV;
   window.PULSE_CATEGORY_TAXONOMY = CATEGORY_META;
