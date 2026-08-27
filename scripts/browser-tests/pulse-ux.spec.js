@@ -2,7 +2,6 @@ const { test, expect } = require('@playwright/test');
 
 test('navegação: muda quadro e destaca a etapa ativa', async ({ page }) => {
   await page.goto('/index.html#overview');
-
   await page.locator('aside .nav[href="#signals"]').click();
   await expect(page).toHaveURL(/#signals$/);
   await expect(page.locator('#signals')).toBeVisible();
@@ -16,9 +15,8 @@ test('navegação: muda quadro e destaca a etapa ativa', async ({ page }) => {
   await expect(page.locator('#journey-current-step')).toHaveText('03');
 });
 
-test('categoria: filtra sinais e oportunidades e preserva contexto transversal', async ({ page }) => {
+test('categoria: filtra sinais e mostra estado explícito quando não há evidência específica', async ({ page }) => {
   await page.goto('/index.html#signals');
-
   const select = page.locator('#pulse-category-select');
   await expect(select).toHaveValue('all');
 
@@ -27,10 +25,11 @@ test('categoria: filtra sinais e oportunidades e preserva contexto transversal',
   await expect(page.locator('#signals [data-evidence-id="canal"]')).toBeHidden();
 
   await select.selectOption('bebidas');
-  await expect(page.locator('#signals [data-evidence-id="ocasiao"]')).toBeVisible();
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeHidden();
+  await expect(page.locator('#signals .pulse-category-empty')).toContainText('Bebidas');
 
   await select.selectOption('all');
+  await expect(page.locator('#signals .pulse-category-empty')).toBeHidden();
   await expect(page.locator('#signals [data-evidence-id="canal"]')).toBeVisible();
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeVisible();
 });
