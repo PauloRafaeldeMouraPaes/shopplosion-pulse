@@ -1,0 +1,1 @@
+Evidence layer contract: claims are descriptive sentence-level observations; polarity and topics are heuristic only; cross-study opposing claims are flagged as potential contradictions for human review; provenance and removable context are preserved.
