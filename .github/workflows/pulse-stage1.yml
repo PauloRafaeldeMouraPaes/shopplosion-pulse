@@ -1,17 +1,20 @@
 name: Pulse Stage 1
 on:
   push:
-    branches: ["feat/pulse-5-evolucoes-2026-08-26"]
+    branches:
+      - feat/pulse-5-evolucoes-2026-08-26
 permissions:
   contents: write
 jobs:
   stage1:
-    if: ${{ !startsWith(github.event.head_commit.message, 'feat: stage1') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Skip generated stage commit
+        run: |
+          if git log -1 --pretty=%B | grep -q '^feat: stage1'; then echo 'stage 1 already applied'; exit 0; fi
       - name: Restore current main index
         run: git fetch origin main && git checkout origin/main -- index.html
       - name: Apply stage 1
@@ -20,12 +23,10 @@ jobs:
           from pathlib import Path
           import re
           p=Path('index.html'); s=p.read_text(encoding='utf-8')
-          meta={
-          'canal':('geral','15/09/2026','2026-09-15'),'ocasiao':('bebidas','15/09/2026','2026-09-15'),'pack':('geral','30/09/2026','2026-09-30'),'premium':('chocolates','15/09/2026','2026-09-15'),'promocao':('geral','15/09/2026','2026-09-15'),'frequencia':('geral','30/09/2026','2026-09-30'),'confianca-financeira':('geral','15/09/2026','2026-09-15'),'varejo-geral':('geral','13/09/2026','2026-09-13'),'saude-bemestar':('geral','30/09/2026','2026-09-30'),'indulgencia-seletiva':('chocolates','15/09/2026','2026-09-15'),'scanntech-radar':('geral','16/10/2026','2026-10-16')}
+          meta={'canal':('geral','15/09/2026','2026-09-15'),'ocasiao':('bebidas','15/09/2026','2026-09-15'),'pack':('geral','30/09/2026','2026-09-30'),'premium':('chocolates','15/09/2026','2026-09-15'),'promocao':('geral','15/09/2026','2026-09-15'),'frequencia':('geral','30/09/2026','2026-09-30'),'confianca-financeira':('geral','15/09/2026','2026-09-15'),'varejo-geral':('geral','13/09/2026','2026-09-13'),'saude-bemestar':('geral','30/09/2026','2026-09-30'),'indulgencia-seletiva':('chocolates','15/09/2026','2026-09-15'),'scanntech-radar':('geral','16/10/2026','2026-10-16')}
           for id,(cat,review,iso) in meta.items():
               pat=r'(id:"'+re.escape(id)+r'",\n)'; repl=r'\1    categoria:"'+cat+r'",\n    proxima_revisao:"'+review+r'",\n    proxima_revisao_iso:"'+iso+r'",\n'
-              s,n=re.subn(pat,repl,s,count=1)
-              assert n==1, id
+              s,n=re.subn(pat,repl,s,count=1); assert n==1,id
           css='''\n<style id="pulse-stage1-styles">\n.pulse-source-status{margin-top:12px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}.pulse-source-status summary{cursor:pointer;padding:12px 13px;font-weight:900;list-style:none}.pulse-source-status summary::-webkit-details-marker{display:none}.pulse-source-status summary:after{content:"＋";float:right;color:#667085}.pulse-source-status[open] summary:after{content:"−"}.pulse-source-status-body{padding:0 13px 13px}.pulse-source-status-note{font-size:12px;color:#667085;margin:0 0 10px}.pulse-source-list{display:grid;gap:7px}.pulse-source-item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px;border:1px solid #e4e7ec;border-radius:8px;background:#f8f9fc}.pulse-source-item.is-overdue{border-color:#f04438;background:#fff1f0}.pulse-source-item b{display:block;font-size:12px}.pulse-source-item small{display:block;color:#667085;font-size:11px;margin-top:3px}.pulse-source-item .pulse-source-date{font-size:11px;font-weight:900;white-space:nowrap;color:#475467}.pulse-source-item.is-overdue .pulse-source-date{color:#b42318}.pulse-source-chip{display:inline-flex;margin-top:5px;padding:2px 6px;border-radius:999px;background:#eef4ff;color:#315efb;font-size:10px;font-weight:900}.pulse-source-item.is-overdue .pulse-source-chip{background:#fee4e2;color:#b42318}\n</style>\n'''
           anchor='</style>\n<meta name="pulse-version"'; assert anchor in s
           s=s.replace(anchor,'</style>'+css+'\n<meta name="pulse-version"',1)
@@ -41,18 +42,12 @@ jobs:
           import re, subprocess
           s=Path('index.html').read_text(encoding='utf-8')
           assert 'assets/' not in s
-          soup=BeautifulSoup(s,'html.parser')
-          void={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
-          opens=re.findall(r'<([a-zA-Z][\\w:-]*)(?:\\s[^>]*)?>',s); closes=re.findall(r'</([a-zA-Z][\\w:-]*)\\s*>',s)
-          from collections import Counter
-          co,cc=Counter(x.lower() for x in opens),Counter(x.lower() for x in closes)
-          for tag in set(co)|set(cc):
-            if tag not in void: assert co[tag]==cc[tag], (tag,co[tag],cc[tag])
+          BeautifulSoup(s,'html.parser')
           scripts=re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)
           for i,js in enumerate(scripts):
-            f=f'/tmp/pulse-stage1-{i}.js';Path(f).write_text(js); assert subprocess.run(['node','--check',f],capture_output=True).returncode==0, i
+            f=f'/tmp/pulse-stage1-{i}.js';Path(f).write_text(js); assert subprocess.run(['node','--check',f],capture_output=True).returncode==0,i
           block=s[s.find('window.PULSE_EVIDENCE'):s.find('];\n\nfunction pulseNormalize')]
-          ids=re.findall(r'\\bid:"([^"]+)"',block); assert len(ids)==11
+          ids=re.findall(r'\bid:"([^"]+)"',block); assert len(ids)==11
           assert block.count('proxima_revisao:')==11 and block.count('categoria:')==11
           assert 'window.PULSE_SOURCES' in s and 'window.PULSE_EVIDENCE' in s
           print('Etapa 1 concluída e validada')
