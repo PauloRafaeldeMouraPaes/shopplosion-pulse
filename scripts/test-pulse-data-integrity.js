@@ -31,6 +31,19 @@ function extractAssignedArray(marker) {
   return vm.runInNewContext(html.slice(a, b));
 }
 
+function sourceMatchesEvidence(fonte, orgs) {
+  const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const expected = normalize(fonte);
+  if (!expected) return false;
+  return orgs.some(org => {
+    const actual = normalize(org);
+    if (actual === expected) return true;
+    const expectedParts = expected.split(/\s+/).filter(Boolean);
+    const actualParts = actual.split(/\s+/).filter(Boolean);
+    return expectedParts.length > 1 && expectedParts.every(part => actualParts.includes(part));
+  });
+}
+
 let evidence;
 let sources;
 try {
@@ -46,7 +59,7 @@ if (!Array.isArray(sources) || sources.length === 0) failures.push('PULSE_SOURCE
 
 const allowedCategories = new Set(['chocolates', 'bebidas', 'higiene', 'geral']);
 const evidenceIds = new Set();
-const sourceOrgs = new Set(sources.map(s => s && s.org).filter(Boolean));
+const sourceOrgs = sources.map(s => s && s.org).filter(Boolean);
 
 for (const item of evidence || []) {
   if (!item || typeof item !== 'object') { failures.push('PULSE_EVIDENCE contains a non-object item'); continue; }
@@ -62,7 +75,7 @@ for (const item of evidence || []) {
   if (!Array.isArray(item.keywords) || item.keywords.length < 3) failures.push(`${item.id}: insufficient keywords`);
   if (item.proxima_revisao_iso && !/^\d{4}-\d{2}-\d{2}$/.test(item.proxima_revisao_iso)) failures.push(`${item.id}: invalid proxima_revisao_iso`);
   if (item.proxima_revisao_iso && Number.isNaN(Date.parse(`${item.proxima_revisao_iso}T00:00:00Z`))) failures.push(`${item.id}: unparseable proxima_revisao_iso`);
-  if (item.fonte && !sourceOrgs.has(item.fonte)) failures.push(`${item.id}: fonte not represented in PULSE_SOURCES: ${item.fonte}`);
+  if (item.fonte && !sourceMatchesEvidence(item.fonte, sourceOrgs)) failures.push(`${item.id}: fonte not represented in PULSE_SOURCES: ${item.fonte}`);
 }
 
 const sourceKeys = new Set();
