@@ -609,6 +609,15 @@ document.addEventListener("DOMContentLoaded",pulseRoute);
 </script>
 
 
+
+
+<script id="pulse-history-runtime">
+
+
+
+</script>
+
+<script id="pulse-custom-answer-runtime">
 function pulseRenderCustomAnswer(){
   var box = document.getElementById("pulse-question");
   var titleEl = document.getElementById("pulse-custom-title");
@@ -642,6 +651,7 @@ function pulseRenderCustomAnswer(){
     '<div class="box"><h2>AÇÃO SUGERIDA</h2><p>' + match.acao + '</p></div>' +
     propBanner;
 }
+</script>
 
 <script id="pulse-history-runtime">
 function pulseSaveHistory(question,match){try{var h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]');h.unshift({q:question,id:match?match.id:null,ts:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('pulseAskHistory',JSON.stringify(h.slice(0,8)));pulseRenderHistory();}catch(e){}}
