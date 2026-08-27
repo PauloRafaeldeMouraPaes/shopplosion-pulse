@@ -22,7 +22,7 @@ test('categoria: filtra sinais e mostra estado explícito quando não há evidê
 
   await select.selectOption('chocolates');
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeVisible();
-  await expect(page.locator('#signals [data-evidence-id="canal"]')).toBeHidden();
+  await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeHidden();
 
   await select.selectOption('bebidas');
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeHidden();
@@ -30,6 +30,6 @@ test('categoria: filtra sinais e mostra estado explícito quando não há evidê
 
   await select.selectOption('all');
   await expect(page.locator('#signals .pulse-category-empty')).toBeHidden();
-  await expect(page.locator('#signals [data-evidence-id="canal"]')).toBeVisible();
+  await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeVisible();
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeVisible();
 });
