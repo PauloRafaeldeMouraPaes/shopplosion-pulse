@@ -15,7 +15,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install Playwright
-        run: npm exec --yes --package=@playwright/test@1.55.0 -- playwright install --with-deps chromium
+      - name: Install Playwright package
+        run: npm install --no-save @playwright/test@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - name: Run browser smoke tests
-        run: npm exec --yes --package=@playwright/test@1.55.0 -- playwright test scripts/browser-tests/pulse-attachment.spec.js scripts/browser-tests/pulse-study-intelligence.spec.js
+        run: npx playwright test scripts/browser-tests/pulse-attachment.spec.js scripts/browser-tests/pulse-study-intelligence.spec.js
