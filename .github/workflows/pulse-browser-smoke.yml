@@ -17,5 +17,5 @@ jobs:
           node-version: 20
       - name: Install Playwright
         run: npm exec --yes --package=@playwright/test@1.55.0 -- playwright install --with-deps chromium
-      - name: Run attachment smoke tests
-        run: npm exec --yes --package=@playwright/test@1.55.0 -- playwright test scripts/browser-tests/pulse-attachment.spec.js
+      - name: Run browser smoke tests
+        run: npm exec --yes --package=@playwright/test@1.55.0 -- playwright test scripts/browser-tests/pulse-attachment.spec.js scripts/browser-tests/pulse-study-intelligence.spec.js
