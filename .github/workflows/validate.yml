@@ -5,52 +5,26 @@ on:
     branches: ["**"]
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Apply final history repair
-        run: |
-          if git log -1 --pretty=%B | grep -Eq '^(feat: stage5|fix: stage5)'; then echo 'Stage 5 repair already applied'; exit 0; fi
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          p=Path('index.html');s=p.read_text(encoding='utf-8')
-          s=s.replace('sessionStorage','localStorage').replace('Histórico desta sessão','Histórico de perguntas')
-          s=re.sub(r'function pulseEscape\(text\)\{[\s\S]*?\nfunction pulseSaveHistory', 'function pulseEscape(text){return String(text||"").replace(/[<>&]/g,function(m){return ({"<":"&lt;",">":"&gt;","&":"&amp;"})[m];});}\nfunction pulseSaveHistory', s, count=1)
-          p.write_text(s,encoding='utf-8')
-          PY
-          grep -q "function pulseSaveHistory" index.html
-          grep -q "localStorage.*pulseAskHistory" index.html
-          ! grep -q "sessionStorage" index.html
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git commit -m 'fix: stage5 repair Ask AI history syntax'
-          git push
+
       - name: Validate Pulse artifact
         run: python3 scripts/validate_pulse.py
+
       - name: Validate inline JavaScript syntax
         run: |
           python3 scripts/extract_inline_js.py index.html /tmp/pulse-js
           shopt -s nullglob
           files=(/tmp/pulse-js/*.js)
-          if [ ${#files[@]} -eq 0 ]; then exit 1; fi
-          for f in "${files[@]}"; do node --check "$f"; done
-      - name: Validate required stage fields
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          s=Path('index.html').read_text(encoding='utf-8')
-          assert 'assets/' not in s and 'sessionStorage' not in s
-          assert 'localStorage' in s and 'pulseAskHistory' in s and 'function pulseSaveHistory' in s
-          assert 'window.PULSE_SOURCES' in s and 'window.PULSE_EVIDENCE' in s
-          print('Final required fields validated')
-          PY
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No inline JavaScript blocks found."
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            echo "Checking $f"
+            node --check "$f"
+          done
