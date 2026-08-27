@@ -1,50 +1,11 @@
-name: Pulse Stage 3
+name: Pulse Stage 3 (retired)
 on:
   push:
     branches:
       - feat/pulse-5-evolucoes-2026-08-26
-permissions:
-  contents: write
 jobs:
-  stage3:
+  retired:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Skip generated stage commit
-        run: |
-          if git log -1 --pretty=%B | grep -q '^feat: stage3'; then echo 'stage 3 already applied'; exit 0; fi
-      - name: Apply stage 3
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('index.html');s=p.read_text(encoding='utf-8')
-          css='''<style id="pulse-stage3-print">.pulse-export-btn{margin-left:7px}.pulse-print-only{display:none}@media print{@page{size:A4 portrait;margin:12mm}.pulse-printing body{background:#fff!important}.pulse-printing aside,.pulse-printing .journey-map,.pulse-printing .journey-status,.pulse-printing .filter-panel,.pulse-printing .filter-summary,.pulse-printing .filter-empty,.pulse-printing .primary,.pulse-printing .secondary,.pulse-printing button,.pulse-printing .upload-hero,.pulse-printing .uploaded-state,.pulse-printing .ask,.pulse-printing .suggestions,.pulse-printing .history,.pulse-printing .file-list,.pulse-printing .back,.pulse-printing header.top,.pulse-printing .pulse-category-picker{display:none!important}.pulse-printing main{padding:0!important;margin:0!important}.pulse-printing main .screen{display:none!important}.pulse-printing main .screen.pulse-print-target{display:block!important;max-width:none!important}.pulse-printing .pulse-print-target .intro{padding-right:0}.pulse-printing .pulse-print-target .box,.pulse-printing .pulse-print-target .hypo{break-inside:avoid;box-shadow:none!important}.pulse-printing .pulse-print-only{display:block!important}.pulse-printing .pulse-print-target h1{font-size:24px;margin-bottom:6px}.pulse-printing .pulse-print-target h2{font-size:15px}.pulse-printing .pulse-print-target p{font-size:10.5px;line-height:1.35}.pulse-printing .pulse-print-target .sources{font-size:10px}.pulse-printing .pulse-print-target .diag{gap:10px}.pulse-printing .pulse-print-target .chain{margin:8px 0}.pulse-printing .pulse-print-target .pulse-export-btn{display:none!important}}</style>'''
-          assert 'pulse-stage3-print' not in s;s=s.replace('</head>',css+'</head>',1)
-          js='''<script id="pulse-stage3-export">(function(){function sourceText(ids){return ids.map(function(id){var ev=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===id;});return ev?ev.fonte+' · '+ev.periodo+' · '+ev.confianca:null;}).filter(Boolean).join(' | ');}function addButton(screenId){var screen=document.getElementById(screenId);if(!screen||screen.querySelector('.pulse-export-btn'))return;var btn=document.createElement('button');btn.type='button';btn.className='secondary pulse-export-btn';btn.textContent='Exportar';btn.setAttribute('aria-label','Exportar relatório executivo');btn.addEventListener('click',function(){document.body.classList.add('pulse-printing');document.querySelectorAll('main .screen').forEach(function(x){x.classList.remove('pulse-print-target');});screen.classList.add('pulse-print-target');var old=screen.querySelector('.pulse-print-only');if(!old){old=document.createElement('div');old.className='pulse-print-only sources';old.innerHTML='<b>FONTES CITADAS</b><p>'+sourceText(screenId==='diagnostic'?['promocao','premium','confianca-financeira']:['pack','premium','frequencia','indulgencia-seletiva'])+'</p>'+(screenId==='diagnostic'?'<p><strong>LEITURA EXECUTIVA:</strong> O shopper está ajustando a forma de comprar — preço, formato, frequência e mix — e a interpretação causal deve ser validada por categoria, canal e pack-size.</p>':'');screen.appendChild(old);}window.setTimeout(function(){window.print();},30);});var intro=screen.querySelector('.intro');if(intro)intro.appendChild(btn);}function init(){addButton('diagnostic');addButton('opportunities');window.addEventListener('afterprint',function(){document.body.classList.remove('pulse-printing');document.querySelectorAll('.pulse-print-target').forEach(function(x){x.classList.remove('pulse-print-target');});});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script>'''
-          s=s.replace('</body>',js+'</body>',1);p.write_text(s,encoding='utf-8')
-          PY
-      - name: Validate stage 3
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from html.parser import HTMLParser
-          import re,subprocess
-          class B(HTMLParser):
-            def __init__(self):super().__init__();self.st=[];self.v={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
-            def handle_starttag(self,t,a):
-              if t not in self.v:self.st.append(t)
-            def handle_endtag(self,t):
-              if t in self.v:return
-              assert self.st and self.st[-1]==t,(t,self.st[-10:]);self.st.pop()
-          s=Path('index.html').read_text();assert 'assets/' not in s;b=B();b.feed(s);b.close();assert not b.st
-          for i,js in enumerate(re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)):
-            f=f'/tmp/s3-{i}.js';Path(f).write_text(js);assert subprocess.run(['node','--check',f]).returncode==0,i
-          assert 'window.print()' in s and '@media print' in s and s.count('pulse-export-btn')>=2 and 'pulse-stage3-export' in s
-          assert 'aside' in s and 'journey-map' in s and 'filter-panel' in s
-          print('Etapa 3 concluída e validada')
-          PY
-      - name: Commit stage 3
-        run: |
-          git config user.name 'github-actions[bot]';git config user.email '41898282+github-actions[bot]@users.noreply.github.com';git add index.html;git commit -m 'feat: stage3 executive report export';git push
+      - run: echo 'Stage 3 is complete; no rerun.'
