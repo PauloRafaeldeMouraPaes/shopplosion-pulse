@@ -1,0 +1,53 @@
+name: Pulse Stage 2
+on:
+  push:
+    branches:
+      - feat/pulse-5-evolucoes-2026-08-26
+permissions:
+  contents: write
+jobs:
+  stage2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Skip generated stage commit
+        run: |
+          if git log -1 --pretty=%B | grep -q '^feat: stage2'; then echo 'stage 2 already applied'; exit 0; fi
+      - name: Apply stage 2
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html');s=p.read_text(encoding='utf-8')
+          repls={'<div class="row" data-theme="promocao"':'<div class="row" data-evidence-id="promocao" data-theme="promocao"','<div class="row" data-theme="premium"':'<div class="row" data-evidence-id="premium" data-theme="premium"','<div class="row" data-theme="macro"':'<div class="row" data-evidence-id="varejo-geral" data-theme="macro"','<div class="row" data-theme="financeiro"':'<div class="row" data-evidence-id="confianca-financeira" data-theme="financeiro"','<div class="box" data-theme="pack"':'<div class="box" data-evidence-id="pack" data-theme="pack"','<div class="box" data-theme="premium"':'<div class="box" data-evidence-id="premium" data-theme="premium"','<div class="box" data-theme="frequencia"':'<div class="box" data-evidence-id="frequencia" data-theme="frequencia"','<div class="box corroborated" data-theme="indulgencia"':'<div class="box corroborated" data-evidence-id="indulgencia-seletiva" data-theme="indulgencia"'}
+          for a,b in repls.items(): assert a in s; s=s.replace(a,b,1)
+          old='<div class="context">UNIVERSO <b>Brasil · CPG</b></div></header>';new='<div class="context">UNIVERSO <b>Brasil · CPG</b><label class="pulse-category-picker">MINHA CATEGORIA<select id="pulse-category-select" aria-label="Escolha sua categoria principal"><option value="all">Todas as categorias</option><option value="chocolates">Chocolates</option><option value="bebidas">Bebidas</option><option value="higiene">Higiene</option><option value="geral">Geral</option></select></label></div></header>';assert old in s;s=s.replace(old,new,1)
+          css='<style id="pulse-stage2-styles">.pulse-category-picker{display:inline-flex;align-items:center;gap:6px;margin-left:12px;font-size:9px;font-weight:900;color:#667085}.pulse-category-picker select{font:inherit;font-size:11px;padding:5px 7px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#344054}.pulse-category-badge{display:inline-flex;margin:0 0 5px 0;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.02em}.pulse-category-badge.is-specific{background:#fde7f0;color:#b4235a}.pulse-category-badge.is-general{background:#eef2f6;color:#667085}.pulse-category-sorted{outline:2px solid rgba(229,27,103,.08);outline-offset:2px}@media(max-width:800px){.pulse-category-picker{margin-left:0;margin-top:5px;display:flex}.pulse-category-picker select{max-width:150px}}</style>'
+          s=s.replace('</head>',css+'</head>',1)
+          js='''<script id="pulse-stage2-category">(function(){function getCategory(id){var item=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===id;});return item?String(item.categoria||"geral"):"geral";}function apply(){var select=document.getElementById("pulse-category-select");if(!select)return;var chosen=select.value||"all";try{localStorage.setItem("pulsePrimaryCategory",chosen)}catch(e){};["#signals .rows","#opportunities .opp"].forEach(function(sel){var root=document.querySelector(sel);if(!root)return;var cards=Array.prototype.slice.call(root.querySelectorAll("[data-evidence-id]"));cards.forEach(function(card,i){if(!card.dataset.pulseOrder)card.dataset.pulseOrder=String(i);var badge=card.querySelector(":scope > .pulse-category-badge");if(!badge){badge=document.createElement("span");badge.className="pulse-category-badge";card.insertBefore(badge,card.firstChild);}var cat=getCategory(card.dataset.evidenceId),specific=chosen!=="all"&&cat===chosen;badge.textContent=specific?"Específico da sua categoria":"Sinal geral do mercado";badge.classList.toggle("is-specific",specific);badge.classList.toggle("is-general",!specific);card.classList.toggle("pulse-category-sorted",specific);});if(chosen!=="all"){cards.sort(function(a,b){var as=getCategory(a.dataset.evidenceId)===chosen,bs=getCategory(b.dataset.evidenceId)===chosen;return as===bs?Number(a.dataset.pulseOrder)-Number(b.dataset.pulseOrder):(bs?1:0)-(as?1:0);}).forEach(function(card){root.appendChild(card);});}else{cards.sort(function(a,b){return Number(a.dataset.pulseOrder)-Number(b.dataset.pulseOrder);}).forEach(function(card){root.appendChild(card);});}});}function init(){var select=document.getElementById("pulse-category-select");if(!select)return;try{var saved=localStorage.getItem("pulsePrimaryCategory");if(saved&&select.querySelector('option[value="'+saved+'"]'))select.value=saved;}catch(e){}select.addEventListener("change",apply);apply();}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script>'''
+          s=s.replace('</body>',js+'</body>',1);p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate stage 2
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import re,subprocess
+          class B(HTMLParser):
+            def __init__(self):super().__init__();self.st=[];self.v={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
+            def handle_starttag(self,t,a):
+              if t not in self.v:self.st.append(t)
+            def handle_endtag(self,t):
+              if t in self.v:return
+              assert self.st and self.st[-1]==t,(t,self.st[-10:]);self.st.pop()
+          s=Path('index.html').read_text();assert 'assets/' not in s;b=B();b.feed(s);b.close();assert not b.st
+          for i,js in enumerate(re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)):
+            f=f'/tmp/s2-{i}.js';Path(f).write_text(js);assert subprocess.run(['node','--check',f]).returncode==0,i
+          block=s[s.find('window.PULSE_EVIDENCE'):s.find('];\n\nfunction pulseNormalize')];assert block.count('proxima_revisao:')==11 and block.count('categoria:')==11
+          assert s.count('data-evidence-id=')==8 and 'pulse-category-select' in s and 'pulse-stage2-category' in s
+          print('Etapa 2 concluída e validada')
+          PY
+      - name: Commit stage 2
+        run: |
+          git config user.name 'github-actions[bot]';git config user.email '41898282+github-actions[bot]@users.noreply.github.com';git add index.html;git commit -m 'feat: stage2 category segmentation';git push
