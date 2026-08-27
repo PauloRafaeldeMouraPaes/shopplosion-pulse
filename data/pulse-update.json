@@ -1,6 +1,39 @@
 {
   "version": 1,
-  "description": "Canonical update queue for Pulse evidence and sources. ChatGPT/Codex edits this file; GitHub Actions synchronizes index.html and validates the generated artifact. Workflow trigger test.",
-  "evidence": [],
+  "description": "Canonical update queue for Pulse evidence and sources. ChatGPT/Codex edits this file; GitHub Actions synchronizes index.html and validates the generated artifact.",
+  "evidence": [
+    {
+      "id": "canal",
+      "set": {
+        "keywords": [
+          "canal",
+          "canais",
+          "atacarejo",
+          "supermercado",
+          "supermercados",
+          "e-commerce",
+          "ecommerce",
+          "loja",
+          "lojas",
+          "distribuicao",
+          "ponto de venda",
+          "canal de compra",
+          "loja física",
+          "loja online",
+          "comércio eletrônico",
+          "distribuição",
+          "comprar no supermercado",
+          "compras no supermercado",
+          "comprar pela internet",
+          "compras pela internet",
+          "compras online",
+          "comprar online",
+          "onde comprar",
+          "local de compra",
+          "canais de compra"
+        ]
+      }
+    }
+  ],
   "sources": []
 }
