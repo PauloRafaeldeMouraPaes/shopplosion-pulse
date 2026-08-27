@@ -38,11 +38,15 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          from bs4 import BeautifulSoup
           import re, subprocess
           s=Path('index.html').read_text(encoding='utf-8')
           assert 'assets/' not in s
-          BeautifulSoup(s,'html.parser')
+          void={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
+          opens=re.findall(r'<([a-zA-Z][\\w:-]*)(?:\\s[^>]*)?>',s); closes=re.findall(r'</([a-zA-Z][\\w:-]*)\\s*>',s)
+          from collections import Counter
+          co,cc=Counter(x.lower() for x in opens),Counter(x.lower() for x in closes)
+          for tag in set(co)|set(cc):
+            if tag not in void: assert co[tag]==cc[tag],(tag,co[tag],cc[tag])
           scripts=re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)
           for i,js in enumerate(scripts):
             f=f'/tmp/pulse-stage1-{i}.js';Path(f).write_text(js); assert subprocess.run(['node','--check',f],capture_output=True).returncode==0,i
