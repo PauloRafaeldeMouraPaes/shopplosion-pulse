@@ -1,0 +1,14 @@
+[build]
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[context.production]
+  publish = "."
+
+[context.deploy-preview]
+  publish = "."
+
+[context.branch-deploy]
+  publish = "."
