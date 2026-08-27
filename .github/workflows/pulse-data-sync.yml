@@ -1,0 +1,38 @@
+name: Pulse Data Sync
+
+on:
+  push:
+    paths:
+      - 'data/pulse-update.json'
+      - 'scripts/apply-pulse-data-update.py'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply data updates to index.html
+        run: python3 scripts/apply-pulse-data-update.py
+
+      - name: Validate generated Pulse
+        run: |
+          node --check scripts/test-pulse-ask-ai.js
+          python3 scripts/validate_pulse.py
+          python3 scripts/test_pulse_ask_ai.py
+
+      - name: Commit generated index.html
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'No index.html changes generated.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'chore: sync Pulse data into index.html'
+          git push
