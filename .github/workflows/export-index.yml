@@ -1,0 +1,19 @@
+name: Export Pulse source
+on:
+  push:
+    branches: ["feat/pulse-5-evolucoes-2026-08-26"]
+permissions:
+  contents: read
+  actions: write
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package source
+        run: cp index.html pulse-index.html
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulse-index-source
+          path: pulse-index.html
