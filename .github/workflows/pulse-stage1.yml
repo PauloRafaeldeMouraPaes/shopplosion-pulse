@@ -1,70 +1,11 @@
-name: Pulse Stage 1
+name: Pulse Stage 1 (retired)
 on:
   push:
     branches:
       - feat/pulse-5-evolucoes-2026-08-26
-permissions:
-  contents: write
 jobs:
-  stage1:
+  retired:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Skip generated stage commit
-        run: |
-          if git log -1 --pretty=%B | grep -q '^feat: stage1'; then echo 'stage 1 already applied'; exit 0; fi
-      - name: Restore current main index
-        run: git fetch origin main && git checkout origin/main -- index.html
-      - name: Apply stage 1
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          p=Path('index.html'); s=p.read_text(encoding='utf-8')
-          meta={'canal':('geral','15/09/2026','2026-09-15'),'ocasiao':('bebidas','15/09/2026','2026-09-15'),'pack':('geral','30/09/2026','2026-09-30'),'premium':('chocolates','15/09/2026','2026-09-15'),'promocao':('geral','15/09/2026','2026-09-15'),'frequencia':('geral','30/09/2026','2026-09-30'),'confianca-financeira':('geral','15/09/2026','2026-09-15'),'varejo-geral':('geral','13/09/2026','2026-09-13'),'saude-bemestar':('geral','30/09/2026','2026-09-30'),'indulgencia-seletiva':('chocolates','15/09/2026','2026-09-15'),'scanntech-radar':('geral','16/10/2026','2026-10-16')}
-          for id,(cat,review,iso) in meta.items():
-              pat=r'(id:"'+re.escape(id)+r'",\n)'; repl=r'\1    categoria:"'+cat+r'",\n    proxima_revisao:"'+review+r'",\n    proxima_revisao_iso:"'+iso+r'",\n'
-              s,n=re.subn(pat,repl,s,count=1); assert n==1,id
-          css='''\n<style id="pulse-stage1-styles">\n.pulse-source-status{margin-top:12px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}.pulse-source-status summary{cursor:pointer;padding:12px 13px;font-weight:900;list-style:none}.pulse-source-status summary::-webkit-details-marker{display:none}.pulse-source-status summary:after{content:"＋";float:right;color:#667085}.pulse-source-status[open] summary:after{content:"−"}.pulse-source-status-body{padding:0 13px 13px}.pulse-source-status-note{font-size:12px;color:#667085;margin:0 0 10px}.pulse-source-list{display:grid;gap:7px}.pulse-source-item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px;border:1px solid #e4e7ec;border-radius:8px;background:#f8f9fc}.pulse-source-item.is-overdue{border-color:#f04438;background:#fff1f0}.pulse-source-item b{display:block;font-size:12px}.pulse-source-item small{display:block;color:#667085;font-size:11px;margin-top:3px}.pulse-source-item .pulse-source-date{font-size:11px;font-weight:900;white-space:nowrap;color:#475467}.pulse-source-item.is-overdue .pulse-source-date{color:#b42318}.pulse-source-chip{display:inline-flex;margin-top:5px;padding:2px 6px;border-radius:999px;background:#eef4ff;color:#315efb;font-size:10px;font-weight:900}.pulse-source-item.is-overdue .pulse-source-chip{background:#fee4e2;color:#b42318}\n</style>\n'''
-          anchor='</style>\n<meta name="pulse-version"'; assert anchor in s
-          s=s.replace(anchor,'</style>'+css+'\n<meta name="pulse-version"',1)
-          js='''\n<script id="pulse-stage1-source-status">(function(){\nfunction parsePulseDate(v){var m=String(v||"").match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);return m?new Date(Number(m[3]),Number(m[2])-1,Number(m[1])):new Date("invalid");}\nfunction render(){var root=document.getElementById("investigate");if(!root||document.getElementById("pulse-source-status"))return;var details=document.createElement("details");details.className="pulse-source-status";details.id="pulse-source-status";var updated=parsePulseDate(window.PULSE_LAST_UPDATED);var items=(window.PULSE_EVIDENCE||[]).slice().sort(function(a,b){return parsePulseDate(a.proxima_revisao).getTime()-parsePulseDate(b.proxima_revisao).getTime();});details.innerHTML='<summary>Status das Fontes</summary><div class="pulse-source-status-body"><p class="pulse-source-status-note">Revisão interna sugerida para manter fatos, períodos e fontes atualizados. Itens em vermelho já passaram da data de revisão em relação ao último update do Pulse ('+String(window.PULSE_LAST_UPDATED||"")+').</p><div class="pulse-source-list">'+items.map(function(item){var d=parsePulseDate(item.proxima_revisao),overdue=d.getTime()<updated.getTime();return '<div class="pulse-source-item'+(overdue?' is-overdue':'')+'"><div><b>'+String(item.fonte||item.id)+'</b><small>'+String(item.periodo||"")+'</small><span class="pulse-source-chip">'+String(item.categoria||"geral")+'</span></div><span class="pulse-source-date">'+String(item.proxima_revisao||"Sem data")+(overdue?' · REVISAR':'')+'</span></div>';}).join('')+'</div></div>';var anchor=root.querySelector('.history');root.insertBefore(details,anchor||root.querySelector('.file-list')||null);}\nif(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();\n})();</script>\n'''
-          s=s.replace('</body>',js+'</body>',1)
-          p.write_text(s,encoding='utf-8')
-          PY
-      - name: Validate stage 1
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re, subprocess
-          from html.parser import HTMLParser
-          class Balance(HTMLParser):
-            def __init__(self): super().__init__(); self.stack=[]; self.void={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
-            def handle_starttag(self,tag,attrs):
-              if tag not in self.void: self.stack.append(tag)
-            def handle_startendtag(self,tag,attrs): pass
-            def handle_endtag(self,tag):
-              if tag in self.void: return
-              assert self.stack and self.stack[-1]==tag,(tag,self.stack[-5:])
-              self.stack.pop()
-          s=Path('index.html').read_text(encoding='utf-8')
-          assert 'assets/' not in s
-          b=Balance(); b.feed(s); b.close(); assert not b.stack,b.stack[-10:]
-          scripts=re.findall(r'<script(?:[^>]*)>(.*?)</script>',s,re.S|re.I)
-          for i,js in enumerate(scripts):
-            f=f'/tmp/pulse-stage1-{i}.js';Path(f).write_text(js); assert subprocess.run(['node','--check',f],capture_output=True).returncode==0,i
-          block=s[s.find('window.PULSE_EVIDENCE'):s.find('];\n\nfunction pulseNormalize')]
-          ids=re.findall(r'\bid:"([^"]+)"',block); assert len(ids)==11
-          assert block.count('proxima_revisao:')==11 and block.count('categoria:')==11
-          assert 'window.PULSE_SOURCES' in s and 'window.PULSE_EVIDENCE' in s
-          print('Etapa 1 concluída e validada')
-          PY
-      - name: Commit stage 1
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git commit -m 'feat: stage1 institutionalize source review status'
-          git push
+      - run: echo 'Stage 1 is complete; no rerun.'
