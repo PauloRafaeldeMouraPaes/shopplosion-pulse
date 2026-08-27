@@ -1,0 +1,1 @@
+v3: structured claims, descriptive polarity, potential contradiction review flags, provenance, removable context, browser coverage, deterministic CI contract.
