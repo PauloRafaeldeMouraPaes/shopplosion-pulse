@@ -2,6 +2,7 @@ import re
 import subprocess
 from pathlib import Path
 
+# Deterministic PR2 runtime repair; intentionally idempotent.
 path=Path('index.html')
 s=path.read_text(encoding='utf-8')
 main=subprocess.check_output(['git','show','origin/main:index.html'],text=True)
@@ -68,4 +69,3 @@ s2,n=re.subn(old,replacement,s,count=1)
 if n!=1: raise RuntimeError('pulseMatchEvidence scoring block not found')
 s=s2
 path.write_text(s,encoding='utf-8')
-# trigger revision: deterministic script remains idempotent
