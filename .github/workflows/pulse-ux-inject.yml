@@ -3,7 +3,7 @@ name: Pulse UX Injection
 on:
   push:
     branches:
-      - fix/pulse-ux-navigation-category-2026-08-27
+      - fix/pulse-ux-navigation-category-2026-08-27-final
     paths-ignore:
       - index.html
   workflow_dispatch:
@@ -36,7 +36,7 @@ jobs:
       - name: Commit generated artifact
         run: |
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email '41898282+github-actions[bot].githu-actions[bot]@users.noreply.github.com'
           git add index.html
           git diff --cached --quiet || git commit -m 'build: inject Pulse UX runtime'
           git push
