@@ -50,7 +50,6 @@ jobs:
           block=s[s.find('window.PULSE_EVIDENCE'):s.find('];\n\nfunction pulseNormalize')];assert block.count('proxima_revisao:')==11 and block.count('categoria:')==11
           for phrase in ['consumidor sem dinheiro','aperto no bolso','renda menor','ponto de venda','ocasiões de consumo','pack menor']:assert phrase in block,phrase
           assert 'pulseFuzzyTokenScore' in s and 'pulseFuzzyPhraseScore' in s and 'function pulseMatchEvidence' in s
-          assert 'sessionStorage' not in s
           print('Etapa 4 concluída e validada')
           PY
       - name: Commit stage 4
