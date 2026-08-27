@@ -1,0 +1,42 @@
+name: Pulse Data Sync
+
+on:
+  push:
+    paths:
+      - 'data/pulse-update.json'
+      - 'scripts/apply-pulse-data-update.py'
+      - 'scripts/cleanup_pulse.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply data updates to index.html
+        run: python3 scripts/apply-pulse-data-update.py
+
+      - name: Normalize generated Pulse artifact
+        run: python3 scripts/cleanup_pulse.py
+
+      - name: Validate generated Pulse
+        run: |
+          node scripts/test-pulse-ask-ai.js index.html
+          python3 scripts/validate_pulse.py
+
+      - name: Commit generated index.html
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'No index.html changes generated.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'chore: sync and normalize Pulse artifact'
+          git push

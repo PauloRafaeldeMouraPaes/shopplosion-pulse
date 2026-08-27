@@ -171,10 +171,14 @@ abbr{cursor:help;text-decoration:underline dotted;text-underline-offset:3px}
 }
 
 </style>
-<meta name="pulse-version" content="v37"><meta name="pulse-assets" content="embedded"><meta name="pulse-css-clean" content="true"><meta name="pulse-standalone-hero-fixed" content="true"><meta name="pulse-hero-crop-clean" content="true"></head>
+<style id="pulse-stage1-styles">
+.pulse-source-status{margin-top:12px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}.pulse-source-status summary{cursor:pointer;padding:12px 13px;font-weight:900;list-style:none}.pulse-source-status summary::-webkit-details-marker{display:none}.pulse-source-status summary:after{content:"＋";float:right;color:#667085}.pulse-source-status[open] summary:after{content:"−"}.pulse-source-status-body{padding:0 13px 13px}.pulse-source-status-note{font-size:12px;color:#667085;margin:0 0 10px}.pulse-source-list{display:grid;gap:7px}.pulse-source-item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px;border:1px solid #e4e7ec;border-radius:8px;background:#f8f9fc}.pulse-source-item.is-overdue{border-color:#f04438;background:#fff1f0}.pulse-source-item b{display:block;font-size:12px}.pulse-source-item small{display:block;color:#667085;font-size:11px;margin-top:3px}.pulse-source-item .pulse-source-date{font-size:11px;font-weight:900;white-space:nowrap;color:#475467}.pulse-source-item.is-overdue .pulse-source-date{color:#b42318}.pulse-source-chip{display:inline-flex;margin-top:5px;padding:2px 6px;border-radius:999px;background:#eef4ff;color:#315efb;font-size:10px;font-weight:900}.pulse-source-item.is-overdue .pulse-source-chip{background:#fee4e2;color:#b42318}
+</style>
+
+<meta name="pulse-version" content="v37"><meta name="pulse-assets" content="embedded"><meta name="pulse-css-clean" content="true"><meta name="pulse-standalone-hero-fixed" content="true"><meta name="pulse-hero-crop-clean" content="true"><style id="pulse-stage2-styles">.pulse-category-picker{display:inline-flex;align-items:center;gap:6px;margin-left:12px;font-size:9px;font-weight:900;color:#667085}.pulse-category-picker select{font:inherit;font-size:11px;padding:5px 7px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#344054}.pulse-category-badge{display:inline-flex;margin:0 0 5px 0;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.02em}.pulse-category-badge.is-specific{background:#fde7f0;color:#b4235a}.pulse-category-badge.is-general{background:#eef2f6;color:#667085}.pulse-category-sorted{outline:2px solid rgba(229,27,103,.08);outline-offset:2px}@media(max-width:800px){.pulse-category-picker{margin-left:0;margin-top:5px;display:flex}.pulse-category-picker select{max-width:150px}}</style><style id="pulse-stage3-print">.pulse-export-btn{margin-left:7px}.pulse-print-only{display:none}@media print{@page{size:A4 portrait;margin:12mm}.pulse-printing body{background:#fff!important}.pulse-printing aside,.pulse-printing .journey-map,.pulse-printing .journey-status,.pulse-printing .filter-panel,.pulse-printing .filter-summary,.pulse-printing .filter-empty,.pulse-printing .primary,.pulse-printing .secondary,.pulse-printing button,.pulse-printing .upload-hero,.pulse-printing .uploaded-state,.pulse-printing .ask,.pulse-printing .suggestions,.pulse-printing .history,.pulse-printing .file-list,.pulse-printing .back,.pulse-printing header.top,.pulse-printing .pulse-category-picker{display:none!important}.pulse-printing main{padding:0!important;margin:0!important}.pulse-printing main .screen{display:none!important}.pulse-printing main .screen.pulse-print-target{display:block!important;max-width:none!important}.pulse-printing .pulse-print-target .intro{padding-right:0}.pulse-printing .pulse-print-target .box,.pulse-printing .pulse-print-target .hypo{break-inside:avoid;box-shadow:none!important}.pulse-printing .pulse-print-only{display:block!important}.pulse-printing .pulse-print-target h1{font-size:24px;margin-bottom:6px}.pulse-printing .pulse-print-target h2{font-size:15px}.pulse-printing .pulse-print-target p{font-size:10.5px;line-height:1.35}.pulse-printing .pulse-print-target .sources{font-size:10px}.pulse-printing .pulse-print-target .diag{gap:10px}.pulse-printing .pulse-print-target .chain{margin:8px 0}.pulse-printing .pulse-print-target .pulse-export-btn{display:none!important}}</style></head>
 <body>
 <div class="shell">
-<header class="top"><div class="logo"><span class="mark">P</span>PULSE <small style="font-size:7px;color:#98a2b3;font-weight:600">Brazil Market Intelligence</small></div><div class="context">UNIVERSO <b>Brasil · CPG</b></div></header>
+<header class="top"><div class="logo"><span class="mark">P</span>PULSE <small style="font-size:7px;color:#98a2b3;font-weight:600">Brazil Market Intelligence</small></div><div class="context">UNIVERSO <b>Brasil · CPG</b><label class="pulse-category-picker">MINHA CATEGORIA<select id="pulse-category-select" aria-label="Escolha sua categoria principal"><option value="all">Todas as categorias</option><option value="chocolates">Chocolates</option><option value="bebidas">Bebidas</option><option value="higiene">Higiene</option><option value="geral">Geral</option></select></label></div></header>
 <div class="layout">
 <aside aria-label="Navegação da jornada analítica">
 <div class="label sidebar-label">JORNADA</div>
@@ -234,13 +238,13 @@ abbr{cursor:help;text-decoration:underline dotted;text-underline-offset:3px}
 <p class="chart-context">Contexto macro: <abbr title="Acumulado desde janeiro de 2026">YTD</abbr> = acumulado no ano; <abbr title="Últimos 12 meses">12m</abbr> = últimos 12 meses.</p>
 <div class="charts-grid" id="pulse-charts" aria-label="Gráficos de contexto"></div>
 <div class="rows">
-<div class="row" data-theme="promocao" data-channel="multicanal" data-region="Brasil" data-period="2025"><div class="num">01</div><div><b>Promoção ganhou relevância</b><p>No 1º trimestre de 2025, promoções representaram 17% das compras, +4,8 <abbr title="Pontos percentuais">p.p.</abbr> vs. ano anterior.</p></div><div><b class="big-num">17%</b><small>das compras</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
+<div class="row" data-evidence-id="promocao" data-theme="promocao" data-channel="multicanal" data-region="Brasil" data-period="2025"><div class="num">01</div><div><b>Promoção ganhou relevância</b><p>No 1º trimestre de 2025, promoções representaram 17% das compras, +4,8 <abbr title="Pontos percentuais">p.p.</abbr> vs. ano anterior.</p></div><div><b class="big-num">17%</b><small>das compras</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
 
-<div class="row" data-theme="premium" data-channel="multicanal" data-region="Brasil" data-period="2025"><div class="num">02</div><div><b>Premiumização seletiva</b><p>Apesar da pressão de preço, o segmento premium cresceu 8% em unidades no 1º trimestre de 2025.</p></div><div><b class="big-num">+8%</b><small>unidades premium</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
+<div class="row" data-evidence-id="premium" data-theme="premium" data-channel="multicanal" data-region="Brasil" data-period="2025"><div class="num">02</div><div><b>Premiumização seletiva</b><p>Apesar da pressão de preço, o segmento premium cresceu 8% em unidades no 1º trimestre de 2025.</p></div><div><b class="big-num">+8%</b><small>unidades premium</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
 
-<div class="row" data-theme="macro" data-channel="varejo" data-region="Brasil" data-period="2026"><div class="num">03</div><div><b>Varejo segue crescendo, mas em ritmo moderado</b><p>O volume de vendas do varejo brasileiro acumula alta de 1,9% no ano até junho de 2026 e de 1,6% em 12 meses, segundo o IBGE.</p></div><div><b class="big-num">+1,9%</b><small>acum. 2026 (até jun.)</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
+<div class="row" data-evidence-id="varejo-geral" data-theme="macro" data-channel="varejo" data-region="Brasil" data-period="2026"><div class="num">03</div><div><b>Varejo segue crescendo, mas em ritmo moderado</b><p>O volume de vendas do varejo brasileiro acumula alta de 1,9% no ano até junho de 2026 e de 1,6% em 12 meses, segundo o IBGE.</p></div><div><b class="big-num">+1,9%</b><small>acum. 2026 (até jun.)</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
 
-<div class="row" data-theme="financeiro" data-channel="multicanal" data-region="Brasil" data-period="2025"><div class="num">04</div><div><b>Pressão financeira continua alta</b><p>Em 2025, 74,6% dos lares declararam não estar confortáveis com sua situação financeira.</p></div><div><b class="big-num">74,6%</b><small>lares</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
+<div class="row" data-evidence-id="confianca-financeira" data-theme="financeiro" data-channel="multicanal" data-region="Brasil" data-period="2025"><div class="num">04</div><div><b>Pressão financeira continua alta</b><p>Em 2025, 74,6% dos lares declararam não estar confortáveis com sua situação financeira.</p></div><div><b class="big-num">74,6%</b><small>lares</small></div><div><span class="confidence">ALTA</span><br><a class="link" href="#diagnostic">Diagnosticar →</a></div></div>
 </div>
 
 <div class="sources">
@@ -296,19 +300,19 @@ abbr{cursor:help;text-decoration:underline dotted;text-underline-offset:3px}
 
 <details class="filter-panel"><summary>Filtrar <span>▾</span></summary><div class="filter-controls" data-filter-scope="opportunities" aria-label="Filtros de oportunidades"><label class="filter-control">Categoria<select data-filter="theme"><option value="all">Todas</option><option value="pack">Preço & pack</option><option value="premium">Premium</option><option value="frequencia">Frequência</option><option value="indulgencia">Indulgência</option></select></label><label class="filter-control">Canal<select data-filter="channel"><option value="all">Todos</option><option value="varejo">Varejo alimentar</option><option value="multicanal">Multicanal</option></select></label><label class="filter-control">Região<select data-filter="region"><option value="all">Brasil</option></select></label><label class="filter-control">Período<select data-filter="period"><option value="all">Todos</option><option value="2025">2025</option></select></label></div></details><p class="filter-summary" data-filter-summary="opportunities">4 oportunidades exibidas</p><div class="filter-empty" data-filter-empty="opportunities" hidden><strong>Nenhuma oportunidade encontrada</strong><span>Tente outra combinação de filtros.</span><button type="button" class="secondary" data-filter-reset="opportunities">Limpar filtros</button></div>
 <div class="opp">
-<div class="box" data-theme="pack" data-channel="varejo" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA</span><h2>Arquitetura de preço & pack</h2>
+<div class="box" data-evidence-id="pack" data-theme="pack" data-channel="varejo" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA</span><h2>Arquitetura de preço & pack</h2>
 <p>Investigar se uma escada de preço e formatos menores pode ampliar acesso sem destruir valor. A Kantar reportou redução de volume médio em 55% das categorias compradas e aumento de 2% nas unidades levadas para casa no 1º tri. 2025.</p>
 <a class="link" href="#answer-pack">Validar hipótese →</a></div>
 
-<div class="box" data-theme="premium" data-channel="multicanal" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA</span><h2>Premiumização seletiva</h2>
+<div class="box" data-evidence-id="premium" data-theme="premium" data-channel="multicanal" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA</span><h2>Premiumização seletiva</h2>
 <p>O premium cresceu 8% em unidades no 1º tri. 2025, enquanto os preços premium subiram 3%, abaixo dos 6% em economy e 7% em mainstream. A oportunidade é entender em quais categorias o shopper ainda enxerga valor suficiente.</p>
 <a class="link" href="#answer-premium">Validar hipótese →</a></div>
 
-<div class="box" data-theme="frequencia" data-channel="multicanal" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA</span><h2>Frequência & fragmentação</h2>
+<div class="box" data-evidence-id="frequencia" data-theme="frequencia" data-channel="multicanal" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA</span><h2>Frequência & fragmentação</h2>
 <p>Em 2025, a Kantar reportou +8% na frequência de compra, -2% nas unidades por viagem e +10% no número de marcas consumidas. Isso sugere investigar missões e ocasiões, não apenas o tamanho do carrinho.</p>
 <a class="link" href="#answer-channel">Validar hipótese →</a></div>
 
-<div class="box corroborated" data-theme="indulgencia" data-channel="varejo" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA · DUAS FONTES</span><h2>Indulgência seletiva financiada por trade-down</h2>
+<div class="box corroborated" data-evidence-id="indulgencia-seletiva" data-theme="indulgencia" data-channel="varejo" data-region="Brasil" data-period="2025"><span class="tag">MÉDIA CONFIANÇA · DUAS FONTES</span><h2>Indulgência seletiva financiada por trade-down</h2>
 <p>Cruzando Kantar (premiumização +8% em unidades) com o cruzamento Scanntech/McKinsey (13,5 bi de tíquetes + pesquisa ConsumerWise): o brasileiro fez trade-down em básicos — amaciante concentrado econômico +2,9 p.p. e sabão líquido econômico +1,9 <abbr title="Pontos percentuais">p.p.</abbr> de participação — mas manteve indulgências pontuais, com cerveja e chocolate em barra premium ganhando 2,3 <abbr title="Pontos percentuais">p.p.</abbr> e 1,6 <abbr title="Pontos percentuais">p.p.</abbr> de participação mesmo com queda no volume total da categoria. Mais de 3 em cada 10 consumidores pretendem "se presentear" no supermercado no próximo ano.</p>
 <a class="link" href="#investigate">Validar hipótese →</a></div>
 </div>
@@ -326,7 +330,7 @@ abbr{cursor:help;text-decoration:underline dotted;text-underline-offset:3px}
 <div class="uploaded-state"><div><span class="confidence">TRANSPARÊNCIA</span><h2>Fontes proprietárias ficam identificadas nas respostas.</h2></div><span class="upload-help">O fluxo: adicionar → revisar → cruzar.</span></div>
 <div class="ask"><textarea id="pulse-question" placeholder="Ex.: O que está explicando a queda de volume de chocolate no Brasil?"></textarea><div style="margin-top:8px"><a class="primary" id="pulse-ask-submit" href="#answer-custom">Analisar pergunta →</a></div></div>
 <div class="suggestions"><span class="label" style="padding:7px 3px">PERGUNTAS ÚTEIS · clique para preencher</span><a href="#" class="pulse-suggestion" data-target="#answer-channel" data-question="Quais canais estão protegendo a categoria?">Quais canais estão protegendo a categoria?</a><a href="#" class="pulse-suggestion" data-target="#answer-occasion" data-question="Quais ocasiões sustentam a compra?">Quais ocasiões sustentam a compra?</a><a href="#" class="pulse-suggestion" data-target="#answer-pack" data-question="O shopper está migrando para packs menores?">O shopper está migrando para packs menores?</a><a href="#" class="pulse-suggestion" data-target="#answer-premium" data-question="Onde existe espaço para premium?">Onde existe espaço para premium?</a></div>
-<div class="history" aria-label="Histórico de perguntas da sessão"><div class="history-head"><b>Histórico desta sessão</b><button type="button" class="secondary" id="pulse-history-clear">Limpar</button></div><div id="pulse-history-list" class="history-list"></div></div>
+<div class="history" aria-label="Histórico de perguntas da sessão"><div class="history-head"><b>Histórico de perguntas</b><button type="button" class="secondary" id="pulse-history-clear">Limpar</button></div><div id="pulse-history-list" class="history-list"></div></div>
 <div id="file-list" class="file-list" aria-live="polite"><span class="file-list-empty">Nenhum estudo selecionado. Quando adicionar arquivos, eles aparecerão aqui para revisão.</span></div>
 </section>
 
@@ -424,8 +428,11 @@ window.PULSE_CHART_DATA = [
 window.PULSE_EVIDENCE = [
   {
     id:"canal",
+    categoria:"geral",
+    proxima_revisao:"15/09/2026",
+    proxima_revisao_iso:"2026-09-15",
     metrics:[{"label": "Atacarejo", "value": 9.6, "display": "9,6%", "key": "penetracao_atacarejo"}, {"label": "Supermercado", "value": 7.7, "display": "7,7%", "key": "penetracao_supermercado"}, {"label": "E-commerce", "value": 3.9, "display": "3,9%", "key": "penetracao_ecommerce"}],
-    keywords:["canal","canais","atacarejo","supermercado","e-commerce","ecommerce","loja","distribuicao"],
+    keywords:["canal","canais","atacarejo","supermercado","supermercados","e-commerce","ecommerce","loja","lojas","distribuicao","ponto de venda","canal de compra","loja física","loja online","comércio eletrônico","distribuição","comprar no supermercado","compras no supermercado","comprar pela internet","compras pela internet","compras online","comprar online","onde comprar","local de compra","canais de compra"],
     fato:"Atacarejo, supermercados e e-commerce ampliaram penetração no 3º tri. de 2024: +9,6% no atacarejo, +7,7% nos supermercados convencionais e +3,9% no e-commerce. No atacarejo, as unidades compradas cresceram 17,7%, enquanto as unidades por viagem caíram 5,7%.",
     contexto:"O ganho de penetração no atacarejo veio acompanhado de carrinhos menores por visita — sinal de mudança de missão de compra, não apenas de preço.",
     interpretacao:"O canal parece estar deixando de ser só distribuição e passando a refletir uma mudança na frequência e no tipo de ocasião de compra do shopper.",
@@ -435,7 +442,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"ocasiao",
-    keywords:["ocasiao","ocasioes","fora do lar","consumo fora","indulgencia"],
+    categoria:"bebidas",
+    proxima_revisao:"15/09/2026",
+    proxima_revisao_iso:"2026-09-15",
+    keywords:["ocasiao","ocasioes","fora do lar","consumo fora","indulgencia","ocasiões de consumo","consumo fora de casa","fora de casa","bar","restaurante","bebida","bebidas","frequência de ocasião"],
     fato:"A frequência de visitas para consumo fora do lar aumentou 29,2% entre janeiro e junho de 2025. Nas classes DE, o avanço foi de 35%, com queda de 4% no volume por viagem e de 4% no tíquete médio.",
     contexto:"O crescimento de frequência nas classes DE, combinado com ticket menor, sugere um consumo mais fracionado, não necessariamente mais gasto.",
     interpretacao:"Mais ocasiões de consumo fora do lar não significam tickets maiores — o shopper parece estar fracionando o consumo em vez de reduzi-lo.",
@@ -445,7 +455,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"pack",
-    keywords:["pack","embalagem","volume","tamanho","shrinkflation","gramatura"],
+    categoria:"geral",
+    proxima_revisao:"30/09/2026",
+    proxima_revisao_iso:"2026-09-30",
+    keywords:["pack","embalagem","volume","tamanho","shrinkflation","gramatura","pack menor","packs menores","embalagem menor","formato menor","tamanho da embalagem","redução de volume","menos unidades","cesta menor"],
     fato:"No 1º trimestre de 2025, 55% das categorias tiveram redução do volume médio comprado, ao mesmo tempo em que o número total de unidades levadas para casa cresceu 2%.",
     contexto:"A queda de volume médio por categoria, com unidades totais em alta, sugere ajuste de cesta em vez de retração pura de consumo.",
     interpretacao:"Há evidência de um ajuste de volume (pack-size ou frequência), mas não é correto atribuir o movimento inteiro a um único mecanismo com o dado agregado disponível.",
@@ -455,7 +468,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"premium",
-    keywords:["premium","premiumizacao","premiumização"],
+    categoria:"chocolates",
+    proxima_revisao:"15/09/2026",
+    proxima_revisao_iso:"2026-09-15",
+    keywords:["premium","premiumizacao","premiumização","valor premium","produto premium","marca premium","chocolate premium","preço premium","luxo acessível","qualidade percebida"],
     fato:"O segmento premium cresceu 8% em unidades no 1º trimestre de 2025. No mesmo período, os preços premium subiram 3%, abaixo do aumento de 6% em economy e 7% em mainstream.",
     contexto:"O reajuste de preço mais moderado no premium, frente a economy e mainstream, ajuda a explicar por que o segmento ganhou espaço em unidades.",
     interpretacao:"A premiumização brasileira parece seletiva: o shopper migra para premium quando a diferença de preço entre segmentos é menor do que a diferença de valor percebido.",
@@ -465,7 +481,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"promocao",
-    keywords:["promocao","promoção","promocoes","desconto"],
+    categoria:"geral",
+    proxima_revisao:"15/09/2026",
+    proxima_revisao_iso:"2026-09-15",
+    keywords:["promocao","promoção","promocoes","desconto","oferta","ofertas","descontos","preço promocional","preço em promoção","liquidação","preço mais baixo","promoções"],
     fato:"As compras em promoção representaram 17% do total no 1º trimestre de 2025, um avanço de 4,8 p.p. em relação ao ano anterior.",
     contexto:"O crescimento de promoção ocorre no mesmo período em que o premium também cresce em unidades — não são movimentos excludentes.",
     interpretacao:"O shopper parece estar administrando o orçamento de forma seletiva: buscando promoção em parte da cesta e mantendo ou elevando premium em outra parte.",
@@ -475,7 +494,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"frequencia",
-    keywords:["frequencia","frequência","marcas","fragmentacao","fragmentação"],
+    categoria:"geral",
+    proxima_revisao:"30/09/2026",
+    proxima_revisao_iso:"2026-09-30",
+    keywords:["frequencia","frequência","marcas","fragmentacao","fragmentação","mais visitas","compras mais frequentes","frequência de compra","cesta fragmentada","cesta menor","marcas diferentes","troca de marca","reposição","comprar mais vezes"],
     fato:"Em 2025, a frequência de compra cresceu 8%, as unidades por viagem caíram 2% e o número de marcas compradas por shopper aumentou 10% no recorte utilizado pela Kantar.",
     contexto:"Mais frequência com menos unidades por viagem e mais marcas sugere uma cesta mais fragmentada, não necessariamente menor.",
     interpretacao:"Crescer pode significar capturar mais ocasiões e mais trocas de marca, em vez de aumentar o tamanho do carrinho.",
@@ -485,7 +507,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"confianca-financeira",
-    keywords:["confianca","confiança","financeira","inadimplencia","inadimplência","custo de vida","orcamento","orçamento"],
+    categoria:"geral",
+    proxima_revisao:"15/09/2026",
+    proxima_revisao_iso:"2026-09-15",
+    keywords:["confianca","confiança","financeira","inadimplencia","inadimplência","custo de vida","orcamento","orçamento","consumidor sem dinheiro","aperto no bolso","renda menor","renda apertada","orçamento apertado","pressão no orçamento","dinheiro curto","poder de compra menor","poder de compra","situação financeira ruim"],
     fato:"74,6% dos lares brasileiros declaram atualmente não estar confortáveis com sua situação financeira, segundo o relatório Consumer 360º da NielsenIQ (jun. 2026); apenas 25,4% se dizem confortáveis.",
     contexto:"Esse desconforto financeiro amplo é o pano de fundo para os ajustes de promoção, pack e frequência observados nos dados da Kantar.",
     interpretacao:"A pressão financeira parece estar mais associada a uma reorganização da forma de comprar do que a um abandono de categorias inteiras.",
@@ -495,8 +520,11 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"varejo-geral",
+    categoria:"geral",
+    proxima_revisao:"13/09/2026",
+    proxima_revisao_iso:"2026-09-13",
     metrics:[{"label": "Varejo acumulado no ano", "value": 1.9, "display": "1,9%", "key": "varejo_ytd"}, {"label": "Varejo 12 meses", "value": 1.6, "display": "1,6%", "key": "varejo_12m"}, {"label": "IPCA 12 meses", "value": 4.44, "display": "4,44%", "key": "ipca_12m"}],
-    keywords:["varejo","ibge","inflacao","inflação","ipca","macro"],
+    keywords:["varejo","ibge","inflacao","inflação","ipca","macro","vendas no varejo","comércio varejista","varejo brasileiro","crescimento do varejo","preços","custo de vida","mercado varejista"],
     fato:"O volume de vendas do varejo brasileiro acumula alta de 1,9% no ano até junho de 2026 (1,6% em 12 meses), segundo o IBGE. O IPCA acumula 4,44% em 12 meses até julho de 2026 (3,44% no ano).",
     contexto:"O crescimento moderado do varejo, junto com uma inflação ainda acima da meta mas em desaceleração frente aos 12 meses anteriores (4,64%), mostra um cenário de expansão lenta e cautelosa do consumo.",
     interpretacao:"O crescimento de varejo é positivo, mas moderado — compatível com um shopper que ajusta a forma de comprar em vez de simplesmente gastar mais.",
@@ -506,7 +534,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"saude-bemestar",
-    keywords:["saude","saúde","bem-estar","bemestar","suplemento","creatina","whey","proteina","proteína","funcional","wellness"],
+    categoria:"geral",
+    proxima_revisao:"30/09/2026",
+    proxima_revisao_iso:"2026-09-30",
+    keywords:["saude","saúde","bem-estar","bemestar","suplemento","creatina","whey","proteina","proteína","funcional","wellness","bem estar","suplementos","alimentação funcional","produto saudável"],
     fato:"Creatina cresceu 89% em volume e whey protein 124% no último ano; iogurte proteico avançou 16% e cervejas de baixa caloria, 40%, segundo o cruzamento de dados Scanntech (13,5 bi de tíquetes do varejo alimentar) com a pesquisa ConsumerWise da McKinsey.",
     contexto:"O avanço ocorre mesmo em um cenário de orçamento pressionado e queda geral de volume no varejo alimentar, indicando que saúde/bem-estar é uma exceção ao movimento de contenção.",
     interpretacao:"Categorias com um benefício funcional claro (energia, foco, proteína) parecem menos sujeitas ao corte de consumo do que categorias sem esse apelo.",
@@ -516,7 +547,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"indulgencia-seletiva",
-    keywords:["indulgencia","indulgência","trade down","trade-down","presentear","mimo","chocolate premium","cerveja premium"],
+    categoria:"chocolates",
+    proxima_revisao:"15/09/2026",
+    proxima_revisao_iso:"2026-09-15",
+    keywords:["indulgencia","indulgência","trade down","trade-down","presentear","mimo","chocolate premium","cerveja premium","pequeno luxo","se presentear","autopresente","agrado","recompensa"],
     fato:"O brasileiro fez trade down em itens básicos — amaciante concentrado econômico ganhou 2,9 p.p. de participação e sabão líquido econômico, 1,9 p.p. — mas manteve indulgências pontuais: cerveja e chocolate em barra premium ganharam 2,3 p.p. e 1,6 p.p. de participação, mesmo com queda no volume total da categoria, segundo Scanntech/McKinsey.",
     contexto:"O dado reforça, com outra fonte, o mesmo padrão de premiumização seletiva já observado na Kantar — mas mostra especificamente que a economia em um lado da cesta parece financiar a indulgência pontual no outro.",
     interpretacao:"Mais de 3 em cada 10 consumidores pretendem 'se presentear' no supermercado no próximo ano (McKinsey ConsumerWise). O trade-down em básicos não elimina a busca por indulgência — ele parece viabilizá-la.",
@@ -526,7 +560,10 @@ window.PULSE_EVIDENCE = [
   },
   {
     id:"scanntech-radar",
-    keywords:["scanntech","radar","varejo alimentar","ticket","tiquete","carrinho","itens por ticket"],
+    categoria:"geral",
+    proxima_revisao:"16/10/2026",
+    proxima_revisao_iso:"2026-10-16",
+    keywords:["scanntech","radar","varejo alimentar","ticket","tiquete","carrinho","itens por ticket","tíquete","cesta","itens por compra","itens por tíquete","ticket médio","comprar menos itens","cesta menor"],
     fato:"No 1º trimestre de 2026, o faturamento do varejo alimentar cresceu 1,4% e o volume de unidades vendidas caiu 2,1%, puxado por reajuste de preços (+3,6%) e queda de 2,5% nos itens por tíquete — com fluxo de clientes praticamente estável (+0,2%), segundo o Radar Scanntech.",
     contexto:"Esse dado é específico do varejo alimentar (com base em 13,5 bilhões de tíquetes monitorados), complementando os números mais amplos do IBGE/PMC, que cobrem todo o comércio varejista.",
     interpretacao:"Também aqui aparece o padrão de 'pagar mais, levar menos': o crescimento em valor está descolado do crescimento em volume, mesmo com o fluxo de clientes nas lojas estável.",
@@ -536,36 +573,80 @@ window.PULSE_EVIDENCE = [
   }
 ];
 
-function pulseNormalize(str){
-  return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-function pulseEvidenceTokens(text){return pulseNormalize(text).split(/[^a-z0-9]+/).filter(function(t){return t.length>=3;});}
-function pulseMatchEvidence(question){
-  var q=pulseNormalize(question).trim(); if(!q)return null;
-  var qTokens=pulseEvidenceTokens(q),best=null,second=null,bestScore=0,secondScore=0;
-  var generic={"canal":1,"varejo":1,"loja":1,"consumo":1,"volume":1,"preco":1,"mercado":1,"brasil":1,"compra":1,"compras":1};
-  window.PULSE_EVIDENCE.forEach(function(item){
-    var score=0,matched=0,phrase=0;
-    (item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k).trim();if(!nk)return;if(q.indexOf(nk)!==-1){var words=pulseEvidenceTokens(nk);if(words.length>=2){score+=10+words.length*2;phrase++;}else score+=generic[nk]?2:5;matched++;}});
-    var itemText=pulseNormalize([item.id,item.fato,item.contexto,item.interpretacao].join(" "));
-    qTokens.forEach(function(t){if(t.length>=5&&itemText.indexOf(t)!==-1)score+=1;});
-    if(matched>=2)score+=3;if(phrase>=1)score+=3;
-    if(score>bestScore){second=best;secondScore=bestScore;best=item;bestScore=score;}else if(score>secondScore){second=item;secondScore=score;}
+function pulseNormalize(str){return (str||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[’']/g,"").replace(/[^a-z0-9\s-]+/g," ").replace(/\s+/g," ").trim();}
+function pulseEvidenceTokens(text){var stop={de:1,da:1,do:1,das:1,dos:1,em:1,no:1,na:1,nos:1,nas:1,para:1,por:1,com:1,sem:1,e:1,a:1,o:1,as:1,os:1,um:1,uma:1,uns:1,umas:1,que:1};return pulseNormalize(text).split(/[^a-z0-9]+/).map(function(t){if(t.length>4&&t.endsWith("oes"))t=t.slice(0,-3)+"ao";else if(t.length>4&&t.endsWith("s")&&!t.endsWith("ss"))t=t.slice(0,-1);return t;}).filter(function(t){return t.length>=3&&!stop[t];});}
+function pulseFuzzyTokenScore(a,b){if(a===b)return 3;if(a.length>=4&&b.length>=4&&(a.indexOf(b)===0||b.indexOf(a)===0))return 2;if(a.length>=5&&b.length>=5&&(a.indexOf(b)!==-1||b.indexOf(a)!==-1))return 1;return 0;}
+function pulseFuzzyPhraseScore(qTokens,kTokens){var score=0,used={};qTokens.forEach(function(qt){var best=0,bestI=-1;kTokens.forEach(function(kt,i){if(used[i])return;var v=pulseFuzzyTokenScore(qt,kt);if(v>best){best=v;bestI=i;}});if(best){score+=best;used[bestI]=1;}});return score;}
+function pulseMatchEvidence(question){var q=pulseNormalize(question).trim();if(!q)return null;var qTokens=pulseEvidenceTokens(q),best=null,second=null,bestScore=0,secondScore=0,generic={canal:1,varejo:1,loja:1,consumo:1,volume:1,preco:1,mercado:1,brasil:1,compra:1,compras:1};window.PULSE_EVIDENCE.forEach(function(item){var score=0,matched=0,phrase=0;(function(){var keywordScores=[];(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k),kt=pulseEvidenceTokens(nk),raw=kt.length>=2&&q.indexOf(nk)!==-1?10+kt.length*2:0;if(raw){keywordScores.push(raw);phrase++;return;}var fuzzy=pulseFuzzyPhraseScore(qTokens,kt);if(fuzzy>=2)keywordScores.push(fuzzy+(kt.length>=2?2:0));});if(keywordScores.length){keywordScores.sort(function(a,b){return b-a;});score+=keywordScores[0];matched=1;}})();;var itemText=pulseNormalize([item.id,item.fato,item.contexto,item.interpretacao].join(" "));qTokens.forEach(function(t){if(t.length>=4){itemText.split(/\s+/).forEach(function(it){var v=pulseFuzzyTokenScore(t,it);if(v>=2)score+=0.5;});}});if(matched>=2)score+=3;if(phrase>=1)score+=3;if(generic[pulseEvidenceTokens(item.id)[0]])score-=0.25;if(score>bestScore){second=best;secondScore=bestScore;best=item;bestScore=score;}else if(score>secondScore){second=item;secondScore=score;}});if(!best||bestScore<5)return null;if(second&&bestScore<9&&(bestScore-secondScore)<2)return null;return best;}
+function pulseRankEvidence(question){var q=pulseNormalize(question).trim();if(!q)return [];var qTokens=pulseEvidenceTokens(q);return window.PULSE_EVIDENCE.map(function(item){var score=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens((item.keywords||[]).join(" ")));score+=pulseFuzzyPhraseScore(qTokens,pulseEvidenceTokens([item.id,item.fato,item.contexto].join(" ")))*0.5;return {item:item,score:score};}).filter(function(x){return x.score>1;}).sort(function(a,b){return b.score-a.score;}).slice(0,3).map(function(x){return x.item;});}
+function pulseRoute(){
+  var hash=location.hash||"#overview";
+  var target=document.querySelector(hash);
+  if(!target||!target.classList.contains("screen")){hash="#overview";target=document.querySelector(hash);if(location.hash!==hash)history.replaceState(null,"",hash);}
+  document.querySelectorAll("main .screen").forEach(function(screen){
+    var active=screen===target;
+    screen.style.display=active?"block":"none";
+    screen.setAttribute("aria-hidden",active?"false":"true");
   });
-  if(!best||bestScore<5)return null;
-  if(second&&bestScore<9&&(bestScore-secondScore)<2)return null;
-  return best;
+  var matched="#overview";
+  Object.keys(PULSE_NAV_SECTIONS).forEach(function(k){if(PULSE_NAV_SECTIONS[k].indexOf(hash)!==-1)matched=k;});
+  document.querySelectorAll("aside .nav").forEach(function(link){
+    var active=link.getAttribute("href")===matched;
+    link.classList.toggle("active",active);
+    if(active)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");
+  });
+  var stepMap={"#overview":1,"#signals":2,"#diagnostic":3,"#opportunities":4,"#investigate":5,"#answer-custom":5,"#answer-channel":5,"#answer-occasion":5,"#answer-pack":5,"#answer-premium":5};
+  var step=stepMap[hash]||1;
+  var labels={1:"Comece aqui",2:"O que mudou?",3:"Por que mudou?",4:"Onde crescer?",5:"Investigar"};
+  document.querySelectorAll(".journey-map-global .journey-step").forEach(function(el){var n=Number(el.dataset.step);el.classList.toggle("is-current",n===step);el.classList.toggle("is-complete",n<step);if(n===step)el.setAttribute("aria-current","step");else el.removeAttribute("aria-current");});
+  var current=document.getElementById("journey-current-step"),label=document.getElementById("journey-current-label");
+  if(current)current.textContent=String(step).padStart(2,"0");
+  if(label)label.textContent=labels[step];
+  if(hash==="#answer-custom" && typeof pulseRenderCustomAnswer==="function")pulseRenderCustomAnswer();
 }
-function pulseRankEvidence(question){
-  var q=pulseNormalize(question).trim();if(!q)return [];
-  var qTokens=pulseEvidenceTokens(q);
-  return window.PULSE_EVIDENCE.map(function(item){var score=0,itemText=pulseNormalize([item.id,item.fato,item.contexto].join(" "));(item.keywords||[]).forEach(function(k){var nk=pulseNormalize(k).trim();if(nk&&q.indexOf(nk)!==-1)score+=pulseEvidenceTokens(nk).length>=2?8:3;});qTokens.forEach(function(t){if(t.length>=5&&itemText.indexOf(t)!==-1)score++;});return {item:item,score:score};}).filter(function(x){return x.score>0;}).sort(function(a,b){return b.score-a.score;}).slice(0,3).map(function(x){return x.item;});
-}
-function pulseEscape(text){return String(text||"").replace(/[<>&"']/g,function(m){return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[m];});}
-function pulseSaveHistory(question,match){try{var h=JSON.parse(sessionStorage.getItem('pulseAskHistory')||'[]');h.unshift({q:question,id:match?match.id:null,ts:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});sessionStorage.setItem('pulseAskHistory',JSON.stringify(h.slice(0,8)));pulseRenderHistory();}catch(e){}}
-function pulseRenderHistory(){var el=document.getElementById('pulse-history-list');if(!el)return;var h=[];try{h=JSON.parse(sessionStorage.getItem('pulseAskHistory')||'[]')}catch(e){}el.innerHTML=h.length?h.map(function(x,i){return '<div class="history-item"><button type="button" data-history-index="'+i+'">'+pulseEscape(x.q)+'</button><span>'+pulseEscape(x.ts)+'</span></div>';}).join(''):'<div class="empty-note">Nenhuma pergunta nesta sessão.</div>';el.querySelectorAll('[data-history-index]').forEach(function(b){b.addEventListener('click',function(){var x=h[Number(b.dataset.historyIndex)],input=document.getElementById('pulse-question');if(input){input.value=x.q;input.focus();location.hash='#answer-custom';}});});}
+window.addEventListener("hashchange",pulseRoute);
+document.addEventListener("DOMContentLoaded",pulseRoute);
+</script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script id="pulse-custom-answer-runtime">
+
+</script>
+
+<script id="pulse-history-runtime">
+
+
+
+</script>
+
+<script id="pulse-custom-answer-runtime">
 function pulseRenderCustomAnswer(){
   var box = document.getElementById("pulse-question");
   var titleEl = document.getElementById("pulse-custom-title");
@@ -599,44 +680,13 @@ function pulseRenderCustomAnswer(){
     '<div class="box"><h2>AÇÃO SUGERIDA</h2><p>' + match.acao + '</p></div>' +
     propBanner;
 }
-
-/* v30: single navigation controller. It owns screen visibility, active nav and journey state. */
-var PULSE_NAV_SECTIONS={
-  "#overview":["#overview"],
-  "#signals":["#signals"],
-  "#diagnostic":["#diagnostic"],
-  "#opportunities":["#opportunities"],
-  "#investigate":["#investigate","#answer-custom","#answer-channel","#answer-occasion","#answer-pack","#answer-premium"]
-};
-function pulseRoute(){
-  var hash=location.hash||"#overview";
-  var target=document.querySelector(hash);
-  if(!target||!target.classList.contains("screen")){hash="#overview";target=document.querySelector(hash);if(location.hash!==hash)history.replaceState(null,"",hash);}
-  document.querySelectorAll("main .screen").forEach(function(screen){
-    var active=screen===target;
-    screen.style.display=active?"block":"none";
-    screen.setAttribute("aria-hidden",active?"false":"true");
-  });
-  var matched="#overview";
-  Object.keys(PULSE_NAV_SECTIONS).forEach(function(k){if(PULSE_NAV_SECTIONS[k].indexOf(hash)!==-1)matched=k;});
-  document.querySelectorAll("aside .nav").forEach(function(link){
-    var active=link.getAttribute("href")===matched;
-    link.classList.toggle("active",active);
-    if(active)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");
-  });
-  var stepMap={"#overview":1,"#signals":2,"#diagnostic":3,"#opportunities":4,"#investigate":5,"#answer-custom":5,"#answer-channel":5,"#answer-occasion":5,"#answer-pack":5,"#answer-premium":5};
-  var step=stepMap[hash]||1;
-  var labels={1:"Comece aqui",2:"O que mudou?",3:"Por que mudou?",4:"Onde crescer?",5:"Investigar"};
-  document.querySelectorAll(".journey-map-global .journey-step").forEach(function(el){var n=Number(el.dataset.step);el.classList.toggle("is-current",n===step);el.classList.toggle("is-complete",n<step);if(n===step)el.setAttribute("aria-current","step");else el.removeAttribute("aria-current");});
-  var current=document.getElementById("journey-current-step"),label=document.getElementById("journey-current-label");
-  if(current)current.textContent=String(step).padStart(2,"0");
-  if(label)label.textContent=labels[step];
-  if(hash==="#answer-custom" && typeof pulseRenderCustomAnswer==="function")pulseRenderCustomAnswer();
-}
-window.addEventListener("hashchange",pulseRoute);
-document.addEventListener("DOMContentLoaded",pulseRoute);
 </script>
 
+<script id="pulse-history-runtime">
+function pulseSaveHistory(question,match){try{var h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]');h.unshift({q:question,id:match?match.id:null,ts:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('pulseAskHistory',JSON.stringify(h.slice(0,8)));pulseRenderHistory();}catch(e){}}
+
+function pulseRenderHistory(){var el=document.getElementById('pulse-history-list');if(!el)return;var h=[];try{h=JSON.parse(localStorage.getItem('pulseAskHistory')||'[]')}catch(e){}el.innerHTML=h.length?h.map(function(x,i){return '<div class="history-item"><button type="button" data-history-index="'+i+'">'+pulseEscape(x.q)+'</button><span>'+pulseEscape(x.ts)+'</span></div>';}).join(''):'<div class="empty-note">Nenhuma pergunta salva.</div>';el.querySelectorAll('[data-history-index]').forEach(function(b){b.addEventListener('click',function(){var x=h[Number(b.dataset.historyIndex)],input=document.getElementById('pulse-question');if(input){input.value=x.q;input.focus();location.hash='#answer-custom';}});});}
+</script>
 
 <script id="pulse-enhancements">(function(){
 function qs(a,b){return (b||document).querySelector(a)}
@@ -729,7 +779,7 @@ function pulseApplyFilters(scope){
 qsa('[data-filter-scope] [data-filter]').forEach(function(s){s.addEventListener('change',function(){pulseApplyFilters(s.closest('[data-filter-scope]').dataset.filterScope);});});
 qsa('[data-filter-reset]').forEach(function(btn){btn.addEventListener('click',function(){var scope=btn.dataset.filterReset,root=qs('[data-filter-scope="'+scope+'"]');if(!root)return;root.querySelectorAll('[data-filter]').forEach(function(s){s.value='all';});pulseApplyFilters(scope);});});
 
-var clear=qs('#pulse-history-clear');if(clear)clear.addEventListener('click',function(){try{sessionStorage.removeItem('pulseAskHistory')}catch(e){}pulseRenderHistory();});
+var clear=qs('#pulse-history-clear');if(clear)clear.addEventListener('click',function(){try{localStorage.removeItem('pulseAskHistory')}catch(e){}pulseRenderHistory();});
 qsa('.pulse-suggestion').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var input=qs('#pulse-question');if(input){input.value=a.dataset.question||'';input.focus();}});});
 document.addEventListener('click',function(e){var a=e.target.closest('[data-near-id]');if(!a)return;var item=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===a.dataset.nearId});var input=qs('#pulse-question');if(item&&input){e.preventDefault();input.value='Quero entender '+item.keywords.slice(0,3).join(', ')+' no Brasil';input.focus();pulseRenderCustomAnswer();}});
 var submit=qs('#pulse-ask-submit');if(submit)submit.addEventListener('click',function(){var input=qs('#pulse-question'),q=input?input.value.trim():'';if(q)pulseSaveHistory(q,pulseMatchEvidence(q));});
@@ -737,4 +787,13 @@ var submit=qs('#pulse-ask-submit');if(submit)submit.addEventListener('click',fun
 
 pulseRenderAnswerScreens();pulseRenderUpdatedBadges();pulseRenderCharts();pulseApplyFilters('signals');pulseApplyFilters('opportunities');pulseRenderHistory();
 })();</script>
-</body></html>
+
+<script id="pulse-stage1-source-status">(function(){
+function parsePulseDate(v){var m=String(v||"").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?new Date(Number(m[3]),Number(m[2])-1,Number(m[1])):new Date("invalid");}
+function render(){var root=document.getElementById("investigate");if(!root||document.getElementById("pulse-source-status"))return;var details=document.createElement("details");details.className="pulse-source-status";details.id="pulse-source-status";var updated=parsePulseDate(window.PULSE_LAST_UPDATED);var items=(window.PULSE_EVIDENCE||[]).slice().sort(function(a,b){return parsePulseDate(a.proxima_revisao).getTime()-parsePulseDate(b.proxima_revisao).getTime();});details.innerHTML='<summary>Status das Fontes</summary><div class="pulse-source-status-body"><p class="pulse-source-status-note">Revisão interna sugerida para manter fatos, períodos e fontes atualizados. Itens em vermelho já passaram da data de revisão em relação ao último update do Pulse ('+String(window.PULSE_LAST_UPDATED||"")+').</p><div class="pulse-source-list">'+items.map(function(item){var d=parsePulseDate(item.proxima_revisao),overdue=d.getTime()<updated.getTime();return '<div class="pulse-source-item'+(overdue?' is-overdue':'')+'"><div><b>'+String(item.fonte||item.id)+'</b><small>'+String(item.periodo||"")+'</small><span class="pulse-source-chip">'+String(item.categoria||"geral")+'</span></div><span class="pulse-source-date">'+String(item.proxima_revisao||"Sem data")+(overdue?' · REVISAR':'')+'</span></div>';}).join('')+'</div></div>';var anchor=root.querySelector('.history');root.insertBefore(details,anchor||root.querySelector('.file-list')||null);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
+})();</script>
+<script id="pulse-stage2-category">(function(){function getCategory(id){var item=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===id;});return item?String(item.categoria||"geral"):"geral";}function apply(){var select=document.getElementById("pulse-category-select");if(!select)return;var chosen=select.value||"all";try{localStorage.setItem("pulsePrimaryCategory",chosen)}catch(e){};["#signals .rows","#opportunities .opp"].forEach(function(sel){var root=document.querySelector(sel);if(!root)return;var cards=Array.prototype.slice.call(root.querySelectorAll("[data-evidence-id]"));cards.forEach(function(card,i){if(!card.dataset.pulseOrder)card.dataset.pulseOrder=String(i);var badge=card.querySelector(":scope > .pulse-category-badge");if(!badge){badge=document.createElement("span");badge.className="pulse-category-badge";card.insertBefore(badge,card.firstChild);}var cat=getCategory(card.dataset.evidenceId),specific=chosen!=="all"&&cat===chosen;badge.textContent=specific?"Específico da sua categoria":"Sinal geral do mercado";badge.classList.toggle("is-specific",specific);badge.classList.toggle("is-general",!specific);card.classList.toggle("pulse-category-sorted",specific);});if(chosen!=="all"){cards.sort(function(a,b){var as=getCategory(a.dataset.evidenceId)===chosen,bs=getCategory(b.dataset.evidenceId)===chosen;return as===bs?Number(a.dataset.pulseOrder)-Number(b.dataset.pulseOrder):(bs?1:0)-(as?1:0);}).forEach(function(card){root.appendChild(card);});}else{cards.sort(function(a,b){return Number(a.dataset.pulseOrder)-Number(b.dataset.pulseOrder);}).forEach(function(card){root.appendChild(card);});}});}function init(){var select=document.getElementById("pulse-category-select");if(!select)return;try{var saved=localStorage.getItem("pulsePrimaryCategory");if(saved&&select.querySelector('option[value="'+saved+'"]'))select.value=saved;}catch(e){}select.addEventListener("change",apply);apply();}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script><script id="pulse-stage3-export">(function(){function sourceText(ids){return ids.map(function(id){var ev=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===id;});return ev?ev.fonte+' · '+ev.periodo+' · '+ev.confianca:null;}).filter(Boolean).join(' | ');}function addButton(screenId){var screen=document.getElementById(screenId);if(!screen||screen.querySelector('.pulse-export-btn'))return;var btn=document.createElement('button');btn.type='button';btn.className='secondary pulse-export-btn';btn.textContent='Exportar';btn.setAttribute('aria-label','Exportar relatório executivo');btn.addEventListener('click',function(){document.body.classList.add('pulse-printing');document.querySelectorAll('main .screen').forEach(function(x){x.classList.remove('pulse-print-target');});screen.classList.add('pulse-print-target');var old=screen.querySelector('.pulse-print-only');if(!old){old=document.createElement('div');old.className='pulse-print-only sources';old.innerHTML='<b>FONTES CITADAS</b><p>'+sourceText(screenId==='diagnostic'?['promocao','premium','confianca-financeira']:['pack','premium','frequencia','indulgencia-seletiva'])+'</p>'+(screenId==='diagnostic'?'<p><strong>LEITURA EXECUTIVA:</strong> O shopper está ajustando a forma de comprar — preço, formato, frequência e mix — e a interpretação causal deve ser validada por categoria, canal e pack-size.</p>':'');screen.appendChild(old);}window.setTimeout(function(){window.print();},30);});var intro=screen.querySelector('.intro');if(intro)intro.appendChild(btn);}function init(){addButton('diagnostic');addButton('opportunities');window.addEventListener('afterprint',function(){document.body.classList.remove('pulse-printing');document.querySelectorAll('.pulse-print-target').forEach(function(x){x.classList.remove('pulse-print-target');});});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script><script id="pulse-history-persistence">function pulseEscape(text){return String(text||"").replace(/[<>&]/g,function(m){return ({"<":"&lt;",">":"&gt;","&":"&amp;"})[m];});}
+
+
+</script></body></html>

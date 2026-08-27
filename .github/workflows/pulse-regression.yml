@@ -1,0 +1,19 @@
+name: Pulse Regression
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run product regression guardrails
+        run: node scripts/validate_pulse_regression.js
+      - name: Run Ask AI behavioral regression
+        run: node scripts/test-pulse-ask-ai.js index.html
