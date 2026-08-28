@@ -4,7 +4,6 @@ on:
     branches: [feat/pulse-single-file-local-evidence, main]
     paths:
       - 'scripts/*.js'
-      - 'index.html'
       - '.github/workflows/pulse-single-file-refresh.yml'
   workflow_dispatch:
 jobs:
