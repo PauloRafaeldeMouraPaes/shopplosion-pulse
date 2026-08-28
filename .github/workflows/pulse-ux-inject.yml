@@ -24,7 +24,8 @@ jobs:
           text = path.read_text(encoding='utf-8')
           markers = [
               '<script src="/scripts/pulse-ux-fixes.js"></script>',
-              '<script src="/scripts/pulse-ux-category-filter.js"></script>'
+              '<script src="/scripts/pulse-ux-category-filter.js"></script>',
+              '<script src="/scripts/pulse-ux-filter-fix.js"></script>'
           ]
           if '</body>' not in text:
               raise SystemExit('index.html has no closing body tag')
@@ -40,5 +41,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || git commit -m 'build: inject Pulse category filter runtime'
+          git diff --cached --quiet || git commit -m 'build: inject Pulse filter runtime'
           git push
