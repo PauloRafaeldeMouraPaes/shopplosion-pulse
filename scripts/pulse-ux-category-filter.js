@@ -2,7 +2,7 @@
   'use strict';
   var TAXONOMY={chocolates:{label:'Chocolates'},bebidas:{label:'Bebidas'},saude:{label:'Saúde & bem-estar'},geral:{label:'Visão transversal'}};
   var OPTIONS=[['all','Todas as categorias'],['chocolates','Chocolates'],['bebidas','Bebidas'],['saude','Saúde & bem-estar'],['geral','Visão transversal']];
-  var THEME_OPTIONS=[['all','Todos os temas'],['promocao','Promoção'],['premium','Premium'],['macro','Macro/varejo'],['financeiro','Finanças'],['consumo','Consumo'],['saudabilidade','Saudabilidade'],['ocasiao','Ocasião'],['canal','Canal']];
+  var THEME_OPTIONS=[['all','Todos os temas'],['preco','Preço & valor'],['promocao','Promoção'],['premium','Premiumização'],['pack','Pack & tamanho'],['saudabilidade','Saudabilidade'],['conveniencia','Conveniência'],['ocasiao','Ocasião'],['consumo','Consumo'],['frequencia','Frequência'],['canal','Canal'],['macro','Macro/varejo'],['financeiro','Pressão financeira'],['indulgencia','Indulgência']];
   var SOURCE_URLS={
     kantarBebidas:'https://www.kantar.com/brazil/inspiration/consumo/2025/queda-bebidas-alcoolicas-geracoes',
     kantarCerveja:'https://www.kantar.com/brazil/Inspiration/Consumo/2025/Comportamento-consumo-cerveja-brasil',

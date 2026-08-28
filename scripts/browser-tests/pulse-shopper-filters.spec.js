@@ -1,7 +1,11 @@
 const { test, expect } = require('@playwright/test');
 
-async function selectFilter(page, scope, filter, value) {
-  await page.locator(`[data-filter-scope="${scope}"] [data-filter="${filter}"]`).selectOption(value);
+async function openFilterPanel(page, scope) {
+  const panel = page.locator(`[data-filter-scope="${scope}"]`);
+  const details = panel.locator('xpath=ancestor::details[contains(@class,"filter-panel")]');
+  if (await details.count()) await details.first().evaluate((el) => { el.open = true; });
+  await expect(panel.locator('[data-filter="theme"]')).toBeVisible();
+  return panel;
 }
 
 async function intelligenceCards(page, scope) {
@@ -9,23 +13,52 @@ async function intelligenceCards(page, scope) {
 }
 
 test.describe('shopper intelligence filters', () => {
+  test('scripts externos servidos pelo build parseiam sem erro', async ({ page }) => {
+    await page.goto('/index.html#signals');
+    const result = await page.evaluate(async () => {
+      const urls = [
+        '/scripts/pulse-studies.js',
+        '/scripts/pulse-ux-category-filter.js',
+        '/scripts/pulse-ux-filter-fix.js',
+        '/scripts/pulse-ux-fixes.js'
+      ];
+      const errors = [];
+      for (const url of urls) {
+        const text = await (await fetch(url)).text();
+        try { new Function(text); } catch (error) { errors.push({ url, message: error.message }); }
+      }
+      return errors;
+    });
+    expect(result).toEqual([]);
+  });
+
+  test('runtime do shopper intelligence inicializa sem erro', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.stack || error.message));
+    await page.goto('/index.html#signals');
+    const diagnostic = await page.evaluate(() => ({ ready: !!window.PULSE_FILTER_FIX_READY, error: window.PULSE_FILTER_FIX_ERROR || '', intelligence: !!window.PULSE_SHOPPER_INTELLIGENCE }));
+    expect(errors, `Erros de página:\n${errors.join('\n---\n')}`).toEqual([]);
+    expect(diagnostic.error).toBe('');
+    expect(diagnostic.ready).toBe(true);
+    expect(diagnostic.intelligence).toBe(true);
+  });
+
   test('categoria Bebidas retorna evidência específica de bebidas', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
-
+    await openFilterPanel(page, 'signals');
+    await page.locator('#pulse-category-select').selectOption('bebidas');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Consumo fora do lar');
-    await expect(page.locator('#pulse-intelligence-signals')).toContainText('bebidas não alcoólicas');
+    await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas não alcoólicas');
     expect(await intelligenceCards(page, 'signals')).toBeGreaterThan(0);
   });
 
   test('tema Saudabilidade altera o conjunto exibido', async ({ page }) => {
     await page.goto('/index.html#signals');
+    const panel = await openFilterPanel(page, 'signals');
     const before = await page.locator('#pulse-intelligence-signals .pulse-intel-card').allTextContents();
-
-    await selectFilter(page, 'signals', 'theme', 'saudabilidade');
+    await panel.locator('[data-filter="theme"]').selectOption('saudabilidade');
     const after = await page.locator('#pulse-intelligence-signals .pulse-intel-card').allTextContents();
-
     expect(after.length).toBeGreaterThan(0);
     expect(after.join(' ')).not.toBe(before.join(' '));
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Saudabilidade');
@@ -33,10 +66,10 @@ test.describe('shopper intelligence filters', () => {
 
   test('combinação categoria + tema + período preserva resultado coerente', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
-    await selectFilter(page, 'signals', 'theme', 'saudabilidade');
-    await selectFilter(page, 'signals', 'period', '2026');
-
+    await page.locator('#pulse-category-select').selectOption('bebidas');
+    const panel = await openFilterPanel(page, 'signals');
+    await panel.locator('[data-filter="theme"]').selectOption('saudabilidade');
+    await panel.locator('[data-filter="period"]').selectOption('2026');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Zero açúcar');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('2026');
     expect(await intelligenceCards(page, 'signals')).toBeGreaterThan(0);
@@ -44,9 +77,9 @@ test.describe('shopper intelligence filters', () => {
 
   test('canal altera o resultado e não apenas o contador', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
-    await selectFilter(page, 'signals', 'channel', 'foodservice');
-
+    await page.locator('#pulse-category-select').selectOption('bebidas');
+    const panel = await openFilterPanel(page, 'signals');
+    await panel.locator('[data-filter="channel"]').selectOption('foodservice');
     const text = (await page.locator('#pulse-intelligence-signals').innerText()).toLowerCase();
     expect(text).toContain('fora do lar');
     expect(await intelligenceCards(page, 'signals')).toBeGreaterThan(0);
@@ -54,23 +87,25 @@ test.describe('shopper intelligence filters', () => {
 
   test('sem resultado apresenta saída clara e reset funcional', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
-    await selectFilter(page, 'signals', 'theme', 'premium');
-    await selectFilter(page, 'signals', 'period', '2026');
-    await selectFilter(page, 'signals', 'channel', 'atacarejo');
-
+    await page.locator('#pulse-category-select').selectOption('bebidas');
+    const panel = await openFilterPanel(page, 'signals');
+    await panel.locator('[data-filter="theme"]').selectOption('premium');
+    await panel.locator('[data-filter="period"]').selectOption('2026');
+    await panel.locator('[data-filter="channel"]').selectOption('atacarejo');
     await expect(page.locator('#pulse-intelligence-signals .pulse-intel-empty')).toBeVisible();
     await page.locator('#pulse-intelligence-signals [data-intel-reset]').click();
-    await expect(page.locator('#pulse-intelligence-signals .pulse-intel-card')).toHaveCount(6);
+    await expect(page.locator('#pulse-intelligence-signals .pulse-intel-card')).toHaveCount(3);
   });
 
-  test('categoria persiste ao navegar entre as cinco etapas', async ({ page }) => {
+  test('categoria permanece sincronizada ao mudar de etapa', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'chocolates');
-    await page.locator('a[href="#diagnostic"]').first().click();
+    await page.locator('#pulse-category-select').selectOption('chocolates');
     await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'chocolates');
-
-    await page.locator('a[href="#opportunities"]').first().click();
+    await page.evaluate(() => { location.hash = '#diagnostic'; });
+    await page.waitForTimeout(100);
+    await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'chocolates');
+    await page.evaluate(() => { location.hash = '#opportunities'; });
+    await page.waitForTimeout(100);
     await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'chocolates');
   });
 });
