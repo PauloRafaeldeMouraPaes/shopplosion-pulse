@@ -22,4 +22,4 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser smoke tests
-        run: npx playwright test scripts/browser-tests/pulse-attachment.spec.js scripts/browser-tests/pulse-study-intelligence.spec.js scripts/browser-tests/pulse-ux.spec.js
+        run: npx playwright test scripts/browser-tests/pulse-attachment.spec.js scripts/browser-tests/pulse-study-intelligence.spec.js scripts/browser-tests/pulse-ux.spec.js scripts/browser-tests/pulse-filters.spec.js
