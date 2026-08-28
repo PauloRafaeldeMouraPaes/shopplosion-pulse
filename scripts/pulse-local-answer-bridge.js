@@ -12,7 +12,9 @@
       if (title) title.textContent = 'Fato → Contexto → Interpretação → Hipótese → Ação';
       if (subtitle) subtitle.textContent = 'Resposta composta com evidência da sua base local para: “' + esc(question) + '”';
       if (!body) return;
-      body.innerHTML = '<div class="box"><span class="confidence pulse-source-local">SUA BASE LOCAL · DESCRITIVA</span><h2>FATO</h2><p>' + esc(match.fato) + '</p><div class="source-line">Fonte: ' + esc(match.fonte) + ' · Período: ' + esc(match.periodo) + ' · Confiança: descritiva</div></div>' +
+      var source = match.fonte || match.sourceName || 'Arquivo local';
+      var period = match.periodo || 'Base local';
+      body.innerHTML = '<div class="box"><span class="confidence pulse-source-local">SUA BASE LOCAL · DESCRITIVA</span><h2>FATO</h2><p>' + esc(match.fato) + '</p><div class="source-line">Fonte: ' + esc(source) + ' · Período: ' + esc(period) + ' · Confiança: descritiva</div></div>' +
         '<div class="box"><h2>CONTEXTO</h2><p>' + esc(match.contexto) + '</p></div>' +
         '<div class="box"><h2>INTERPRETAÇÃO</h2><p>O trecho foi extraído do arquivo local e não recebe uma interpretação automática apresentada como fato.</p></div>' +
         '<div class="hypo"><b>HIPÓTESE A VALIDAR</b><p>Valide esta leitura contra outras evidências, metodologia do estudo e contexto da categoria antes de tomar uma decisão.</p></div>' +
