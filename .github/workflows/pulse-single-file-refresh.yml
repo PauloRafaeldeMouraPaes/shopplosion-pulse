@@ -1,0 +1,55 @@
+name: Pulse Single-File Refresh
+on:
+  push:
+    branches: [feat/pulse-single-file-local-evidence, main]
+    paths:
+      - 'scripts/*.js'
+      - '.github/workflows/pulse-single-file-refresh.yml'
+  workflow_dispatch:
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refresh inline source blocks
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          t=p.read_text(encoding='utf-8')
+          files=['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js']
+          for name in files:
+              src=Path('scripts')/name
+              code=src.read_text(encoding='utf-8')
+              marker='data-pulse-inline="'+name+'"'
+              block='<script '+marker+'>\n'+code+'\n</script>'
+              pat=r'<script\s+'+re.escape(marker)+r'[^>]*>[\s\S]*?</script>'
+              if re.search(pat,t,re.I): t=re.sub(pat,lambda _:block,t,count=1,flags=re.I)
+              else: t=t.replace('</body>',block+'\n</body>',1)
+          p.write_text(t,encoding='utf-8')
+      - name: Validate
+        shell: python
+        run: |
+          from pathlib import Path
+          import re, subprocess, tempfile
+          t=Path('index.html').read_text(encoding='utf-8')
+          assert 'assets/' not in t
+          assert not re.search(r'<script[^>]+src=["\']/scripts/',t,re.I)
+          assert t.count('<html')==1 and t.count('</html>')==1
+          assert t.count('<body')==1 and t.count('</body>')==1
+          assert 'PULSE_LOCAL_EVIDENCE' in t
+          scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',t,re.I)
+          with tempfile.TemporaryDirectory() as d:
+              for i,c in enumerate(scripts):
+                  f=Path(d)/f'{i}.js'; f.write_text(c,encoding='utf-8')
+                  r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
+                  if r.returncode: raise SystemExit(r.stderr)
+      - name: Commit refreshed index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'build: refresh self-contained index' && git push)

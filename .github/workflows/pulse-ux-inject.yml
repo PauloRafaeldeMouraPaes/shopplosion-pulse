@@ -1,45 +1,115 @@
-name: Pulse UX Injection
+name: Pulse Single-File Artifact
 
 on:
   push:
     branches:
       - main
+      - feat/pulse-single-file-local-evidence
     paths-ignore:
       - index.html
   workflow_dispatch:
 
 jobs:
-  inject:
+  build-single-file:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Inject UX runtimes into single-file artifact
+
+      - name: Inline runtimes and harden single-file UX
         shell: python
         run: |
           from pathlib import Path
-          path = Path('index.html')
-          text = path.read_text(encoding='utf-8')
-          markers = [
-              '<script src="/scripts/pulse-ux-fixes.js"></script>',
-              '<script src="/scripts/pulse-ux-category-filter.js"></script>',
-              '<script src="/scripts/pulse-ux-filter-fix.js"></script>'
+          import re
+
+          root = Path('.')
+          index_path = root / 'index.html'
+          text = index_path.read_text(encoding='utf-8')
+          sources = [
+              'scripts/pulse-studies.js',
+              'scripts/pulse-ux-fixes.js',
+              'scripts/pulse-ux-category-filter.js',
+              'scripts/pulse-ux-filter-fix.js',
+              'scripts/pulse-local-evidence.js',
+              'scripts/pulse-single-file-bridge.js',
+              'scripts/pulse-local-answer-bridge.js',
           ]
-          if '</body>' not in text:
-              raise SystemExit('index.html has no closing body tag')
-          for marker in markers:
-              if marker not in text:
-                  text = text.replace('</body>', marker + '\n</body>', 1)
-          path.write_text(text, encoding='utf-8')
-      - name: Validate artifact
+
+          for rel in sources:
+              name = Path(rel).name
+              text = re.sub(r'<script[^>]+src=["\'][^"\']*' + re.escape(name) + r'["\'][^>]*>\s*</script>', '', text, flags=re.I)
+
+          cdn = '''<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.5.4/papaparse.min.js"></script>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>\n<script>if(window.pdfjsLib){window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}</script>\n<script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>'''
+          if 'cdnjs.cloudflare.com/ajax/libs/PapaParse/5.5.4/papaparse.min.js' not in text:
+              text = text.replace('</head>', cdn + '\n</head>', 1)
+
+          # Remove repeated suggestion-handler scripts by exact DOMContentLoaded block identity.
+          blocks = re.findall(r'<script(?:\s+[^>]*)?>\s*document\.addEventListener\(["\']DOMContentLoaded["\'][\s\S]*?</script>', text, flags=re.I)
+          seen = set()
+          for block in blocks:
+              if '.pulse-suggestion' in block:
+                  key = re.sub(r'\s+', ' ', block).strip()
+                  if key in seen:
+                      text = text.replace(block, '', 1)
+                  else:
+                      seen.add(key)
+
+          # Ensure the single-file runtimes are present exactly once, after the page's own scripts.
+          for rel in sources:
+              marker = 'data-pulse-inline="' + Path(rel).name + '"'
+              if marker in text:
+                  continue
+              code = (root / rel).read_text(encoding='utf-8')
+              inline = '<script ' + marker + '>\n' + code + '\n</script>'
+              text = text.replace('</body>', inline + '\n</body>', 1)
+
+          # Strong active-step contrast.
+          if '.journey-step.is-current b{color:#fff!important}' not in text:
+              text = text.replace('</head>', '<style id="pulse-single-file-final-style">.journey-step.is-current b{color:#fff!important}</style>\n</head>', 1)
+
+          # The primary movement CTA must follow the announced 5-step journey.
+          text = re.sub(r'(<a\b[^>]*href=["\'])#diagnostic(["\'][^>]*>[^<]*Entender o movimento)', r'\1#signals\2', text, flags=re.I)
+
+          index_path.write_text(text, encoding='utf-8')
+
+      - name: Validate single-file artifact
+        shell: python
         run: |
-          python scripts/validate_pulse.py
+          from pathlib import Path
+          import re, subprocess, tempfile
+          p = Path('index.html')
+          text = p.read_text(encoding='utf-8')
+          errors = []
+          if 'assets/' in text or 'assets\\' in text: errors.append('referência assets/ encontrada')
+          if re.search(r'<script[^>]+src=["\']/scripts/', text, re.I): errors.append('script JS local externo ainda referenciado')
+          if text.count('<html') != 1 or text.count('</html>') != 1: errors.append('estrutura html desequilibrada')
+          if text.count('<body') != 1 or text.count('</body>') != 1: errors.append('estrutura body desequilibrada')
+          if 'PULSE_EVIDENCE' not in text: errors.append('PULSE_EVIDENCE ausente')
+          if 'PULSE_SOURCES' not in text: errors.append('PULSE_SOURCES ausente')
+          if 'PULSE_LOCAL_EVIDENCE' not in text: errors.append('PULSE_LOCAL_EVIDENCE ausente')
+          if 'SUA BASE LOCAL' not in text: errors.append('proveniência local ausente')
+          for name in ['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js']:
+              if re.search(r'<script[^>]+src=["\'][^"\']*' + re.escape(name) + r'["\']', text, re.I): errors.append(name + ' externo')
+          if errors:
+              print('VALIDATION FAILED')
+              print('\n'.join('- '+e for e in errors))
+              raise SystemExit(1)
+          scripts = re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>', text, flags=re.I)
+          with tempfile.TemporaryDirectory() as d:
+              for i, code in enumerate(scripts):
+                  if code.strip():
+                      f = Path(d) / f'script-{i}.js'; f.write_text(code, encoding='utf-8')
+                      r = subprocess.run(['node','--check',str(f)], capture_output=True, text=True)
+                      if r.returncode:
+                          print(r.stdout); print(r.stderr); raise SystemExit(f'JS parse failure in inline script {i}')
+          print(f'VALIDATION PASSED · {len(scripts)} inline scripts parsed')
+
       - name: Commit generated artifact
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git diff --cached --quiet || git commit -m 'build: inject Pulse filter runtime'
+          git add index.html .github/workflows/pulse-ux-inject.yml scripts/pulse-local-evidence.js scripts/pulse-single-file-bridge.js scripts/pulse-local-answer-bridge.js
+          git diff --cached --quiet || git commit -m 'build: deliver self-contained Pulse artifact'
           git push
