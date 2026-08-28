@@ -1145,7 +1145,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 <script data-pulse-inline="pulse-single-file-bridge.js">
 /* Shopplosion Pulse — single-file UX bridge */
-/* v3: category options and application are driven by rendered evidence rows. */
+/* v4: progressive disclosure never hides filterable evidence rows. */
 (function () {
   'use strict';
   var q = function (s, r) { return (r || document).querySelector(s); };
@@ -1202,7 +1202,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function progressiveReveal() {
     qa('.screen').forEach(function (screen) {
-      var blocks = qa('.box,.chart-box,.row,.chain,.nearby,.history', screen);
+      var blocks = qa('.box,.chart-box,.chain,.nearby,.history', screen);
       if (blocks.length > 9) blocks.slice(9).forEach(function (b) { b.classList.add('pulse-progressive'); });
     });
   }
