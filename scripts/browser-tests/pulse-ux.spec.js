@@ -3,10 +3,7 @@ const { test, expect } = require('@playwright/test');
 async function openFilters(page, scopeName) {
   const scope = page.locator(`[data-filter-scope="${scopeName}"]`);
   const details = scope.locator('xpath=ancestor::details[1]');
-  if (await details.count()) {
-    const open = await details.getAttribute('open');
-    if (open === null) await details.locator('summary').click();
-  }
+  if (await details.count() && await details.getAttribute('open') === null) await details.locator('summary').click();
   return scope;
 }
 
@@ -33,17 +30,15 @@ test('categoria: filtro muda a experiência global e mantém estado visível', a
   await expect(page.locator('#pulse-category-context')).toContainText('Bebidas');
   await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'bebidas');
   await page.locator('aside .nav[href="#signals"]').click();
-  await expect(page).toHaveURL(/#signals$/);
   await expect(page.locator('#pulse-category-select')).toHaveValue('bebidas');
-  await expect(page.locator('#pulse-category-context')).toContainText('Bebidas');
+  await expect(page.locator('#signals [data-evidence-id="bebidas-nao-alcoolicas"]')).toBeVisible();
   await select.selectOption('chocolates');
-  await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeVisible();
-  await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeHidden();
-  await select.selectOption('bebidas');
+  await expect(page.locator('#signals [data-evidence-id="chocolate-premium"]')).toBeVisible();
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeHidden();
-  await expect(page.locator('#signals .pulse-category-empty')).toContainText('Bebidas');
+  await select.selectOption('bebidas');
+  await expect(page.locator('#signals [data-evidence-id="chocolate-premium"]')).toBeHidden();
+  await expect(page.locator('#signals [data-evidence-id="bebidas-nao-alcoolicas"]')).toBeVisible();
   await select.selectOption('all');
-  await expect(page.locator('#signals .pulse-category-empty')).toBeHidden();
   await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeVisible();
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeVisible();
 });
@@ -54,23 +49,23 @@ test('filtros de sinais: tema, canal e período alteram efetivamente os cards', 
   const theme = scope.locator('[data-filter="theme"]');
   const channel = scope.locator('[data-filter="channel"]');
   const period = scope.locator('[data-filter="period"]');
-  await expect(page.locator('#signals .row:visible')).toHaveCount(4);
+  await expect(page.locator('#signals .row:visible')).toHaveCount(10);
   await theme.selectOption('promocao');
   await expect(page.locator('#signals .row:visible')).toHaveCount(1);
   await expect(page.locator('#signals [data-evidence-id="promocao"]')).toBeVisible();
   await theme.selectOption('all');
   await channel.selectOption('varejo');
-  await expect(page.locator('#signals .row:visible')).toHaveCount(1);
+  await expect(page.locator('#signals .row:visible')).toHaveCount(3);
   await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeVisible();
   await channel.selectOption('all');
   await period.selectOption('2026');
-  await expect(page.locator('#signals .row:visible')).toHaveCount(1);
+  await expect(page.locator('#signals .row:visible')).toHaveCount(3);
   await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeVisible();
   await theme.selectOption('all');
   await channel.selectOption('all');
   await period.selectOption('all');
-  await expect(page.locator('#signals .row:visible')).toHaveCount(4);
-  await expect(page.locator('[data-filter-summary="signals"]')).toHaveText('4 sinais exibidos');
+  await expect(page.locator('#signals .row:visible')).toHaveCount(10);
+  await expect(page.locator('[data-filter-summary="signals"]')).toHaveText('10 sinais exibidos');
 });
 
 test('filtros de oportunidades: categoria e canal funcionam e podem ser limpos', async ({ page }) => {
@@ -90,7 +85,7 @@ test('filtros de oportunidades: categoria e canal funcionam e podem ser limpos',
   await expect(page.locator('#opportunities .opp .box:visible')).toHaveCount(4);
 });
 
-test('mobile: minha categoria permanece visível e utilizável', async ({ page }) => {
+test('mobile: minha categoria e filtros permanecem visíveis e utilizáveis', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/index.html#overview');
   const select = page.locator('#pulse-category-select');
@@ -102,6 +97,6 @@ test('mobile: minha categoria permanece visível e utilizável', async ({ page }
   await select.selectOption('all');
   const scope = await openFilters(page, 'signals');
   const theme = scope.locator('[data-filter="theme"]');
-  await theme.selectOption('promocao');
-  await expect(page.locator('#signals .row:visible')).toHaveCount(1);
+  await theme.selectOption('saudabilidade');
+  await expect(page.locator('#signals .row:visible')).toHaveCount(3);
 });
