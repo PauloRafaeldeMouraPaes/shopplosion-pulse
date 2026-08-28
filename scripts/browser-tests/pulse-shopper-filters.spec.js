@@ -55,6 +55,7 @@ test.describe('shopper intelligence filters and single-file UX', () => {
     expect(options.some((x) => /higiene/i.test(x.text))).toBe(false);
     for (const option of options.filter((x) => x.value !== 'all')) {
       await page.locator('#pulse-category-select').selectOption(option.value);
+      await page.waitForTimeout(50);
       const count = await categoryEvidenceRows(page);
       expect(count, `Categoria sem evidência renderizada: ${option.text}`).toBeGreaterThan(0);
     }
@@ -63,8 +64,9 @@ test.describe('shopper intelligence filters and single-file UX', () => {
   test('categoria Bebidas retorna evidência específica de bebidas', async ({ page }) => {
     await page.goto('/index.html#signals');
     await page.locator('#pulse-category-select').selectOption('bebidas');
-    await expect(page.locator('#signals .pulse-category-evidence-row:visible')).toContainText('Bebidas não alcoólicas');
-    await expect(page.locator('#signals .pulse-category-evidence-row:visible')).toContainText('Consumo fora do lar');
+    const text = (await page.locator('#signals .pulse-category-evidence-row:visible').allTextContents()).join(' ');
+    expect(text).toContain('Bebidas não alcoólicas');
+    expect(text).toContain('Consumo fora do lar');
     expect(await categoryEvidenceRows(page)).toBeGreaterThan(0);
   });
 
@@ -133,6 +135,7 @@ test.describe('shopper intelligence filters and single-file UX', () => {
     fs.writeFileSync(csvPath, 'driver,insight\nsaudabilidade,Bebidas zero açúcar ganham relevância\ncanal,Fora do lar segue relevante', 'utf8');
     await page.goto('/index.html#investigate');
     await page.locator('#pulse-files').setInputFiles(csvPath);
+    await page.waitForFunction(() => Array.isArray(window.PULSE_LOCAL_EVIDENCE) && window.PULSE_LOCAL_EVIDENCE.some((x) => x.name === 'estudo-shopper-teste.csv'));
     await expect(page.locator('#file-list')).toContainText('estudo-shopper-teste.csv');
     await expect(page.locator('#pulse-local-evidence-note')).toContainText('SUA BASE LOCAL');
     const local = await page.evaluate(() => ({ count: window.PULSE_LOCAL_EVIDENCE.length, name: window.PULSE_LOCAL_EVIDENCE[0]?.name, method: window.PULSE_LOCAL_EVIDENCE[0]?.method }));
