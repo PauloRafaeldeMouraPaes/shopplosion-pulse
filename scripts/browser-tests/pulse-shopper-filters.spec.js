@@ -1,7 +1,16 @@
 const { test, expect } = require('@playwright/test');
 
+async function openFilterPanel(page, scope) {
+  const panel = page.locator(`[data-filter-scope="${scope}"]`);
+  const details = panel.locator('details.filter-panel');
+  if (await details.count()) await details.evaluate((el) => { el.open = true; });
+  await expect(panel.locator('[data-filter="theme"]')).toBeVisible();
+  return panel;
+}
+
 async function selectFilter(page, scope, filter, value) {
-  await page.locator(`[data-filter-scope="${scope}"] [data-filter="${filter}"]`).selectOption(value);
+  const panel = await openFilterPanel(page, scope);
+  await panel.locator(`[data-filter="${filter}"]`).selectOption(value);
 }
 
 async function intelligenceCards(page, scope) {
@@ -11,19 +20,21 @@ async function intelligenceCards(page, scope) {
 test.describe('shopper intelligence filters', () => {
   test('categoria Bebidas retorna evidência específica de bebidas', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
+    await selectFilter(page, 'signals', 'theme', 'all');
+    await page.locator('#pulse-category-select').selectOption('bebidas');
 
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Consumo fora do lar');
-    await expect(page.locator('#pulse-intelligence-signals')).toContainText('bebidas não alcoólicas');
+    await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas não alcoólicas');
     expect(await intelligenceCards(page, 'signals')).toBeGreaterThan(0);
   });
 
   test('tema Saudabilidade altera o conjunto exibido', async ({ page }) => {
     await page.goto('/index.html#signals');
+    const panel = await openFilterPanel(page, 'signals');
     const before = await page.locator('#pulse-intelligence-signals .pulse-intel-card').allTextContents();
 
-    await selectFilter(page, 'signals', 'theme', 'saudabilidade');
+    await panel.locator('[data-filter="theme"]').selectOption('saudabilidade');
     const after = await page.locator('#pulse-intelligence-signals .pulse-intel-card').allTextContents();
 
     expect(after.length).toBeGreaterThan(0);
@@ -33,9 +44,10 @@ test.describe('shopper intelligence filters', () => {
 
   test('combinação categoria + tema + período preserva resultado coerente', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
-    await selectFilter(page, 'signals', 'theme', 'saudabilidade');
-    await selectFilter(page, 'signals', 'period', '2026');
+    await page.locator('#pulse-category-select').selectOption('bebidas');
+    const panel = await openFilterPanel(page, 'signals');
+    await panel.locator('[data-filter="theme"]').selectOption('saudabilidade');
+    await panel.locator('[data-filter="period"]').selectOption('2026');
 
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Zero açúcar');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('2026');
@@ -44,8 +56,9 @@ test.describe('shopper intelligence filters', () => {
 
   test('canal altera o resultado e não apenas o contador', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
-    await selectFilter(page, 'signals', 'channel', 'foodservice');
+    await page.locator('#pulse-category-select').selectOption('bebidas');
+    const panel = await openFilterPanel(page, 'signals');
+    await panel.locator('[data-filter="channel"]').selectOption('foodservice');
 
     const text = (await page.locator('#pulse-intelligence-signals').innerText()).toLowerCase();
     expect(text).toContain('fora do lar');
@@ -54,10 +67,11 @@ test.describe('shopper intelligence filters', () => {
 
   test('sem resultado apresenta saída clara e reset funcional', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'bebidas');
-    await selectFilter(page, 'signals', 'theme', 'premium');
-    await selectFilter(page, 'signals', 'period', '2026');
-    await selectFilter(page, 'signals', 'channel', 'atacarejo');
+    await page.locator('#pulse-category-select').selectOption('bebidas');
+    const panel = await openFilterPanel(page, 'signals');
+    await panel.locator('[data-filter="theme"]').selectOption('premium');
+    await panel.locator('[data-filter="period"]').selectOption('2026');
+    await panel.locator('[data-filter="channel"]').selectOption('atacarejo');
 
     await expect(page.locator('#pulse-intelligence-signals .pulse-intel-empty')).toBeVisible();
     await page.locator('#pulse-intelligence-signals [data-intel-reset]').click();
@@ -66,7 +80,7 @@ test.describe('shopper intelligence filters', () => {
 
   test('categoria persiste ao navegar entre as cinco etapas', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'category', 'chocolates');
+    await page.locator('#pulse-category-select').selectOption('chocolates');
     await page.locator('a[href="#diagnostic"]').first().click();
     await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'chocolates');
 
