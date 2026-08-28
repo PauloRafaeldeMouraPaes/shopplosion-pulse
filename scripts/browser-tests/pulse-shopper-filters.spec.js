@@ -2,8 +2,8 @@ const { test, expect } = require('@playwright/test');
 
 async function openFilterPanel(page, scope) {
   const panel = page.locator(`[data-filter-scope="${scope}"]`);
-  const details = panel.locator('details.filter-panel');
-  if (await details.count()) await details.evaluate((el) => { el.open = true; });
+  const details = panel.locator('xpath=ancestor::details[contains(@class,"filter-panel")]');
+  if (await details.count()) await details.first().evaluate((el) => { el.open = true; });
   await expect(panel.locator('[data-filter="theme"]')).toBeVisible();
   return panel;
 }
