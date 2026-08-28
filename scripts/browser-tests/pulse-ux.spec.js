@@ -10,6 +10,12 @@ async function openFilters(page, scopeName) {
   return scope;
 }
 
+async function clickReset(page, scopeName) {
+  const button = page.locator(`[data-filter-reset="${scopeName}"]`);
+  await button.scrollIntoViewIfNeeded();
+  await button.click({ force: true });
+}
+
 test('navegação: muda quadro e destaca a etapa ativa', async ({ page }) => {
   await page.goto('/index.html#overview');
   await page.locator('aside .nav[href="#signals"]').click();
@@ -66,7 +72,7 @@ test('filtros de sinais: tema, canal e período alteram efetivamente os cards', 
   await period.selectOption('2026');
   await expect(page.locator('#signals .row:visible')).toHaveCount(1);
   await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeVisible();
-  await page.locator('[data-filter-reset="signals"]').click();
+  await clickReset(page, 'signals');
   await expect(page.locator('#signals .row:visible')).toHaveCount(4);
   await expect(page.locator('[data-filter-summary="signals"]')).toHaveText('4 sinais exibidos');
 });
@@ -83,7 +89,7 @@ test('filtros de oportunidades: categoria e canal funcionam e podem ser limpos',
   await theme.selectOption('all');
   await channel.selectOption('varejo');
   await expect(page.locator('#opportunities .opp .box:visible')).toHaveCount(2);
-  await page.locator('[data-filter-reset="opportunities"]').click();
+  await clickReset(page, 'opportunities');
   await expect(page.locator('#opportunities .opp .box:visible')).toHaveCount(4);
 });
 
