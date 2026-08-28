@@ -66,7 +66,7 @@ test.describe('shopper intelligence filters and single-file UX', () => {
     await page.locator('#pulse-category-select').selectOption('bebidas');
     const text = (await page.locator('#signals .pulse-category-evidence-row:visible').allTextContents()).join(' ');
     expect(text).toContain('Bebidas não alcoólicas');
-    expect(text).toContain('Consumo fora do lar');
+    expect(text).toContain('ocasiões fora do lar');
     expect(await categoryEvidenceRows(page)).toBeGreaterThan(0);
   });
 
