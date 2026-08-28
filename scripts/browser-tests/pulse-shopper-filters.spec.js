@@ -13,6 +13,25 @@ async function intelligenceCards(page, scope) {
 }
 
 test.describe('shopper intelligence filters', () => {
+  test('scripts externos servidos pelo build parseiam sem erro', async ({ page }) => {
+    await page.goto('/index.html#signals');
+    const result = await page.evaluate(async () => {
+      const urls = [
+        '/scripts/pulse-studies.js',
+        '/scripts/pulse-ux-category-filter.js',
+        '/scripts/pulse-ux-filter-fix.js',
+        '/scripts/pulse-ux-fixes.js'
+      ];
+      const errors = [];
+      for (const url of urls) {
+        const text = await (await fetch(url)).text();
+        try { new Function(text); } catch (error) { errors.push({ url, message: error.message }); }
+      }
+      return errors;
+    });
+    expect(result).toEqual([]);
+  });
+
   test('runtime do shopper intelligence inicializa sem erro', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.stack || error.message));
