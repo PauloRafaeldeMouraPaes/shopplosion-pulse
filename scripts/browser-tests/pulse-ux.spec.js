@@ -59,7 +59,7 @@ test('filtros de sinais: tema, canal e período alteram efetivamente os cards', 
   await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeVisible();
   await channel.selectOption('all');
   await period.selectOption('2026');
-  await expect(page.locator('#signals .row:visible')).toHaveCount(3);
+  await expect(page.locator('#signals .row:visible')).toHaveCount(4);
   await expect(page.locator('#signals [data-evidence-id="varejo-geral"]')).toBeVisible();
   await theme.selectOption('all');
   await channel.selectOption('all');
