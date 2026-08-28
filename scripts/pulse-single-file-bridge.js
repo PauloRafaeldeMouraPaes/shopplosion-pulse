@@ -1,4 +1,5 @@
 /* Shopplosion Pulse — single-file UX bridge */
+/* v2: no DOM-wide mutation observer; category options are deterministic. */
 (function () {
   'use strict';
   var q = function (s, r) { return (r || document).querySelector(s); };
