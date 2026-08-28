@@ -15,10 +15,10 @@ async function intelligenceCards(page, scope) {
 test.describe('shopper intelligence filters', () => {
   test('runtime do shopper intelligence inicializa sem erro', async ({ page }) => {
     const errors = [];
-    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('pageerror', (error) => errors.push(error.stack || error.message));
     await page.goto('/index.html#signals');
     const diagnostic = await page.evaluate(() => ({ ready: !!window.PULSE_FILTER_FIX_READY, error: window.PULSE_FILTER_FIX_ERROR || '', intelligence: !!window.PULSE_SHOPPER_INTELLIGENCE }));
-    expect(errors, `Erros de página: ${errors.join(' | ')}`).toEqual([]);
+    expect(errors, `Erros de página:\n${errors.join('\n---\n')}`).toEqual([]);
     expect(diagnostic.error).toBe('');
     expect(diagnostic.ready).toBe(true);
     expect(diagnostic.intelligence).toBe(true);
