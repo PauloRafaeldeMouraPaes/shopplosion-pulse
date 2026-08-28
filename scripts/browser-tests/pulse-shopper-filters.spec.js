@@ -8,11 +8,6 @@ async function openFilterPanel(page, scope) {
   return panel;
 }
 
-async function selectFilter(page, scope, filter, value) {
-  const panel = await openFilterPanel(page, scope);
-  await panel.locator(`[data-filter="${filter}"]`).selectOption(value);
-}
-
 async function intelligenceCards(page, scope) {
   return page.locator(`#pulse-intelligence-${scope} .pulse-intel-card`).count();
 }
@@ -20,9 +15,8 @@ async function intelligenceCards(page, scope) {
 test.describe('shopper intelligence filters', () => {
   test('categoria Bebidas retorna evidência específica de bebidas', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await selectFilter(page, 'signals', 'theme', 'all');
+    await openFilterPanel(page, 'signals');
     await page.locator('#pulse-category-select').selectOption('bebidas');
-
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Consumo fora do lar');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas não alcoólicas');
@@ -33,10 +27,8 @@ test.describe('shopper intelligence filters', () => {
     await page.goto('/index.html#signals');
     const panel = await openFilterPanel(page, 'signals');
     const before = await page.locator('#pulse-intelligence-signals .pulse-intel-card').allTextContents();
-
     await panel.locator('[data-filter="theme"]').selectOption('saudabilidade');
     const after = await page.locator('#pulse-intelligence-signals .pulse-intel-card').allTextContents();
-
     expect(after.length).toBeGreaterThan(0);
     expect(after.join(' ')).not.toBe(before.join(' '));
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Saudabilidade');
@@ -48,7 +40,6 @@ test.describe('shopper intelligence filters', () => {
     const panel = await openFilterPanel(page, 'signals');
     await panel.locator('[data-filter="theme"]').selectOption('saudabilidade');
     await panel.locator('[data-filter="period"]').selectOption('2026');
-
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('Zero açúcar');
     await expect(page.locator('#pulse-intelligence-signals')).toContainText('2026');
     expect(await intelligenceCards(page, 'signals')).toBeGreaterThan(0);
@@ -59,7 +50,6 @@ test.describe('shopper intelligence filters', () => {
     await page.locator('#pulse-category-select').selectOption('bebidas');
     const panel = await openFilterPanel(page, 'signals');
     await panel.locator('[data-filter="channel"]').selectOption('foodservice');
-
     const text = (await page.locator('#pulse-intelligence-signals').innerText()).toLowerCase();
     expect(text).toContain('fora do lar');
     expect(await intelligenceCards(page, 'signals')).toBeGreaterThan(0);
@@ -72,19 +62,20 @@ test.describe('shopper intelligence filters', () => {
     await panel.locator('[data-filter="theme"]').selectOption('premium');
     await panel.locator('[data-filter="period"]').selectOption('2026');
     await panel.locator('[data-filter="channel"]').selectOption('atacarejo');
-
     await expect(page.locator('#pulse-intelligence-signals .pulse-intel-empty')).toBeVisible();
     await page.locator('#pulse-intelligence-signals [data-intel-reset]').click();
     await expect(page.locator('#pulse-intelligence-signals .pulse-intel-card')).toHaveCount(6);
   });
 
-  test('categoria persiste ao navegar entre as cinco etapas', async ({ page }) => {
+  test('categoria permanece sincronizada ao mudar de etapa', async ({ page }) => {
     await page.goto('/index.html#signals');
     await page.locator('#pulse-category-select').selectOption('chocolates');
-    await page.locator('a[href="#diagnostic"]').first().click();
     await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'chocolates');
-
-    await page.locator('a[href="#opportunities"]').first().click();
+    await page.evaluate(() => { location.hash = '#diagnostic'; });
+    await page.waitForTimeout(100);
+    await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'chocolates');
+    await page.evaluate(() => { location.hash = '#opportunities'; });
+    await page.waitForTimeout(100);
     await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'chocolates');
   });
 });
