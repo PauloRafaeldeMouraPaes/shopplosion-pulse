@@ -3,7 +3,7 @@ name: Pulse UX Injection
 on:
   push:
     branches:
-      - fix/pulse-ux-navigation-category-2026-08-27-final
+      - main
     paths-ignore:
       - index.html
   workflow_dispatch:
@@ -16,20 +16,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Inject UX runtime into single-file artifact
+      - name: Inject UX runtimes into single-file artifact
         shell: python
         run: |
           from pathlib import Path
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
-          marker = '<script src="/scripts/pulse-ux-fixes.js"></script>'
-          if marker not in text:
-              if '</body>' not in text:
-                  raise SystemExit('index.html has no closing body tag')
-              text = text.replace('</body>', marker + '\n</body>', 1)
-              path.write_text(text, encoding='utf-8')
-          else:
-              print('UX runtime already injected')
+          markers = [
+              '<script src="/scripts/pulse-ux-fixes.js"></script>',
+              '<script src="/scripts/pulse-ux-category-filter.js"></script>'
+          ]
+          if '</body>' not in text:
+              raise SystemExit('index.html has no closing body tag')
+          for marker in markers:
+              if marker not in text:
+                  text = text.replace('</body>', marker + '\n</body>', 1)
+          path.write_text(text, encoding='utf-8')
       - name: Validate artifact
         run: |
           python scripts/validate_pulse.py
@@ -38,5 +40,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || git commit -m 'build: inject Pulse UX runtime'
+          git diff --cached --quiet || git commit -m 'build: inject Pulse category filter runtime'
           git push
