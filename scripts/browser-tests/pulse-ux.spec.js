@@ -15,10 +15,19 @@ test('navegação: muda quadro e destaca a etapa ativa', async ({ page }) => {
   await expect(page.locator('#journey-current-step')).toHaveText('03');
 });
 
-test('categoria: filtra sinais e mostra estado explícito quando não há evidência específica', async ({ page }) => {
-  await page.goto('/index.html#signals');
+test('categoria: filtro muda a experiência global e mantém estado visível', async ({ page }) => {
+  await page.goto('/index.html#overview');
   const select = page.locator('#pulse-category-select');
-  await expect(select).toHaveValue('all');
+  await expect(select).toBeVisible();
+  await select.selectOption('bebidas');
+  await expect(select).toHaveValue('bebidas');
+  await expect(page.locator('#pulse-category-context')).toContainText('Bebidas');
+  await expect(page.locator('body')).toHaveAttribute('data-pulse-category', 'bebidas');
+
+  await page.locator('aside .nav[href="#signals"]').click();
+  await expect(page).toHaveURL(/#signals$/);
+  await expect(page.locator('#pulse-category-select')).toHaveValue('bebidas');
+  await expect(page.locator('#pulse-category-context')).toContainText('Bebidas');
 
   await select.selectOption('chocolates');
   await expect(page.locator('#signals [data-evidence-id="premium"]')).toBeVisible();
