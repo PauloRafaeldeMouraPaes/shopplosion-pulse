@@ -26,6 +26,16 @@
   function clear() { return openDb().then(function (db) { return new Promise(function (resolve, reject) { var r = db.transaction(STORE, 'readwrite').objectStore(STORE).clear(); r.onsuccess = resolve; r.onerror = function () { reject(r.error); }; }); }); }
   function digest(text) { if (window.crypto && crypto.subtle) return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return x.toString(16).padStart(2, '0'); }).join(''); }); return Promise.resolve(String(text).length + '-' + String(text).slice(0, 64)); }
   function csvToText(text) { return text.split(/\r?\n/).filter(Boolean).slice(0, 800).map(function (row) { return row.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/).map(function (x) { return x.replace(/^\"|\"$/g, '').replace(/\"\"/g, '\"'); }).join(' | '); }).join('\n'); }
+  function parseCsv(file) {
+    return file.text().then(function (text) {
+      if (window.Papa && typeof window.Papa.parse === 'function') {
+        return new Promise(function (resolve, reject) {
+          window.Papa.parse(text, { skipEmptyLines: true, complete: function (result) { try { var rows = result.data || []; resolve({ text: rows.slice(0, 800).map(function (row) { return Array.isArray(row) ? row.join(' | ') : String(row); }).join('\n'), method: 'FileReader/PapaParse' }); } catch (e) { reject(e); } }, error: reject });
+        });
+      }
+      return { text: csvToText(text), method: 'FileReader/CSV fallback' };
+    });
+  }
   function extractPdfWithPdfJs(file) {
     return new Promise(function (resolve, reject) {
       if (!window.pdfjsLib) return reject(new Error('PDF.js não carregado.'));
@@ -48,7 +58,7 @@
     var name = file.name || '', type = (file.type || '').toLowerCase();
     if (/\.pdf$/i.test(name) || type === 'application/pdf') return extractPdfWithPdfJs(file).then(function (text) { return { text: text, method: 'pdf.js' }; });
     if (/\.(xlsx|xls)$/i.test(name) || /spreadsheet|excel/.test(type)) return extractSheet(file).then(function (text) { return { text: text, method: 'SheetJS' }; });
-    if (/\.(csv|tsv)$/i.test(name) || /csv|tab-separated/.test(type)) return file.text().then(function (text) { return { text: csvToText(text), method: 'FileReader/CSV' }; });
+    if (/\.(csv|tsv)$/i.test(name) || /csv|tab-separated/.test(type)) return parseCsv(file);
     if (/\.txt$/i.test(name) || type.indexOf('text/') === 0) return file.text().then(function (text) { return { text: text, method: 'FileReader/TXT' }; });
     return Promise.resolve({ text: '', method: 'reference-only' });
   }
