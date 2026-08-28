@@ -7,3 +7,4 @@
 - Consolidated Ask AI suggestions and routed the primary movement CTA to `#signals`.
 - Added single-file, file://, filter, upload, provenance and navigation regression coverage.
 - Final refinement makes category options and category application data-driven from rendered evidence rows.
+- Progressive disclosure now preserves every filterable evidence row while collapsing only secondary content.
