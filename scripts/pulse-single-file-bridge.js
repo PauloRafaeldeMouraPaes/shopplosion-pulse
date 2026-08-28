@@ -1,30 +1,54 @@
 /* Shopplosion Pulse — single-file UX bridge */
-/* v2: no DOM-wide mutation observer; category options are deterministic. */
+/* v3: category options and application are driven by rendered evidence rows. */
 (function () {
   'use strict';
   var q = function (s, r) { return (r || document).querySelector(s); };
   var qa = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var norm = function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]+/g, ' ').replace(/\s+/g, ' ').trim(); };
-  var labels = { chocolates: 'Chocolates', bebidas: 'Bebidas', saude: 'Saúde & bem-estar', 'saude-bem-estar': 'Saúde & bem-estar', geral: 'Visão transversal', 'visao-transversal': 'Visão transversal' };
+  var labels = { chocolates: 'Chocolates', bebidas: 'Bebidas', saude: 'Saúde & bem-estar', 'saude-bem-estar': 'Saúde & bem-estar', geral: 'Visão transversal' };
   function injectStyles() {
     if (q('#pulse-single-file-styles')) return;
     var s = document.createElement('style'); s.id = 'pulse-single-file-styles';
     s.textContent = '.journey-step.is-current b{color:#fff!important}.pulse-local-note{display:grid;gap:3px;margin:10px 0;padding:10px 12px;border:1px solid #d6e4ff;border-radius:10px;background:#f5f8ff;color:#344054;font-size:12px}.pulse-local-note strong{color:#315efb;font-size:10px;letter-spacing:.06em}.pulse-local-file{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #eef0f4}.pulse-local-file small{display:block;color:#667085;margin-top:3px}.pulse-local-clear{margin-top:10px}.pulse-local-file .secondary,.pulse-local-clear{cursor:pointer}.pulse-source-local{display:inline-flex!important;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:#315efb!important;color:#fff!important;font-weight:900;text-decoration:none!important}.pulse-progressive{display:none}.pulse-category-picker.is-hidden{display:none!important}@media(max-width:800px){.pulse-local-file{align-items:flex-start}.pulse-local-file .secondary{white-space:nowrap}.pulse-category-context{font-size:11px}}';
     document.head.appendChild(s);
   }
+  function categoryCounts() {
+    var counts = {};
+    qa('#signals .pulse-category-evidence-row').forEach(function (row) {
+      var c = row.dataset.pulseCategory || row.dataset.category;
+      if (c) counts[c] = (counts[c] || 0) + 1;
+    });
+    return counts;
+  }
   function updateCategoryOptions() {
     var select = q('#pulse-category-select'); if (!select) return;
-    var counts = {}, source = Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE : [];
-    source.forEach(function (item) { var c = item.category || item.cat || item.pulseCategory; if (c) { c = c === 'saude-bem-estar' ? 'saude' : c; counts[c] = (counts[c] || 0) + 1; } });
-    qa('[data-evidence-id]').forEach(function (card) { var c = card.dataset.pulseCategory || card.dataset.category; if (c) counts[c] = (counts[c] || 0) + 1; });
-    var preferred = ['chocolates','bebidas','saude','geral'];
-    var keys = preferred.filter(function (k) { return (counts[k] || 0) > 0; });
+    var counts = categoryCounts();
+    var keys = Object.keys(counts).filter(function (k) { return labels[k] && counts[k] > 0; });
     var current = select.value || 'all';
     var next = ['all'].concat(keys);
     if (Array.prototype.map.call(select.options, function (o) { return o.value; }).join('|') !== next.join('|')) {
-      select.innerHTML = '<option value="all">Todas as categorias</option>' + keys.map(function (k) { var n = counts[k] || 0; return '<option value="' + k + '">' + labels[k] + (n <= 2 ? ' (' + n + ')' : '') + '</option>'; }).join('');
+      select.innerHTML = '<option value="all">Todas as categorias</option>' + keys.map(function (k) { return '<option value="' + k + '">' + labels[k] + (counts[k] <= 2 ? ' (' + counts[k] + ')' : '') + '</option>'; }).join('');
     }
-    if (keys.indexOf(current) >= 0 || current === 'all') select.value = current; else select.value = 'all';
+    select.value = keys.indexOf(current) >= 0 || current === 'all' ? current : 'all';
+  }
+  function applyCategoryDirectly() {
+    var select = q('#pulse-category-select'); if (!select) return;
+    var chosen = select.value || 'all', visibleCount = 0;
+    qa('#signals .pulse-category-evidence-row').forEach(function (row) {
+      var visible = chosen === 'all' || row.dataset.pulseCategory === chosen;
+      row.classList.toggle('pulse-category-hidden', !visible);
+      row.classList.toggle('pulse-category-match', chosen !== 'all' && visible);
+      row.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      if (visible) visibleCount++;
+    });
+    document.body.dataset.pulseCategory = chosen;
+    var context = q('#pulse-category-context');
+    if (context) {
+      context.innerHTML = chosen === 'all' ? '<strong>Todas as categorias</strong><span>Visão completa do mercado.</span>' : '<strong>' + labels[chosen] + '</strong><span>Filtro aplicado · ' + visibleCount + ' evidência(s) específica(s) exibida(s).</span>';
+      context.hidden = false;
+    }
+    if (window.PULSE_CATEGORY_FILTER && typeof window.PULSE_CATEGORY_FILTER.applyThemeFilters === 'function') window.PULSE_CATEGORY_FILTER.applyThemeFilters();
+    document.dispatchEvent(new CustomEvent('pulse:category-change', { detail: { category: chosen } }));
   }
   function categoryVisibility() {
     var hash = location.hash || '#overview', picker = q('.pulse-category-picker') || (q('#pulse-category-select') ? q('#pulse-category-select').parentElement : null);
@@ -66,7 +90,9 @@
   }
   function init() {
     injectStyles(); updateCategoryOptions(); categoryVisibility(); progressiveReveal(); fixPrimaryJourneyCTA(); enrichEvidenceSearch(); installSuggestionHandler(); smoothAnswerScroll();
-    window.addEventListener('hashchange', function () { categoryVisibility(); fixPrimaryJourneyCTA(); smoothAnswerScroll(); });
+    var select = q('#pulse-category-select');
+    if (select) select.addEventListener('change', function () { updateCategoryOptions(); applyCategoryDirectly(); });
+    window.addEventListener('hashchange', function () { categoryVisibility(); fixPrimaryJourneyCTA(); smoothAnswerScroll(); updateCategoryOptions(); applyCategoryDirectly(); });
     document.addEventListener('pulse:category-change', updateCategoryOptions);
     window.PULSE_SINGLE_FILE_READY = true;
   }
