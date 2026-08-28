@@ -14,6 +14,10 @@ async function intelligenceCards(page, scope) {
   return page.locator(`#pulse-intelligence-${scope} .pulse-intel-card`).count();
 }
 
+async function categoryEvidenceRows(page) {
+  return page.locator('#signals .pulse-category-evidence-row:visible').count();
+}
+
 test.describe('shopper intelligence filters and single-file UX', () => {
   test('o artefato não referencia scripts JS locais externos', async ({ page }) => {
     await page.goto('/index.html#signals');
@@ -51,19 +55,17 @@ test.describe('shopper intelligence filters and single-file UX', () => {
     expect(options.some((x) => /higiene/i.test(x.text))).toBe(false);
     for (const option of options.filter((x) => x.value !== 'all')) {
       await page.locator('#pulse-category-select').selectOption(option.value);
-      const count = await intelligenceCards(page, 'signals');
-      expect(count, `Categoria sem resultado: ${option.text}`).toBeGreaterThan(0);
+      const count = await categoryEvidenceRows(page);
+      expect(count, `Categoria sem evidência renderizada: ${option.text}`).toBeGreaterThan(0);
     }
   });
 
   test('categoria Bebidas retorna evidência específica de bebidas', async ({ page }) => {
     await page.goto('/index.html#signals');
-    await openFilterPanel(page, 'signals');
     await page.locator('#pulse-category-select').selectOption('bebidas');
-    await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas');
-    await expect(page.locator('#pulse-intelligence-signals')).toContainText('Consumo fora do lar');
-    await expect(page.locator('#pulse-intelligence-signals')).toContainText('Bebidas não alcoólicas');
-    expect(await intelligenceCards(page, 'signals')).toBeGreaterThan(0);
+    await expect(page.locator('#signals .pulse-category-evidence-row:visible')).toContainText('Bebidas não alcoólicas');
+    await expect(page.locator('#signals .pulse-category-evidence-row:visible')).toContainText('Consumo fora do lar');
+    expect(await categoryEvidenceRows(page)).toBeGreaterThan(0);
   });
 
   test('tema Saudabilidade altera o conjunto exibido', async ({ page }) => {
@@ -159,9 +161,7 @@ test.describe('shopper intelligence filters and single-file UX', () => {
     await page.locator('#pulse-ask-submit').click();
     await page.waitForTimeout(200);
     const box = await page.locator('#answer-custom').boundingBox();
-    const scrollY = await page.evaluate(() => window.scrollY);
     expect(box).not.toBeNull();
-    expect(scrollY).toBeGreaterThanOrEqual(0);
   });
 
   test('categoria permanece sincronizada ao mudar de etapa', async ({ page }) => {
