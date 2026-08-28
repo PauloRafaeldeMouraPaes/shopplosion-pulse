@@ -13,6 +13,13 @@ async function intelligenceCards(page, scope) {
 }
 
 test.describe('shopper intelligence filters', () => {
+  test('runtime do shopper intelligence inicializa sem erro', async ({ page }) => {
+    await page.goto('/index.html#signals');
+    const diagnostic = await page.evaluate(() => ({ ready: !!window.PULSE_FILTER_FIX_READY, error: window.PULSE_FILTER_FIX_ERROR || '' }));
+    expect(diagnostic.error).toBe('');
+    expect(diagnostic.ready).toBe(true);
+  });
+
   test('categoria Bebidas retorna evidência específica de bebidas', async ({ page }) => {
     await page.goto('/index.html#signals');
     await openFilterPanel(page, 'signals');
