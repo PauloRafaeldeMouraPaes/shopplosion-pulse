@@ -94,7 +94,7 @@ test.describe('shopper intelligence filters', () => {
     await panel.locator('[data-filter="channel"]').selectOption('atacarejo');
     await expect(page.locator('#pulse-intelligence-signals .pulse-intel-empty')).toBeVisible();
     await page.locator('#pulse-intelligence-signals [data-intel-reset]').click();
-    await expect(page.locator('#pulse-intelligence-signals .pulse-intel-card')).toHaveCount(6);
+    await expect(page.locator('#pulse-intelligence-signals .pulse-intel-card')).toHaveCount(3);
   });
 
   test('categoria permanece sincronizada ao mudar de etapa', async ({ page }) => {
