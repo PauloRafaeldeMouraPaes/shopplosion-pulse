@@ -1,53 +1,23 @@
-/* Shopplosion Pulse — next-level intelligence runtime
- * No invented market values. Historical series and category roles are explicit, auditable and provenance-aware.
+/* Shopplosion Pulse — next-level intelligence runtime v2
+ * Historical trend is shown only from comparable observations. Signal direction is kept separate.
  */
 (function(w,d){'use strict';
   var PERIOD_KEY='serie_historica', ROLE_KEY='papel_ideal', LOCAL_KEY='PULSE_LOCAL_EVIDENCE';
-  var safeArray=function(v){return Array.isArray(v)?v:[]};
-  var finite=function(v){return Number.isFinite(Number(v))};
-  var clean=function(v){return String(v==null?'':v).trim()};
-  var series=safeArray(w[PERIOD_KEY]);
-  var roles=safeArray(w[ROLE_KEY]);
-  w[PERIOD_KEY]=series;
-  w[ROLE_KEY]=roles;
-  w.PULSE_NEXT_LEVEL=w.PULSE_NEXT_LEVEL||{};
-  function addSeries(row){
-    if(!row || !clean(row.period) || !finite(row.value)) return null;
-    var item={period:clean(row.period),value:Number(row.value),source:clean(row.source)||null,geography:clean(row.geography)||null,metric:clean(row.metric)||null,provenance:clean(row.provenance)||'evidência fornecida'};
-    series.push(item); return item;
-  }
-  function compare(a,b){
-    if(!finite(a)||!finite(b)) return {status:'unavailable',delta:null,deltaPct:null,causal:false};
-    var x=Number(a),y=Number(b),delta=x-y; return {status:'observed_change',delta:delta,deltaPct:y===0?null:delta/Math.abs(y)*100,causal:false};
-  }
-  function setRole(category,role,evidence){
-    var item={category:clean(category)||null,role:clean(role)||'heuristic',evidenceCount:safeArray(evidence).length,provenance:'heurística; validar antes de decisão'};
-    roles.push(item); return item;
-  }
-  function executive(items){
-    var arr=safeArray(items).filter(function(x){return x&&clean(x.claim)}).slice(0,4);
-    if(!arr.length) return {status:'insufficient',text:'Evidência insuficiente para síntese executiva.'};
-    return {status:'observed',text:arr.map(function(x){return clean(x.claim)}).join(' · ')};
-  }
-  function historicalSummary(){
-    if(series.length<2) return {status:'insufficient',message:'Adicione pelo menos dois períodos comparáveis.'};
-    var ordered=series.slice().sort(function(a,b){return String(a.period).localeCompare(String(b.period))});
-    var prev=ordered[ordered.length-2],cur=ordered[ordered.length-1];
-    var c=compare(cur.value,prev.value); return {status:c.status,current:cur,previous:prev,delta:c.delta,deltaPct:c.deltaPct,causal:false};
-  }
-  w.PULSE_NEXT_LEVEL.addHistoricalObservation=addSeries;
-  w.PULSE_NEXT_LEVEL.compareSeries=compare;
-  w.PULSE_NEXT_LEVEL.setCategoryRole=setRole;
-  w.PULSE_NEXT_LEVEL.executiveSummary=executive;
-  w.PULSE_NEXT_LEVEL.historicalSummary=historicalSummary;
-  w.PULSE_NEXT_LEVEL.contracts={serie_historica:'historical observations with period/value/source provenance',papel_ideal:'auditable heuristic only',PULSE_LOCAL_EVIDENCE:'browser-local provenance-rich studies'};
-  function mount(){
-    if(d.getElementById('pulse-next-level-intelligence')) return;
-    var host=d.querySelector('#intelligence-lab,#intelligenceLab,[data-section="intelligence-lab"]')||d.querySelector('main')||d.body;
-    var s=d.createElement('section');s.id='pulse-next-level-intelligence';s.className='pulse-card';
-    s.innerHTML='<div class="pulse-card-head"><div><small>NEXT-LEVEL</small><h3>Tendência, papel e síntese</h3></div><span class="confidence">Sem causalidade</span></div><div class="pulse-grid"><div><b>Série histórica</b><p id="pulse-history-status">'+(series.length?series.length+' observação(ões)':'Sem série histórica fornecida')+'</p></div><div><b>Papel ideal</b><p id="pulse-role-status">'+(roles.length?roles.length+' papel(is) heurístico(s)':'Heurística ainda não definida')+'</p></div><div><b>Base local</b><p id="pulse-local-status">'+(safeArray(w[LOCAL_KEY]).length)+' estudo(s) local(is)</p></div></div><div class="pulse-executive" id="pulse-executive-summary"><b>Síntese executiva</b><p>Separar evidência observada, interpretação, hipótese e próxima ação.</p></div></div>';
-    host.appendChild(s);
-    var h=historicalSummary(); if(h.status==='observed_change'){var p=d.getElementById('pulse-history-status');if(p)p.textContent='Última variação observada: '+(h.deltaPct==null?'n/d':h.deltaPct.toFixed(1)+'%')+' · causalidade não inferida';}
-  }
-  if(d.readyState==='loading') d.addEventListener('DOMContentLoaded',mount,{once:true}); else mount();
+  var safeArray=function(v){return Array.isArray(v)?v:[]}, clean=function(v){return String(v==null?'':v).trim()}, finite=function(v){return Number.isFinite(Number(v))};
+  var series=safeArray(w[PERIOD_KEY]), roles=safeArray(w[ROLE_KEY]); w[PERIOD_KEY]=series; w[ROLE_KEY]=roles; w.PULSE_NEXT_LEVEL=w.PULSE_NEXT_LEVEL||{};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})};
+  function addSeries(row){if(!row||!clean(row.period)||!finite(row.value))return null;var item={period:clean(row.period),value:Number(row.value),source:clean(row.source)||null,geography:clean(row.geography)||null,metric:clean(row.metric)||null,provenance:clean(row.provenance)||'evidência fornecida'};series.push(item);persist();return item}
+  function compare(a,b){if(!finite(a)||!finite(b))return{status:'unavailable',delta:null,deltaPct:null,direction:'→',causal:false};var x=Number(a),y=Number(b),delta=x-y;return{status:'observed_change',delta:delta,deltaPct:y===0?null:delta/Math.abs(y)*100,direction:delta>0?'↑':delta<0?'↓':'→',causal:false}}
+  function setRole(category,role,evidence){var item={category:clean(category)||null,role:clean(role)||'Não definido',evidenceCount:safeArray(evidence).length,provenance:'heurística; validar antes de decisão'};var ix=roles.findIndex(function(x){return x&&x.category===item.category});if(ix>=0)roles[ix]=item;else roles.push(item);persist();return item}
+  function executive(items){var arr=safeArray(items).filter(function(x){return x&&clean(x.claim)}).slice(0,4);return arr.length?{status:'observed',text:arr.map(function(x){return clean(x.claim)}).join(' · ')}:{status:'insufficient',text:'Evidência insuficiente para síntese executiva.'}}
+  function historicalSummary(){if(series.length<2)return{status:'insufficient',message:'Adicione pelo menos dois períodos comparáveis.'};var ordered=series.slice().sort(function(a,b){return String(a.period).localeCompare(String(b.period),undefined,{numeric:true})}),prev=ordered[ordered.length-2],cur=ordered[ordered.length-1],c=compare(cur.value,prev.value);return{status:c.status,current:cur,previous:prev,delta:c.delta,deltaPct:c.deltaPct,direction:c.direction,causal:false}}
+  function persist(){try{localStorage.setItem(PERIOD_KEY,JSON.stringify(series));localStorage.setItem(ROLE_KEY,JSON.stringify(roles))}catch(e){}}
+  function loadPersisted(){try{var s=JSON.parse(localStorage.getItem(PERIOD_KEY)||'[]'),r=JSON.parse(localStorage.getItem(ROLE_KEY)||'[]');if(!series.length&&Array.isArray(s))series.push.apply(series,s);if(!roles.length&&Array.isArray(r))roles.push.apply(roles,r)}catch(e){}}
+  function directionFromMetric(text){var s=clean(text);return /^\s*\+/.test(s)?'↑':/^\s*-/.test(s)?'↓':'→'}
+  function addSignalDirections(){d.querySelectorAll('[data-evidence-id],.pulse-category-evidence-row').forEach(function(card){if(card.querySelector('.pulse-signal-direction'))return;var metric=card.querySelector('.big-num');if(!metric)return;var dir=directionFromMetric(metric.textContent);var badge=d.createElement('span');badge.className='pulse-signal-direction';badge.title='Direção do sinal observado; não substitui série histórica.';badge.textContent=dir+' direção do sinal';metric.parentElement&&metric.parentElement.appendChild(badge)})}
+  function render(){var hs=d.getElementById('pulse-history-status'),rs=d.getElementById('pulse-role-status'),ls=d.getElementById('pulse-local-status'),ts=d.getElementById('pulse-history-trend'),role=d.getElementById('pulse-role-select'),table=d.getElementById('pulse-history-list');var h=historicalSummary();if(hs)hs.textContent=series.length?series.length+' observação(ões) comparáveis':'Nenhuma série histórica fornecida';if(ts)ts.innerHTML=h.status==='observed_change'?'<span class="pulse-trend '+(h.direction==='↑'?'up':h.direction==='↓'?'down':'flat')+'">'+h.direction+'</span> '+(h.deltaPct==null?'variação absoluta disponível':h.deltaPct.toFixed(1)+'% vs. período anterior')+' <small>· causalidade não inferida</small>':'<span class="pulse-trend flat">→</span> sem comparação disponível';if(rs){var selected=role?role.value:'Não definido';rs.textContent=selected==='Não definido'?'Papel ainda não definido':'Papel heurístico: '+selected}if(ls)ls.textContent=safeArray(w[LOCAL_KEY]).length+' estudo(s) local(is)';if(table)table.innerHTML=series.slice().sort(function(a,b){return String(a.period).localeCompare(String(b.period),undefined,{numeric:true})}).map(function(x){return'<div><b>'+esc(x.period)+'</b> · '+esc(x.value)+' '+esc(x.metric||'')+' <small>'+esc(x.source||'sem fonte')+'</small></div>'}).join('')||'<small>Adicione períodos comparáveis para habilitar ↑/→/↓ histórico.</small>';addSignalDirections()}
+  function mount(){loadPersisted();if(d.getElementById('pulse-next-level-intelligence')){render();return}var host=d.querySelector('#intelligence-lab,#intelligenceLab,[data-section="intelligence-lab"]')||d.querySelector('main')||d.body,s=d.createElement('section');s.id='pulse-next-level-intelligence';s.className='pulse-card';s.innerHTML='<div class="pulse-card-head"><div><small>NEXT-LEVEL</small><h3>Tendência, papel e síntese</h3></div><span class="confidence">AUDITÁVEL · SEM CAUSALIDADE</span></div><div class="pulse-grid"><div><b>Série histórica</b><p id="pulse-history-status"></p><p id="pulse-history-trend"></p><div id="pulse-history-list" class="pulse-history-list"></div><div class="pulse-history-form"><input id="pulse-history-period" placeholder="Período (ex. 2025)" aria-label="Período"><input id="pulse-history-value" type="number" step="any" placeholder="Valor" aria-label="Valor"><input id="pulse-history-source" placeholder="Fonte" aria-label="Fonte"><button type="button" id="pulse-history-add">Adicionar observação</button></div></div><div><b>Papel no portfólio</b><p id="pulse-role-status"></p><select id="pulse-role-select" aria-label="Papel heurístico no portfólio"><option>Não definido</option><option>Gerador de tráfego</option><option>Aquisição</option><option>Retenção</option><option>Defesa de margem</option><option>Premiumização</option><option>Conveniência</option><option>Inovação</option></select><small>Heurística de apoio; não é recomendação automática.</small></div><div><b>Base local</b><p id="pulse-local-status"></p><small>Estudos enviados permanecem no navegador e são identificados como evidência proprietária.</small></div></div><div class="pulse-executive" id="pulse-executive-summary"><b>Síntese executiva</b><p>Separar evidência observada, interpretação, hipótese e próxima ação.</p></div></section>';host.appendChild(s);var role=d.getElementById('pulse-role-select'),saved=roles.length?roles[roles.length-1].role:'Não definido';if(role){role.value=[...role.options].some(function(o){return o.value===saved})?saved:'Não definido';role.addEventListener('change',function(){setRole((d.getElementById('pulse-category-select')||{}).value||'geral',role.value,window.PULSE_STUDY_CLAIMS?window.PULSE_STUDY_CLAIMS():[]);render()})}var add=d.getElementById('pulse-history-add');if(add)add.addEventListener('click',function(){var p=d.getElementById('pulse-history-period'),v=d.getElementById('pulse-history-value'),src=d.getElementById('pulse-history-source'),item=addSeries({period:p.value,value:v.value,source:src.value,provenance:'adicionado pelo usuário'});if(!item){p.setCustomValidity('Informe um período e um valor numérico.');p.reportValidity();return}p.value='';v.value='';src.value='';render()});render()}
+  w.PULSE_NEXT_LEVEL.addHistoricalObservation=addSeries;w.PULSE_NEXT_LEVEL.compareSeries=compare;w.PULSE_NEXT_LEVEL.setCategoryRole=setRole;w.PULSE_NEXT_LEVEL.executiveSummary=executive;w.PULSE_NEXT_LEVEL.historicalSummary=historicalSummary;w.PULSE_NEXT_LEVEL.contracts={serie_historica:'historical observations with period/value/source provenance',papel_ideal:'auditable heuristic only',PULSE_LOCAL_EVIDENCE:'browser-local provenance-rich studies'};
+  var style=d.createElement('style');style.textContent='#pulse-next-level-intelligence{margin-top:16px}.pulse-history-form{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.pulse-history-form input,.pulse-history-form button,#pulse-role-select{border:1px solid #d0d5dd;border-radius:8px;padding:8px;background:#fff;font:inherit}.pulse-history-form button{grid-column:1/-1;cursor:pointer}.pulse-history-list{font-size:11px;color:#667085;display:grid;gap:3px;margin-top:7px}.pulse-trend{font-size:20px;font-weight:900}.pulse-trend.up{color:#067647}.pulse-trend.down{color:#b42318}.pulse-trend.flat{color:#667085}.pulse-signal-direction{display:inline-block;margin-left:6px;font-size:10px;color:#667085;font-weight:800}.pulse-history-form small{color:#667085}@media(max-width:800px){.pulse-history-form{grid-template-columns:1fr}}';d.head.appendChild(style);
+  if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })(window,document);
