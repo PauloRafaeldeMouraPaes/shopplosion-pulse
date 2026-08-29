@@ -1,0 +1,1 @@
+Continuation note: Evidence-to-Insight v3 merged into main as part of the ongoing Pulse evolution. Next work should audit and consolidate the remaining legacy open PRs against current main rather than merging stale branches blindly.
