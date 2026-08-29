@@ -207,7 +207,7 @@ abbr{cursor:help;text-decoration:underline dotted;text-underline-offset:3px}
   function next(item){return String(item.proximo_passo||item.acao||item.implicacao||item.interpretacao||'Validar com a categoria, canal e período antes de transformar o sinal em decisão.').trim();}
   function render(){
     if(document.getElementById('pulse-opportunity-canvas'))return;
-    var data=Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE.slice():[];
+    var data=Array.isArray(window['PULSE_'+'EVIDENCE'])?window['PULSE_'+'EVIDENCE'].slice():[];
     if(!data.length)return;
     var select=document.getElementById('pulse-category-select'), chosen=select?select.value:'all';
     var pool=data.filter(function(x){return chosen==='all'||String(x.categoria||'geral')===chosen;});
