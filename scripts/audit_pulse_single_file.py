@@ -13,10 +13,10 @@ if not INDEX.exists():
 
 text = INDEX.read_text(encoding="utf-8")
 
-# Single-file contract: local runtime scripts must be inline.
-if re.search(r'<script[^>]+(?:src|href)=["\'][^"\']*(?:^|/)scripts/', text, re.I | re.M):
+# Single-file contract: local runtime scripts/assets must be inline/embedded.
+if re.search(r'<script[^>]+(?:src|href)=["\'][^"\']*scripts/', text, re.I):
     errors.append("index.html ainda referencia scripts locais externamente")
-if re.search(r'(?:src|href)=["\'][^"\']*(?:^|/)assets/', text, re.I | re.M):
+if re.search(r'(?:src|href)=["\'][^"\']*assets/', text, re.I):
     errors.append("index.html referencia assets/ externos")
 
 # Core runtime contracts expected by the current product.
