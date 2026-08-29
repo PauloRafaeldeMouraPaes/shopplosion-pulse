@@ -1,4 +1,5 @@
 name: Pulse Study Format Refresh
+# Keep the study-format artifact refresh explicitly active on main.
 on:
   push:
     branches: [main]
