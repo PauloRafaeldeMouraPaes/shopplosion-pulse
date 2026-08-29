@@ -23,7 +23,15 @@ function requireText(label, text) {
   ['custom answer renderer', 'function pulseRenderCustomAnswer'],
   ['history renderer', 'function pulseRenderHistory'],
   ['history saver', 'function pulseSaveHistory'],
-  ['fuzzy matcher', 'function pulseMatchEvidence']
+  ['fuzzy matcher', 'function pulseMatchEvidence'],
+  ['Product V6 marker', '<!-- PULSE_PRODUCT_V6 -->'],
+  ['Signal Score', 'Signal Score'],
+  ['priority opportunities', 'Oportunidades prioritárias'],
+  ['evidence quality', 'Qualidade das evidências'],
+  ['temporal comparison', 'Comparação temporal'],
+  ['investigation next steps', 'Próximas ações de investigação'],
+  ['executive reading', 'Leitura executiva'],
+  ['copy executive reading', 'Copiar leitura']
 ].forEach(([label, text]) => requireText(label, text));
 
 if (/assets\//i.test(html)) failures.push('artifact: contains forbidden assets/ reference');
@@ -51,6 +59,13 @@ if (!fs.existsSync('scripts/test-pulse-ask-ai.js')) {
 if (!html.includes('keywordScores.sort(function(a,b){return b-a;})')) {
   failures.push('Ask AI: per-item keyword score cap not detected');
 }
+
+const v6MarkerCount = (html.match(/<!-- PULSE_PRODUCT_V6 -->/g) || []).length;
+if (v6MarkerCount !== 1) failures.push(`Product V6: expected exactly one marker, found ${v6MarkerCount}`);
+if (!html.includes('const parseDate=')) failures.push('Product V6: temporal parser missing');
+if (!html.includes('const periodKey=')) failures.push('Product V6: period normalization missing');
+if (!html.includes('qualityBand')) failures.push('Product V6: evidence quality bands missing');
+if (!html.includes('navigator.clipboard')) failures.push('Product V6: executive-copy action missing');
 
 if (failures.length) {
   console.error('Pulse regression validation FAILED');
