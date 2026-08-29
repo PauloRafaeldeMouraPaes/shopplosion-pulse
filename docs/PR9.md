@@ -1,0 +1,1 @@
+Evidence-to-Insight v3 changes: structured claims, descriptive polarity, potential contradiction flags, Ask AI claim context, browser regression coverage, deterministic evidence CI guardrail, and release documentation.

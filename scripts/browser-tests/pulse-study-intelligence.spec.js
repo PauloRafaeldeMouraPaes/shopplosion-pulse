@@ -16,6 +16,7 @@ test('estudo anexado é processado com proveniência e sinais estruturados', asy
   expect(study.summary.topics).toEqual(expect.arrayContaining(['preço', 'canal']));
   expect(study.provenance.evidenceType).toBe('user-provided-study');
   expect(study.provenance.confidence).toBe('descriptive');
+  expect(study.summary.claims.length).toBeGreaterThan(0);
   await expect(page.locator('#pulse-study-intelligence')).toContainText('1 estudo(s) processado(s)');
 });
 
@@ -29,7 +30,7 @@ test('estudo duplicado não cria evidência duplicada', async ({ page }) => {
   await expect.poll(async () => page.evaluate(() => (window.PULSE_STUDIES || []).length)).toBe(1);
 });
 
-test('contexto de estudo é separado da pergunta e expõe proveniência', async ({ page }) => {
+test('contexto de estudo é separado da pergunta e expõe proveniência e achados', async ({ page }) => {
   await page.goto('/index.html#investigate');
   const input = page.locator('#pulse-files');
   await input.setInputFiles(makeFixture('insights.txt', 'text/plain', 'A pesquisa aponta forte sensibilidade a preço.'));
@@ -38,7 +39,23 @@ test('contexto de estudo é separado da pergunta e expõe proveniência', async 
   const context = await page.evaluate(() => window.PULSE_STUDY_CONTEXT());
   expect(context).toContain('Fonte: insights.txt');
   expect(context).toContain('Confiança: descritiva');
+  expect(context).toContain('Achados estruturados:');
   expect(context).toContain('forte sensibilidade a preço');
+});
+
+test('duas evidências com polaridades opostas no mesmo tópico são sinalizadas para revisão', async ({ page }) => {
+  await page.goto('/index.html#investigate');
+  const input = page.locator('#pulse-files');
+  await input.setInputFiles([
+    makeFixture('positivo.txt', 'text/plain', 'A pesquisa mostra que consumidores valorizam fortemente promoções de preço.'),
+    makeFixture('negativo.txt', 'text/plain', 'A pesquisa mostra que consumidores não valorizam promoções de preço.')
+  ]);
+  await expect.poll(async () => page.evaluate(() => (window.PULSE_STUDIES || []).length)).toBe(2);
+  const contradictions = await page.evaluate(() => window.PULSE_STUDY_CONTRADICTIONS());
+  expect(contradictions.length).toBeGreaterThan(0);
+  expect(contradictions[0].type).toBe('potential-contradiction');
+  expect(contradictions[0].topic).toBe('preço');
+  await expect(page.locator('#pulse-study-intelligence')).toContainText('Possíveis divergências entre estudos');
 });
 
 test('remover todos os estudos remove a evidência do contexto do Ask AI', async ({ page }) => {
@@ -57,4 +74,4 @@ test('remover todos os estudos remove a evidência do contexto do Ask AI', async
   expect(await page.evaluate(() => window.PULSE_ACTIVE_STUDY_CONTEXT)).toBe('');
 });
 
-// Behavioral contract: provenance, deduplication, structured signals and removable evidence.
+// Behavioral contract: provenance, deduplication, claims, contradiction signals and removable evidence.
