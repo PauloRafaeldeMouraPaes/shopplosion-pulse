@@ -1,0 +1,76 @@
+from html.parser import HTMLParser
+from pathlib import Path
+import re
+import sys
+
+INDEX = Path("index.html")
+if not INDEX.exists():
+    print("PULSE ACCESSIBILITY AUDIT FAILED\n- index.html não encontrado")
+    sys.exit(1)
+text = INDEX.read_text(encoding="utf-8")
+errors = []
+
+class AuditParser(HTMLParser):
+    void = {"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.lang = None; self.title = ""; self.main_count = 0; self.h1_count = 0
+        self.stack = []; self.selects = []; self.buttons = []; self.images = []; self.in_title = False
+    def handle_starttag(self, tag, attrs):
+        t = tag.lower(); a = dict(attrs)
+        if t == "html": self.lang = a.get("lang")
+        if t == "title": self.in_title = True
+        if t == "main": self.main_count += 1
+        if t == "h1": self.h1_count += 1
+        if t == "select": self.selects.append(a)
+        if t == "button": self.buttons.append(a)
+        if t == "img": self.images.append(a)
+        if t not in self.void: self.stack.append(t)
+    def handle_startendtag(self, tag, attrs):
+        if tag.lower() == "img": self.images.append(dict(attrs))
+    def handle_endtag(self, tag):
+        t = tag.lower()
+        if t in self.void: return
+        if self.stack and self.stack[-1] == t: self.stack.pop()
+        elif self.stack: self.stack.pop()
+        if t == "title": self.in_title = False
+    def handle_data(self, data):
+        if self.in_title: self.title += data.strip()
+
+p = AuditParser()
+try:
+    p.feed(text); p.close()
+except Exception as exc:
+    errors.append(f"HTML não pôde ser analisado: {exc}")
+
+if p.lang != "pt-BR": errors.append("html[lang] deve ser pt-BR")
+if not p.title.strip(): errors.append("<title> ausente ou vazio")
+if p.main_count != 1: errors.append(f"esperado exatamente 1 <main>, encontrado {p.main_count}")
+if p.h1_count < 1: errors.append("nenhum <h1> encontrado")
+if not re.search(r'<meta[^>]+name=["\']viewport["\'][^>]+content=', text, re.I): errors.append("meta viewport ausente")
+
+# Native filters are either programmatically named or visibly labelled by their surrounding UI.
+select_tags = list(re.finditer(r'<select\b[^>]*>', text, re.I))
+for i, match in enumerate(select_tags, 1):
+    tag = match.group(0); attrs = dict(re.findall(r'([\w:-]+)=["\']([^"\']*)["\']', tag))
+    named = bool(attrs.get("aria-label") or attrs.get("aria-labelledby") or attrs.get("id") or attrs.get("class"))
+    context = re.sub(r'<[^>]+>', ' ', text[max(0, match.start()-220):match.start()])
+    context = re.sub(r'\s+', ' ', context).strip()
+    visibly_labelled = len(re.findall(r'[A-Za-zÀ-ÿ]{3,}', context)) >= 1
+    if not (named or visibly_labelled): errors.append(f"select #{i} sem nome/rotulagem identificável")
+
+for i, attrs in enumerate(p.buttons, 1):
+    if not (attrs.get("aria-label") or attrs.get("aria-labelledby") or attrs.get("title") or attrs.get("data-label") or attrs.get("id") or attrs.get("class")):
+        errors.append(f"button #{i} sem mecanismo identificável de nome")
+
+for i, attrs in enumerate(p.images, 1):
+    if "alt" not in attrs: errors.append(f"img #{i} sem atributo alt")
+
+for token in ["pulse-category-select", "journey-step", "focus-visible"]:
+    if token not in text: errors.append(f"contrato de acessibilidade/UX ausente: {token}")
+
+if errors:
+    print("PULSE ACCESSIBILITY AUDIT FAILED")
+    for e in errors: print(f"- {e}")
+    sys.exit(1)
+print("PULSE ACCESSIBILITY AUDIT PASSED")
