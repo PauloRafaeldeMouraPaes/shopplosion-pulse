@@ -45,7 +45,6 @@ jobs:
           if 'cdnjs.cloudflare.com/ajax/libs/PapaParse/5.5.4/papaparse.min.js' not in text:
               text = text.replace('</head>', cdn + '\n</head>', 1)
 
-          # Remove repeated suggestion-handler scripts by exact DOMContentLoaded block identity.
           blocks = re.findall(r'<script(?:\s+[^>]*)?>\s*document\.addEventListener\(["\']DOMContentLoaded["\'][\s\S]*?</script>', text, flags=re.I)
           seen = set()
           for block in blocks:
@@ -56,14 +55,12 @@ jobs:
                   else:
                       seen.add(key)
 
-          # Keep product-evolution injections idempotent: retain only the first block for each stable id.
           for element, stable_id in [('script', 'pulse-product-v5-script'), ('style', 'pulse-product-v5-styles')]:
               pattern = re.compile(r'<'+element+r'\b[^>]*\bid=["\']'+re.escape(stable_id)+r'["\'][^>]*>[\s\S]*?</'+element+r'>', re.I)
               matches = list(pattern.finditer(text))
               for match in reversed(matches[1:]):
                   text = text[:match.start()] + text[match.end():]
 
-          # Ensure the single-file runtimes are present exactly once, after the page's own scripts.
           for rel in sources:
               marker = 'data-pulse-inline="' + Path(rel).name + '"'
               if marker in text:
@@ -72,14 +69,14 @@ jobs:
               inline = '<script ' + marker + '>\n' + code + '\n</script>'
               text = text.replace('</body>', inline + '\n</body>', 1)
 
-          # Strong active-step contrast.
           if '.journey-step.is-current b{color:#fff!important}' not in text:
               text = text.replace('</head>', '<style id="pulse-single-file-final-style">.journey-step.is-current b{color:#fff!important}</style>\n</head>', 1)
 
-          # The primary movement CTA must follow the announced 5-step journey.
           text = re.sub(r'(<a\b[^>]*href=["\'])#diagnostic(["\'][^>]*>[^<]*Entender o movimento)', r'\1#signals\2', text, flags=re.I)
-
           index_path.write_text(text, encoding='utf-8')
+
+      - name: Apply Product V6 intelligence layer
+        run: python3 scripts/pulse_product_v6.py
 
       - name: Validate single-file artifact
         shell: python
@@ -97,6 +94,7 @@ jobs:
           if 'PULSE_SOURCES' not in text: errors.append('PULSE_SOURCES ausente')
           if 'PULSE_LOCAL_EVIDENCE' not in text: errors.append('PULSE_LOCAL_EVIDENCE ausente')
           if 'SUA BASE LOCAL' not in text: errors.append('proveniência local ausente')
+          if '<!-- PULSE_PRODUCT_V6 -->' not in text: errors.append('Product V6 ausente')
           for name in ['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js']:
               if re.search(r'<script[^>]+src=["\'][^"\']*' + re.escape(name) + r'["\']', text, re.I): errors.append(name + ' externo')
           if errors:
@@ -117,6 +115,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html .github/workflows/pulse-ux-inject.yml scripts/pulse-local-evidence.js scripts/pulse-single-file-bridge.js scripts/pulse-local-answer-bridge.js
+          git add index.html .github/workflows/pulse-ux-inject.yml scripts/pulse-local-evidence.js scripts/pulse-single-file-bridge.js scripts/pulse-local-answer-bridge.js scripts/pulse_product_v6.py
           git diff --cached --quiet || git commit -m 'build: deliver self-contained Pulse artifact'
           git push
