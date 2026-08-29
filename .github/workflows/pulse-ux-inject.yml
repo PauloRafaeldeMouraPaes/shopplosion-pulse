@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feat/pulse-single-file-local-evidence
+      - pulse-next-level-reconciliation
     paths-ignore:
       - index.html
   workflow_dispatch:
@@ -35,6 +36,7 @@ jobs:
               'scripts/pulse-local-evidence.js',
               'scripts/pulse-single-file-bridge.js',
               'scripts/pulse-local-answer-bridge.js',
+              'scripts/pulse-next-level-runtime.js',
           ]
 
           for rel in sources:
@@ -94,8 +96,12 @@ jobs:
           if 'PULSE_SOURCES' not in text: errors.append('PULSE_SOURCES ausente')
           if 'PULSE_LOCAL_EVIDENCE' not in text: errors.append('PULSE_LOCAL_EVIDENCE ausente')
           if 'SUA BASE LOCAL' not in text: errors.append('proveniência local ausente')
+          if 'serie_historica' not in text: errors.append('serie_historica ausente')
+          if 'papel_ideal' not in text: errors.append('papel_ideal ausente')
+          if 'PULSE_NEXT_LEVEL' not in text: errors.append('PULSE_NEXT_LEVEL ausente')
           if '<!-- PULSE_PRODUCT_V6 -->' not in text: errors.append('Product V6 ausente')
-          for name in ['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js']:
+          if re.search(r'[\u200b\u200c\u200d\ufeff]', text): errors.append('caractere invisível/zero-width detectado no HTML')
+          for name in ['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js','pulse-next-level-runtime.js']:
               if re.search(r'<script[^>]+src=["\'][^"\']*' + re.escape(name) + r'["\']', text, re.I): errors.append(name + ' externo')
           if errors:
               print('VALIDATION FAILED')
@@ -115,6 +121,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html .github/workflows/pulse-ux-inject.yml scripts/pulse-local-evidence.js scripts/pulse-single-file-bridge.js scripts/pulse-local-answer-bridge.js scripts/pulse_product_v6.py
+          git add index.html .github/workflows/pulse-ux-inject.yml scripts/pulse-local-evidence.js scripts/pulse-single-file-bridge.js scripts/pulse-local-answer-bridge.js scripts/pulse_product_v6.py scripts/pulse-next-level-runtime.js
           git diff --cached --quiet || git commit -m 'build: deliver self-contained Pulse artifact'
           git push
