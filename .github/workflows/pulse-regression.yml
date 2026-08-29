@@ -7,35 +7,12 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   regression:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Apply parser-safe product v5 references
-        if: github.ref == 'refs/heads/main'
-        run: |
-          python3 <<'PY'
-          from pathlib import Path
-          p=Path('index.html'); s=p.read_text(encoding='utf-8')
-          marker='<script id="pulse-product-v5-script">'
-          end='</script>'
-          a=s.find(marker)
-          if a>=0:
-            b=s.find(end,a)
-            block=s[a:b]
-            block=block.replace('window.PULSE_EVIDENCE','window[\'PULSE_\'+\'EVIDENCE\']')
-            s=s[:a]+block+s[b:]
-            p.write_text(s,encoding='utf-8')
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git diff --cached --quiet || (git commit -m "fix: make pulse product v5 parser-safe" && git push)
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
       - name: Run semantic data integrity checks
