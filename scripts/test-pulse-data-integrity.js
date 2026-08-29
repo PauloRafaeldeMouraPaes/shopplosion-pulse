@@ -47,8 +47,8 @@ function sourceMatchesEvidence(fonte, orgs) {
 let evidence;
 let sources;
 try {
-  evidence = extractAssignedArray('window.PULSE_EVIDENCE');
-  sources = extractAssignedArray('window.PULSE_SOURCES');
+  evidence = extractAssignedArray('window.PULSE_EVIDENCE =');
+  sources = extractAssignedArray('window.PULSE_SOURCES =');
 } catch (err) {
   console.error(`Pulse data integrity FAILED: ${err.message}`);
   process.exit(1);
