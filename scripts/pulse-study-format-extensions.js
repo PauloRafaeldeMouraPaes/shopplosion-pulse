@@ -71,7 +71,10 @@
     }
     return out;
   }
-  const xmlText = bytes => decodeUtf8(bytes).replace(/<a:t[^>]*>([\s\S]*?)<\/a:t>/gi, (_, t) => ` ${t.replace(/<[^>]+>/g, ' ')} `).replace(/<[^>]+>/g, ' '));
+  const xmlText = bytes => decodeUtf8(bytes)
+    .replace(/<a:t[^>]*>/gi, ' ')
+    .replace(/<\/a:t>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ');
   const extractPptx = async file => {
     const zip = await unzipPptx(await file.arrayBuffer());
     const slides = [...zip.keys()].filter(n => /^ppt\/slides\/slide\d+\.xml$/i.test(n)).sort((a,b) => {
@@ -112,8 +115,8 @@
     const host = document.querySelector('#pulse-study-intelligence');
     if (!host) return;
     const msg = method === 'pptx-text'
-      ? `PPTX processado localmente: texto das lâminas foi extraído sem envio externo.`
-      : `Imagem processada como evidência visual local. OCR não está disponível neste runtime; nenhum texto foi inventado.`;
+      ? 'PPTX processado localmente: texto das lâminas foi extraído sem envio externo.'
+      : 'Imagem processada como evidência visual local. OCR não está disponível neste runtime; nenhum texto foi inventado.';
     const node = document.createElement('div');
     node.style.cssText = 'margin-top:8px;padding:8px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;';
     node.innerHTML = `<b>${esc(file.name)}</b> — ${esc(msg)}`;
@@ -142,7 +145,6 @@
     if (!(input instanceof HTMLInputElement) || input.id !== 'pulse-files' || !input.files?.length) return;
     const special = [...input.files].filter(f => isPptx(f) || isImage(f));
     if (!special.length) return;
-    // Run before the document-level study listener so unsupported binary formats are not misread as text.
     e.stopImmediatePropagation();
     e.preventDefault();
     for (const file of special) await processSpecial(file);
