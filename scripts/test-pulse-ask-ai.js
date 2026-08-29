@@ -19,8 +19,8 @@ function balancedSpan(text, start, open, close) {
   throw new Error('Unclosed balanced span');
 }
 
-const marker = html.indexOf('PULSE_EVIDENCE');
-if (marker < 0) throw new Error('PULSE_EVIDENCE not found');
+const marker = html.indexOf('window.PULSE_EVIDENCE =');
+if (marker < 0) throw new Error('PULSE_EVIDENCE assignment not found');
 const arrayStart = html.indexOf('[', marker);
 const [a, b] = balancedSpan(html, arrayStart, '[', ']');
 const evidence = vm.runInNewContext(html.slice(a, b));
