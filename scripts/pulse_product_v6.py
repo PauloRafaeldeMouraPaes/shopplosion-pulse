@@ -56,7 +56,7 @@ const css=document.createElement('style');css.textContent='#pulse-v6-lab{margin:
 def main():
     text = INDEX.read_text(encoding='utf-8')
     if MARKER in text:
-        text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->.*?</script>\s*', JS, text, count=1, flags=re.S)
+        text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->.*?</script>\s*', lambda _m: JS, text, count=1, flags=re.S)
     else:
         pos = text.lower().rfind('</body>')
         if pos < 0:

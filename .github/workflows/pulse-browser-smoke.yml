@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    branches: [main, pulse-next-level-reconciliation]
   workflow_dispatch:
 
 jobs:
@@ -23,3 +23,5 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run shopper filter smoke tests
         run: npx playwright test scripts/browser-tests/pulse-shopper-filters.spec.js
+      - name: Run next-level smoke tests
+        run: npx playwright test scripts/browser-tests/pulse-next-level.spec.js
