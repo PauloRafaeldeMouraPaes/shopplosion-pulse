@@ -401,20 +401,6 @@ document.addEventListener("DOMContentLoaded", function () {
   var questionBox = document.getElementById("pulse-question");
   var submitBtn = document.getElementById("pulse-ask-submit");
   var suggestions = document.querySelectorAll(".pulse-suggestion");
-  suggestions.forEach(function (link) {
-    link.addEventListener("click", function (e) {
-      e.preventDefault();
-      suggestions.forEach(function (l) { l.classList.remove("selected"); });
-      link.classList.add("selected");
-      if (questionBox) {
-        questionBox.value = link.getAttribute("data-question");
-        questionBox.focus();
-      }
-      if (submitBtn) {
-        submitBtn.setAttribute("href", link.getAttribute("data-target"));
-      }
-    });
-  });
   if (questionBox && submitBtn) {
     questionBox.addEventListener("input", function () {
       suggestions.forEach(function (l) { l.classList.remove("selected"); });
@@ -821,7 +807,6 @@ qsa('[data-filter-scope] [data-filter]').forEach(function(s){s.addEventListener(
 qsa('[data-filter-reset]').forEach(function(btn){btn.addEventListener('click',function(){var scope=btn.dataset.filterReset,root=qs('[data-filter-scope="'+scope+'"]');if(!root)return;root.querySelectorAll('[data-filter]').forEach(function(s){s.value='all';});pulseApplyFilters(scope);});});
 
 var clear=qs('#pulse-history-clear');if(clear)clear.addEventListener('click',function(){try{localStorage.removeItem('pulseAskHistory')}catch(e){}pulseRenderHistory();});
-qsa('.pulse-suggestion').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var input=qs('#pulse-question');if(input){input.value=a.dataset.question||'';input.focus();}});});
 document.addEventListener('click',function(e){var a=e.target.closest('[data-near-id]');if(!a)return;var item=(window.PULSE_EVIDENCE||[]).find(function(x){return x.id===a.dataset.nearId});var input=qs('#pulse-question');if(item&&input){e.preventDefault();input.value='Quero entender '+item.keywords.slice(0,3).join(', ')+' no Brasil';input.focus();pulseRenderCustomAnswer();}});
 var submit=qs('#pulse-ask-submit');if(submit)submit.addEventListener('click',function(){var input=qs('#pulse-question'),q=input?input.value.trim():'';if(q)pulseSaveHistory(q,pulseMatchEvidence(q));});
 
