@@ -43,23 +43,22 @@ jobs:
                   key = re.sub(r'\s+', ' ', block).strip()
                   if key in seen: text = text.replace(block, '', 1)
                   else: seen.add(key)
-
-          # The next-level runtime owns suggestion clicks. Remove legacy click bindings
-          # from the generated artifact while preserving the input-change behavior.
           legacy_click = re.compile(r'\s*suggestions\.forEach\(function \(link\) \{\s*link\.addEventListener\("click", function \(e\) \{[\s\S]*?\n\s*\}\);\s*\}\);', re.I)
           text = legacy_click.sub('', text, count=1)
           legacy_qsa = re.compile(r'\s*qsa\([\'\"]\.pulse-suggestion[\'\"]\)\.forEach\(function\(a\)\{a\.addEventListener\(\'click\',function\(e\)\{[\s\S]*?\}\);\}\);', re.I)
           text = legacy_qsa.sub('', text, count=1)
-
           for element, stable_id in [('script','pulse-product-v5-script'),('style','pulse-product-v5-styles')]:
               pattern = re.compile(r'<'+element+r'\b[^>]*\bid=["\']'+re.escape(stable_id)+r'["\'][^>]*>[\s\S]*?</'+element+r'>', re.I)
               matches = list(pattern.finditer(text))
               for match in reversed(matches[1:]): text = text[:match.start()] + text[match.end():]
           for rel in sources:
-              marker = 'data-pulse-inline="' + Path(rel).name + '"'
-              if marker in text: continue
+              name = Path(rel).name
+              marker = 'data-pulse-inline="' + name + '"'
               code = (root / rel).read_text(encoding='utf-8')
-              text = text.replace('</body>', '<script '+marker+'>\n'+code+'\n</script>\n</body>', 1)
+              block = '<script '+marker+'>\n'+code+'\n</script>'
+              pat = re.compile(r'<script\s+'+re.escape(marker)+r'[^>]*>[\s\S]*?</script>', re.I)
+              if pat.search(text): text = pat.sub(lambda _m: block, text, count=1)
+              else: text = text.replace('</body>', block+'\n</body>', 1)
           if '.journey-step.is-current b{color:#fff!important}' not in text: text = text.replace('</head>', '<style id="pulse-single-file-final-style">.journey-step.is-current b{color:#fff!important}</style>\n</head>', 1)
           text = re.sub(r'(<a\b[^>]*href=["\'])#diagnostic(["\'][^>]*>[^<]*Entender o movimento)', r'\1#signals\2', text, flags=re.I)
           index_path.write_text(text, encoding='utf-8')
@@ -94,6 +93,11 @@ jobs:
           if 'serie_historica' not in text: errors.append('serie_historica ausente')
           if 'papel_ideal' not in text: errors.append('papel_ideal ausente')
           if 'PULSE_NEXT_LEVEL' not in text: errors.append('PULSE_NEXT_LEVEL ausente')
+          if 'pulse-role-select' not in text: errors.append('seletor de papel ausente')
+          if 'pulse-trend' not in text: errors.append('indicador de tendência ausente')
+          if 'PULSE_STUDY_FORMATS' not in text: errors.append('study format extension ausente')
+          if 'SheetJS' not in text and 'XLSX.read' not in text: errors.append('extração de planilha ausente')
+          if 'pdfjs-text' not in text: errors.append('extração PDF.js ausente')
           if '<!-- PULSE_PRODUCT_V6 -->' not in text: errors.append('Product V6 ausente')
           if re.search(r'[\u200b\u200c\u200d\ufeff]', text): errors.append('caractere invisível/zero-width detectado no HTML')
           for name in ['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js','pulse-next-level-runtime.js']:
@@ -113,6 +117,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html .github/workflows/pulse-ux-inject.yml scripts/pulse-local-evidence.js scripts/pulse-single-file-bridge.js scripts/pulse-local-answer-bridge.js scripts/pulse_product_v6.py scripts/pulse-next-level-runtime.js
+          git add index.html .github/workflows/pulse-ux-inject.yml scripts/pulse-local-evidence.js scripts/pulse-single-file-bridge.js scripts/pulse-local-answer-bridge.js scripts/pulse_product_v6.py scripts/pulse-next-level-runtime.js scripts/pulse-studies.js
           git diff --cached --quiet || git commit -m 'build: deliver self-contained Pulse artifact'
           git push
