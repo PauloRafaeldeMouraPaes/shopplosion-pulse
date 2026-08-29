@@ -43,6 +43,14 @@ jobs:
                   key = re.sub(r'\s+', ' ', block).strip()
                   if key in seen: text = text.replace(block, '', 1)
                   else: seen.add(key)
+
+          # The next-level runtime owns suggestion clicks. Remove legacy click bindings
+          # from the generated artifact while preserving the input-change behavior.
+          legacy_click = re.compile(r'\s*suggestions\.forEach\(function \(link\) \{\s*link\.addEventListener\("click", function \(e\) \{[\s\S]*?\n\s*\}\);\s*\}\);', re.I)
+          text = legacy_click.sub('', text, count=1)
+          legacy_qsa = re.compile(r'\s*qsa\([\'\"]\.pulse-suggestion[\'\"]\)\.forEach\(function\(a\)\{a\.addEventListener\(\'click\',function\(e\)\{[\s\S]*?\}\);\}\);', re.I)
+          text = legacy_qsa.sub('', text, count=1)
+
           for element, stable_id in [('script','pulse-product-v5-script'),('style','pulse-product-v5-styles')]:
               pattern = re.compile(r'<'+element+r'\b[^>]*\bid=["\']'+re.escape(stable_id)+r'["\'][^>]*>[\s\S]*?</'+element+r'>', re.I)
               matches = list(pattern.finditer(text))
@@ -90,6 +98,8 @@ jobs:
           if re.search(r'[\u200b\u200c\u200d\ufeff]', text): errors.append('caractere invisível/zero-width detectado no HTML')
           for name in ['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js','pulse-next-level-runtime.js']:
               if re.search(r'<script[^>]+src=["\'][^"\']*'+re.escape(name)+r'["\']',text,re.I): errors.append(name+' externo')
+          suggestion_handlers = len(re.findall(r'\.pulse-suggestion[^\n]{0,240}addEventListener\(["\']click', text, re.I))
+          if suggestion_handlers > 1: errors.append('handlers concorrentes de .pulse-suggestion detectados')
           if errors: print('VALIDATION FAILED'); print('\n'.join('- '+e for e in errors)); raise SystemExit(1)
           scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',text,re.I)
           with tempfile.TemporaryDirectory() as d:
