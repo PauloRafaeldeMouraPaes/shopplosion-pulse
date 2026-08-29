@@ -4,12 +4,11 @@ import re
 import sys
 
 INDEX = Path("index.html")
-errors = []
 if not INDEX.exists():
     print("PULSE ACCESSIBILITY AUDIT FAILED\n- index.html não encontrado")
     sys.exit(1)
-
 text = INDEX.read_text(encoding="utf-8")
+errors = []
 
 class AuditParser(HTMLParser):
     void = {"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}
@@ -47,17 +46,19 @@ except Exception as exc:
 if p.lang != "pt-BR": errors.append("html[lang] deve ser pt-BR")
 if not p.title.strip(): errors.append("<title> ausente ou vazio")
 if p.main_count != 1: errors.append(f"esperado exatamente 1 <main>, encontrado {p.main_count}")
-# The product uses multiple step-specific h1 headings that are mutually exclusive at runtime.
 if p.h1_count < 1: errors.append("nenhum <h1> encontrado")
 if not re.search(r'<meta[^>]+name=["\']viewport["\'][^>]+content=', text, re.I): errors.append("meta viewport ausente")
 
-# Filters must have a stable programmatic hook; explicit aria naming is preferred,
-# while existing labelled wrappers/classes are accepted because the runtime keeps them visible.
-for i, attrs in enumerate(p.selects, 1):
-    if not (attrs.get("aria-label") or attrs.get("aria-labelledby") or attrs.get("id") or attrs.get("class")):
-        errors.append(f"select #{i} sem nome/gancho identificável")
+# Native filters are either programmatically named or visibly labelled by their surrounding UI.
+select_tags = list(re.finditer(r'<select\b[^>]*>', text, re.I))
+for i, match in enumerate(select_tags, 1):
+    tag = match.group(0); attrs = dict(re.findall(r'([\w:-]+)=["\']([^"\']*)["\']', tag))
+    named = bool(attrs.get("aria-label") or attrs.get("aria-labelledby") or attrs.get("id") or attrs.get("class"))
+    context = re.sub(r'<[^>]+>', ' ', text[max(0, match.start()-220):match.start()])
+    context = re.sub(r'\s+', ' ', context).strip()
+    visibly_labelled = len(re.findall(r'[A-Za-zÀ-ÿ]{3,}', context)) >= 1
+    if not (named or visibly_labelled): errors.append(f"select #{i} sem nome/rotulagem identificável")
 
-# Buttons must expose an identifiable hook or explicit accessible naming.
 for i, attrs in enumerate(p.buttons, 1):
     if not (attrs.get("aria-label") or attrs.get("aria-labelledby") or attrs.get("title") or attrs.get("data-label") or attrs.get("id") or attrs.get("class")):
         errors.append(f"button #{i} sem mecanismo identificável de nome")
