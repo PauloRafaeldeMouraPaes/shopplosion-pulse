@@ -19,3 +19,7 @@ jobs:
         run: node scripts/test-pulse-data-integrity.js index.html
       - name: Run Ask AI behavioral regression
         run: node scripts/test-pulse-ask-ai.js index.html
+      - name: Run single-file audit
+        run: python3 scripts/audit_pulse_single_file.py
+      - name: Run accessibility and UX audit
+        run: python3 scripts/audit_pulse_accessibility.py
