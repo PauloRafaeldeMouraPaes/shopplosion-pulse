@@ -20,7 +20,7 @@ jobs:
           import re
           p=Path('index.html')
           t=p.read_text(encoding='utf-8')
-          files=['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js']
+          files=['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js','pulse-study-format-extensions.js']
           for name in files:
               src=Path('scripts')/name
               code=src.read_text(encoding='utf-8')
@@ -30,7 +30,7 @@ jobs:
               if re.search(pat,t,re.I): t=re.sub(pat,lambda _:block,t,count=1,flags=re.I)
               else: t=t.replace('</body>',block+'\n</body>',1)
           p.write_text(t,encoding='utf-8')
-      - name: Validate
+      - name: Validate single-file and study format contracts
         shell: python
         run: |
           from pathlib import Path
@@ -41,6 +41,12 @@ jobs:
           assert t.count('<html')==1 and t.count('</html>')==1
           assert t.count('<body')==1 and t.count('</body>')==1
           assert 'PULSE_LOCAL_EVIDENCE' in t
+          assert 'pulse-study-format-extensions.js' in t
+          assert 'PULSE_STUDY_FORMATS' in t
+          assert 'pptx-text' in t
+          assert 'visual-reference' in t
+          assert 'OCR não está disponível' in t
+          assert not re.search(r'[\u200B-\u200D\uFEFF]',t)
           scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',t,re.I)
           with tempfile.TemporaryDirectory() as d:
               for i,c in enumerate(scripts):
