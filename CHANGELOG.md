@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-04 — Multi-tenant industry workspace
+- Added authenticated industry workspace after Supabase login.
+- Added tenant-scoped document upload/list/access using private Storage and RLS.
+- Added tenant-scoped analysis listing and explicit industry identity in the workspace.
+- Hardened login/recovery redirects to the authenticated workspace.
+- Extended deterministic multi-tenant audit to cover the new workspace and routing.
+- Documented the remaining A-versus-B operational isolation acceptance test.
+
 ## 2026-08-27 — Evidence-to-Insight v3
 - Added structured claims extracted from study sentences.
 - Added claim polarity as a descriptive signal only.
