@@ -24,19 +24,25 @@ architecture = read("docs/PULSE_MULTITENANT_ARCHITECTURE.md")
 required_auth = [
     "signInWithPassword",
     "from('profiles')",
-    "location.replace('./app')",
     "@supabase/supabase-js@2",
 ]
 for token in required_auth:
     if token not in auth:
         errors.append(f"auth-missing:{token}")
 
+if not re.search(r"location\.replace\('\./(?:index\.html|app)'\)", auth):
+    errors.append("auth-app-redirect-missing")
+
 # The privileged key must not appear as a configured browser value. Documentation
 # may mention the forbidden key name, so inspect assignments rather than comments.
 if re.search(r"(?:service_role|serviceRole)\s*[:=]\s*['\"][^'\"]+['\"]", auth + "\n" + config):
     errors.append("privileged-key-configured-in-browser")
-if "anonKey:''" not in config:
-    errors.append("config-template-not-empty-safe")
+
+# A real browser configuration is expected in production. Only a publishable
+# Supabase key (new format) or legacy anon JWT is allowed here.
+if not re.search(r"anonKey\s*:\s*['\"](?:sb_publishable_[A-Za-z0-9_-]+|eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)['\"]", config):
+    errors.append("browser-publishable-key-missing-or-invalid")
+
 if "/ /auth.html 200" not in redirects or "/app /index.html 200" not in redirects:
     errors.append("netlify-entry-routing-missing")
 
@@ -80,6 +86,7 @@ if errors:
 print("PULSE MULTITENANT AUDIT: PASS")
 print("- Auth entrypoint present")
 print("- Browser configuration contains no privileged key assignment")
+print("- Browser configuration contains a valid publishable/anon key")
 print("- Tenant tables and RLS present")
 print("- Active-membership check present")
 print("- Private Storage policies present")
