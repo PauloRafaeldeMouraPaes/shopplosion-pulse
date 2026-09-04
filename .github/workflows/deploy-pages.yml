@@ -1,12 +1,9 @@
 name: Deploy Shopplosion Pulse to GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_run:
     workflows:
-      - Pulse Single-File Artifact
-      - Pulse Study Format Refresh
+      - Pulse Release Gate
     types: [completed]
   workflow_dispatch:
 
@@ -21,7 +18,10 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
