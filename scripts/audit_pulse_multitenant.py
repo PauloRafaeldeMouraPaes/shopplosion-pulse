@@ -25,6 +25,9 @@ required_auth = [
     "signInWithPassword",
     "from('profiles')",
     "@supabase/supabase-js@2",
+    "resetPasswordForEmail",
+    "updateUser({password})",
+    "PASSWORD_RECOVERY",
 ]
 for token in required_auth:
     if token not in auth:
@@ -32,6 +35,9 @@ for token in required_auth:
 
 if not re.search(r"location\.replace\('\./(?:index\.html|app)'\)", auth):
     errors.append("auth-app-redirect-missing")
+
+if "location.origin+location.pathname" not in auth:
+    errors.append("password-recovery-redirect-not-derived-from-current-site")
 
 # The privileged key must not appear as a configured browser value. Documentation
 # may mention the forbidden key name, so inspect assignments rather than comments.
@@ -85,6 +91,7 @@ if errors:
 
 print("PULSE MULTITENANT AUDIT: PASS")
 print("- Auth entrypoint present")
+print("- Password recovery flow present")
 print("- Browser configuration contains no privileged key assignment")
 print("- Browser configuration contains a valid publishable/anon key")
 print("- Tenant tables and RLS present")
