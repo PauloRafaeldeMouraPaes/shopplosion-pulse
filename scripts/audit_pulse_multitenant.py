@@ -15,6 +15,7 @@ def read(path):
     return p.read_text(encoding="utf-8")
 
 auth = read("auth.html")
+app = read("app.html")
 config = read("pulse-config.js")
 redirects = read("_redirects")
 core = read("supabase/migrations/001_multitenant_core.sql")
@@ -33,15 +34,29 @@ for token in required_auth:
     if token not in auth:
         errors.append(f"auth-missing:{token}")
 
-if not re.search(r"location\.replace\('\./(?:index\.html|app)'\)", auth):
+if not re.search(r"location\.replace\('\./(?:index\.html|app\.html)'\)", auth):
     errors.append("auth-app-redirect-missing")
 
 if "location.origin+location.pathname" not in auth:
     errors.append("password-recovery-redirect-not-derived-from-current-site")
 
+required_app = [
+    "auth.getUser()",
+    "from('profiles')",
+    "from('industries')",
+    "from('documents')",
+    "from('analyses')",
+    "storage.from('pulse-documents')",
+    "industry.id+'/'+crypto.randomUUID()",
+    "auth.signOut()",
+]
+for token in required_app:
+    if token not in app:
+        errors.append(f"app-missing:{token}")
+
 # The privileged key must not appear as a configured browser value. Documentation
 # may mention the forbidden key name, so inspect assignments rather than comments.
-if re.search(r"(?:service_role|serviceRole)\s*[:=]\s*['\"][^'\"]+['\"]", auth + "\n" + config):
+if re.search(r"(?:service_role|serviceRole)\s*[:=]\s*['\"][^'\"]+['\"]", auth + "\n" + app + "\n" + config):
     errors.append("privileged-key-configured-in-browser")
 
 # A real browser configuration is expected in production. Only a publishable
@@ -49,7 +64,7 @@ if re.search(r"(?:service_role|serviceRole)\s*[:=]\s*['\"][^'\"]+['\"]", auth + 
 if not re.search(r"anonKey\s*:\s*['\"](?:sb_publishable_[A-Za-z0-9_-]+|eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)['\"]", config):
     errors.append("browser-publishable-key-missing-or-invalid")
 
-if "/ /auth.html 200" not in redirects or "/app /index.html 200" not in redirects:
+if "/ /auth.html 200" not in redirects or "/app /app.html 200" not in redirects:
     errors.append("netlify-entry-routing-missing")
 
 for token in [
@@ -92,6 +107,7 @@ if errors:
 print("PULSE MULTITENANT AUDIT: PASS")
 print("- Auth entrypoint present")
 print("- Password recovery flow present")
+print("- Authenticated tenant workspace present")
 print("- Browser configuration contains no privileged key assignment")
 print("- Browser configuration contains a valid publishable/anon key")
 print("- Tenant tables and RLS present")
