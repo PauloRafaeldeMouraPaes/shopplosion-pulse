@@ -6,7 +6,7 @@
 <title>Shopplosion Pulse — Entrar</title>
 <meta name="description" content="Acesso seguro ao Shopplosion Pulse.">
 <style>
-:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(430px,100%);background:#fff;border:1px solid #e7e9ef;border-radius:18px;padding:32px;box-shadow:0 18px 50px #17203314}h1{margin:0 0 8px;font-size:28px}p{color:#5f6878;line-height:1.5}.brand{font-weight:800;color:#e51b67;margin-bottom:28px}.field{display:grid;gap:7px;margin:18px 0}label{font-weight:650;font-size:14px}input{width:100%;padding:13px 14px;border:1px solid #ccd1dc;border-radius:10px;font:inherit}button{width:100%;padding:13px 16px;border:0;border-radius:10px;background:#e51b67;color:#fff;font-weight:750;font:inherit;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.msg{margin-top:16px;padding:12px;border-radius:10px;font-size:14px;display:none}.error{display:block;background:#fff1f2;color:#a51d35}.ok{display:block;background:#effaf3;color:#176b3a}.small{font-size:12px;margin-top:20px}.config{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-word}
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(430px,100%);background:#fff;border:1px solid #e7e9ef;border-radius:18px;padding:32px;box-shadow:0 18px 50px #17203314}h1{margin:0 0 8px;font-size:28px}p{color:#5f6878;line-height:1.5}.brand{font-weight:800;color:#e51b67;margin-bottom:28px}.field{display:grid;gap:7px;margin:18px 0}label{font-weight:650;font-size:14px}input{width:100%;padding:13px 14px;border:1px solid #ccd1dc;border-radius:10px;font:inherit}button{width:100%;padding:13px 16px;border:0;border-radius:10px;background:#e51b67;color:#fff;font-weight:750;font:inherit;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.msg{margin-top:16px;padding:12px;border-radius:10px;font-size:14px;display:none}.error{display:block;background:#fff1f2;color:#a51d35}.ok{display:block;background:#effaf3;color:#176b3a}.small{font-size:12px;margin-top:20px}.config{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-word}.debug{display:none;margin-top:10px;padding:10px;border-radius:8px;background:#f4f5f7;color:#4b5563;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;white-space:pre-wrap;word-break:break-word}.debug.on{display:block}
 </style>
 </head>
 <body>
@@ -20,6 +20,7 @@
     <button id="submit" type="submit">Entrar no Pulse</button>
   </form>
   <div id="message" class="msg" role="status" aria-live="polite"></div>
+  <div id="debug" class="debug" aria-live="polite"></div>
   <p class="small">A autorização real dos dados é feita pelo Supabase/PostgreSQL com RLS; a interface nunca decide a indústria do usuário.</p>
   <p id="configStatus" class="small config"></p>
 </main>
@@ -34,21 +35,47 @@
   const button=document.getElementById('submit');
   const message=document.getElementById('message');
   const configStatus=document.getElementById('configStatus');
+  const debug=document.getElementById('debug');
+  const debugMode=new URLSearchParams(location.search).get('debug')==='1';
   const show=(text,type)=>{message.textContent=text;message.className='msg '+type};
+  const showDebug=(text)=>{if(debugMode){debug.textContent=text;debug.className='debug on'}};
   if(!url||!anonKey){configStatus.textContent='Configuração pendente: defina URL e publishable key no pulse-config.js antes de publicar.';button.disabled=true;return}
   configStatus.textContent='Supabase configurado.';
+  if(!window.supabase||typeof window.supabase.createClient!=='function'){
+    show('Não foi possível carregar o cliente do Supabase. Recarregue a página.','error');
+    showDebug('supabase-js não foi carregado.');
+    button.disabled=true;
+    return;
+  }
   const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  client.auth.getSession().then(({data})=>{if(data.session) location.replace('./index.html');});
+  client.auth.getSession().then(({data,error})=>{if(error)showDebug('getSession: '+error.message);if(data&&data.session)location.replace('./index.html');});
   form.addEventListener('submit',async(e)=>{
     e.preventDefault();
-    button.disabled=true;show('Autenticando…','ok');
+    button.disabled=true;show('Autenticando…','ok');showDebug('Iniciando autenticação no projeto '+url);
     const email=document.getElementById('email').value.trim();
     const password=document.getElementById('password').value;
+    if(!email||!password){show('Informe e-mail e senha.','error');showDebug('Validação local: e-mail ou senha vazios.');button.disabled=false;return}
     const {data,error}=await client.auth.signInWithPassword({email,password});
-    if(error){show('Não foi possível entrar. Verifique e-mail, senha e se sua conta está ativa.','error');button.disabled=false;return}
-    if(!data.session){show('Login sem sessão válida. Tente novamente.','error');button.disabled=false;return}
+    if(error){
+      show('Não foi possível entrar. Verifique os dados da conta.','error');
+      showDebug('Supabase signInWithPassword\nmessage: '+(error.message||'')+'\nstatus: '+(error.status||'')+'\ncode: '+(error.code||''));
+      button.disabled=false;return;
+    }
+    if(!data||!data.session){show('Login sem sessão válida. Tente novamente.','error');showDebug('Supabase retornou sucesso, mas data.session está ausente.');button.disabled=false;return}
     const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',data.user.id).single();
-    if(profileError||!profile){await client.auth.signOut();show('Sua conta não possui uma associação válida com uma indústria ativa.','error');button.disabled=false;return}
+    if(profileError||!profile){
+      await client.auth.signOut();
+      show('Sua conta não possui uma associação válida com uma indústria ativa.','error');
+      showDebug('Consulta profiles falhou\nmessage: '+(profileError&&profileError.message||'')+'\ncode: '+(profileError&&profileError.code||'')+'\nuser_id: '+data.user.id);
+      button.disabled=false;return;
+    }
+    const {data:industry,error:industryError}=await client.from('industries').select('id,name,slug,status').eq('id',profile.industry_id).single();
+    if(industryError||!industry||industry.status!=='active'){
+      await client.auth.signOut();
+      show('Sua indústria não está ativa ou não pôde ser validada.','error');
+      showDebug('Consulta industries falhou ou indústria inativa\nmessage: '+(industryError&&industryError.message||'')+'\nstatus: '+(industry&&industry.status||'')+'\nindustry_id: '+profile.industry_id);
+      button.disabled=false;return;
+    }
     location.replace('./index.html');
   });
 })();
