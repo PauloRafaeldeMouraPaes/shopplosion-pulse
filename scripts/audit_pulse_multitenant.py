@@ -95,11 +95,10 @@ for token in [
     if token not in storage:
         errors.append(f"storage-missing:{token}")
 
-# Fail closed on the dangerous case where the login request itself accepts a
-# client-selected tenant identifier. The private workspace may submit its
-# industry_id for row creation because PostgreSQL RLS independently enforces
-# that it matches the authenticated user's tenant.
-if re.search(r"signInWithPassword\([\s\S]{0,800}industry_id", auth):
+# Fail closed only when the login request itself sends a client-selected tenant.
+# The later profiles query is intentionally allowed to read industry_id because
+# the authenticated user's tenant is resolved server-side by the RLS policies.
+if re.search(r"signInWithPassword\(\{[^}]*industry_id", auth):
     errors.append("login-client-industry-authorization-pattern")
 
 if "O frontend nunca é a autoridade de isolamento" not in architecture:
