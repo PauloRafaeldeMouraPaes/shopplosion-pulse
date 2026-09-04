@@ -1,0 +1,22 @@
+name: Pulse Multi-Tenant Audit
+
+on:
+  push:
+    branches: [main, 'feat/multitenant-foundation-v2']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  multitenant-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Deterministic multi-tenant audit
+        run: python scripts/audit_pulse_multitenant.py
