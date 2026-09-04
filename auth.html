@@ -6,18 +6,24 @@
 <title>Shopplosion Pulse — Entrar</title>
 <meta name="description" content="Acesso seguro ao Shopplosion Pulse.">
 <style>
-:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(430px,100%);background:#fff;border:1px solid #e7e9ef;border-radius:18px;padding:32px;box-shadow:0 18px 50px #17203314}h1{margin:0 0 8px;font-size:28px}p{color:#5f6878;line-height:1.5}.brand{font-weight:800;color:#e51b67;margin-bottom:28px}.field{display:grid;gap:7px;margin:18px 0}label{font-weight:650;font-size:14px}input{width:100%;padding:13px 14px;border:1px solid #ccd1dc;border-radius:10px;font:inherit}button{width:100%;padding:13px 16px;border:0;border-radius:10px;background:#e51b67;color:#fff;font-weight:750;font:inherit;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.msg{margin-top:16px;padding:12px;border-radius:10px;font-size:14px;display:none}.error{display:block;background:#fff1f2;color:#a51d35}.ok{display:block;background:#effaf3;color:#176b3a}.small{font-size:12px;margin-top:20px}.config{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-word}.debug{display:none;margin-top:10px;padding:10px;border-radius:8px;background:#f4f5f7;color:#4b5563;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;white-space:pre-wrap;word-break:break-word}.debug.on{display:block}
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(430px,100%);background:#fff;border:1px solid #e7e9ef;border-radius:18px;padding:32px;box-shadow:0 18px 50px #17203314}h1{margin:0 0 8px;font-size:28px}p{color:#5f6878;line-height:1.5}.brand{font-weight:800;color:#e51b67;margin-bottom:28px}.field{display:grid;gap:7px;margin:18px 0}label{font-weight:650;font-size:14px}input{width:100%;padding:13px 14px;border:1px solid #ccd1dc;border-radius:10px;font:inherit}button{width:100%;padding:13px 16px;border:0;border-radius:10px;background:#e51b67;color:#fff;font-weight:750;font:inherit;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.link{background:none;color:#e51b67;padding:6px 0;margin-top:10px;font-weight:650}.msg{margin-top:16px;padding:12px;border-radius:10px;font-size:14px;display:none}.error{display:block;background:#fff1f2;color:#a51d35}.ok{display:block;background:#effaf3;color:#176b3a}.small{font-size:12px;margin-top:20px}.config{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-word}.debug{display:none;margin-top:10px;padding:10px;border-radius:8px;background:#f4f5f7;color:#4b5563;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;white-space:pre-wrap;word-break:break-word}.debug.on{display:block}.hidden{display:none!important}
 </style>
 </head>
 <body>
 <main class="card">
   <div class="brand">SHOPPLOSION PULSE</div>
-  <h1>Entrar</h1>
-  <p>Acesse os dados e análises da sua indústria. Cada conta é vinculada a uma única indústria.</p>
+  <h1 id="title">Entrar</h1>
+  <p id="intro">Acesse os dados e análises da sua indústria. Cada conta é vinculada a uma única indústria.</p>
   <form id="loginForm" novalidate>
     <div class="field"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="username" required></div>
     <div class="field"><label for="password">Senha</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
     <button id="submit" type="submit">Entrar no Pulse</button>
+  </form>
+  <button id="forgot" class="link" type="button">Esqueci minha senha</button>
+  <form id="resetForm" class="hidden" novalidate>
+    <div class="field"><label for="newPassword">Nova senha</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+    <div class="field"><label for="confirmPassword">Confirmar nova senha</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+    <button id="resetSubmit" type="submit">Salvar nova senha</button>
   </form>
   <div id="message" class="msg" role="status" aria-live="polite"></div>
   <div id="debug" class="debug" aria-live="polite"></div>
@@ -28,56 +34,19 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
-  const cfg=window.PULSE_SUPABASE_CONFIG||{};
-  const url=cfg.url||'';
-  const anonKey=cfg.anonKey||'';
-  const form=document.getElementById('loginForm');
-  const button=document.getElementById('submit');
-  const message=document.getElementById('message');
-  const configStatus=document.getElementById('configStatus');
-  const debug=document.getElementById('debug');
-  const debugMode=new URLSearchParams(location.search).get('debug')==='1';
-  const show=(text,type)=>{message.textContent=text;message.className='msg '+type};
-  const showDebug=(text)=>{if(debugMode){debug.textContent=text;debug.className='debug on'}};
-  if(!url||!anonKey){configStatus.textContent='Configuração pendente: defina URL e publishable key no pulse-config.js antes de publicar.';button.disabled=true;return}
+  const cfg=window.PULSE_SUPABASE_CONFIG||{};const url=cfg.url||'';const anonKey=cfg.anonKey||'';
+  const form=document.getElementById('loginForm'),resetForm=document.getElementById('resetForm'),button=document.getElementById('submit'),resetSubmit=document.getElementById('resetSubmit'),forgot=document.getElementById('forgot'),message=document.getElementById('message'),configStatus=document.getElementById('configStatus'),debug=document.getElementById('debug'),title=document.getElementById('title'),intro=document.getElementById('intro');
+  const debugMode=new URLSearchParams(location.search).get('debug')==='1';const show=(text,type)=>{message.textContent=text;message.className='msg '+type};const showDebug=(text)=>{if(debugMode){debug.textContent=text;debug.className='debug on'}};
+  const setRecoveryMode=()=>{title.textContent='Definir nova senha';intro.textContent='Escolha uma nova senha para acessar o Shopplosion Pulse.';form.classList.add('hidden');forgot.classList.add('hidden');resetForm.classList.remove('hidden');show('Link de recuperação válido. Defina sua nova senha.','ok')};
+  if(!url||!anonKey){configStatus.textContent='Configuração pendente: defina URL e publishable key no pulse-config.js antes de publicar.';button.disabled=true;forgot.disabled=true;return}
   configStatus.textContent='Supabase configurado.';
-  if(!window.supabase||typeof window.supabase.createClient!=='function'){
-    show('Não foi possível carregar o cliente do Supabase. Recarregue a página.','error');
-    showDebug('supabase-js não foi carregado.');
-    button.disabled=true;
-    return;
-  }
+  if(!window.supabase||typeof window.supabase.createClient!=='function'){show('Não foi possível carregar o cliente do Supabase. Recarregue a página.','error');showDebug('supabase-js não foi carregado.');button.disabled=true;forgot.disabled=true;return}
   const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  client.auth.getSession().then(({data,error})=>{if(error)showDebug('getSession: '+error.message);if(data&&data.session)location.replace('./index.html');});
-  form.addEventListener('submit',async(e)=>{
-    e.preventDefault();
-    button.disabled=true;show('Autenticando…','ok');showDebug('Iniciando autenticação no projeto '+url);
-    const email=document.getElementById('email').value.trim();
-    const password=document.getElementById('password').value;
-    if(!email||!password){show('Informe e-mail e senha.','error');showDebug('Validação local: e-mail ou senha vazios.');button.disabled=false;return}
-    const {data,error}=await client.auth.signInWithPassword({email,password});
-    if(error){
-      show('Não foi possível entrar. Verifique os dados da conta.','error');
-      showDebug('Supabase signInWithPassword\nmessage: '+(error.message||'')+'\nstatus: '+(error.status||'')+'\ncode: '+(error.code||''));
-      button.disabled=false;return;
-    }
-    if(!data||!data.session){show('Login sem sessão válida. Tente novamente.','error');showDebug('Supabase retornou sucesso, mas data.session está ausente.');button.disabled=false;return}
-    const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',data.user.id).single();
-    if(profileError||!profile){
-      await client.auth.signOut();
-      show('Sua conta não possui uma associação válida com uma indústria ativa.','error');
-      showDebug('Consulta profiles falhou\nmessage: '+(profileError&&profileError.message||'')+'\ncode: '+(profileError&&profileError.code||'')+'\nuser_id: '+data.user.id);
-      button.disabled=false;return;
-    }
-    const {data:industry,error:industryError}=await client.from('industries').select('id,name,slug,status').eq('id',profile.industry_id).single();
-    if(industryError||!industry||industry.status!=='active'){
-      await client.auth.signOut();
-      show('Sua indústria não está ativa ou não pôde ser validada.','error');
-      showDebug('Consulta industries falhou ou indústria inativa\nmessage: '+(industryError&&industryError.message||'')+'\nstatus: '+(industry&&industry.status||'')+'\nindustry_id: '+profile.industry_id);
-      button.disabled=false;return;
-    }
-    location.replace('./index.html');
-  });
+  client.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'&&session)setRecoveryMode()});
+  client.auth.getSession().then(({data,error})=>{if(error)showDebug('getSession: '+error.message);if(data&&data.session&&!location.hash.includes('type=recovery'))location.replace('./index.html')});
+  forgot.addEventListener('click',async()=>{const email=document.getElementById('email').value.trim();if(!email){show('Informe seu e-mail primeiro.','error');return}forgot.disabled=true;show('Enviando instruções de recuperação…','ok');const redirectTo=location.origin+location.pathname;const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo});if(error){show('Não foi possível enviar o e-mail de recuperação.','error');showDebug('resetPasswordForEmail\nmessage: '+(error.message||'')+'\nstatus: '+(error.status||'')+'\nredirectTo: '+redirectTo);forgot.disabled=false;return}show('Enviamos um link de recuperação para este e-mail. Abra a mensagem e defina uma nova senha.','ok');showDebug('resetPasswordForEmail OK\nredirectTo: '+redirectTo);forgot.disabled=false});
+  resetForm.addEventListener('submit',async(e)=>{e.preventDefault();const password=document.getElementById('newPassword').value,confirm=document.getElementById('confirmPassword').value;if(password.length<8){show('A nova senha precisa ter pelo menos 8 caracteres.','error');return}if(password!==confirm){show('As senhas não conferem.','error');return}resetSubmit.disabled=true;show('Salvando nova senha…','ok');const {error}=await client.auth.updateUser({password});if(error){show('Não foi possível atualizar a senha.','error');showDebug('updateUser(password)\nmessage: '+(error.message||'')+'\nstatus: '+(error.status||'')+'\ncode: '+(error.code||''));resetSubmit.disabled=false;return}show('Senha atualizada com sucesso. Entrando no Pulse…','ok');setTimeout(()=>location.replace('./index.html'),500)});
+  form.addEventListener('submit',async(e)=>{e.preventDefault();button.disabled=true;show('Autenticando…','ok');showDebug('Iniciando autenticação no projeto '+url);const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;if(!email||!password){show('Informe e-mail e senha.','error');showDebug('Validação local: e-mail ou senha vazios.');button.disabled=false;return}const {data,error}=await client.auth.signInWithPassword({email,password});if(error){show('Não foi possível entrar. Verifique os dados da conta ou use "Esqueci minha senha".','error');showDebug('Supabase signInWithPassword\nmessage: '+(error.message||'')+'\nstatus: '+(error.status||'')+'\ncode: '+(error.code||''));button.disabled=false;return}if(!data||!data.session){show('Login sem sessão válida. Tente novamente.','error');showDebug('Supabase retornou sucesso, mas data.session está ausente.');button.disabled=false;return}const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',data.user.id).single();if(profileError||!profile){await client.auth.signOut();show('Sua conta não possui uma associação válida com uma indústria ativa.','error');showDebug('Consulta profiles falhou\nmessage: '+(profileError&&profileError.message||'')+'\ncode: '+(profileError&&profileError.code||'')+'\nuser_id: '+data.user.id);button.disabled=false;return}const {data:industry,error:industryError}=await client.from('industries').select('id,name,slug,status').eq('id',profile.industry_id).single();if(industryError||!industry||industry.status!=='active'){await client.auth.signOut();show('Sua indústria não está ativa ou não pôde ser validada.','error');showDebug('Consulta industries falhou ou indústria inativa\nmessage: '+(industryError&&industryError.message||'')+'\nstatus: '+(industry&&industry.status||'')+'\nindustry_id: '+profile.industry_id);button.disabled=false;return}location.replace('./index.html')});
 })();
 </script>
 </body>
