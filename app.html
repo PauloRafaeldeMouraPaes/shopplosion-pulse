@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shopplosion Pulse — Área da indústria</title>
+<meta name="description" content="Área privada do Shopplosion Pulse, isolada por indústria.">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;background:#f6f7fb}header{background:#fff;border-bottom:1px solid #e6e9ef;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;position:sticky;top:0;z-index:5}.brand{font-weight:850;color:#e51b67;letter-spacing:.02em}.identity{display:flex;align-items:center;gap:14px;font-size:13px;color:#596274}.identity strong{color:#172033}button{border:0;border-radius:10px;padding:10px 14px;background:#e51b67;color:#fff;font:inherit;font-weight:750;cursor:pointer}button.secondary{background:#eef1f6;color:#172033}button.danger{background:#fff1f2;color:#a51d35}.wrap{width:min(1120px,calc(100% - 32px));margin:28px auto 60px}.hero{background:#fff;border:1px solid #e4e8ef;border-radius:18px;padding:26px;box-shadow:0 12px 35px #1720330d}.eyebrow{font-size:12px;font-weight:800;color:#e51b67;text-transform:uppercase;letter-spacing:.08em}.hero h1{margin:7px 0 8px;font-size:30px}.hero p{margin:0;color:#5f6878;line-height:1.5}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.panel{background:#fff;border:1px solid #e4e8ef;border-radius:16px;padding:20px}.panel h2{margin:0 0 14px;font-size:18px}.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #edf0f4}.row:first-of-type{border-top:0}.muted{color:#687284;font-size:13px}.status{display:inline-flex;padding:4px 8px;border-radius:999px;background:#effaf3;color:#176b3a;font-size:12px;font-weight:750}.upload{border:1px dashed #cdd4df;border-radius:12px;padding:16px;margin-bottom:14px;background:#fafbfc}.upload input{display:block;width:100%;margin:10px 0}.msg{display:none;margin:14px 0;padding:12px;border-radius:10px;font-size:14px}.msg.show{display:block}.msg.error{background:#fff1f2;color:#a51d35}.msg.ok{background:#effaf3;color:#176b3a}.empty{padding:18px;border-radius:10px;background:#f8f9fb;color:#687284;font-size:13px}.footer-note{margin-top:18px;font-size:12px;color:#788294}.hidden{display:none!important}@media(max-width:760px){header{padding:14px 16px}.identity span{display:none}.grid{grid-template-columns:1fr}.wrap{width:min(100% - 20px,1120px)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">SHOPPLOSION PULSE</div>
+  <div class="identity"><span>Conta:</span><strong id="userEmail">—</strong><span>•</span><strong id="industryName">Validando...</strong><button id="logout" class="danger">Sair</button></div>
+</header>
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Área privada</div>
+    <h1 id="welcome">Sua indústria</h1>
+    <p>Este espaço consulta apenas os documentos e análises autorizados para a sua indústria. A separação é aplicada pelo Supabase/PostgreSQL com RLS, não pela interface.</p>
+    <div id="message" class="msg" role="status" aria-live="polite"></div>
+  </section>
+  <div class="grid">
+    <section class="panel">
+      <h2>Documentos privados</h2>
+      <div class="upload">
+        <strong>Anexar documento</strong>
+        <div class="muted">O arquivo será armazenado no espaço privado da sua indústria.</div>
+        <input id="file" type="file" accept=".pdf,.csv,.xlsx,.xls,.doc,.docx,.txt,.json,image/*">
+        <button id="upload">Enviar documento</button>
+      </div>
+      <div id="documents"><div class="empty">Carregando documentos...</div></div>
+    </section>
+    <section class="panel">
+      <h2>Análises da indústria</h2>
+      <div id="analyses"><div class="empty">Carregando análises...</div></div>
+      <div class="footer-note">As análises desta área serão persistidas com o identificador da indústria e protegidas por RLS.</div>
+    </section>
+  </div>
+  <section class="panel" style="margin-top:18px">
+    <h2>Universo Pulse</h2>
+    <p class="muted">A visão de mercado geral continua disponível como camada de inteligência do Pulse. Dados privados do cliente não devem ser usados para alterar o universo de outra indústria.</p>
+    <button id="openPulse">Abrir Pulse</button>
+  </section>
+</main>
+<script src="./pulse-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(async function(){
+  const cfg=window.PULSE_SUPABASE_CONFIG||{};
+  const message=document.getElementById('message');
+  const show=(text,type='ok')=>{message.textContent=text;message.className='msg show '+type};
+  const url=cfg.url||'', key=cfg.anonKey||'';
+  if(!url||!key||!window.supabase||typeof window.supabase.createClient!=='function'){show('Configuração do Supabase indisponível.','error');return}
+  const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const redirectAuth=()=>location.replace('./auth.html');
+  const {data:userData,error:userError}=await client.auth.getUser();
+  if(userError||!userData||!userData.user){redirectAuth();return}
+  const user=userData.user;
+  document.getElementById('userEmail').textContent=user.email||'conta autenticada';
+  const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',user.id).single();
+  if(profileError||!profile){await client.auth.signOut();show('Sua conta não possui uma associação válida com uma indústria.','error');setTimeout(redirectAuth,900);return}
+  const {data:industry,error:industryError}=await client.from('industries').select('id,name,slug,status').eq('id',profile.industry_id).single();
+  if(industryError||!industry||industry.status!=='active'){await client.auth.signOut();show('A indústria da sua conta não está ativa.','error');setTimeout(redirectAuth,900);return}
+  document.getElementById('industryName').textContent=industry.name;
+  document.getElementById('welcome').textContent=industry.name;
+  const esc=(v)=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
+  const renderDocuments=async()=>{
+    const box=document.getElementById('documents');
+    const {data,error}=await client.from('documents').select('id,filename,mime_type,created_at,storage_path').order('created_at',{ascending:false});
+    if(error){box.innerHTML='<div class="empty">Não foi possível carregar os documentos.</div>';return}
+    if(!data||!data.length){box.innerHTML='<div class="empty">Nenhum documento anexado ainda.</div>';return}
+    box.innerHTML=data.map(d=>'<div class="row"><div><strong>'+esc(d.filename)+'</strong><div class="muted">'+esc(d.mime_type||'arquivo')+' • '+new Date(d.created_at).toLocaleString('pt-BR')+'</div></div><button class="secondary" data-doc="'+esc(d.storage_path)+'">Abrir</button></div>').join('');
+    box.querySelectorAll('[data-doc]').forEach(btn=>btn.addEventListener('click',async()=>{const path=btn.getAttribute('data-doc');const {data,error}=await client.storage.from('pulse-documents').createSignedUrl(path,300);if(error||!data?.signedUrl){show('Não foi possível gerar o acesso temporário ao documento.','error');return}window.open(data.signedUrl,'_blank','noopener,noreferrer')}));
+  };
+  const renderAnalyses=async()=>{
+    const box=document.getElementById('analyses');
+    const {data,error}=await client.from('analyses').select('id,title,created_at').order('created_at',{ascending:false});
+    if(error){box.innerHTML='<div class="empty">Não foi possível carregar as análises.</div>';return}
+    if(!data||!data.length){box.innerHTML='<div class="empty">Nenhuma análise privada registrada ainda.</div>';return}
+    box.innerHTML=data.map(a=>'<div class="row"><div><strong>'+esc(a.title)+'</strong><div class="muted">'+new Date(a.created_at).toLocaleString('pt-BR')+'</div></div><span class="status">Privada</span></div>').join('');
+  };
+  document.getElementById('upload').addEventListener('click',async()=>{
+    const input=document.getElementById('file'),file=input.files&&input.files[0];
+    if(!file){show('Selecione um documento primeiro.','error');return}
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-180);
+    const path=industry.id+'/'+crypto.randomUUID()+'-'+safeName;
+    const btn=document.getElementById('upload');btn.disabled=true;show('Enviando documento…','ok');
+    const {error:uploadError}=await client.storage.from('pulse-documents').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+    if(uploadError){show('O documento não pôde ser enviado.','error');btn.disabled=false;return}
+    const {error:rowError}=await client.from('documents').insert({industry_id:industry.id,uploaded_by:user.id,storage_path:path,filename:file.name,mime_type:file.type||null});
+    if(rowError){await client.storage.from('pulse-documents').remove([path]);show('O arquivo foi enviado, mas não foi possível registrar o documento. A operação foi desfeita.','error');btn.disabled=false;return}
+    input.value='';show('Documento anexado à '+industry.name+'.','ok');btn.disabled=false;await renderDocuments();
+  });
+  document.getElementById('logout').addEventListener('click',async()=>{await client.auth.signOut();redirectAuth()});
+  document.getElementById('openPulse').addEventListener('click',()=>location.href='./index.html');
+  client.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')redirectAuth()});
+  await renderDocuments();await renderAnalyses();
+})().catch(()=>{const el=document.getElementById('message');el.textContent='Não foi possível inicializar a área privada.';el.className='msg show error'});
+</script>
+</body>
+</html>
