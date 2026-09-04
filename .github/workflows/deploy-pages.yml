@@ -1,10 +1,10 @@
-name: Deploy Shopplosion Pulse to GitHub Pages
+name: Pulse Release Gate and Deploy
 
 on:
-  workflow_run:
-    workflows:
-      - Pulse Release Gate
-    types: [completed]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -13,21 +13,90 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: pulse-release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  release-gate:
+    name: Release Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate Pulse artifact
+        run: python3 scripts/validate_pulse.py
+
+      - name: Validate orchestrator protocol
+        run: python3 scripts/validate_pulse_orchestrator.py
+
+      - name: Run deterministic adversarial audit
+        run: python3 scripts/audit_pulse_adversarial.py
+
+      - name: Audit single-file product contracts
+        run: python3 scripts/audit_pulse_single_file.py
+
+      - name: Validate inline JavaScript syntax
+        run: |
+          python3 scripts/extract_inline_js.py index.html /tmp/pulse-js
+          shopt -s nullglob
+          files=(/tmp/pulse-js/*.js)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No inline JavaScript blocks found."
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            echo "Checking $f"
+            node --check "$f"
+          done
+
+      - name: Run product regression guardrails
+        run: node scripts/validate_pulse_regression.js
+
+      - name: Run semantic data integrity checks
+        run: node scripts/test-pulse-data-integrity.js index.html
+
+      - name: Run Ask AI behavioral regression
+        run: node scripts/test-pulse-ask-ai.js index.html
+
+      - name: Run evidence contract
+        run: node scripts/validate-study-evidence.js
+
+      - name: Run accessibility and UX audit
+        run: python3 scripts/audit_pulse_accessibility.py
+
+      - name: Install Playwright package
+        run: npm install --no-save @playwright/test@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run shopper filter browser smoke tests
+        run: npx playwright test scripts/browser-tests/pulse-shopper-filters.spec.js
+
+      - name: Run next-level browser smoke tests
+        run: npx playwright test scripts/browser-tests/pulse-next-level.spec.js
+
+      - name: Release gate passed
+        run: |
+          echo "PULSE RELEASE GATE: PASS"
+          echo "Evidence, protocol, artifact, adversarial, regression, UX and browser checks passed."
+
   deploy:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_branch == 'main')
+    name: Deploy to GitHub Pages
+    needs: release-gate
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout latest main
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
           ref: main
