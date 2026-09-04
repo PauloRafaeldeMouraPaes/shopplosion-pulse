@@ -2,7 +2,7 @@
 
 ## Estado
 
-A fundação de dados e segurança está versionada nas migrations `001_multitenant_core.sql` e `002_storage_and_membership_hardening.sql`. O site já possui uma entrada de login em `auth.html`, mas não há credencial Supabase real no repositório — isso é intencional.
+A fundação de dados e segurança está versionada nas migrations `001_multitenant_core.sql` e `002_storage_and_membership_hardening.sql`. O projeto Supabase real já está conectado ao frontend por `pulse-config.js`, usando apenas a chave pública/publishable. O login está em `auth.html` e, após autenticação, direciona para `app.html`, a área privada da indústria.
 
 ## Configuração inicial
 
@@ -13,11 +13,23 @@ A fundação de dados e segurança está versionada nas migrations `001_multiten
 5. Criar os usuários em Supabase Auth.
 6. Associar cada usuário a exatamente uma indústria em `public.profiles`.
 7. Preencher `pulse-config.js` com a URL pública do projeto e a chave pública/anon (ou publishable key). Essa chave pode estar no navegador; `service_role` nunca pode estar no navegador.
-8. Publicar pelo Netlify. O `_redirects` faz `/` abrir a tela de login e `/app` servir o Pulse existente.
+8. Publicar pelo GitHub Pages ou Netlify. O `_redirects` mantém `/` como entrada de login e `/app` como área autenticada.
+
+## Área privada da indústria
+
+Após o login, `app.html` valida o usuário no Supabase, consulta a associação em `public.profiles` e valida que a indústria está ativa. A área privada permite:
+
+- identificar a indústria autenticada;
+- listar apenas os documentos autorizados pela RLS;
+- enviar documentos para o bucket privado `pulse-documents` usando caminho iniciado pelo UUID da indústria;
+- gerar URLs temporárias para documentos autorizados;
+- listar apenas as análises autorizadas pela RLS;
+- sair da conta e retornar ao login;
+- abrir a camada de Universo Pulse, separada dos dados privados do cliente.
 
 ## Modelo de caminho de arquivos
 
-Uploads devem usar `pulse-documents/<industry_uuid>/<arquivo>`. O primeiro segmento é validado no Storage contra a indústria ativa derivada da sessão; conhecer o caminho de outro cliente não concede acesso.
+Uploads usam `pulse-documents/<industry_uuid>/<arquivo>`. O primeiro segmento é validado no Storage contra a indústria ativa derivada da sessão; conhecer o caminho de outro cliente não concede acesso.
 
 ## Teste obrigatório de isolamento
 
@@ -39,8 +51,8 @@ Credenciais reais, tokens privilegiados, documentos de clientes e dados pessoais
 
 ## Validação determinística
 
-O CI executa `scripts/audit_pulse_multitenant.py`, que verifica a presença das proteções essenciais, a ausência de `service_role` no navegador, o roteamento de login/app, RLS, membership ativo e políticas privadas de Storage.
+O CI executa `scripts/audit_pulse_multitenant.py`, que verifica a presença das proteções essenciais, a ausência de configuração privilegiada no navegador, o roteamento de login/app, a área autenticada, RLS, membership ativo e políticas privadas de Storage.
 
 ## Critério de conclusão
 
-A fundação só será considerada pronta para produção quando a aplicação conectada ao projeto Supabase passar os testes reais de autenticação, autorização, Storage e isolamento cruzado, além de todos os testes regressivos existentes do Pulse. Sem um projeto Supabase real configurado, esta etapa permanece **BLOCKED — configuração externa necessária**, e não deve ser reportada como concluída.
+A fundação técnica está implementada e o login real já foi validado. A conclusão de segurança multi-tenant, porém, exige o teste operacional A-versus-B dos documentos, análises e Storage. Esse teste deve ser realizado com duas sessões autenticadas e é o próximo gate de aceitação antes de tratar o isolamento como comprovado em produção.
