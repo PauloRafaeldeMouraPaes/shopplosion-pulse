@@ -6,18 +6,25 @@
 <title>Shopplosion Pulse — Área da indústria</title>
 <meta name="description" content="Área privada do Shopplosion Pulse, isolada por indústria.">
 <style>
-:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;background:#f6f7fb}header{background:#fff;border-bottom:1px solid #e6e9ef;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;position:sticky;top:0;z-index:5}.brand{font-weight:850;color:#e51b67;letter-spacing:.02em}.identity{display:flex;align-items:center;gap:14px;font-size:13px;color:#596274}.identity strong{color:#172033}button{border:0;border-radius:10px;padding:10px 14px;background:#e51b67;color:#fff;font:inherit;font-weight:750;cursor:pointer}button.secondary{background:#eef1f6;color:#172033}button.danger{background:#fff1f2;color:#a51d35}.wrap{width:min(1120px,calc(100% - 32px));margin:28px auto 60px}.hero{background:#fff;border:1px solid #e4e8ef;border-radius:18px;padding:26px;box-shadow:0 12px 35px #1720330d}.eyebrow{font-size:12px;font-weight:800;color:#e51b67;text-transform:uppercase;letter-spacing:.08em}.hero h1{margin:7px 0 8px;font-size:30px}.hero p{margin:0;color:#5f6878;line-height:1.5}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.panel{background:#fff;border:1px solid #e4e8ef;border-radius:16px;padding:20px}.panel h2{margin:0 0 14px;font-size:18px}.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #edf0f4}.row:first-of-type{border-top:0}.muted{color:#687284;font-size:13px}.status{display:inline-flex;padding:4px 8px;border-radius:999px;background:#effaf3;color:#176b3a;font-size:12px;font-weight:750}.upload{border:1px dashed #cdd4df;border-radius:12px;padding:16px;margin-bottom:14px;background:#fafbfc}.upload input{display:block;width:100%;margin:10px 0}.msg{display:none;margin:14px 0;padding:12px;border-radius:10px;font-size:14px}.msg.show{display:block}.msg.error{background:#fff1f2;color:#a51d35}.msg.ok{background:#effaf3;color:#176b3a}.empty{padding:18px;border-radius:10px;background:#f8f9fb;color:#687284;font-size:13px}.footer-note{margin-top:18px;font-size:12px;color:#788294}.hidden{display:none!important}@media(max-width:760px){header{padding:14px 16px}.identity span{display:none}.grid{grid-template-columns:1fr}.wrap{width:min(100% - 20px,1120px)}}
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;background:#f6f7fb}header{background:#fff;border-bottom:1px solid #e6e9ef;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 28px;position:sticky;top:0;z-index:5}.brand{font-weight:850;color:#e51b67;letter-spacing:.02em;white-space:nowrap}.headerRight{display:flex;align-items:center;gap:18px}.nav{display:flex;align-items:center;gap:6px}.nav a{display:inline-flex;align-items:center;padding:9px 12px;border-radius:9px;color:#596274;text-decoration:none;font-size:13px;font-weight:750}.nav a:hover{background:#f3f4f7;color:#172033}.nav a.active{background:#fff0f5;color:#e51b67}.identity{display:flex;align-items:center;gap:10px;font-size:13px;color:#596274}.identity strong{color:#172033}.accountRole{font-size:11px;color:#788294;background:#f3f4f7;border-radius:999px;padding:4px 8px}.identity button{border:0;border-radius:10px;padding:9px 12px;background:#e51b67;color:#fff;font:inherit;font-weight:750;cursor:pointer}.identity button.danger{background:#fff1f2;color:#a51d35}.wrap{width:min(1120px,calc(100% - 32px));margin:28px auto 60px}.hero{background:#fff;border:1px solid #e4e8ef;border-radius:18px;padding:26px;box-shadow:0 12px 35px #1720330d}.eyebrow{font-size:12px;font-weight:800;color:#e51b67;text-transform:uppercase;letter-spacing:.08em}.hero h1{margin:7px 0 8px;font-size:30px}.hero p{margin:0;color:#5f6878;line-height:1.5}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.panel{background:#fff;border:1px solid #e4e8ef;border-radius:16px;padding:20px}.panel h2{margin:0 0 14px;font-size:18px}.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #edf0f4}.row:first-of-type{border-top:0}.muted{color:#687284;font-size:13px}.status{display:inline-flex;padding:4px 8px;border-radius:999px;background:#effaf3;color:#176b3a;font-size:12px;font-weight:750}.upload{border:1px dashed #cdd4df;border-radius:12px;padding:16px;margin-bottom:14px;background:#fafbfc}.upload input{display:block;width:100%;margin:10px 0}.upload button,.panel>button{border:0;border-radius:10px;padding:10px 14px;background:#e51b67;color:#fff;font:inherit;font-weight:750;cursor:pointer}.upload button:disabled{opacity:.55;cursor:wait}.secondary{border:0;border-radius:10px;padding:10px 14px;background:#eef1f6;color:#172033;font:inherit;font-weight:750;cursor:pointer}.msg{display:none;margin:14px 0;padding:12px;border-radius:10px;font-size:14px}.msg.show{display:block}.msg.error{background:#fff1f2;color:#a51d35}.msg.ok{background:#effaf3;color:#176b3a}.empty{padding:18px;border-radius:10px;background:#f8f9fb;color:#687284;font-size:13px}.footer-note{margin-top:18px;font-size:12px;color:#788294}.hidden{display:none!important}.workspaceNote{margin:0 0 18px;padding:11px 13px;border-radius:10px;background:#f8f9fb;color:#596274;font-size:13px}.workspaceNote strong{color:#172033}@media(max-width:900px){.headerRight{gap:10px}.nav a{padding:8px 9px}.identity span{display:none}}@media(max-width:760px){header{padding:12px 16px;align-items:flex-start}.headerRight{width:100%;justify-content:flex-end;flex-wrap:wrap}.nav{order:2;width:100%;justify-content:flex-end}.identity{order:1}.identity .accountRole{display:none}.grid{grid-template-columns:1fr}.wrap{width:min(100% - 20px,1120px)}}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">SHOPPLOSION PULSE</div>
-  <div class="identity"><span>Conta:</span><strong id="userEmail">—</strong><span>•</span><strong id="industryName">Validando...</strong><button id="logout" class="danger">Sair</button></div>
+  <div class="headerRight">
+    <nav class="nav" aria-label="Navegação principal">
+      <a href="./index.html">Universo Pulse</a>
+      <a href="./app.html" class="active" aria-current="page">Minha indústria</a>
+    </nav>
+    <div class="identity"><span>Conta:</span><strong id="userEmail">—</strong><span>•</span><strong id="industryName">Validando...</strong><span id="role" class="accountRole">—</span><button id="logout" class="danger" type="button">Sair</button></div>
+  </div>
 </header>
 <main class="wrap">
   <section class="hero">
-    <div class="eyebrow">Área privada</div>
+    <div class="eyebrow">Área privada da indústria</div>
     <h1 id="welcome">Sua indústria</h1>
+    <p class="workspaceNote"><strong>Ambiente isolado:</strong> este espaço consulta somente documentos e análises autorizados para a indústria da conta autenticada.</p>
     <p>Este espaço consulta apenas os documentos e análises autorizados para a sua indústria. A separação é aplicada pelo Supabase/PostgreSQL com RLS, não pela interface.</p>
     <div id="message" class="msg" role="status" aria-live="polite"></div>
   </section>
@@ -28,7 +35,7 @@
         <strong>Anexar documento</strong>
         <div class="muted">O arquivo será armazenado no espaço privado da sua indústria.</div>
         <input id="file" type="file" accept=".pdf,.csv,.xlsx,.xls,.doc,.docx,.txt,.json,image/*">
-        <button id="upload">Enviar documento</button>
+        <button id="upload" type="button">Enviar documento</button>
       </div>
       <div id="documents"><div class="empty">Carregando documentos...</div></div>
     </section>
@@ -41,7 +48,7 @@
   <section class="panel" style="margin-top:18px">
     <h2>Universo Pulse</h2>
     <p class="muted">A visão de mercado geral continua disponível como camada de inteligência do Pulse. Dados privados do cliente não devem ser usados para alterar o universo de outra indústria.</p>
-    <button id="openPulse">Abrir Pulse</button>
+    <button id="openPulse" type="button">Abrir Universo Pulse</button>
   </section>
 </main>
 <script src="./pulse-config.js"></script>
@@ -64,6 +71,7 @@
   const {data:industry,error:industryError}=await client.from('industries').select('id,name,slug,status').eq('id',profile.industry_id).single();
   if(industryError||!industry||industry.status!=='active'){await client.auth.signOut();show('A indústria da sua conta não está ativa.','error');setTimeout(redirectAuth,900);return}
   document.getElementById('industryName').textContent=industry.name;
+  document.getElementById('role').textContent=profile.role||'member';
   document.getElementById('welcome').textContent=industry.name;
   const esc=(v)=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const renderDocuments=async()=>{
@@ -71,7 +79,7 @@
     const {data,error}=await client.from('documents').select('id,filename,mime_type,created_at,storage_path').order('created_at',{ascending:false});
     if(error){box.innerHTML='<div class="empty">Não foi possível carregar os documentos.</div>';return}
     if(!data||!data.length){box.innerHTML='<div class="empty">Nenhum documento anexado ainda.</div>';return}
-    box.innerHTML=data.map(d=>'<div class="row"><div><strong>'+esc(d.filename)+'</strong><div class="muted">'+esc(d.mime_type||'arquivo')+' • '+new Date(d.created_at).toLocaleString('pt-BR')+'</div></div><button class="secondary" data-doc="'+esc(d.storage_path)+'">Abrir</button></div>').join('');
+    box.innerHTML=data.map(d=>'<div class="row"><div><strong>'+esc(d.filename)+'</strong><div class="muted">'+esc(d.mime_type||'arquivo')+' • '+new Date(d.created_at).toLocaleString('pt-BR')+'</div></div><button class="secondary" data-doc="'+esc(d.storage_path)+'" type="button">Abrir</button></div>').join('');
     box.querySelectorAll('[data-doc]').forEach(btn=>btn.addEventListener('click',async()=>{const path=btn.getAttribute('data-doc');const {data,error}=await client.storage.from('pulse-documents').createSignedUrl(path,300);if(error||!data?.signedUrl){show('Não foi possível gerar o acesso temporário ao documento.','error');return}window.open(data.signedUrl,'_blank','noopener,noreferrer')}));
   };
   const renderAnalyses=async()=>{

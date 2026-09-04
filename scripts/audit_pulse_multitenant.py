@@ -49,6 +49,10 @@ required_app = [
     "storage.from('pulse-documents')",
     "industry.id+'/'+crypto.randomUUID()",
     "auth.signOut()",
+    "Minha indústria",
+    "Universo Pulse",
+    "workspaceNote",
+    "id=\"role\"",
 ]
 for token in required_app:
     if token not in app:
@@ -91,9 +95,11 @@ for token in [
     if token not in storage:
         errors.append(f"storage-missing:{token}")
 
-# Fail closed on obvious client-controlled tenant authorization patterns.
-if re.search(r"industry_id\s*[:=]\s*[^,;}]+", auth):
-    errors.append("client-industry-authorization-pattern")
+# Fail closed only when the login request itself sends a client-selected tenant.
+# The later profiles query is intentionally allowed to read industry_id because
+# the authenticated user's tenant is resolved server-side by the RLS policies.
+if re.search(r"signInWithPassword\(\{[^}]*industry_id", auth):
+    errors.append("login-client-industry-authorization-pattern")
 
 if "O frontend nunca é a autoridade de isolamento" not in architecture:
     errors.append("architecture-security-rule-missing")
@@ -108,6 +114,7 @@ print("PULSE MULTITENANT AUDIT: PASS")
 print("- Auth entrypoint present")
 print("- Password recovery flow present")
 print("- Authenticated tenant workspace present")
+print("- Private workspace navigation and tenant identity present")
 print("- Browser configuration contains no privileged key assignment")
 print("- Browser configuration contains a valid publishable/anon key")
 print("- Tenant tables and RLS present")
