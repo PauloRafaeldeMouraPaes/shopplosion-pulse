@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shopplosion Pulse — Entrar</title>
+<meta name="description" content="Acesso seguro ao Shopplosion Pulse.">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(430px,100%);background:#fff;border:1px solid #e7e9ef;border-radius:18px;padding:32px;box-shadow:0 18px 50px #17203314}h1{margin:0 0 8px;font-size:28px}p{color:#5f6878;line-height:1.5}.brand{font-weight:800;color:#e51b67;margin-bottom:28px}.field{display:grid;gap:7px;margin:18px 0}label{font-weight:650;font-size:14px}input{width:100%;padding:13px 14px;border:1px solid #ccd1dc;border-radius:10px;font:inherit}button{width:100%;padding:13px 16px;border:0;border-radius:10px;background:#e51b67;color:#fff;font-weight:750;font:inherit;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.msg{margin-top:16px;padding:12px;border-radius:10px;font-size:14px;display:none}.error{display:block;background:#fff1f2;color:#a51d35}.ok{display:block;background:#effaf3;color:#176b3a}.small{font-size:12px;margin-top:20px}.config{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-word}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand">SHOPPLOSION PULSE</div>
+  <h1>Entrar</h1>
+  <p>Acesse os dados e análises da sua indústria. Cada conta é vinculada a uma única indústria.</p>
+  <form id="loginForm" novalidate>
+    <div class="field"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="username" required></div>
+    <div class="field"><label for="password">Senha</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+    <button id="submit" type="submit">Entrar no Pulse</button>
+  </form>
+  <div id="message" class="msg" role="status" aria-live="polite"></div>
+  <p class="small">A autorização real dos dados é feita pelo Supabase/PostgreSQL com RLS; a interface nunca decide a indústria do usuário.</p>
+  <p id="configStatus" class="small config"></p>
+</main>
+<script src="./pulse-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const cfg=window.PULSE_SUPABASE_CONFIG||{};
+  const url=cfg.url||'';
+  const anonKey=cfg.anonKey||'';
+  const form=document.getElementById('loginForm');
+  const button=document.getElementById('submit');
+  const message=document.getElementById('message');
+  const configStatus=document.getElementById('configStatus');
+  const show=(text,type)=>{message.textContent=text;message.className='msg '+type};
+  if(!url||!anonKey){configStatus.textContent='Configuração pendente: defina URL e anon/publishable key no pulse-config.js antes de publicar.';button.disabled=true;return}
+  configStatus.textContent='Supabase configurado.';
+  const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  client.auth.getSession().then(({data})=>{if(data.session) location.replace('./app');});
+  form.addEventListener('submit',async(e)=>{
+    e.preventDefault();
+    button.disabled=true;show('Autenticando…','ok');
+    const email=document.getElementById('email').value.trim();
+    const password=document.getElementById('password').value;
+    const {data,error}=await client.auth.signInWithPassword({email,password});
+    if(error){show('Não foi possível entrar. Verifique e-mail, senha e se sua conta está ativa.','error');button.disabled=false;return}
+    if(!data.session){show('Login sem sessão válida. Tente novamente.','error');button.disabled=false;return}
+    const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',data.user.id).single();
+    if(profileError||!profile){await client.auth.signOut();show('Sua conta não possui uma associação válida com uma indústria ativa.','error');button.disabled=false;return}
+    location.replace('./app');
+  });
+})();
+</script>
+</body>
+</html>
