@@ -27,6 +27,9 @@ jobs:
       - name: Validate Pulse artifact
         run: python3 scripts/validate_pulse.py
 
+      - name: Validate orchestrator protocol
+        run: python3 scripts/validate_pulse_orchestrator.py
+
       - name: Run deterministic adversarial audit
         run: python3 scripts/audit_pulse_adversarial.py
 
@@ -77,4 +80,4 @@ jobs:
       - name: Release gate passed
         run: |
           echo "PULSE RELEASE GATE: PASS"
-          echo "Evidence, artifact, adversarial, regression, UX and browser checks passed."
+          echo "Evidence, protocol, artifact, adversarial, regression, UX and browser checks passed."
