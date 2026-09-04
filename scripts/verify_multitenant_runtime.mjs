@@ -60,7 +60,7 @@ async function rest(token, table, query, method = 'GET', payload) {
   const headers = {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
-    Prefer: method === 'GET' ? 'return=representation' : 'return=representation'
+    Prefer: 'return=representation'
   };
   const { response, body } = await request(`/rest/v1/${table}${query}`, {
     method,
@@ -73,6 +73,10 @@ async function rest(token, table, query, method = 'GET', payload) {
 function assert(condition, message) {
   if (!condition) throw new Error(`FAIL: ${message}`);
   console.log(`PASS: ${message}`);
+}
+
+function tableUnavailable(result) {
+  return result.response.status === 404 || /relation|schema cache|does not exist/i.test(String(result.body?.message || result.body || ''));
 }
 
 async function main() {
@@ -101,6 +105,34 @@ async function main() {
   assert((bDocs.body || []).every(row => row.industry_id === industryB), 'B document result set contains only B');
   assert((aAnalyses.body || []).every(row => row.industry_id === industryA), 'A analysis result set contains only A');
   assert((bAnalyses.body || []).every(row => row.industry_id === industryB), 'B analysis result set contains only B');
+
+  const aChunks = await rest(A.token, 'document_chunks', '?select=id,industry_id,document_id,chunk_index');
+  const bChunks = await rest(B.token, 'document_chunks', '?select=id,industry_id,document_id,chunk_index');
+  if (tableUnavailable(aChunks) || tableUnavailable(bChunks)) {
+    console.log('SKIP: document_chunks table is not available yet; apply migration 003 before the chunk isolation gate.');
+  } else {
+    assert(aChunks.response.ok, 'A can query private document chunks');
+    assert(bChunks.response.ok, 'B can query private document chunks');
+    assert((aChunks.body || []).every(row => row.industry_id === industryA), 'A chunk result set contains only A');
+    assert((bChunks.body || []).every(row => row.industry_id === industryB), 'B chunk result set contains only B');
+
+    const bChunk = (bChunks.body || [])[0];
+    if (bChunk?.id) {
+      const crossChunkRead = await rest(A.token, 'document_chunks', `?select=id&id=eq.${encodeURIComponent(bChunk.id)}`);
+      assert(crossChunkRead.response.ok && (!crossChunkRead.body || crossChunkRead.body.length === 0), 'A cannot read a B document chunk by ID');
+    } else {
+      console.log('SKIP: B has no document chunk yet; direct chunk-ID cross-read test needs a B fixture.');
+    }
+
+    const injectedChunk = await rest(A.token, 'document_chunks', '', 'POST', {
+      industry_id: industryB,
+      document_id: (bDocs.body || [])[0]?.id || '00000000-0000-0000-0000-000000000000',
+      chunk_index: 999999,
+      content: 'SECURITY TEST — MUST FAIL',
+      source_type: 'manual'
+    });
+    assert(!injectedChunk.response.ok, 'A cannot insert a document chunk into B');
+  }
 
   const injected = await rest(A.token, 'analyses', '', 'POST', {
     industry_id: industryB,
