@@ -46,7 +46,7 @@ test.describe('Pulse next-level intelligence', () => {
     await page.waitForFunction(() => Array.isArray(window.PULSE_LOCAL_EVIDENCE) && window.PULSE_LOCAL_EVIDENCE.some(x => x.name === 'pulse-next-level.csv'));
     const item = await page.evaluate(() => window.PULSE_LOCAL_EVIDENCE.find(x => x.name === 'pulse-next-level.csv'));
     expect(item.name).toBe('pulse-next-level.csv');
-    expect(item.method).toMatch(/PapaParse|CSV/i);
+    expect(item.method || item.provenance?.extractionMethod).toBe('textual');
     expect(item.provenance.sourceName).toBe('pulse-next-level.csv');
     expect(item.provenance.evidenceType).toBe('user-provided-study');
   });
