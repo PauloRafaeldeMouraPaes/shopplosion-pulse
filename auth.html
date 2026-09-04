@@ -23,6 +23,7 @@
   <p class="small">A autorização real dos dados é feita pelo Supabase/PostgreSQL com RLS; a interface nunca decide a indústria do usuário.</p>
   <p id="configStatus" class="small config"></p>
 </main>
+<script src="./pulse-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
@@ -34,7 +35,7 @@
   const message=document.getElementById('message');
   const configStatus=document.getElementById('configStatus');
   const show=(text,type)=>{message.textContent=text;message.className='msg '+type};
-  if(!url||!anonKey){configStatus.textContent='Configuração pendente: defina window.PULSE_SUPABASE_CONFIG.url e .anonKey antes de publicar.';button.disabled=true;return}
+  if(!url||!anonKey){configStatus.textContent='Configuração pendente: defina URL e anon/publishable key no pulse-config.js antes de publicar.';button.disabled=true;return}
   configStatus.textContent='Supabase configurado.';
   const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   client.auth.getSession().then(({data})=>{if(data.session) location.replace('./');});
