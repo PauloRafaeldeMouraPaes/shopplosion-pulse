@@ -15,6 +15,9 @@ jobs:
       - name: Validate Pulse artifact
         run: python3 scripts/validate_pulse.py
 
+      - name: Run adversarial product audit
+        run: python3 scripts/audit_pulse_adversarial.py
+
       - name: Audit single-file product contracts
         run: python3 scripts/audit_pulse_single_file.py
 
