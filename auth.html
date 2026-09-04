@@ -38,7 +38,7 @@
   if(!url||!anonKey){configStatus.textContent='Configuração pendente: defina URL e anon/publishable key no pulse-config.js antes de publicar.';button.disabled=true;return}
   configStatus.textContent='Supabase configurado.';
   const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  client.auth.getSession().then(({data})=>{if(data.session) location.replace('./');});
+  client.auth.getSession().then(({data})=>{if(data.session) location.replace('./app');});
   form.addEventListener('submit',async(e)=>{
     e.preventDefault();
     button.disabled=true;show('Autenticando…','ok');
@@ -48,8 +48,8 @@
     if(error){show('Não foi possível entrar. Verifique e-mail, senha e se sua conta está ativa.','error');button.disabled=false;return}
     if(!data.session){show('Login sem sessão válida. Tente novamente.','error');button.disabled=false;return}
     const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',data.user.id).single();
-    if(profileError||!profile){await client.auth.signOut();show('Sua conta não possui uma associação válida com uma indústria.','error');button.disabled=false;return}
-    location.replace('./');
+    if(profileError||!profile){await client.auth.signOut();show('Sua conta não possui uma associação válida com uma indústria ativa.','error');button.disabled=false;return}
+    location.replace('./app');
   });
 })();
 </script>
