@@ -31,8 +31,10 @@ for token in required_auth:
     if token not in auth:
         errors.append(f"auth-missing:{token}")
 
-if "service_role" in auth or "service_role" in config:
-    errors.append("privileged-key-in-browser")
+# The privileged key must not appear as a configured browser value. Documentation
+# may mention the forbidden key name, so inspect assignments rather than comments.
+if re.search(r"(?:service_role|serviceRole)\s*[:=]\s*['\"][^'\"]+['\"]", auth + "\n" + config):
+    errors.append("privileged-key-configured-in-browser")
 if "anonKey:''" not in config:
     errors.append("config-template-not-empty-safe")
 if "/ /auth.html 200" not in redirects or "/app /index.html 200" not in redirects:
@@ -63,11 +65,10 @@ for token in [
         errors.append(f"storage-missing:{token}")
 
 # Fail closed on obvious client-controlled tenant authorization patterns.
-for source_name, source in [("auth", auth), ("config", config)]:
-    if re.search(r"industry_id\s*[:=]\s*[^,;}]+", source) and source_name == "auth":
-        errors.append("client-industry-authorization-pattern")
+if re.search(r"industry_id\s*[:=]\s*[^,;}]+", auth):
+    errors.append("client-industry-authorization-pattern")
 
-if "frontend never is the authority" not in architecture:
+if "O frontend nunca é a autoridade de isolamento" not in architecture:
     errors.append("architecture-security-rule-missing")
 
 if errors:
@@ -78,7 +79,7 @@ if errors:
 
 print("PULSE MULTITENANT AUDIT: PASS")
 print("- Auth entrypoint present")
-print("- Browser configuration is non-privileged template")
+print("- Browser configuration contains no privileged key assignment")
 print("- Tenant tables and RLS present")
 print("- Active-membership check present")
 print("- Private Storage policies present")
