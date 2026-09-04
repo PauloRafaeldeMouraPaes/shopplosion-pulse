@@ -4,7 +4,7 @@
 
 - ID: PULSE-ORCH-001
 - Title: Exercitar o ciclo multiagente com uma evolução pequena
-- Current state: GATED / RELEASE VERIFIED
+- Current state: GATED / RELEASE VERIFIED / PROCESS HARDENED
 
 ## Objective
 
@@ -18,15 +18,16 @@
 | The orchestrator protocol defines the lifecycle and release authority | `PULSE_ORCHESTRATOR_PROTOCOL.md` | 2026-09-04 | FACT | HIGH |
 | The consolidated Release Gate contains artifact, protocol, adversarial, regression, evidence, accessibility, and browser checks | `.github/workflows/deploy-pages.yml` | 2026-09-04 | FACT | HIGH |
 | Commit `ce9b38947b49788e5f7234c5ef0ac4b9a798511e` passed the official Release Gate | GitHub Actions run 33905730314 | 2026-09-04 | FACT | HIGH |
-| The shopper browser suite passed all 14 tests | GitHub Actions run 33905730367 | 2026-09-04 | FACT | HIGH |
-| The next-level browser suite passed all 5 tests | GitHub Actions run 33905730367 | 2026-09-04 | FACT | HIGH |
-| Deterministic validation, adversarial audit, single-file audit, JavaScript syntax, regression, semantic data, Ask AI, evidence, and accessibility checks all passed | GitHub Actions Release Gate run 33905730314 | 2026-09-04 | FACT | HIGH |
+| The final documentation commit `0948dc4512e32a96d6ad0ba5048f0f1ef81dc8c6` passed the official Release Gate | GitHub Actions run 33905904702 | 2026-09-04 | FACT | HIGH |
+| The shopper browser suite passed all 14 tests | GitHub Actions run 33905904702 | 2026-09-04 | FACT | HIGH |
+| The next-level browser suite passed all 5 tests | GitHub Actions run 33905904702 | 2026-09-04 | FACT | HIGH |
+| The multi-agent process now has an explicit Definition of Done and traceability record template | `docs/PULSE_DEFINITION_OF_DONE.md`, `docs/PULSE_TRACEABILITY.md` | 2026-09-04 | FACT | HIGH |
 
 ## Contract
 
-- Scope: Establish and validate the orchestration protocol, handoff record, deterministic validator, adversarial audit integration, browser regression alignment, and release-gate wiring.
+- Scope: Establish and validate the orchestration protocol, handoff record, deterministic validator, adversarial audit integration, browser regression alignment, release-gate wiring, Definition of Done and traceability contract.
 - Non-scope: Production feature redesign or changes to `index.html` during this pilot.
-- Acceptance criteria: Protocol documented; handoff recorded; validator integrated; adversarial audit integrated; browser contracts aligned with the actual CSV extraction implementation; official Release Gate passes.
+- Acceptance criteria: Protocol documented; handoff recorded; validator integrated; adversarial audit integrated; browser contracts aligned with the actual CSV extraction implementation; official Release Gate passes; Definition of Done and traceability records are available.
 - Risks: Test contracts must reflect the real product contract without introducing unnecessary dependencies or false positives.
 - Required tests: deterministic validators, regression/data/Ask AI/evidence/accessibility checks, shopper browser smoke tests, next-level browser smoke tests, and successful official Release Gate execution.
 
@@ -49,10 +50,13 @@ Role: Deterministic Gates / Adversarial Reviewer
 - Consolidated the Release Gate into the publication workflow.
 - Corrected the browser test contract so local CSV evidence expects the actual privacy-first `textual` extraction method rather than an unimplemented PapaParse dependency.
 - Verified the official Release Gate on the final implementation commit.
+- Added a durable Definition of Done covering product, implementation, adversarial, deterministic, traceability and post-release requirements.
+- Added a reusable traceability record for future material product evolutions.
 
 ### Open questions
 
 - None blocking the orchestration pilot.
+- The next production feature must enter through the task/evidence/acceptance contract rather than bypassing the orchestration cycle.
 - GitHub Pages deployment is a separate post-gate queue and does not weaken the release authority.
 
 ### Files / artifacts changed
@@ -61,6 +65,8 @@ Role: Deterministic Gates / Adversarial Reviewer
 - `PULSE_TASK_TEMPLATE.md`
 - `PULSE_ORCHESTRATOR_PROTOCOL.md`
 - `docs/PULSE_AGENT_HANDOFF.md`
+- `docs/PULSE_DEFINITION_OF_DONE.md`
+- `docs/PULSE_TRACEABILITY.md`
 - `scripts/validate_pulse_orchestrator.py`
 - `scripts/audit_pulse_adversarial.py`
 - `scripts/browser-tests/pulse-shopper-filters.spec.js`
@@ -70,6 +76,7 @@ Role: Deterministic Gates / Adversarial Reviewer
 ### Validation performed
 
 - Official Release Gate run 33905730314 passed on commit `ce9b38947b49788e5f7234c5ef0ac4b9a798511e`.
+- Official Release Gate run 33905904702 passed on commit `0948dc4512e32a96d6ad0ba5048f0f1ef81dc8c6`.
 - Release Gate steps passed: artifact validation, orchestrator protocol, adversarial audit, single-file contracts, JavaScript syntax, regression, semantic data, Ask AI, evidence, accessibility/UX, shopper browser smoke, and next-level browser smoke.
 - Shopper browser suite: 14/14 passed.
 - Next-level browser suite: 5/5 passed.
@@ -81,6 +88,7 @@ Role: Deterministic Gates / Adversarial Reviewer
 - CRITICAL: None verified.
 - MAJOR: None verified.
 - MINOR: None verified.
+- OBSERVATION: The adversarial audit reports a development-marker observation when a matching marker exists, but this is currently non-blocking by design. It should become a release error only if such markers are proven to be accidental production leftovers.
 - OBSERVATION: GitHub Pages deployment remains independently queued after the successful Release Gate; this is a deployment-state issue, not a release-quality failure.
 
 ## Release decision
@@ -98,3 +106,4 @@ Role: Deterministic Gates / Adversarial Reviewer
 4. Made the consolidated Release Gate the publication authority.
 5. Corrected stale CSV browser assertions without adding an unnecessary parser dependency.
 6. Verified the full release gate with 14 shopper tests and 5 next-level tests passing.
+7. Added the Definition of Done and reusable traceability record for future evolutions.
