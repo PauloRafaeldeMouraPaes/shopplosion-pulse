@@ -49,6 +49,10 @@ required_app = [
     "storage.from('pulse-documents')",
     "industry.id+'/'+crypto.randomUUID()",
     "auth.signOut()",
+    "Minha indústria",
+    "Universo Pulse",
+    "workspaceNote",
+    "id=\"role\"",
 ]
 for token in required_app:
     if token not in app:
@@ -108,6 +112,7 @@ print("PULSE MULTITENANT AUDIT: PASS")
 print("- Auth entrypoint present")
 print("- Password recovery flow present")
 print("- Authenticated tenant workspace present")
+print("- Private workspace navigation and tenant identity present")
 print("- Browser configuration contains no privileged key assignment")
 print("- Browser configuration contains a valid publishable/anon key")
 print("- Tenant tables and RLS present")
