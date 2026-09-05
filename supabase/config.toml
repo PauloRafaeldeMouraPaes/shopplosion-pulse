@@ -1,0 +1,4 @@
+project_id = "ppfuygnpgywfpiqxsfys"
+
+[functions.pulse-ask-ai]
+verify_jwt = true
