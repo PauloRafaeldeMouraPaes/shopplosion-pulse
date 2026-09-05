@@ -1,0 +1,18 @@
+name: Pulse Private AI Audit
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  private-ai-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit private AI boundary
+        run: python scripts/audit_pulse_private_ai.py
