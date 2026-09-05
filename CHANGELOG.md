@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-05 — Ask AI privado server-side
+- Added private tenant retrieval workspace with deterministic evidence ranking.
+- Added server-side `pulse-ask-ai` Edge Function with JWT + RLS context.
+- Added Claude Messages API adapter with provider secret kept outside the browser.
+- Added evidence citations from retrieved private chunks to generated answers.
+- Added deterministic audit preventing provider secrets or direct Anthropic calls in browser code.
+- Documented production secret configuration and Edge Function deployment.
+
 ## 2026-09-04 — Multi-tenant industry workspace
 - Added authenticated industry workspace after Supabase login.
 - Added tenant-scoped document upload/list/access using private Storage and RLS.
