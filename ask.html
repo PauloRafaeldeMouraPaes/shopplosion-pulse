@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Shopplosion Pulse — Ask AI privado</title>
-<meta name="description" content="Busca privada e tenant-scoped nos documentos da indústria autenticada.">
+<meta name="description" content="Perguntas privadas sobre documentos da indústria autenticada.">
 <style>
-:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;background:#f6f7fb}header{background:#fff;border-bottom:1px solid #e6e9ef;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;gap:18px;position:sticky;top:0;z-index:5}.brand{font-weight:850;color:#e51b67}.nav{display:flex;gap:8px;align-items:center}.nav a{padding:9px 12px;border-radius:9px;text-decoration:none;color:#596274;font-size:13px;font-weight:750}.nav a:hover{background:#f3f4f7}.nav a.active{background:#fff0f5;color:#e51b67}.identity{display:flex;align-items:center;gap:8px;color:#687284;font-size:13px}.identity strong{color:#172033}.identity button{border:0;border-radius:9px;padding:8px 11px;background:#fff1f2;color:#a51d35;font-weight:750;cursor:pointer}.wrap{width:min(1100px,calc(100% - 32px));margin:28px auto 60px}.hero,.panel{background:#fff;border:1px solid #e4e8ef;border-radius:16px;box-shadow:0 10px 30px #1720330b}.hero{padding:24px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#e51b67}.hero h1{margin:7px 0 8px;font-size:30px}.hero p{margin:0;color:#5f6878;line-height:1.5}.search{margin-top:18px;display:flex;gap:10px}.search input{flex:1;border:1px solid #cdd4df;border-radius:10px;padding:12px 13px;font:inherit}.search button{border:0;border-radius:10px;padding:12px 18px;background:#e51b67;color:#fff;font:inherit;font-weight:800;cursor:pointer}.search button:disabled{opacity:.55;cursor:wait}.note{margin-top:12px;font-size:12px;color:#788294}.msg{display:none;margin-top:14px;padding:11px 13px;border-radius:10px;font-size:13px}.msg.show{display:block}.msg.error{background:#fff1f2;color:#a51d35}.msg.ok{background:#effaf3;color:#176b3a}.panel{margin-top:18px;padding:20px}.panel h2{margin:0 0 12px;font-size:18px}.result{border-top:1px solid #edf0f4;padding:15px 0}.result:first-child{border-top:0}.resultHead{display:flex;justify-content:space-between;gap:12px;align-items:center}.resultTitle{font-weight:800}.badge{font-size:11px;background:#eef1f6;color:#596274;border-radius:999px;padding:4px 8px;white-space:nowrap}.snippet{margin:9px 0 0;color:#384254;line-height:1.55;font-size:14px;white-space:pre-wrap}.empty{padding:18px;border-radius:10px;background:#f8f9fb;color:#687284;font-size:13px}.muted{color:#788294;font-size:12px}.hidden{display:none!important}@media(max-width:760px){header{padding:12px 16px;align-items:flex-start;flex-wrap:wrap}.identity{margin-left:auto}.wrap{width:min(100% - 20px,1100px)}.search{flex-direction:column}.search button{width:100%}.nav{order:3;width:100%;justify-content:flex-end}}
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb}*{box-sizing:border-box}body{margin:0;background:#f6f7fb}header{background:#fff;border-bottom:1px solid #e6e9ef;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;gap:18px;position:sticky;top:0;z-index:5}.brand{font-weight:850;color:#e51b67}.nav{display:flex;gap:8px;align-items:center}.nav a{padding:9px 12px;border-radius:9px;text-decoration:none;color:#596274;font-size:13px;font-weight:750}.nav a:hover{background:#f3f4f7}.nav a.active{background:#fff0f5;color:#e51b67}.identity{display:flex;align-items:center;gap:8px;color:#687284;font-size:13px}.identity strong{color:#172033}.identity button{border:0;border-radius:9px;padding:8px 11px;background:#fff1f2;color:#a51d35;font-weight:750;cursor:pointer}.wrap{width:min(1100px,calc(100% - 32px));margin:28px auto 60px}.hero,.panel{background:#fff;border:1px solid #e4e8ef;border-radius:16px;box-shadow:0 10px 30px #1720330b}.hero{padding:24px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#e51b67}.hero h1{margin:7px 0 8px;font-size:30px}.hero p{margin:0;color:#5f6878;line-height:1.5}.search{margin-top:18px;display:flex;gap:10px}.search input{flex:1;border:1px solid #cdd4df;border-radius:10px;padding:12px 13px;font:inherit}.search button{border:0;border-radius:10px;padding:12px 18px;background:#e51b67;color:#fff;font:inherit;font-weight:800;cursor:pointer}.search button.secondary{background:#28364d}.search button:disabled{opacity:.55;cursor:wait}.note{margin-top:12px;font-size:12px;color:#788294}.msg{display:none;margin-top:14px;padding:11px 13px;border-radius:10px;font-size:13px}.msg.show{display:block}.msg.error{background:#fff1f2;color:#a51d35}.msg.ok{background:#effaf3;color:#176b3a}.panel{margin-top:18px;padding:20px}.panel h2{margin:0 0 12px;font-size:18px}.answer{background:#f8f9fb;border:1px solid #e6e9ef;border-radius:12px;padding:16px;line-height:1.6;white-space:pre-wrap}.result{border-top:1px solid #edf0f4;padding:15px 0}.result:first-child{border-top:0}.resultHead{display:flex;justify-content:space-between;gap:12px;align-items:center}.resultTitle{font-weight:800}.badge{font-size:11px;background:#eef1f6;color:#596274;border-radius:999px;padding:4px 8px;white-space:nowrap}.snippet{margin:9px 0 0;color:#384254;line-height:1.55;font-size:14px;white-space:pre-wrap}.empty{padding:18px;border-radius:10px;background:#f8f9fb;color:#687284;font-size:13px}.muted{color:#788294;font-size:12px}.hidden{display:none!important}@media(max-width:760px){header{padding:12px 16px;align-items:flex-start;flex-wrap:wrap}.identity{margin-left:auto}.wrap{width:min(100% - 20px,1100px)}.search{flex-direction:column}.search button{width:100%}.nav{order:3;width:100%;justify-content:flex-end}}
 </style>
 </head>
 <body>
@@ -21,19 +21,25 @@
 </header>
 <main class="wrap">
   <section class="hero">
-    <div class="eyebrow">Base privada de evidências</div>
-    <h1>Ask AI — busca nos seus documentos</h1>
-    <p>Pesquise conteúdo já indexado da sua indústria. Esta etapa é deliberadamente determinística: ela recupera evidências privadas, mas ainda <strong>não gera respostas com LLM</strong>.</p>
+    <div class="eyebrow">Inteligência privada</div>
+    <h1>Ask AI — pergunte sobre seus documentos</h1>
+    <p>A resposta generativa usa somente evidências recuperadas da indústria autenticada. A chave do provedor de IA permanece no servidor.</p>
     <div class="search">
-      <input id="query" type="search" maxlength="120" placeholder="Ex.: preço, concorrência, consumidor, embalagem..." autocomplete="off">
+      <input id="query" type="search" maxlength="500" placeholder="Ex.: Quais são os principais riscos competitivos?" autocomplete="off">
       <button id="search" type="button">Buscar evidências</button>
+      <button id="generate" class="secondary" type="button">Gerar resposta</button>
     </div>
-    <div class="note">Isolamento aplicado pelo Supabase/RLS. O navegador não recebe documentos de outra indústria.</div>
+    <div class="note">RLS continua sendo a autoridade de isolamento. O LLM nunca recebe dados de outra indústria.</div>
     <div id="message" class="msg" role="status" aria-live="polite"></div>
   </section>
+  <section id="answerPanel" class="panel hidden">
+    <h2>Resposta</h2>
+    <div id="answer" class="answer"></div>
+    <div id="citations" class="muted" style="margin-top:12px"></div>
+  </section>
   <section class="panel">
-    <h2 id="resultTitle">Resultados</h2>
-    <div id="results"><div class="empty">Digite uma pergunta ou termo para buscar nos documentos indexados.</div></div>
+    <h2 id="resultTitle">Evidências</h2>
+    <div id="results"><div class="empty">Digite uma pergunta para recuperar evidências privadas.</div></div>
   </section>
 </main>
 <script src="./pulse-config.js"></script>
@@ -44,7 +50,7 @@
   const msg=document.getElementById('message');
   const show=(text,type='ok')=>{msg.textContent=text;msg.className='msg show '+type};
   const redirect=()=>location.replace('./auth.html');
-  if(!cfg.url||!cfg.anonKey||!window.supabase||typeof window.supabase.createClient!=='function'){show('Configuração do Supabase indisponível.','error');return}
+  if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){show('Configuração do Supabase indisponível.','error');return}
   const client=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   const {data:userData,error:userError}=await client.auth.getUser();
   if(userError||!userData?.user){redirect();return}
@@ -56,34 +62,53 @@
   document.getElementById('industryName').textContent=industry.name;
   document.getElementById('userEmail').textContent=user.email||'';
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
-  const normalizeQuery=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().slice(0,120);
-  const termsFor=value=>Array.from(new Set(normalizeQuery(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,6);
-  const score=(content,terms)=>{const text=normalizeQuery(content);return terms.reduce((n,t)=>n+(text.split(t).length-1),0)};
-  async function searchEvidence(){
-    const raw=document.getElementById('query').value;
+  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
+  const score=(content,terms)=>{const text=normalize(content);return terms.reduce((n,t)=>n+(text.split(t).length-1),0)};
+  async function retrieve(raw){
     const terms=termsFor(raw);
-    const results=document.getElementById('results');
-    const title=document.getElementById('resultTitle');
-    if(!terms.length){show('Digite pelo menos um termo com 2 caracteres.','error');return}
-    document.getElementById('search').disabled=true;show('Buscando somente na base privada da sua indústria…','ok');results.innerHTML='<div class="empty">Consultando evidências…</div>';
+    if(!terms.length) throw new Error('Digite uma pergunta válida.');
     const filters=terms.map(t=>'content.ilike.%'+t+'%').join(',');
-    const {data:chunks,error}=await client.from('document_chunks').select('id,document_id,chunk_index,content,source_type,created_at').or(filters).limit(60);
-    if(error){results.innerHTML='<div class="empty">Não foi possível consultar os blocos privados.</div>';show('A consulta falhou.','error');document.getElementById('search').disabled=false;return}
+    const {data:chunks,error}=await client.from('document_chunks').select('id,document_id,chunk_index,content,source_type,created_at').or(filters).limit(80);
+    if(error) throw new Error('Não foi possível consultar os blocos privados.');
     const rows=(chunks||[]).map(c=>({...c,score:score(c.content,terms)})).filter(c=>c.score>0).sort((a,b)=>b.score-a.score||a.chunk_index-b.chunk_index).slice(0,20);
     const docIds=Array.from(new Set(rows.map(r=>r.document_id)));
     let docs=[];
     if(docIds.length){const res=await client.from('documents').select('id,filename,mime_type').in('id',docIds);if(!res.error)docs=res.data||[]}
     const byId=Object.fromEntries(docs.map(d=>[d.id,d]));
+    return {rows,byId};
+  }
+  function render(rows,byId){
+    const title=document.getElementById('resultTitle');
+    const results=document.getElementById('results');
     title.textContent=rows.length?rows.length+' evidência(s) encontrada(s)':'Nenhuma evidência encontrada';
     results.innerHTML=rows.length?rows.map(r=>{const d=byId[r.document_id]||{};return '<article class="result"><div class="resultHead"><div class="resultTitle">'+esc(d.filename||'Documento privado')+'</div><span class="badge">bloco '+(r.chunk_index+1)+' • relevância '+r.score+'</span></div><div class="muted">Fonte: '+esc(r.source_type||'text')+'</div><div class="snippet">'+esc(r.content)+'</div></article>'}).join(''):'<div class="empty">Nenhum bloco indexado contém os termos pesquisados.</div>';
-    show(rows.length?'Evidências recuperadas. A etapa generativa ainda não está ativa.':'Nenhum resultado para esta busca.','ok');
-    document.getElementById('search').disabled=false;
+  }
+  async function searchEvidence(){
+    document.getElementById('search').disabled=true;show('Buscando somente na base privada…','ok');
+    try{const found=await retrieve(document.getElementById('query').value);render(found.rows,found.byId);show(found.rows.length?'Evidências recuperadas.':'Nenhum resultado encontrado.','ok')}catch(e){show(e.message||'Falha na busca.','error')}finally{document.getElementById('search').disabled=false}
+  }
+  async function generateAnswer(){
+    const query=document.getElementById('query').value.trim();
+    if(!query){show('Digite uma pergunta primeiro.','error');return}
+    document.getElementById('generate').disabled=true;show('Recuperando evidências e gerando resposta privada…','ok');
+    try{
+      const found=await retrieve(query);render(found.rows,found.byId);
+      const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query}});
+      if(error) throw new Error(error.message||'Não foi possível gerar a resposta.');
+      if(data?.error) throw new Error(data.error==='llm_provider_not_configured'?'O provedor de IA ainda não foi configurado no Supabase.':data.message||'O servidor de IA retornou um erro.');
+      document.getElementById('answerPanel').classList.remove('hidden');
+      document.getElementById('answer').textContent=data.answer||'Resposta vazia.';
+      document.getElementById('citations').textContent=(data.citations||[]).map(c=>'['+c.ref+'] '+c.document+' — bloco '+c.chunk).join('  •  ');
+      show('Resposta gerada a partir das evidências privadas recuperadas.','ok');
+    }catch(e){show(e.message||'Falha na geração.','error')}finally{document.getElementById('generate').disabled=false}
   }
   document.getElementById('search').addEventListener('click',searchEvidence);
-  document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')searchEvidence()});
+  document.getElementById('generate').addEventListener('click',generateAnswer);
+  document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer()});
   document.getElementById('logout').addEventListener('click',async()=>{await client.auth.signOut();redirect()});
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')redirect()});
-})().catch(()=>{const el=document.getElementById('message');el.textContent='Não foi possível inicializar a busca privada.';el.className='msg show error'});
+})().catch(()=>{const el=document.getElementById('message');el.textContent='Não foi possível inicializar o Ask AI privado.';el.className='msg show error'});
 </script>
 </body>
 </html>
