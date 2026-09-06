@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
     const parsed = JSON.parse(publishableMap)
     publishableKey = parsed.default || Object.values(parsed)[0] || ''
   } catch {
+    console.error('pulse-ask-ai: invalid SUPABASE_PUBLISHABLE_KEYS configuration')
     return json({ error: 'invalid_supabase_key_configuration' }, 500)
   }
   if (!publishableKey) return json({ error: 'missing_publishable_key' }, 500)
@@ -66,7 +67,11 @@ Deno.serve(async (req) => {
   })
 
   const { data: userData, error: userError } = await supabase.auth.getUser()
-  if (userError || !userData.user) return json({ error: 'invalid_session' }, 401)
+  if (userError || !userData.user) {
+    console.error('pulse-ask-ai: invalid session')
+    return json({ error: 'invalid_session' }, 401)
+  }
+  console.log('pulse-ask-ai: authenticated request')
 
   let body: { query?: string }
   try {
@@ -86,7 +91,11 @@ Deno.serve(async (req) => {
     .or(filters)
     .limit(80)
 
-  if (chunkError) return json({ error: 'retrieval_failed' }, 500)
+  if (chunkError) {
+    console.error('pulse-ask-ai: retrieval failed', chunkError.message)
+    return json({ error: 'retrieval_failed', message: 'Falha ao recuperar as evidências privadas.' }, 500)
+  }
+  console.log(`pulse-ask-ai: retrieved ${chunks?.length || 0} chunks`)
 
   const score = (content: string) => {
     const text = normalize(content)
@@ -106,7 +115,11 @@ Deno.serve(async (req) => {
     .from('documents')
     .select('id,filename')
     .in('id', documentIds)
-  if (documentError) return json({ error: 'document_lookup_failed' }, 500)
+  if (documentError) {
+    console.error('pulse-ask-ai: document lookup failed', documentError.message)
+    return json({ error: 'document_lookup_failed', message: 'As evidências foram encontradas, mas os documentos não puderam ser identificados.' }, 500)
+  }
+  console.log(`pulse-ask-ai: resolved ${documents?.length || 0} documents`)
 
   const documentMap = Object.fromEntries((documents || []).map((document) => [document.id, document]))
   const evidence = ranked.map((chunk, index) => ({
@@ -124,6 +137,7 @@ Deno.serve(async (req) => {
   const system = `Você é o analista privado do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Não revele dados fora das evidências.`
   const prompt = `Pergunta do usuário: ${query}\n\nEvidências recuperadas da indústria autenticada:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex].`
 
+  console.log(`pulse-ask-ai: calling Gemini model ${model}`)
   const providerResponse = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
     {
@@ -153,6 +167,7 @@ Deno.serve(async (req) => {
     : ''
 
   if (!answer) return json({ error: 'empty_llm_response' }, 502)
+  console.log('pulse-ask-ai: Gemini response received')
 
   return json({
     answer,
