@@ -51,6 +51,23 @@ test.describe('Pulse next-level intelligence', () => {
     expect(item.provenance.evidenceType).toBe('user-provided-study');
   });
 
+  test('private workspace exposes the Ask AI path', async () => {
+    const app = fs.readFileSync(path.resolve('app.html'), 'utf8');
+    const ask = fs.readFileSync(path.resolve('ask.html'), 'utf8');
+    expect(app).toContain('href="./ask.html"');
+    expect(app).toMatch(/Ask AI privado/i);
+    expect(app).toMatch(/Perguntar sobre meus documentos/i);
+    expect(ask).toContain('href="./app.html"');
+    expect(ask).toContain('href="./ask.html"');
+  });
+
+  test('private document integrity migration links chunks to the same industry as the parent document', async () => {
+    const migration = fs.readFileSync(path.resolve('supabase/migrations/004_private_document_integrity.sql'), 'utf8');
+    expect(migration).toContain('document_chunks_document_industry_fkey');
+    expect(migration).toContain('foreign key (document_id, industry_id)');
+    expect(migration).toContain('references public.documents(id, industry_id)');
+  });
+
   test('HTML contains no zero-width or BOM characters inside tag syntax', async () => {
     const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
     const tagText = html.match(/<[^>]*>/g) || [];
