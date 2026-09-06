@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-06 — Ingestão privada de PDF v1
+- Added browser-local PDF text extraction using PDF.js 4.10.38.
+- Reused the existing tenant-scoped `document_chunks` ingestion path.
+- Added `[Página N]` markers so PDF evidence retains page provenance.
+- Preserved private Storage, Supabase RLS and server-side Gemini generation.
+- Added deterministic browser regression coverage for the PDF hook and secret hygiene.
+- Documented the OCR boundary: image-only scanned PDFs remain outside v1.
+
 ## 2026-09-06 — Ask AI privado com Gemini Free Tier
 - Migrated private server-side generation from Anthropic to Google Gemini API.
 - Added `GEMINI_API_KEY` as the server-only provider secret.
