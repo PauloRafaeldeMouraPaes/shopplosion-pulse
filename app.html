@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -91,7 +91,14 @@
   const extractText=async file=>{if(!canExtractText(file))return null;if(isPdfFile(file))return extractPdfText(new Uint8Array(await file.arrayBuffer()));const raw=await file.text();if(extensionOf(file.name)==='json'){try{return JSON.stringify(JSON.parse(raw),null,2)}catch{return raw}}return raw};
   const insertTextChunks=async(documentId,text,sourceType)=>{const chunks=chunkText(text);if(!chunks.length)return 0;const rows=chunks.map((content,chunk_index)=>({industry_id:industry.id,document_id:documentId,chunk_index,content,source_type:sourceType}));const {error}=await client.from('document_chunks').insert(rows);if(error)throw error;return chunks.length};
   const insertChunks=async(documentId,file)=>{const text=await extractText(file);if(text===null)return{status:'armazenado',count:0};const count=await insertTextChunks(documentId,text,sourceTypeFor(file));return{status:count?'indexado':'armazenado',count}};
-  const indexExistingPdf=async(documentId,storagePath)=>{const {data:signed,error:signedError}=await client.storage.from('pulse-documents').createSignedUrl(storagePath,300);if(signedError||!signed?.signedUrl)throw new Error('NÃ£o foi possÃ­vel acessar o PDF privado');const response=await fetch(signed.signedUrl);if(!response.ok)throw new Error('NÃ£o foi possÃ­vel baixar o PDF privado');const bytes=new Uint8Array(await response.arrayBuffer());const text=await extractPdfText(bytes);return insertTextChunks(documentId,text,'pdf')};
+  const indexExistingPdf=async(documentId,storagePath)=>{
+    const {data,error}=await client.storage.from('pulse-documents').download(storagePath);
+    if(error||!data)throw new Error('PDF_DOWNLOAD:'+(error?.message||'sem dados'));
+    const bytes=new Uint8Array(await data.arrayBuffer());
+    const text=await extractPdfText(bytes);
+    if(!text||!text.trim())throw new Error('PDF_TEXT_EMPTY: este PDF não possui texto extraível.');
+    return insertTextChunks(documentId,text,'pdf');
+  };
   const renderDocuments=async()=>{
     const box=document.getElementById('documents');
     const {data,error}=await client.from('documents').select('id,filename,mime_type,created_at,storage_path').order('created_at',{ascending:false});
