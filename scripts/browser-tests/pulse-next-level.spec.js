@@ -68,7 +68,16 @@ test.describe('Pulse next-level intelligence', () => {
     expect(migration).toContain('references public.documents(id, industry_id)');
   });
 
-  test('HTML contains no zero-width or BOM characters inside tag syntax', async () => {
+  test('private PDF ingestion hook is present and scoped to PDF files', async () => {
+    const config = fs.readFileSync(path.resolve('pulse-config.js'), 'utf8');
+    expect(config).toContain('PULSE_PDF_TEXT_EXTRACTION');
+    expect(config).toContain('pdfjs-dist@4.10.38');
+    expect(config).toContain('application/pdf');
+    expect(config).toContain('disableWorker:true');
+    expect(config).not.toMatch(/ANTHROPIC_API_KEY|GEMINI_API_KEY/);
+  });
+
+  test('HTML contains no zero-width or BOM characters inside tag syntax', async ({ page }) => {
     const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
     const tagText = html.match(/<[^>]*>/g) || [];
     const bad = tagText.filter(tag => /[\u200b\u200c\u200d\ufeff]/.test(tag));
