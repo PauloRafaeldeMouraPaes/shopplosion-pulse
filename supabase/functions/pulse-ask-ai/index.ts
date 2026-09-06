@@ -22,6 +22,20 @@ const normalize = (value: string) =>
 const termsFor = (value: string) =>
   Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter((term) => term.length >= 2))).slice(0, 8)
 
+const providerMessage = (status: number, raw: string) => {
+  let message = ''
+  try {
+    const parsed = JSON.parse(raw)
+    message = String(parsed?.error?.message || parsed?.message || '')
+  } catch {
+    message = ''
+  }
+  if (status === 401 || status === 403) return 'A chave Gemini foi recusada. Verifique se ela está ativa e vinculada ao projeto correto.'
+  if (status === 429) return 'O limite gratuito do Gemini foi atingido. Aguarde a renovação da cota e tente novamente.'
+  if (status === 400) return message ? `O Gemini recusou a solicitação: ${message}` : 'O Gemini recusou a solicitação. Verifique o projeto, a chave e o modelo configurado.'
+  return message ? `O Gemini retornou um erro: ${message}` : `O Gemini retornou HTTP ${status}.`
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
@@ -32,7 +46,7 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const publishableMap = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')
   const geminiKey = Deno.env.get('GEMINI_API_KEY')
-  const model = Deno.env.get('PULSE_LLM_MODEL') || 'gemini-2.5-flash'
+  const model = Deno.env.get('PULSE_LLM_MODEL') || 'gemini-2.5-flash-lite'
 
   if (!supabaseUrl || !publishableMap) return json({ error: 'supabase_runtime_not_configured' }, 500)
   if (!geminiKey) return json({ error: 'llm_provider_not_configured' }, 503)
@@ -118,7 +132,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 1200 },
+        generationConfig: { maxOutputTokens: 700 },
       }),
     },
   )
@@ -126,7 +140,11 @@ Deno.serve(async (req) => {
   if (!providerResponse.ok) {
     const detail = await providerResponse.text()
     console.error('Gemini request failed', providerResponse.status, detail.slice(0, 500))
-    return json({ error: 'llm_provider_failed', provider_status: providerResponse.status }, 502)
+    return json({
+      error: 'llm_provider_failed',
+      provider_status: providerResponse.status,
+      message: providerMessage(providerResponse.status, detail),
+    }, 502)
   }
 
   const providerJson = await providerResponse.json()
