@@ -95,8 +95,12 @@
     try{
       const found=await retrieve(query);render(found.rows,found.byId);
       const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query}});
-      if(error) throw new Error(error.message||'Não foi possível gerar a resposta.');
-      if(data?.error) throw new Error(data.error==='llm_provider_not_configured'?'O provedor de IA ainda não foi configurado no Supabase.':data.message||'O servidor de IA retornou um erro.');
+      if(error){
+        let detail=null;
+        try{detail=await error.context?.json()}catch{}
+        throw new Error(detail?.message||error.message||'Não foi possível gerar a resposta.');
+      }
+      if(data?.error) throw new Error(data.message||'O servidor de IA retornou um erro.');
       document.getElementById('answerPanel').classList.remove('hidden');
       document.getElementById('answer').textContent=data.answer||'Resposta vazia.';
       document.getElementById('citations').textContent=(data.citations||[]).map(c=>'['+c.ref+'] '+c.document+' — bloco '+c.chunk).join('  •  ');
