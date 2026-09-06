@@ -57,6 +57,7 @@
     <div class="panelCta"><a class="primary" href="./ask.html">Perguntar sobre meus documentos</a></div>
   </section>
 </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="./pulse-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -66,6 +67,7 @@
   const show=(text,type='ok')=>{message.textContent=text;message.className='msg show '+type};
   const url=cfg.url||'',key=cfg.anonKey||'';
   if(!url||!key||!window.supabase||typeof window.supabase.createClient!=='function'){show('Configuração do Supabase indisponível.','error');return}
+  if(window.pdfjsLib){window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'}
   const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   const redirectAuth=()=>location.replace('./auth.html');
   const {data:userData,error:userError}=await client.auth.getUser();
@@ -80,13 +82,16 @@
   document.getElementById('role').textContent=profile.role||'member';
   document.getElementById('welcome').textContent=industry.name;
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
-  const textExtensions=new Set(['txt','csv','json','md','log']);
   const extensionOf=name=>{const parts=String(name||'').toLowerCase().split('.');return parts.length>1?parts.pop():''};
-  const canExtractText=file=>Boolean(file&&((file.type||'').startsWith('text/')||textExtensions.has(extensionOf(file.name))));
+  const isPdfFile=file=>Boolean(file&&extensionOf(file.name)==='pdf');
+  const canExtractText=file=>Boolean(file&&((file.type||'').startsWith('text/')||['txt','csv','json','md','log'].includes(extensionOf(file.name))||isPdfFile(file)));
   const chunkText=(text,size=1800)=>{const normalized=String(text||'').replace(/\r\n?/g,'\n').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,' ').trim();if(!normalized)return[];const out=[];for(let i=0;i<normalized.length;i+=size){let end=Math.min(i+size,normalized.length);if(end<normalized.length){const boundary=Math.max(normalized.lastIndexOf('\n',end),normalized.lastIndexOf('. ',end));if(boundary>i+700)end=boundary+1}const part=normalized.slice(i,end).trim();if(part)out.push(part)}return out};
-  const sourceTypeFor=file=>extensionOf(file.name)==='csv'?'csv':extensionOf(file.name)==='json'?'json':'text';
-  const extractText=async file=>{if(!canExtractText(file))return null;const raw=await file.text();if(extensionOf(file.name)==='json'){try{return JSON.stringify(JSON.parse(raw),null,2)}catch{return raw}}return raw};
-  const insertChunks=async(documentId,file)=>{const text=await extractText(file);if(text===null)return{status:'armazenado',count:0};const chunks=chunkText(text);if(!chunks.length)return{status:'armazenado',count:0};const rows=chunks.map((content,chunk_index)=>({industry_id:industry.id,document_id:documentId,chunk_index,content,source_type:sourceTypeFor(file)}));const {error}=await client.from('document_chunks').insert(rows);if(error){if(/document_chunks|relation|schema cache|does not exist/i.test(error.message||''))return{status:'armazenado',count:0};throw error}return{status:'indexado',count:chunks.length}};
+  const sourceTypeFor=file=>{const ext=extensionOf(file.name);return ext==='csv'?'csv':ext==='json'?'json':ext==='pdf'?'pdf':'text'};
+  const extractPdfText=async bytes=>{if(!window.pdfjsLib)throw new Error('PDF extractor indisponível');const pdf=await window.pdfjsLib.getDocument({data:bytes}).promise;const pages=[];for(let pageNumber=1;pageNumber<=pdf.numPages;pageNumber++){const page=await pdf.getPage(pageNumber);const content=await page.getTextContent();const text=content.items.map(item=>String(item.str||'')).join(' ').replace(/\s+/g,' ').trim();if(text)pages.push('Página '+pageNumber+'\n'+text)}return pages.join('\n\n')};
+  const extractText=async file=>{if(!canExtractText(file))return null;if(isPdfFile(file))return extractPdfText(new Uint8Array(await file.arrayBuffer()));const raw=await file.text();if(extensionOf(file.name)==='json'){try{return JSON.stringify(JSON.parse(raw),null,2)}catch{return raw}}return raw};
+  const insertTextChunks=async(documentId,text,sourceType)=>{const chunks=chunkText(text);if(!chunks.length)return 0;const rows=chunks.map((content,chunk_index)=>({industry_id:industry.id,document_id:documentId,chunk_index,content,source_type:sourceType}));const {error}=await client.from('document_chunks').insert(rows);if(error)throw error;return chunks.length};
+  const insertChunks=async(documentId,file)=>{const text=await extractText(file);if(text===null)return{status:'armazenado',count:0};const count=await insertTextChunks(documentId,text,sourceTypeFor(file));return{status:count?'indexado':'armazenado',count}};
+  const indexExistingPdf=async(documentId,storagePath)=>{const {data:signed,error:signedError}=await client.storage.from('pulse-documents').createSignedUrl(storagePath,300);if(signedError||!signed?.signedUrl)throw new Error('Não foi possível acessar o PDF privado');const response=await fetch(signed.signedUrl);if(!response.ok)throw new Error('Não foi possível baixar o PDF privado');const bytes=new Uint8Array(await response.arrayBuffer());const text=await extractPdfText(bytes);return insertTextChunks(documentId,text,'pdf')};
   const renderDocuments=async()=>{
     const box=document.getElementById('documents');
     const {data,error}=await client.from('documents').select('id,filename,mime_type,created_at,storage_path').order('created_at',{ascending:false});
@@ -94,8 +99,9 @@
     if(!data||!data.length){box.innerHTML='<div class="empty"><strong>Nenhum documento anexado ainda.</strong>Envie um documento para começar a construir a base privada da sua indústria.</div>';return}
     const ids=data.map(d=>d.id);let chunkCounts={};
     if(ids.length){const {data:chunks}=await client.from('document_chunks').select('document_id').in('document_id',ids);(chunks||[]).forEach(c=>{chunkCounts[c.document_id]=(chunkCounts[c.document_id]||0)+1})}
-    box.innerHTML=data.map(d=>{const count=chunkCounts[d.id]||0;const status=count?'indexado':'armazenado';const cls=count?'':' pending';return '<div class="row"><div><strong>'+esc(d.filename)+'</strong><div class="muted">'+esc(d.mime_type||'arquivo')+' • '+new Date(d.created_at).toLocaleString('pt-BR')+'</div></div><div><span class="status'+cls+'">'+status+(count?' • '+count+' blocos':'')+'</span> <button class="secondary" data-doc="'+esc(d.storage_path)+'" type="button">Abrir</button></div></div>'}).join('');
+    box.innerHTML=data.map(d=>{const count=chunkCounts[d.id]||0;const pdf=!count&&String(d.mime_type||'').toLowerCase()==='application/pdf';const status=count?'indexado':'armazenado';const cls=count?'':' pending';const action=pdf?' <button class="secondary" data-index-pdf="'+esc(d.id)+'" data-path="'+esc(d.storage_path)+'" type="button">Indexar PDF</button>':'';return '<div class="row"><div><strong>'+esc(d.filename)+'</strong><div class="muted">'+esc(d.mime_type||'arquivo')+' • '+new Date(d.created_at).toLocaleString('pt-BR')+'</div></div><div><span class="status'+cls+'">'+status+(count?' • '+count+' blocos':'')+'</span>'+action+' <button class="secondary" data-doc="'+esc(d.storage_path)+'" type="button">Abrir</button></div></div>'}).join('');
     box.querySelectorAll('[data-doc]').forEach(btn=>btn.addEventListener('click',async()=>{const path=btn.getAttribute('data-doc');const {data,error}=await client.storage.from('pulse-documents').createSignedUrl(path,300);if(error||!data?.signedUrl){show('Não foi possível gerar o acesso temporário ao documento.','error');return}window.open(data.signedUrl,'_blank','noopener,noreferrer')}));
+    box.querySelectorAll('[data-index-pdf]').forEach(btn=>btn.addEventListener('click',async()=>{btn.disabled=true;show('Baixando e indexando o PDF privado…','ok');try{const count=await indexExistingPdf(btn.getAttribute('data-index-pdf'),btn.getAttribute('data-path'));show('PDF indexado com sucesso: '+count+' blocos privados.','ok');await renderDocuments()}catch(error){console.error('pulse-pdf-index:',error);show('Não foi possível indexar este PDF. O arquivo privado continua armazenado.','error');btn.disabled=false}}));
   };
   const renderAnalyses=async()=>{
     const box=document.getElementById('analyses');
