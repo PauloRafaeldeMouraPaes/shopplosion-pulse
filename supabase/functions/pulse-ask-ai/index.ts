@@ -31,11 +31,11 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const publishableMap = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')
-  const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
-  const model = Deno.env.get('PULSE_LLM_MODEL') || 'claude-sonnet-5'
+  const geminiKey = Deno.env.get('GEMINI_API_KEY')
+  const model = Deno.env.get('PULSE_LLM_MODEL') || 'gemini-2.5-flash'
 
   if (!supabaseUrl || !publishableMap) return json({ error: 'supabase_runtime_not_configured' }, 500)
-  if (!anthropicKey) return json({ error: 'llm_provider_not_configured' }, 503)
+  if (!geminiKey) return json({ error: 'llm_provider_not_configured' }, 503)
 
   let publishableKey = ''
   try {
@@ -110,30 +110,28 @@ Deno.serve(async (req) => {
   const system = `Você é o analista privado do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Não revele dados fora das evidências.`
   const prompt = `Pergunta do usuário: ${query}\n\nEvidências recuperadas da indústria autenticada:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex].`
 
-  const providerResponse = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
+  const providerResponse = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 1200 },
+      }),
     },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1200,
-      system,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  })
+  )
 
   if (!providerResponse.ok) {
     const detail = await providerResponse.text()
-    console.error('Anthropic request failed', providerResponse.status, detail.slice(0, 500))
+    console.error('Gemini request failed', providerResponse.status, detail.slice(0, 500))
     return json({ error: 'llm_provider_failed', provider_status: providerResponse.status }, 502)
   }
 
   const providerJson = await providerResponse.json()
-  const answer = Array.isArray(providerJson?.content)
-    ? providerJson.content.filter((block: any) => block?.type === 'text').map((block: any) => block.text).join('\n').trim()
+  const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts)
+    ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim()
     : ''
 
   if (!answer) return json({ error: 'empty_llm_response' }, 502)
