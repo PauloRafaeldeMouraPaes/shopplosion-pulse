@@ -25,7 +25,8 @@ require(CFG.exists(), "supabase/config.toml missing")
 
 require("functions.invoke('pulse-ask-ai'" in ask or 'functions.invoke("pulse-ask-ai"' in ask,
         "ask.html does not invoke pulse-ask-ai")
-require("ANTHROPIC_API_KEY" not in ask, "Anthropic secret appears in browser code")
+require("ANTHROPIC_API_KEY" not in ask and "GEMINI_API_KEY" not in ask,
+        "LLM provider secret appears in browser code")
 require("SUPABASE_SECRET_KEYS" not in ask and "SERVICE_ROLE" not in ask.upper(),
         "Supabase secret/service key appears in browser code")
 require("Authorization" in fn and "Bearer " in fn, "Edge Function does not require Authorization")
@@ -33,16 +34,16 @@ require("verify_jwt = true" in cfg, "pulse-ask-ai is not configured with verify_
 require("global: { headers: { Authorization: authorization } }" in fn,
         "Edge Function does not propagate caller JWT to Supabase client")
 require("from('document_chunks')" in fn, "Edge Function does not retrieve private chunks")
-require("anthropic.com/v1/messages" in fn, "Anthropic Messages endpoint missing")
-require("ANTHROPIC_API_KEY" in fn, "Anthropic secret is not server-side configured")
+require("generativelanguage.googleapis.com/v1beta/models/" in fn, "Gemini API endpoint missing")
+require("GEMINI_API_KEY" in fn, "Gemini secret is not server-side configured")
 require("PULSE_LLM_MODEL" in fn, "LLM model is not configurable")
 require("citations" in fn and "ref:" in fn, "Evidence citations are not returned")
 require("service_role" not in fn.lower() and "supabase_secret_key" not in fn.lower(),
         "Edge Function contains a service-role/secret-key path")
 
 # Guard against accidental direct browser provider calls.
-require(not re.search(r"fetch\(['\"]https://api\\.anthropic\\.com", ask),
-        "Browser code directly calls Anthropic")
+require(not re.search(r"fetch\(['\"]https://(?:api\\.anthropic\\.com|generativelanguage\\.googleapis\\.com)", ask),
+        "Browser code directly calls an LLM provider")
 
 if errors:
     print("PRIVATE AI AUDIT: FAIL")
@@ -55,4 +56,4 @@ print("PASS: browser delegates generation to pulse-ask-ai")
 print("PASS: provider secret remains server-side")
 print("PASS: Edge Function requires JWT and propagates caller auth")
 print("PASS: retrieval is performed from tenant-scoped document_chunks")
-print("PASS: generated response exposes evidence citations")
+print("PASS: Gemini generation exposes evidence citations")
