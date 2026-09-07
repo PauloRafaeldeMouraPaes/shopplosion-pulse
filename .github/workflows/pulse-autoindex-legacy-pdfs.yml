@@ -67,7 +67,7 @@ await autoIndexExistingPdfs();
           text=Path('app.html').read_text(encoding='utf-8')
           if 'PULSE_AUTO_INDEX_EXISTING_V1' not in text:
               raise SystemExit('AUTO_INDEX_MARKER_MISSING')
-          scripts=re.findall(r'<script(?:\\s+[^>]*)?>([\\s\\S]*?)</script>',text,re.I)
+          scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',text,re.I)
           with tempfile.TemporaryDirectory() as d:
               for i,code in enumerate(scripts):
                   if code.strip():
