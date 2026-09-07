@@ -28,10 +28,11 @@ jobs:
           if marker in text:
               print('AUTO INDEX V2 ALREADY PRESENT')
               raise SystemExit(0)
-          hook = 'await renderDocuments();await renderAnalyses();'
-          if hook not in text:
-              raise SystemExit('APP_HOOK_NOT_FOUND')
-          block = '''// PULSE_AUTO_INDEX_EXISTING_V1
+          close = text.rfind('</script>')
+          if close < 0:
+              raise SystemExit('APP_MAIN_SCRIPT_CLOSE_NOT_FOUND')
+          block = '''
+// PULSE_AUTO_INDEX_EXISTING_V1
 // PULSE_AUTO_INDEX_EXISTING_V2
 const indexExistingText=async(documentId,storagePath)=>{
   const {data,error}=await client.storage.from('pulse-documents').download(storagePath);
@@ -58,9 +59,9 @@ const autoIndexExistingLegacyDocuments=async()=>{
 };
 await autoIndexExistingLegacyDocuments();
 '''
-          text = text.replace(hook, block + hook, 1)
+          text = text[:close] + block + text[close:]
           p.write_text(text, encoding='utf-8')
-          print('AUTO INDEX V2 PATCHED')
+          print('AUTO INDEX V2 PATCHED AT FINAL SCRIPT')
 
       - name: Validate patched app
         shell: python
