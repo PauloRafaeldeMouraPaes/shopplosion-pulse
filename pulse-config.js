@@ -44,23 +44,27 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
       if(!user)return;
       const {data:profile,error:profileError}=await client.from('profiles').select('industry_id').eq('id',user.id).single();
       if(profileError||!profile?.industry_id)return;
+      let remoteIndexed=0;
+      try{
+        const {data:remote,error:remoteError}=await client.functions.invoke('pulse-index-pending',{body:{}});
+        if(!remoteError&&Number(remote?.indexed||0)>0)remoteIndexed=Number(remote.indexed||0);
+      }catch(error){console.warn('PULSE_REMOTE_INDEX_FAILED',error)}
       const {data:docs,error:docsError}=await client.from('documents').select('id,filename,mime_type,storage_path').eq('industry_id',profile.industry_id).in('mime_type',['application/pdf','text/plain','text/csv','application/json','text/markdown']);
-      if(docsError||!docs?.length)return;
+      if(docsError||!docs?.length){if(remoteIndexed){const message=document.getElementById('message');if(message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));}return;}
       const {data:chunks}=await client.from('document_chunks').select('document_id').in('document_id',docs.map(d=>d.id));
       const indexed=new Set((chunks||[]).map(c=>c.document_id));
       const pending=docs.filter(d=>d.storage_path&&!indexed.has(d.id));
-      if(!pending.length)return;
-      let count=0;
+      if(!pending.length){if(remoteIndexed){const message=document.getElementById('message');if(message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));}return;}
+      let count=remoteIndexed;
       for(const doc of pending){
         try{
+          const ext=String(doc.filename||'').toLowerCase().split('.').pop()||'';
+          if(String(doc.mime_type||'').toLowerCase()!=='application/pdf'&&ext!=='pdf')continue;
           const {data:file,error}=await client.storage.from('pulse-documents').download(doc.storage_path);
           if(error||!file)continue;
-          const ext=String(doc.filename||'').toLowerCase().split('.').pop()||'';
-          let text='';
-          if(String(doc.mime_type||'').toLowerCase()==='application/pdf'||ext==='pdf')text=await extractPdfText(file);
-          else{text=(await file.text()).replace(/\r\n?/g,'\n').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,' ').trim();if(ext==='json'){try{text=JSON.stringify(JSON.parse(text),null,2)}catch{}}}
+          const text=await extractPdfText(file);
           if(!text){console.warn('PULSE_AUTO_INDEX_EMPTY',doc.id);continue;}
-          const rows=[];for(let i=0;i<text.length;i+=1800){const content=text.slice(i,i+1800).trim();if(content)rows.push({industry_id:profile.industry_id,document_id:doc.id,chunk_index:rows.length,content,source_type:ext==='csv'?'csv':ext==='json'?'json':ext==='pdf'?'pdf':'text'})}
+          const rows=[];for(let i=0;i<text.length;i+=1800){const content=text.slice(i,i+1800).trim();if(content)rows.push({industry_id:profile.industry_id,document_id:doc.id,chunk_index:rows.length,content,source_type:'pdf'})}
           if(!rows.length)continue;
           const {error:insertError}=await client.from('document_chunks').upsert(rows,{onConflict:'document_id,chunk_index',ignoreDuplicates:true});
           if(insertError){console.warn('PULSE_AUTO_INDEX_INSERT_FAILED',doc.id,insertError);continue;}
