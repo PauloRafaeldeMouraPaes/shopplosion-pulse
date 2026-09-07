@@ -2,8 +2,7 @@ name: Pulse Auto-Index Existing PDFs
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - app.html
       - .github/workflows/pulse-autoindex-legacy-pdfs.yml
@@ -19,21 +18,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Add automatic legacy PDF indexing
+      - name: Patch app with legacy PDF auto-indexing
         shell: python
         run: |
           from pathlib import Path
+          import re
           p = Path('app.html')
           text = p.read_text(encoding='utf-8-sig')
           marker = 'PULSE_AUTO_INDEX_EXISTING_V1'
           if marker in text:
               print('AUTO INDEX ALREADY PRESENT')
               raise SystemExit(0)
-          needle = 'await renderDocuments();await renderAnalyses();'
-          if needle not in text:
+          hook = 'await renderDocuments();await renderAnalyses();'
+          if hook not in text:
               raise SystemExit('APP_HOOK_NOT_FOUND')
-          block = '''
-// PULSE_AUTO_INDEX_EXISTING_V1
+          block = '''// PULSE_AUTO_INDEX_EXISTING_V1
 const autoIndexExistingPdfs=async()=>{
   const {data:legacyDocs,error:legacyError}=await client.from('documents').select('id,filename,mime_type,storage_path').eq('mime_type','application/pdf');
   if(legacyError||!legacyDocs?.length)return;
@@ -42,40 +41,30 @@ const autoIndexExistingPdfs=async()=>{
   const pending=legacyDocs.filter(d=>!indexed.has(d.id)&&d.storage_path);
   if(!pending.length)return;
   let indexedCount=0;
-  for(const doc of pending){
-    try{
-      const count=await indexExistingPdf(doc.id,doc.storage_path);
-      if(count)indexedCount++;
-    }catch(error){
-      console.warn('pulse-auto-index-existing-pdf',doc.id,error);
-    }
-  }
+  for(const doc of pending){try{const count=await indexExistingPdf(doc.id,doc.storage_path);if(count)indexedCount++;}catch(error){console.warn('pulse-auto-index-existing-pdf',doc.id,error)}}
   if(indexedCount)show(indexedCount+' PDF(s) existentes foram indexados automaticamente.','ok');
   await renderDocuments();
 };
 await autoIndexExistingPdfs();
 '''
-          text = text.replace(needle, block + needle, 1)
+          text = text.replace(hook, block + hook, 1)
           p.write_text(text, encoding='utf-8')
           print('AUTO INDEX PATCHED')
 
-      - name: Validate app JavaScript
+      - name: Validate patched app
         shell: python
         run: |
           from pathlib import Path
           import re, subprocess, tempfile
           text=Path('app.html').read_text(encoding='utf-8')
-          if 'PULSE_AUTO_INDEX_EXISTING_V1' not in text:
-              raise SystemExit('AUTO_INDEX_MARKER_MISSING')
+          if 'PULSE_AUTO_INDEX_EXISTING_V1' not in text: raise SystemExit('AUTO_INDEX_MARKER_MISSING')
           scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',text,re.I)
           with tempfile.TemporaryDirectory() as d:
               for i,code in enumerate(scripts):
-                  if code.strip():
-                      f=Path(d)/f'script-{i}.js'; f.write_text(code,encoding='utf-8')
-                      r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
-                      if r.returncode:
-                          print(r.stderr)
-                          raise SystemExit(f'JS_PARSE_FAILURE_{i}')
+                  if not code.strip(): continue
+                  f=Path(d)/f'script-{i}.js'; f.write_text(code,encoding='utf-8')
+                  r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
+                  if r.returncode: print(r.stderr); raise SystemExit(f'JS_PARSE_FAILURE_{i}')
           print(f'VALIDATION PASSED · {len(scripts)} inline scripts parsed')
 
       - name: Commit patch
