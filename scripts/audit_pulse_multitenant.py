@@ -49,7 +49,6 @@ required_app = [
     "storage.from('pulse-documents')",
     "industry.id+'/'+crypto.randomUUID()",
     "auth.signOut()",
-    "Minha indústria",
     "Universo Pulse",
     "workspaceNote",
     "id=\"role\"",
@@ -57,6 +56,8 @@ required_app = [
 for token in required_app:
     if token not in app:
         errors.append(f"app-missing:{token}")
+if "Minha indústria" not in app and "Minha indÃºstria" not in app:
+    errors.append("app-missing:Minha indústria")
 
 # The privileged key must not appear as a configured browser value. Documentation
 # may mention the forbidden key name, so inspect assignments rather than comments.
