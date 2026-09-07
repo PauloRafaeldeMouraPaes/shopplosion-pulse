@@ -29,17 +29,19 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
 })();
 
 (function(){
+  const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const run=async()=>{
     if(typeof document==='undefined'||!window.PULSE_SUPABASE_CONFIG)return;
-    const waitFor=async(name,timeout=12000)=>{const started=Date.now();while(!window[name]&&Date.now()-started<timeout)await new Promise(r=>setTimeout(r,100));return window[name]};
+    const waitFor=async(name,timeout=12000)=>{const started=Date.now();while(!window[name]&&Date.now()-started<timeout)await sleep(100);return window[name]};
+    const waitForUser=async(client,timeout=12000)=>{const started=Date.now();while(Date.now()-started<timeout){const {data,error}=await client.auth.getUser();if(!error&&data?.user)return data.user;await sleep(250)}return null};
     try{
       const supabase=await waitFor('supabase');
       if(!supabase)return;
       const hasDocuments=!!document.getElementById('documents');
       if(!hasDocuments)return;
-      const client=supabase.createClient(window.PULSE_SUPABASE_CONFIG.url,window.PULSE_SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true}});
-      const {data:{user},error:userError}=await client.auth.getUser();
-      if(userError||!user)return;
+      const client=supabase.createClient(window.PULSE_SUPABASE_CONFIG.url,window.PULSE_SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      const user=await waitForUser(client);
+      if(!user)return;
       const {data:profile,error:profileError}=await client.from('profiles').select('industry_id').eq('id',user.id).single();
       if(profileError||!profile?.industry_id)return;
       const {data:docs,error:docsError}=await client.from('documents').select('id,filename,mime_type,storage_path').eq('industry_id',profile.industry_id).in('mime_type',['application/pdf','text/plain','text/csv','application/json','text/markdown']);
