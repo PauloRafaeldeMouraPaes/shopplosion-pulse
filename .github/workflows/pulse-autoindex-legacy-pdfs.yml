@@ -74,3 +74,5 @@ await autoIndexExistingPdfs();
           git add app.html
           git diff --cached --quiet || git commit -m 'fix: auto-index existing private PDFs'
           git push
+
+# Triggered explicitly after validating the self-applying patch.
