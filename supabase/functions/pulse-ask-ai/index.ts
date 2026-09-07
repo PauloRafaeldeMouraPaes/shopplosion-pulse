@@ -19,28 +19,20 @@ const providerMessage = (status: number, raw: string) => {
   return message ? `O Gemini retornou um erro: ${message}` : `O Gemini retornou HTTP ${status}.`
 }
 
-const foreignIndustryMention = (query: string, currentIndustry: string) => {
-  const normalizedQuery = normalize(query)
-  const current = normalize(currentIndustry).replace(/^industria\s+/, '')
-  const match = normalizedQuery.match(/\bindustria\s+([a-z0-9][a-z0-9 _-]{0,80})/)
-  if (!match) return false
-  const candidate = match[1].split(/\b(?:e|ou|sobre|que|com|para|tem|possui|lista|liste)\b/)[0].trim()
-  if (!candidate) return false
-  return candidate !== current && !candidate.startsWith(current + ' ') && !current.startsWith(candidate + ' ')
+const industryNameMatches = (text: string, currentIndustry: string, allIndustryNames: string[]) => {
+  const normalizedText = normalize(text)
+  const current = normalize(currentIndustry)
+  return allIndustryNames
+    .map((name) => normalize(name))
+    .filter((name) => name && name !== current)
+    .some((other) => normalizedText.includes(other))
 }
 
-const foreignIndustryInAnswer = (answer: string, currentIndustry: string) => {
-  const normalizedAnswer = normalize(answer)
-  const current = normalize(currentIndustry).replace(/^industria\s+/, '')
-  const genericIndustryTerms = new Set(['autenticada', 'atual', 'sua', 'minha', 'esta', 'essa', 'outra', 'diferente', 'privada', 'do', 'da', 'no', 'na', 'fora'])
-  const matches = [...normalizedAnswer.matchAll(/\bindustria\s+([a-z0-9][a-z0-9 _-]{0,80}?)(?=[.,;:!?()\[\]\n]|$)/g)]
-  return matches.some((match) => {
-    const candidate = String(match[1] || '').trim()
-    if (!candidate || genericIndustryTerms.has(candidate)) return false
-    if (candidate === current || candidate.startsWith(current + ' ') || current.startsWith(candidate + ' ')) return false
-    return candidate.length >= 3
-  })
-}
+const foreignIndustryMention = (query: string, currentIndustry: string, allIndustryNames: string[]) =>
+  industryNameMatches(query, currentIndustry, allIndustryNames)
+
+const foreignIndustryInAnswer = (answer: string, currentIndustry: string, allIndustryNames: string[]) =>
+  industryNameMatches(answer, currentIndustry, allIndustryNames)
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
@@ -67,6 +59,9 @@ Deno.serve(async (req) => {
   if (profileError || !profile?.industry_id) return json({ error: 'profile_not_found' }, 403)
   const { data: industry, error: industryError } = await supabase.from('industries').select('id,name,status').eq('id', profile.industry_id).single()
   if (industryError || !industry || industry.status !== 'active') return json({ error: 'industry_not_active' }, 403)
+  const { data: industries, error: industriesError } = await supabase.from('industries').select('name').eq('status', 'active')
+  if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
+  const allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
 
   let body: { query?: string }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
@@ -74,7 +69,7 @@ Deno.serve(async (req) => {
   const terms = termsFor(query)
   if (!query || !terms.length) return json({ error: 'invalid_query', message: 'Digite uma pergunta válida.' }, 400)
 
-  if (foreignIndustryMention(query, industry.name)) {
+  if (foreignIndustryMention(query, industry.name, allIndustryNames)) {
     return json({
       answer: 'Não posso fornecer informações privadas de outra indústria. Posso responder somente com evidências da indústria autenticada.',
       citations: [],
@@ -113,7 +108,7 @@ Deno.serve(async (req) => {
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
   if (!answer) return json({ error: 'empty_llm_response' }, 502)
-  if (foreignIndustryInAnswer(answer, industry.name)) {
+  if (foreignIndustryInAnswer(answer, industry.name, allIndustryNames)) {
     return json({
       answer: 'A resposta foi bloqueada porque o modelo tentou mencionar uma indústria fora do escopo autenticado. Nenhum dado de outra indústria foi retornado.',
       citations: [],
