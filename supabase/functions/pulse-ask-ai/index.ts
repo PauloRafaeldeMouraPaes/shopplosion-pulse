@@ -32,10 +32,12 @@ const foreignIndustryMention = (query: string, currentIndustry: string) => {
 const foreignIndustryInAnswer = (answer: string, currentIndustry: string) => {
   const normalizedAnswer = normalize(answer)
   const current = normalize(currentIndustry).replace(/^industria\s+/, '')
+  const genericIndustryTerms = new Set(['autenticada', 'atual', 'sua', 'minha', 'esta', 'essa', 'outra', 'diferente', 'privada', 'do', 'da', 'no', 'na', 'fora'])
   const matches = [...normalizedAnswer.matchAll(/\bindustria\s+([a-z0-9][a-z0-9 _-]{0,80}?)(?=[.,;:!?()\[\]\n]|$)/g)]
   return matches.some((match) => {
     const candidate = String(match[1] || '').trim()
-    if (!candidate || candidate === current || candidate.startsWith(current + ' ') || current.startsWith(candidate + ' ')) return false
+    if (!candidate || genericIndustryTerms.has(candidate)) return false
+    if (candidate === current || candidate.startsWith(current + ' ') || current.startsWith(candidate + ' ')) return false
     return candidate.length >= 3
   })
 }
