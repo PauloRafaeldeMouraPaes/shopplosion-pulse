@@ -48,13 +48,14 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
       let remoteIndexed=0;
       try{
         const {data:remote,error:remoteError}=await client.functions.invoke('pulse-index-pending',{body:{}});
-        if(!remoteError&&Number(remote?.indexed||0)>0)remoteIndexed=Number(remote.indexed||0);
+        if(!remoteError)remoteIndexed=Number(remote?.indexed||0);
       }catch(error){console.warn('PULSE_REMOTE_INDEX_FAILED',error)}
-      const {data:docs,error:docsError}=await client.from('documents').select('id,filename,mime_type,storage_path').eq('industry_id',profile.industry_id).in('mime_type',['application/pdf','text/plain','text/csv','application/json','text/markdown']);
+      const {data:docs,error:docsError}=await client.from('documents').select('id,filename,mime_type,storage_path').eq('industry_id',profile.industry_id);
       if(docsError||!docs?.length){if(remoteIndexed){const message=document.getElementById('message');if(message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));}return;}
-      const {data:chunks}=await client.from('document_chunks').select('document_id').in('document_id',docs.map(d=>d.id));
+      const compatible=docs.filter(d=>{const mime=String(d.mime_type||'').toLowerCase();const ext=String(d.filename||'').toLowerCase().split('.').pop()||'';return ['application/pdf','text/plain','text/csv','application/json','text/markdown'].includes(mime)||['pdf','txt','csv','json','md','log'].includes(ext)});
+      const {data:chunks}=await client.from('document_chunks').select('document_id').in('document_id',compatible.map(d=>d.id));
       const indexed=new Set((chunks||[]).map(c=>c.document_id));
-      const pending=docs.filter(d=>d.storage_path&&!indexed.has(d.id));
+      const pending=compatible.filter(d=>d.storage_path&&!indexed.has(d.id));
       if(!pending.length){if(remoteIndexed){const message=document.getElementById('message');if(message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));}return;}
       let count=remoteIndexed;
       for(const doc of pending){
