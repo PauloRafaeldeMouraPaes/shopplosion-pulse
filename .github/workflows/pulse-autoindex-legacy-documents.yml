@@ -6,11 +6,12 @@ on:
     paths:
       - app.html
       - .github/workflows/pulse-autoindex-legacy-documents.yml
+  schedule:
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 jobs:
   patch-app:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -69,7 +70,8 @@ await autoIndexExistingLegacyDocuments();
           from pathlib import Path
           import re, subprocess, tempfile
           text=Path('app.html').read_text(encoding='utf-8')
-          if 'PULSE_AUTO_INDEX_EXISTING_V2' not in text: raise SystemExit('AUTO_INDEX_V2_MARKER_MISSING')
+          if 'PULSE_AUTO_INDEX_EXISTING_V2' not in text:
+              raise SystemExit('AUTO_INDEX_V2_MARKER_MISSING')
           scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',text,re.I)
           with tempfile.TemporaryDirectory() as d:
               for i,code in enumerate(scripts):
@@ -88,5 +90,3 @@ await autoIndexExistingLegacyDocuments();
           git add app.html
           git diff --cached --quiet || git commit -m 'fix: auto-index legacy text and PDF documents'
           git push
-
-# Self-apply trigger: updating this workflow must execute the patch job.
