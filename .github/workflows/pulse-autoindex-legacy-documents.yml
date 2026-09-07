@@ -1,0 +1,89 @@
+name: Pulse Auto-Index Legacy Documents
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.html
+      - .github/workflows/pulse-autoindex-legacy-documents.yml
+  workflow_dispatch:
+
+jobs:
+  patch-app:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch app with legacy document auto-indexing
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('app.html')
+          text = p.read_text(encoding='utf-8-sig')
+          marker = 'PULSE_AUTO_INDEX_EXISTING_V2'
+          if marker in text:
+              print('AUTO INDEX V2 ALREADY PRESENT')
+              raise SystemExit(0)
+          hook = 'await renderDocuments();await renderAnalyses();'
+          if hook not in text:
+              raise SystemExit('APP_HOOK_NOT_FOUND')
+          block = '''// PULSE_AUTO_INDEX_EXISTING_V1
+// PULSE_AUTO_INDEX_EXISTING_V2
+const indexExistingText=async(documentId,storagePath)=>{
+  const {data,error}=await client.storage.from('pulse-documents').download(storagePath);
+  if(error||!data)throw new Error('TEXT_STORAGE_DOWNLOAD');
+  const text=await data.text();
+  return insertTextChunks(documentId,text,'text');
+};
+const autoIndexExistingLegacyDocuments=async()=>{
+  const {data:legacyDocs,error:legacyError}=await client.from('documents').select('id,filename,mime_type,storage_path').in('mime_type',['application/pdf','text/plain']);
+  if(legacyError||!legacyDocs?.length)return;
+  const {data:legacyChunks}=await client.from('document_chunks').select('document_id').in('document_id',legacyDocs.map(d=>d.id));
+  const indexed=new Set((legacyChunks||[]).map(c=>c.document_id));
+  const pending=legacyDocs.filter(d=>!indexed.has(d.id)&&d.storage_path);
+  if(!pending.length)return;
+  let indexedCount=0;
+  for(const doc of pending){
+    try{
+      const count=doc.mime_type==='application/pdf'?await indexExistingPdf(doc.id,doc.storage_path):await indexExistingText(doc.id,doc.storage_path);
+      if(count)indexedCount++;
+    }catch(error){console.warn('pulse-auto-index-existing-document',doc.id,error)}
+  }
+  if(indexedCount)show(indexedCount+' documento(s) existente(s) foram indexados automaticamente.','ok');
+  await renderDocuments();
+};
+await autoIndexExistingLegacyDocuments();
+'''
+          text = text.replace(hook, block + hook, 1)
+          p.write_text(text, encoding='utf-8')
+          print('AUTO INDEX V2 PATCHED')
+
+      - name: Validate patched app
+        shell: python
+        run: |
+          from pathlib import Path
+          import re, subprocess, tempfile
+          text=Path('app.html').read_text(encoding='utf-8')
+          if 'PULSE_AUTO_INDEX_EXISTING_V2' not in text: raise SystemExit('AUTO_INDEX_V2_MARKER_MISSING')
+          scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',text,re.I)
+          with tempfile.TemporaryDirectory() as d:
+              for i,code in enumerate(scripts):
+                  if not code.strip(): continue
+                  f=Path(d)/f'script-{i}.js'; f.write_text(code,encoding='utf-8')
+                  r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
+                  if r.returncode:
+                      print(r.stderr)
+                      raise SystemExit(f'JS_PARSE_FAILURE_{i}')
+          print(f'VALIDATION PASSED · {len(scripts)} inline scripts parsed')
+
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.html
+          git diff --cached --quiet || git commit -m 'fix: auto-index legacy text and PDF documents'
+          git push
