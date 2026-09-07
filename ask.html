@@ -69,12 +69,12 @@
     const terms=termsFor(raw);
     if(!terms.length) throw new Error('Digite uma pergunta válida.');
     const filters=terms.map(t=>'content.ilike.%'+t+'%').join(',');
-    const {data:chunks,error}=await client.from('document_chunks').select('id,document_id,chunk_index,content,source_type,created_at').or(filters).limit(80);
+    const {data:chunks,error}=await client.from('document_chunks').select('id,document_id,chunk_index,content,source_type,created_at').eq('industry_id',profile.industry_id).or(filters).limit(80);
     if(error) throw new Error('Não foi possível consultar os blocos privados.');
     const rows=(chunks||[]).map(c=>({...c,score:score(c.content,terms)})).filter(c=>c.score>0).sort((a,b)=>b.score-a.score||a.chunk_index-b.chunk_index).slice(0,20);
     const docIds=Array.from(new Set(rows.map(r=>r.document_id)));
     let docs=[];
-    if(docIds.length){const res=await client.from('documents').select('id,filename,mime_type').in('id',docIds);if(!res.error)docs=res.data||[]}
+    if(docIds.length){const res=await client.from('documents').select('id,filename,mime_type').eq('industry_id',profile.industry_id).in('id',docIds);if(!res.error)docs=res.data||[]}
     const byId=Object.fromEntries(docs.map(d=>[d.id,d]));
     return {rows,byId};
   }
