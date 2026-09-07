@@ -31,11 +31,13 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
 
 (function(){
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  let running=false;
   const run=async()=>{
-    if(typeof document==='undefined'||!window.PULSE_SUPABASE_CONFIG)return;
-    const waitFor=async(name,timeout=12000)=>{const started=Date.now();while(!window[name]&&Date.now()-started<timeout)await sleep(100);return window[name]};
-    const waitForUser=async(client,timeout=12000)=>{const started=Date.now();while(Date.now()-started<timeout){const {data,error}=await client.auth.getUser();if(!error&&data?.user)return data.user;await sleep(250)}return null};
+    if(running||typeof document==='undefined'||!window.PULSE_SUPABASE_CONFIG)return;
+    running=true;
     try{
+      const waitFor=async(name,timeout=12000)=>{const started=Date.now();while(!window[name]&&Date.now()-started<timeout)await sleep(100);return window[name]};
+      const waitForUser=async(client,timeout=12000)=>{const started=Date.now();while(Date.now()-started<timeout){const {data,error}=await client.auth.getUser();if(!error&&data?.user)return data.user;await sleep(250)}return null};
       const supabase=await waitFor('supabase');
       if(!supabase)return;
       const hasDocuments=!!document.getElementById('documents');
@@ -45,18 +47,32 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
       if(!user)return;
       const {data:profile,error:profileError}=await client.from('profiles').select('industry_id').eq('id',user.id).single();
       if(profileError||!profile?.industry_id)return;
+      const message=document.getElementById('message');
+      if(message){message.textContent='Verificando indexação dos documentos...';message.className='msg show';}
       let remoteIndexed=0;
+      let remotePending=0;
+      let remoteSkipped=0;
       try{
         const {data:remote,error:remoteError}=await client.functions.invoke('pulse-index-pending',{body:{}});
-        if(!remoteError)remoteIndexed=Number(remote?.indexed||0);
+        if(!remoteError){remoteIndexed=Number(remote?.indexed||0);remotePending=Number(remote?.pending||0);remoteSkipped=Number(remote?.skipped||0)}
+        else console.warn('PULSE_REMOTE_INDEX_FAILED',remoteError);
       }catch(error){console.warn('PULSE_REMOTE_INDEX_FAILED',error)}
       const {data:docs,error:docsError}=await client.from('documents').select('id,filename,mime_type,storage_path').eq('industry_id',profile.industry_id);
-      if(docsError||!docs?.length){if(remoteIndexed){const message=document.getElementById('message');if(message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));}return;}
+      if(docsError||!docs?.length){
+        if(remoteIndexed&&message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}
+        if(remoteIndexed)window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));
+        return;
+      }
       const compatible=docs.filter(d=>{const mime=String(d.mime_type||'').toLowerCase();const ext=String(d.filename||'').toLowerCase().split('.').pop()||'';return ['application/pdf','text/plain','text/csv','application/json','text/markdown'].includes(mime)||['pdf','txt','csv','json','md','log'].includes(ext)});
       const {data:chunks}=await client.from('document_chunks').select('document_id').in('document_id',compatible.map(d=>d.id));
       const indexed=new Set((chunks||[]).map(c=>c.document_id));
       const pending=compatible.filter(d=>d.storage_path&&!indexed.has(d.id));
-      if(!pending.length){if(remoteIndexed){const message=document.getElementById('message');if(message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));}return;}
+      if(!pending.length){
+        if(remoteIndexed&&message){message.textContent=remoteIndexed+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}
+        else if(message){message.textContent='Indexação verificada: nenhum documento compatível pendente.';message.className='msg show ok'}
+        if(remoteIndexed)window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count:remoteIndexed}}));
+        return;
+      }
       let count=remoteIndexed;
       for(const doc of pending){
         try{
@@ -73,8 +89,18 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
           count++;
         }catch(error){console.warn('PULSE_AUTO_INDEX_FAILED',doc.id,error)}
       }
-      if(count){const message=document.getElementById('message');if(message){message.textContent=count+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count}}));}
+      if(count){
+        if(message){message.textContent=count+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}
+        window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count}}));
+      }else if(message){
+        message.textContent=remoteSkipped?'Há documentos pendentes que não puderam ser indexados automaticamente; consulte a lista abaixo.':'Há documentos compatíveis pendentes de indexação.';
+        message.className='msg show';
+      }
     }catch(error){console.warn('PULSE_AUTO_INDEX_INIT_FAILED',error)}
+    finally{running=false}
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+  window.addEventListener('focus',()=>run());
+  window.addEventListener('pageshow',()=>run());
+  setInterval(run,30000);
 })();
