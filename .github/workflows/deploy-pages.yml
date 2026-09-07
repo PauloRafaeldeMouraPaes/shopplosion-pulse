@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -23,6 +23,63 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Apply legacy document auto-indexing patch
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('app.html')
+          text = p.read_text(encoding='utf-8-sig')
+          marker = 'PULSE_AUTO_INDEX_EXISTING_V2'
+          if marker in text:
+              print('LEGACY AUTO-INDEX PATCH ALREADY PRESENT')
+          else:
+              close = text.rfind('</script>')
+              if close < 0:
+                  raise SystemExit('APP_MAIN_SCRIPT_CLOSE_NOT_FOUND')
+              block = '''
+// PULSE_AUTO_INDEX_EXISTING_V1
+// PULSE_AUTO_INDEX_EXISTING_V2
+const indexExistingText=async(documentId,storagePath)=>{
+  const {data,error}=await client.storage.from('pulse-documents').download(storagePath);
+  if(error||!data)throw new Error('TEXT_STORAGE_DOWNLOAD');
+  const text=await data.text();
+  return insertTextChunks(documentId,text,'text');
+};
+const autoIndexExistingLegacyDocuments=async()=>{
+  const {data:legacyDocs,error:legacyError}=await client.from('documents').select('id,filename,mime_type,storage_path').in('mime_type',['application/pdf','text/plain']);
+  if(legacyError||!legacyDocs?.length)return;
+  const {data:legacyChunks}=await client.from('document_chunks').select('document_id').in('document_id',legacyDocs.map(d=>d.id));
+  const indexed=new Set((legacyChunks||[]).map(c=>c.document_id));
+  const pending=legacyDocs.filter(d=>!indexed.has(d.id)&&d.storage_path);
+  if(!pending.length)return;
+  let indexedCount=0;
+  for(const doc of pending){
+    try{
+      const count=doc.mime_type==='application/pdf'?await indexExistingPdf(doc.id,doc.storage_path):await indexExistingText(doc.id,doc.storage_path);
+      if(count)indexedCount++;
+    }catch(error){console.warn('pulse-auto-index-existing-document',doc.id,error)}
+  }
+  if(indexedCount)show(indexedCount+' documento(s) existente(s) foram indexados automaticamente.','ok');
+  await renderDocuments();
+};
+await autoIndexExistingLegacyDocuments();
+'''
+              text = text[:close] + block + text[close:]
+              p.write_text(text, encoding='utf-8')
+              print('LEGACY AUTO-INDEX PATCH APPLIED')
+
+      - name: Commit legacy auto-index patch
+        run: |
+          if git diff --quiet -- app.html; then
+            echo "No app patch to commit."
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add app.html
+            git commit -m 'fix: auto-index legacy text and PDF documents [skip ci]'
+            git push origin HEAD:main
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
