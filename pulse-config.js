@@ -30,9 +30,14 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
 
 (function(){
   const run=async()=>{
-    if(!document.getElementById('documents')||!window.supabase||!window.PULSE_SUPABASE_CONFIG)return;
+    if(typeof document==='undefined'||!window.PULSE_SUPABASE_CONFIG)return;
+    const waitFor=async(name,timeout=12000)=>{const started=Date.now();while(!window[name]&&Date.now()-started<timeout)await new Promise(r=>setTimeout(r,100));return window[name]};
     try{
-      const client=window.supabase.createClient(window.PULSE_SUPABASE_CONFIG.url,window.PULSE_SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true}});
+      const supabase=await waitFor('supabase');
+      if(!supabase)return;
+      const hasDocuments=!!document.getElementById('documents');
+      if(!hasDocuments)return;
+      const client=supabase.createClient(window.PULSE_SUPABASE_CONFIG.url,window.PULSE_SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true}});
       const {data:{user},error:userError}=await client.auth.getUser();
       if(userError||!user)return;
       const {data:profile,error:profileError}=await client.from('profiles').select('industry_id').eq('id',user.id).single();
@@ -63,5 +68,5 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
       if(count){const message=document.getElementById('message');if(message){message.textContent=count+' documento(s) existente(s) foram indexados automaticamente.';message.className='msg show ok'}window.dispatchEvent(new CustomEvent('pulse:documents-indexed',{detail:{count}}));}
     }catch(error){console.warn('PULSE_AUTO_INDEX_INIT_FAILED',error)}
   };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,900),{once:true});else setTimeout(run,900);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
