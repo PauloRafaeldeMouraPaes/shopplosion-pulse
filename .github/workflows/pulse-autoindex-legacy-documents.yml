@@ -87,3 +87,5 @@ await autoIndexExistingLegacyDocuments();
           git add app.html
           git diff --cached --quiet || git commit -m 'fix: auto-index legacy text and PDF documents'
           git push
+
+# Self-apply trigger: updating this workflow must execute the patch job.
