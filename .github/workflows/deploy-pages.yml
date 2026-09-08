@@ -65,7 +65,7 @@ jobs:
         run: node scripts/test-pulse-ask-ai.js index.html
 
       - name: Run evidence contract
-        run: node scripts/validate-study-evidence.js
+        run: python3 scripts/validate-study-evidence.js
 
       - name: Run accessibility and UX audit
         run: python3 scripts/audit_pulse_accessibility.py
@@ -112,3 +112,41 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify published Pages artifact
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import time
+          import urllib.request
+
+          base = os.environ["PAGE_URL"].rstrip("/")
+          paths = ["/", "/app.html", "/ask.html", "/intelligence.html"]
+          last_error = None
+
+          for attempt in range(12):
+              try:
+                  failures = []
+                  for path in paths:
+                      url = base + path
+                      req = urllib.request.Request(url, headers={"User-Agent": "Pulse-Release-Healthcheck/1.0"})
+                      with urllib.request.urlopen(req, timeout=20) as response:
+                          body = response.read(250000).decode("utf-8", "ignore")
+                          if response.status != 200:
+                              failures.append(f"{path}: HTTP {response.status}")
+                          if len(body) < 200:
+                              failures.append(f"{path}: response too small ({len(body)} bytes)")
+                      print(f"OK {path}")
+                  if not failures:
+                      print(f"Published Pages health check: PASS ({base})")
+                      raise SystemExit(0)
+                  last_error = RuntimeError("; ".join(failures))
+              except Exception as exc:
+                  last_error = exc
+                  print(f"Attempt {attempt + 1}/12 failed: {exc}")
+              time.sleep(5)
+
+          raise SystemExit(f"Published Pages health check failed: {last_error}")
+          PY
