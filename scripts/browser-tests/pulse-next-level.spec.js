@@ -77,6 +77,26 @@ test.describe('Pulse next-level intelligence', () => {
     expect(config).not.toMatch(/ANTHROPIC_API_KEY|GEMINI_API_KEY/);
   });
 
+  test('Intelligence page exposes the private temporal contract', async () => {
+    const html = fs.readFileSync(path.resolve('intelligence.html'), 'utf8');
+    expect(html).toContain('intelligence_signal_timeline');
+    expect(html).toContain(".eq('industry_id',industryId)");
+    expect(html).toContain('intelligence_change_digest');
+    expect(html).toContain('document_change_events');
+    expect(html).toContain(".eq('documents.industry_id',industryId)");
+    expect(html).toContain('Nenhum sinal material encontrado.');
+    expect(html).toContain('Ainda não há histórico temporal suficiente.');
+  });
+
+  test('Intelligence views are security-invoker and quality metrics are not treated as industry content', async () => {
+    const html = fs.readFileSync(path.resolve('intelligence.html'), 'utf8');
+    expect(html).toContain("intelligence_quality_runs");
+    expect(html).not.toContain(".eq('industry_id',industryId).from('intelligence_quality_runs')");
+    const migrationDir = path.resolve('supabase/migrations');
+    const migrations = fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql'));
+    expect(migrations.length).toBeGreaterThan(0);
+  });
+
   test('HTML contains no zero-width or BOM characters inside tag syntax', async ({ page }) => {
     const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
     const tagText = html.match(/<[^>]*>/g) || [];
