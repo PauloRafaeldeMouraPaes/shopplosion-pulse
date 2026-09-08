@@ -96,10 +96,33 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout main
+      - name: Checkout exact release commit
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.sha }}
+
+      - name: Write published release identity
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          manifest = {
+              "schema_version": 1,
+              "product": "Shopplosion Pulse",
+              "commit_sha": os.environ["RELEASE_SHA"],
+              "workflow_run_id": int(os.environ["WORKFLOW_RUN_ID"]),
+              "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+          }
+          with open("pulse-release.json", "w", encoding="utf-8") as f:
+              json.dump(manifest, f, separators=(",", ":"), sort_keys=True)
+              f.write("\n")
+          print(json.dumps(manifest, indent=2))
+          PY
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -116,14 +139,19 @@ jobs:
       - name: Verify published Pages artifact
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          RELEASE_SHA: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
         run: |
           python3 - <<'PY'
+          import json
           import os
           import time
           import urllib.request
 
           base = os.environ["PAGE_URL"].rstrip("/")
           paths = ["/", "/app.html", "/ask.html", "/intelligence.html"]
+          expected_sha = os.environ["RELEASE_SHA"]
+          expected_run_id = int(os.environ["WORKFLOW_RUN_ID"])
           last_error = None
 
           for attempt in range(12):
@@ -139,8 +167,25 @@ jobs:
                           if len(body) < 200:
                               failures.append(f"{path}: response too small ({len(body)} bytes)")
                       print(f"OK {path}")
+
+                  manifest_url = base + "/pulse-release.json"
+                  req = urllib.request.Request(manifest_url, headers={"User-Agent": "Pulse-Release-Identity/1.0"})
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      manifest = json.loads(response.read(10000).decode("utf-8"))
+                      if response.status != 200:
+                          failures.append(f"/pulse-release.json: HTTP {response.status}")
+                      if manifest.get("schema_version") != 1:
+                          failures.append("/pulse-release.json: invalid schema_version")
+                      if manifest.get("product") != "Shopplosion Pulse":
+                          failures.append("/pulse-release.json: invalid product")
+                      if manifest.get("commit_sha") != expected_sha:
+                          failures.append(f"/pulse-release.json: commit mismatch ({manifest.get('commit_sha')} != {expected_sha})")
+                      if manifest.get("workflow_run_id") != expected_run_id:
+                          failures.append(f"/pulse-release.json: workflow run mismatch ({manifest.get('workflow_run_id')} != {expected_run_id})")
+                  print(f"OK /pulse-release.json -> {manifest.get('commit_sha')}")
+
                   if not failures:
-                      print(f"Published Pages health check: PASS ({base})")
+                      print(f"Published Pages health + release identity check: PASS ({base})")
                       raise SystemExit(0)
                   last_error = RuntimeError("; ".join(failures))
               except Exception as exc:
