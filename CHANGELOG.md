@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-09 — Release traceability
+- Aligned the RAG evaluation Edge Function source with the deployment manifest.
+- Versioned the exact deployed document index worker for production traceability.
+- Preserved tenant-scoped retrieval and server-side authentication boundaries.
+
 ## 2026-09-06 — Ingestão privada de PDF v1
 - Added browser-local PDF text extraction using PDF.js 4.10.38.
 - Reused the existing tenant-scoped `document_chunks` ingestion path.
