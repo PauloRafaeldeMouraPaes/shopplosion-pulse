@@ -65,7 +65,7 @@ jobs:
         run: node scripts/test-pulse-ask-ai.js index.html
 
       - name: Run evidence contract
-        run: python3 scripts/validate-study-evidence.js
+        run: node scripts/validate-study-evidence.js
 
       - name: Run accessibility and UX audit
         run: python3 scripts/audit_pulse_accessibility.py
