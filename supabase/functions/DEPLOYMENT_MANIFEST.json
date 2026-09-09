@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "project_ref": "ppfuygnpgywfpiqxsfys",
+  "purpose": "Traceability contract for production Supabase Edge Functions.",
+  "functions": [
+    {"slug":"pulse-ask-ai","version":20,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"567396c99a603a42f4ef0ee97abb19496e9c0f07781cec46fe40b7187528b874","source_path":"supabase/functions/pulse-ask-ai/index.ts"},
+    {"slug":"pulse-index-documents","version":3,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"cabe96aafa259d89754fd93c6698e1c57d9b9bb74bf085fd1807a4492404ba5c","source_path":"supabase/functions/pulse-index-documents/index.ts"},
+    {"slug":"pulse-index-bootstrap","version":3,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"54f7cec996421d6abf56fb90a3741e80dd2e44430a23cbe286ecaa8f6d1becd4","source_path":"supabase/functions/pulse-index-bootstrap/index.ts","lifecycle":"legacy_disabled_scheduler"},
+    {"slug":"pulse-rag-eval","version":2,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"c720a49ea0ee4da0005ebe65f82d48590e832b130ee5ab772ee2c3a2e71c2610","source_path":"supabase/functions/pulse-rag-eval/index.ts"},
+    {"slug":"pulse-index-pending","version":5,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"c20ff012900b21c2d272235a733ad18850709010a6cce58d5d8dc34b019526b5","source_path":"supabase/functions/pulse-index-pending/index.ts"},
+    {"slug":"pulse-index-worker","version":3,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"8cd1b1278d2dbf4176eb072dad3da85602216a690a03d99ebccec4f57d26a6b8","source_path":"supabase/functions/pulse-index-worker/index.ts","auth":"internal_worker_token"},
+    {"slug":"pulse-rag-eval-worker","version":5,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"a4cc9ae27f5e7d72767950df64a5209fe2846e1a53f91e389cf1f1e3a81e4176","source_path":"supabase/functions/pulse-rag-eval-worker/index.ts","auth":"internal_worker_token"},
+    {"slug":"pulse-ask-ai-worker","version":3,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"ee4a973bb68693e70412122aa7d6a4f5c58ca9e11566be4095a04c21dfaa915d","source_path":"supabase/functions/pulse-ask-ai-worker/index.ts","auth":"internal_worker_token"},
+    {"slug":"pulse-intelligence-worker","version":9,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"9ea463f97863b8055d004d7148b4c795321ae41b749baff4bda86e627c6fdb0d","source_path":"supabase/functions/pulse-intelligence-worker/index.ts","auth":"internal_worker_token"},
+    {"slug":"pulse-external-source-worker","version":2,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"9dde5a3ddef02508dc2e4a3c24b5ddd624f7f432d4b84f3026cef57bc1f7efd2","source_path":"supabase/functions/pulse-external-source-worker/index.ts","auth":"internal_worker_token"},
+    {"slug":"pulse-external-signal-worker","version":4,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"00471ece3767ca7158222d810712a899af152e9f553f77a09dfb5103e87774d7","source_path":"supabase/functions/pulse-external-signal-worker/index.ts","auth":"internal_worker_token"},
+    {"slug":"pulse-external-deterministic-backstop","version":2,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"d41c36173a151d096fc3233e7c49ddb5772f004b7f01aaba82cdd37482fa455a","source_path":"supabase/functions/pulse-external-deterministic-backstop/index.ts","auth":"internal_worker_token"}
+  ]
+}
