@@ -15,13 +15,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release-gate:
-    name: Release Gate
+  verified-release:
+    name: Verified Release
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
+      - name: Checkout exact release commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -52,10 +57,7 @@ jobs:
             python3 scripts/extract_inline_js.py "$html" "$out"
             shopt -s nullglob
             files=("$out"/*.js)
-            if [ ${#files[@]} -eq 0 ]; then
-              echo "No inline JavaScript blocks found in $html."
-              exit 1
-            fi
+            if [ ${#files[@]} -eq 0 ]; then exit 1; fi
             for f in "${files[@]}"; do node --check "$f"; done
           done
 
@@ -89,20 +91,6 @@ jobs:
       - name: Release gate passed
         run: echo "PULSE RELEASE GATE: PASS"
 
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: release-gate
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Checkout exact release commit
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
       - name: Write published release identity
         env:
           RELEASE_SHA: ${{ github.sha }}
@@ -111,7 +99,7 @@ jobs:
           python3 - <<'PY'
           import json, os
           from datetime import datetime, timezone
-          manifest = {"schema_version":1,"product":"Shopplosion Pulse","commit_sha":os.environ["RELEASE_SHA"],"workflow_run_id":int(os.environ["WORKFLOW_RUN_ID"]),"generated_at":datetime.now(timezone.utc).isoformat().replace("+00:00","Z")}
+          manifest={"schema_version":1,"product":"Shopplosion Pulse","commit_sha":os.environ["RELEASE_SHA"],"workflow_run_id":int(os.environ["WORKFLOW_RUN_ID"]),"generated_at":datetime.now(timezone.utc).isoformat().replace("+00:00","Z")}
           with open("pulse-release.json","w",encoding="utf-8") as f:
               json.dump(manifest,f,separators=(",",":"),sort_keys=True); f.write("\n")
           PY
@@ -138,14 +126,14 @@ jobs:
           import json, os, time, urllib.request
           base=os.environ["PAGE_URL"].rstrip("/"); expected_sha=os.environ["RELEASE_SHA"]; expected_run_id=int(os.environ["WORKFLOW_RUN_ID"])
           last_error=None
-          for attempt in range(12):
+          for _ in range(12):
             try:
               failures=[]
               for path in ["/","/app.html","/ask.html","/intelligence.html"]:
                 req=urllib.request.Request(base+path,headers={"User-Agent":"Pulse-Release-Healthcheck/1.0"})
                 with urllib.request.urlopen(req,timeout=20) as r:
                   body=r.read(250000).decode("utf-8","ignore")
-                  if r.status!=200 or len(body)<200: failures.append(f"{path}: unhealthy response")
+                  if r.status!=200 or len(body)<200: failures.append(path)
               req=urllib.request.Request(base+"/pulse-release.json",headers={"User-Agent":"Pulse-Release-Identity/1.0"})
               with urllib.request.urlopen(req,timeout=20) as r: manifest=json.loads(r.read(10000).decode("utf-8"))
               if manifest.get("commit_sha")!=expected_sha: failures.append("release commit mismatch")
