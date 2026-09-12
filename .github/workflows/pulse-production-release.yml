@@ -1,0 +1,108 @@
+name: Pulse Production Release
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  release-gate:
+    name: Release Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate Edge Function deployment manifest
+        run: python3 scripts/validate_edge_function_manifest.py
+      - name: Validate Pulse artifact
+        run: python3 scripts/validate_pulse.py
+      - name: Validate orchestrator protocol
+        run: python3 scripts/validate_pulse_orchestrator.py
+      - name: Run deterministic adversarial audit
+        run: python3 scripts/audit_pulse_adversarial.py
+      - name: Audit single-file product contracts
+        run: python3 scripts/audit_pulse_single_file.py
+      - name: Run product regression guardrails
+        run: node scripts/validate_pulse_regression.js
+      - name: Run semantic data integrity checks
+        run: node scripts/test-pulse-data-integrity.js index.html
+      - name: Run Ask AI behavioral regression
+        run: node scripts/test-pulse-ask-ai.js index.html
+      - name: Run evidence contract
+        run: node scripts/validate-study-evidence.js
+      - name: Run accessibility and UX audit
+        run: python3 scripts/audit_pulse_accessibility.py
+      - name: Release gate passed
+        run: echo "PULSE RELEASE GATE: PASS"
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: release-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: github-pages
+    steps:
+      - name: Checkout exact release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Write published release identity
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          manifest = {"schema_version":1,"product":"Shopplosion Pulse","commit_sha":os.environ["RELEASE_SHA"],"workflow_run_id":int(os.environ["WORKFLOW_RUN_ID"]),"generated_at":datetime.now(timezone.utc).isoformat().replace("+00:00","Z")}
+          with open("pulse-release.json","w",encoding="utf-8") as f:
+              json.dump(manifest,f,separators=(",",":"),sort_keys=True)
+              f.write("\n")
+          PY
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify published release identity
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          RELEASE_SHA: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          base = os.environ["PAGE_URL"].rstrip("/")
+          expected_sha = os.environ["RELEASE_SHA"]
+          expected_run = int(os.environ["WORKFLOW_RUN_ID"])
+          for path in ["/", "/app.html", "/ask.html", "/intelligence.html"]:
+              req = urllib.request.Request(base + path, headers={"User-Agent": "Pulse-Release-Healthcheck/1.0"})
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  body = r.read(250000)
+                  if r.status != 200 or len(body) < 200:
+                      raise SystemExit(f"unhealthy response: {path}")
+          req = urllib.request.Request(base + "/pulse-release.json", headers={"User-Agent": "Pulse-Release-Identity/1.0"})
+          with urllib.request.urlopen(req, timeout=20) as r:
+              manifest = json.loads(r.read(10000).decode("utf-8"))
+          if manifest.get("commit_sha") != expected_sha:
+              raise SystemExit("release commit mismatch")
+          if manifest.get("workflow_run_id") != expected_run:
+              raise SystemExit("workflow run mismatch")
+          print("PULSE PUBLISHED RELEASE: PASS")
+          PY
