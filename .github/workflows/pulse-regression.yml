@@ -23,4 +23,13 @@ jobs:
         run: python3 scripts/audit_pulse_single_file.py
       - name: Run accessibility and UX audit
         run: python3 scripts/audit_pulse_accessibility.py
-      # Final validation after product-evolution deduplication.
+
+  verified-release:
+    name: Verified Release
+    needs: regression
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pulse-release.yml
