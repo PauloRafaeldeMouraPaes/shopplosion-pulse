@@ -44,9 +44,3 @@ jobs:
               node --check "$f"
             done
           done
-
-  release:
-    name: Verified Release
-    needs: validate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/pulse-release.yml
