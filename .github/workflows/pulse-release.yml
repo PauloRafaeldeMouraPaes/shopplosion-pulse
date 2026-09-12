@@ -1,7 +1,9 @@
 name: Pulse Release
 
 on:
-  workflow_call:
+  workflow_run:
+    workflows: ["Pulse Regression"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -10,17 +12,20 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pulse-release-${{ github.ref }}
+  group: pulse-release-${{ github.event.workflow_run.head_sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
   release-gate:
     name: Release Gate
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout exact release commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -91,6 +96,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: release-gate
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -100,11 +106,11 @@ jobs:
       - name: Checkout exact release commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Write published release identity
         env:
-          RELEASE_SHA: ${{ github.sha }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           WORKFLOW_RUN_ID: ${{ github.run_id }}
         run: |
           python3 - <<'PY'
@@ -130,7 +136,7 @@ jobs:
       - name: Verify published Pages artifact
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-          RELEASE_SHA: ${{ github.sha }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           WORKFLOW_RUN_ID: ${{ github.run_id }}
         run: |
           python3 - <<'PY'
