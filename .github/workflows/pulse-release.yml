@@ -1,12 +1,8 @@
 name: Pulse Release
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
   workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -23,7 +19,6 @@ env:
 jobs:
   release-gate:
     name: Release Gate
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -82,7 +77,6 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: release-gate
-    if: (github.event_name == 'push' || github.event_name == 'workflow_call') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
