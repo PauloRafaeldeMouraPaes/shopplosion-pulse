@@ -160,3 +160,5 @@ jobs:
             time.sleep(5)
           raise SystemExit(f"Published Pages health check failed: {last_error}")
           PY
+
+# Fresh workflow path activation marker
