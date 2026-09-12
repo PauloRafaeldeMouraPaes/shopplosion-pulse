@@ -5,7 +5,6 @@
   "functions": [
     {"slug":"pulse-ask-ai","version":20,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"567396c99a603a42f4ef0ee97abb19496e9c0f07781cec46fe40b7187528b874","source_path":"supabase/functions/pulse-ask-ai/index.ts"},
     {"slug":"pulse-index-documents","version":3,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"cabe96aafa259d89754fd93c6698e1c57d9b9bb74bf085fd1807a4492404ba5c","source_path":"supabase/functions/pulse-index-documents/index.ts"},
-    {"slug":"pulse-index-bootstrap","version":3,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"54f7cec996421d6abf56fb90a3741e80dd2e44430a23cbe286ecaa8f6d1becd4","source_path":"supabase/functions/pulse-index-bootstrap/index.ts","lifecycle":"legacy_disabled_scheduler"},
     {"slug":"pulse-rag-eval","version":2,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"c720a49ea0ee4da0005ebe65f82d48590e832b130ee5ab772ee2c3a2e71c2610","source_path":"supabase/functions/pulse-rag-eval/index.ts"},
     {"slug":"pulse-index-pending","version":5,"status":"ACTIVE","verify_jwt":true,"deployed_sha256":"c20ff012900b21c2d272235a733ad18850709010a6cce58d5d8dc34b019526b5","source_path":"supabase/functions/pulse-index-pending/index.ts"},
     {"slug":"pulse-index-worker","version":3,"status":"ACTIVE","verify_jwt":false,"deployed_sha256":"8cd1b1278d2dbf4176eb072dad3da85602216a690a03d99ebccec4f57d26a6b8","source_path":"supabase/functions/pulse-index-worker/index.ts","auth":"internal_worker_token"},
