@@ -45,7 +45,7 @@ jobs:
       - name: Run accessibility and UX audit
         run: python3 scripts/audit_pulse_accessibility.py
       - name: Release gate passed
-        run: echo "PULSE RELEASE GATE: PASS"
+        run: echo "PULSE RELEASE GATE - PASS"
 
   deploy:
     name: Deploy to GitHub Pages
@@ -104,5 +104,5 @@ jobs:
               raise SystemExit("release commit mismatch")
           if manifest.get("workflow_run_id") != expected_run:
               raise SystemExit("workflow run mismatch")
-          print("PULSE PUBLISHED RELEASE: PASS")
+          print("PULSE PUBLISHED RELEASE - PASS")
           PY
