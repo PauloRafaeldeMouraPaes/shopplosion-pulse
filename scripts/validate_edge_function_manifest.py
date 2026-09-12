@@ -27,7 +27,7 @@ def main() -> int:
         if not slug or slug in slugs:
             errors.append(f"duplicate/missing slug: {slug!r}")
         slugs.add(slug)
-        if lifecycle != "legacy_disabled_scheduler" and (not path or not (ROOT / path).is_file():
+        if lifecycle != "legacy_disabled_scheduler" and (not path or not (ROOT / path).is_file()):
             errors.append(f"missing source_path for {slug}: {path}")
         if not isinstance(sha, str) or not SHA_RE.fullmatch(sha):
             errors.append(f"invalid deployed_sha256 for {slug}")
