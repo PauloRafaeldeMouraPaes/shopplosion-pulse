@@ -1,9 +1,7 @@
 name: Pulse Release Gate and Deploy
 
 on:
-  workflow_run:
-    workflows: ["Pulse QA"]
-    types: [completed]
+  push:
     branches: [main]
   pull_request:
     branches: [main]
@@ -19,12 +17,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  RELEASE_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+  RELEASE_SHA: ${{ github.sha }}
 
 jobs:
   release-gate:
     name: Release Gate
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -102,7 +100,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: release-gate
-    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
