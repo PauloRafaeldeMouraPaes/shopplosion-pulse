@@ -30,6 +30,14 @@ jobs:
         with:
           node-version: 24
 
+      - name: Verify release provenance
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          actual_sha="$(git rev-parse HEAD)"
+          test "$actual_sha" = "$EXPECTED_SHA" || { echo "Release provenance mismatch: checkout=$actual_sha expected=$EXPECTED_SHA"; exit 1; }
+          echo "Release provenance: $actual_sha"
+
       - name: Validate Edge Function deployment manifest
         run: python3 scripts/validate_edge_function_manifest.py
 
@@ -63,7 +71,7 @@ jobs:
         run: node scripts/test-pulse-ask-ai.js index.html
 
       - name: Run evidence contract
-        run: node scripts/validate-study-evidence.js
+        run: python3 scripts/validate-study-evidence.js
 
       - name: Run accessibility and UX audit
         run: python3 scripts/audit_pulse_accessibility.py
