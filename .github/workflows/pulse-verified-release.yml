@@ -1,18 +1,11 @@
 name: Pulse Verified Release
 
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 permissions:
   contents: write
   pages: write
   id-token: write
-
-concurrency:
-  group: pulse-verified-release-${{ github.sha }}
-  cancel-in-progress: true
 
 jobs:
   release-gate:
@@ -20,10 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout exact release commit
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -158,5 +149,3 @@ jobs:
             time.sleep(5)
           raise SystemExit(f"Published Pages health check failed: {last_error}")
           PY
-
-# Fresh workflow path activation marker
