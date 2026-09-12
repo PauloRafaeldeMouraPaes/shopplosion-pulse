@@ -5,6 +5,11 @@ on:
     branches: ["**"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -44,8 +49,4 @@ jobs:
     name: Verified Release
     needs: validate
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
     uses: ./.github/workflows/pulse-release.yml
