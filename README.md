@@ -6,3 +6,4 @@
 <!-- Final release trigger: current workflow and deployment manifest verified in main. -->
 <!-- Final gate test: release gate only. -->
 <!-- Core validation test. -->
+<!-- Production release re-trigger: publish current main artifact and verify Pages identity. -->
