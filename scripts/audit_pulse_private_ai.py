@@ -34,12 +34,27 @@ require("verify_jwt = true" in cfg, "pulse-ask-ai is not configured with verify_
 require("global: { headers: { Authorization: authorization } }" in fn,
         "Edge Function does not propagate caller JWT to Supabase client")
 require("from('document_chunks')" in fn, "Edge Function does not retrieve private chunks")
+require(".eq('industry_id', profile.industry_id)" in fn,
+        "Private chunk retrieval is not explicitly scoped to the authenticated industry")
+require("String(chunk.industry_id) === String(profile.industry_id)" in fn,
+        "Retrieved chunks lack defense-in-depth tenant filtering before LLM use")
+require("select('id,filename,industry_id')" in fn,
+        "Document lookup does not return industry_id for defense-in-depth validation")
+require("String(documentMap[chunk.document_id].industry_id) === String(profile.industry_id)" in fn,
+        "Evidence documents lack defense-in-depth tenant validation")
 require("generativelanguage.googleapis.com/v1beta/models/" in fn, "Gemini API endpoint missing")
 require("GEMINI_API_KEY" in fn, "Gemini secret is not server-side configured")
 require("PULSE_LLM_MODEL" in fn, "LLM model is not configurable")
 require("citations" in fn and "ref:" in fn, "Evidence citations are not returned")
 require("service_role" not in fn.lower() and "supabase_secret_key" not in fn.lower(),
         "Edge Function contains a service-role/secret-key path")
+
+# RLS is the authoritative tenant boundary. Natural-language heuristics such as
+# "foreignIndustryMention" are explicitly forbidden because they caused false positives.
+require("foreignIndustryMention" not in fn and "foreignIndustryInAnswer" not in fn and "industryNameMatches" not in fn,
+        "Ask AI still contains heuristic industry-name scope guards")
+require("tenant security authority" in fn or "Tenant scope is enforced by the authenticated Supabase session + RLS." in fn,
+        "Ask AI does not document RLS as the tenant security authority")
 
 # Guard against accidental direct browser provider calls.
 require(not re.search(r"fetch\(['\"]https://(?:api\\.anthropic\\.com|generativelanguage\\.googleapis\\.com)", ask),
@@ -55,5 +70,7 @@ print("PRIVATE AI AUDIT: PASS")
 print("PASS: browser delegates generation to pulse-ask-ai")
 print("PASS: provider secret remains server-side")
 print("PASS: Edge Function requires JWT and propagates caller auth")
-print("PASS: retrieval is performed from tenant-scoped document_chunks")
+print("PASS: retrieval is explicitly scoped to the authenticated industry")
+print("PASS: defense-in-depth tenant checks protect chunks and documents before LLM use")
 print("PASS: Gemini generation exposes evidence citations")
+print("PASS: RLS is the tenant security authority; fragile natural-language scope guards are absent")
