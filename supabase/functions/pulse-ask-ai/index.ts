@@ -19,21 +19,6 @@ const providerMessage = (status: number, raw: string) => {
   return message ? `O Gemini retornou um erro: ${message}` : `O Gemini retornou HTTP ${status}.`
 }
 
-const industryNameMatches = (text: string, currentIndustry: string, allIndustryNames: string[]) => {
-  const normalizedText = normalize(text)
-  const current = normalize(currentIndustry)
-  return allIndustryNames
-    .map((name) => normalize(name))
-    .filter((name) => name && name !== current)
-    .some((other) => normalizedText.includes(other))
-}
-
-const foreignIndustryMention = (query: string, currentIndustry: string, allIndustryNames: string[]) =>
-  industryNameMatches(query, currentIndustry, allIndustryNames)
-
-const foreignIndustryInAnswer = (answer: string, currentIndustry: string, allIndustryNames: string[]) =>
-  industryNameMatches(answer, currentIndustry, allIndustryNames)
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
@@ -59,9 +44,6 @@ Deno.serve(async (req) => {
   if (profileError || !profile?.industry_id) return json({ error: 'profile_not_found' }, 403)
   const { data: industry, error: industryError } = await supabase.from('industries').select('id,name,status').eq('id', profile.industry_id).single()
   if (industryError || !industry || industry.status !== 'active') return json({ error: 'industry_not_active' }, 403)
-  const { data: industries, error: industriesError } = await supabase.from('industries').select('name').eq('status', 'active')
-  if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
-  const allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
 
   let body: { query?: string }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
@@ -69,51 +51,50 @@ Deno.serve(async (req) => {
   const terms = termsFor(query)
   if (!query || !terms.length) return json({ error: 'invalid_query', message: 'Digite uma pergunta válida.' }, 400)
 
-  if (foreignIndustryMention(query, industry.name, allIndustryNames)) {
-    return json({
-      answer: 'Não posso fornecer informações privadas de outra indústria. Posso responder somente com evidências da indústria autenticada.',
-      citations: [],
-      scope_rejected: true,
-    })
-  }
-
+  // Tenant scope is enforced by the authenticated Supabase session + RLS.
+  // Do not infer cross-industry access from natural-language phrases such as
+  // "minha indústria" or from model wording. Those heuristics caused false
+  // positives and are not a security boundary.
   const filters = terms.map((term) => `content.ilike.%${term}%`).join(',')
   const { data: chunks, error: chunkError } = await supabase
     .from('document_chunks')
-    .select('id,document_id,chunk_index,content,source_type,created_at')
+    .select('id,document_id,industry_id,chunk_index,content,source_type,created_at')
     .eq('industry_id', profile.industry_id)
     .or(filters)
     .limit(80)
   if (chunkError) return json({ error: 'retrieval_failed', message: 'Falha ao recuperar as evidências privadas.' }, 500)
 
+  // Defense in depth: even if a future query path changes, never pass a chunk
+  // outside the authenticated tenant to the model.
+  const tenantChunks = (chunks || []).filter((chunk) => String(chunk.industry_id) === String(profile.industry_id))
+
   const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
-  const ranked = (chunks || []).map((chunk) => ({ ...chunk, score: score(chunk.content || '') })).filter((chunk) => chunk.score > 0).sort((a, b) => b.score - a.score || a.chunk_index - b.chunk_index).slice(0, 8)
+  const ranked = tenantChunks.map((chunk) => ({ ...chunk, score: score(chunk.content || '') })).filter((chunk) => chunk.score > 0).sort((a, b) => b.score - a.score || a.chunk_index - b.chunk_index).slice(0, 8)
   if (!ranked.length) return json({ answer: 'Não encontrei evidências relevantes na base privada da sua indústria.', citations: [] })
 
   const documentIds = Array.from(new Set(ranked.map((chunk) => chunk.document_id)))
   const { data: documents, error: documentError } = await supabase
     .from('documents')
-    .select('id,filename')
+    .select('id,filename,industry_id')
     .eq('industry_id', profile.industry_id)
     .in('id', documentIds)
   if (documentError) return json({ error: 'document_lookup_failed', message: 'As evidências foram encontradas, mas os documentos não puderam ser identificados.' }, 500)
   const documentMap = Object.fromEntries((documents || []).map((document) => [document.id, document]))
-  const evidence = ranked.map((chunk, index) => ({ ref: `E${index + 1}`, document: documentMap[chunk.document_id]?.filename || 'Documento privado', chunk: Number(chunk.chunk_index) + 1, source_type: chunk.source_type || 'text', content: String(chunk.content || '').slice(0, 5000) }))
+  const evidence = ranked
+    .filter((chunk) => documentMap[chunk.document_id] && String(documentMap[chunk.document_id].industry_id) === String(profile.industry_id))
+    .map((chunk, index) => ({ ref: `E${index + 1}`, document: documentMap[chunk.document_id]?.filename || 'Documento privado', chunk: Number(chunk.chunk_index) + 1, source_type: chunk.source_type || 'text', content: String(chunk.content || '').slice(0, 5000) }))
+
+  if (!evidence.length) return json({ answer: 'Não encontrei evidências relevantes na base privada da sua indústria.', citations: [] })
+
   const evidenceText = evidence.map((item) => `<evidence ref="${item.ref}" document="${item.document}" chunk="${item.chunk}" source="${item.source_type}">${item.content}</evidence>`).join('\n')
 
-  const system = 'Você é o analista privado do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Nunca mencione ou atribua fatos a uma indústria diferente da indústria autenticada. Não revele dados fora das evidências. Quando a pergunta não pedir o nome da indústria, não nomeie nenhuma indústria na resposta; use apenas "sua indústria" ou "a indústria autenticada".'
-  const prompt = `Pergunta do usuário: ${query}\n\nIndústria autenticada: ${industry.name}\n\nEvidências recuperadas exclusivamente dessa indústria:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Não mencione nomes de outras indústrias, mesmo que apareçam no conteúdo de algum documento.`
+  const system = 'Você é o analista privado do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. A única informação privada disponível nesta chamada é a contida nas evidências fornecidas, que já foram filtradas pela indústria autenticada. Se a pergunta pedir dados de outra indústria e essas evidências não os sustentarem, diga que não há evidências disponíveis, sem tentar inferir ou inventar dados. Não transforme frases genéricas como "minha indústria", "sua indústria" ou "indústria autenticada" em nomes de outras indústrias.'
+  const prompt = `Pergunta do usuário: ${query}\n\nIndústria autenticada: ${industry.name}\n\nEvidências recuperadas exclusivamente dessa indústria:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex].`
   const providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } }) })
   if (!providerResponse.ok) { const detail = await providerResponse.text(); return json({ error: 'llm_provider_failed', provider_status: providerResponse.status, message: providerMessage(providerResponse.status, detail) }, 502) }
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
   if (!answer) return json({ error: 'empty_llm_response' }, 502)
-  if (foreignIndustryInAnswer(answer, industry.name, allIndustryNames)) {
-    return json({
-      answer: 'A resposta foi bloqueada porque o modelo tentou mencionar uma indústria fora do escopo autenticado. Nenhum dado de outra indústria foi retornado.',
-      citations: [],
-      scope_rejected: true,
-    }, 200)
-  }
+
   return json({ answer, model, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, chunk: item.chunk, source_type: item.source_type })) })
 })
