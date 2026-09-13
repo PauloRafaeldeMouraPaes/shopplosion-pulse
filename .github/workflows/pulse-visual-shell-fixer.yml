@@ -26,64 +26,30 @@ jobs:
           if 'id="pulse-visual-shell-v2"' in t:
               print('v2 already present')
               raise SystemExit(0)
-
-          # Remove the v1 payload that was appended after </html> and retain its useful CSS/JS.
           marker='<style id="pulse-visual-shell-v1">'
           if marker in t:
-              start=t.index(marker)
-              end=t.index('</script>', start)+len('</script>')
-              payload=t[start:end]
-              t=t[:start].rstrip()+"\n"
-              payload=payload.replace('id="pulse-visual-shell-v1"','id="pulse-visual-shell-v2"').replace('id="pulse-visual-shell-v1-script"','id="pulse-visual-shell-v2-script"')
-          else:
-              payload=''
-
-          # Remove the decorative note element(s).
+              start=t.index(marker); end=t.index('</script>',start)+len('</script>'); payload=t[start:end]; t=t[:start].rstrip()+"\n"; payload=payload.replace('id="pulse-visual-shell-v1"','id="pulse-visual-shell-v2"').replace('id="pulse-visual-shell-v1-script"','id="pulse-visual-shell-v2-script"')
+          else: payload=''
           t=re.sub(r'<([A-Za-z][\\w:-]*)\\b[^>]*\\bclass=(?:"[^\"]*\\bbrand-note\\b[^\"]*"|\'[^\']*\\bbrand-note\\b[^\']*\')[^>]*>.*?</\\1>\\s*','',t,flags=re.S|re.I)
           t=re.sub(r'<([A-Za-z][\\w:-]*)\\b[^>]*\\bclass=(?:"[^\"]*\\bbrand-note\\b[^\"]*"|\'[^\']*\\bbrand-note\\b[^\']*\')[^>]*/>\\s*','',t,flags=re.S|re.I)
-
-          # Remove dotted framework pseudo-elements.
           t=re.sub(r'\\.brand-framework(?:::after|:after)\\s*\\{[^}]*\\}','',t,flags=re.S|re.I)
-
-          # Simplify any radial-gradient used by the framework itself, without touching unrelated gradients.
-          def clean_framework(m):
-              body=re.sub(r'background(?:-image)?\\s*:\s*radial-gradient\\([^;]*\\)\\s*;?','',m.group(1),flags=re.I)
-              return '.brand-framework{'+body+'}'
-          t=re.sub(r'\\.brand-framework\\s*\\{([^}]*)\\}',clean_framework,t,flags=re.S|re.I)
-
-          # Remove organic radius from the yellow hero shape.
-          def clean_shape(m):
-              body=re.sub(r'border-radius\\s*:[^;]+;','border-radius:0;',m.group(1),count=1,flags=re.I)
-              return '.brand-hero-visual .yellow-shape{'+body+'}'
-          t=re.sub(r'\\.brand-hero-visual\\s+\\.yellow-shape\\s*\\{([^}]*)\\}',clean_shape,t,flags=re.S|re.I)
-
-          # Add persistent shell once, immediately after <body>.
+          def cf(m): return '.brand-framework{'+re.sub(r'background(?:-image)?\\s*:\s*radial-gradient\\([^;]*\\)\\s*;?','',m.group(1),flags=re.I)+'}'
+          t=re.sub(r'\\.brand-framework\\s*\\{([^}]*)\\}',cf,t,flags=re.S|re.I)
+          def cs(m): return '.brand-hero-visual .yellow-shape{'+re.sub(r'border-radius\\s*:[^;]+;','border-radius:0;',m.group(1),count=1,flags=re.I)+'}'
+          t=re.sub(r'\\.brand-hero-visual\\s+\\.yellow-shape\\s*\\{([^}]*)\\}',cs,t,flags=re.S|re.I)
           nav='''<aside class="pulse-shell-sidebar" data-pulse-shell="visual-v2" aria-label="Navegação principal"><a class="pulse-shell-brand" href="index.html" aria-label="Shopplosion Pulse — Dashboard"><span class="pulse-shell-brand-mark" aria-hidden="true">P</span><span>Pulse</span></a><nav class="pulse-shell-nav"><a href="index.html" data-shell-route="dashboard">Dashboard</a><a href="ask.html" data-shell-route="ask">Ask AI</a><a href="intelligence.html" data-shell-route="intelligence">Intelligence</a><a href="sources.html" data-shell-route="sources">Sources</a></nav></aside><div class="pulse-shell-topbar" aria-label="Contexto atual"><div class="pulse-shell-breadcrumb"><span>Pulse</span><span aria-hidden="true">/</span><strong data-pulse-breadcrumb-current>Dashboard</strong></div></div>'''
           if 'data-pulse-shell="visual-v2"' not in t:
-              b=t.lower().find('<body')
-              if b<0: raise SystemExit('body tag not found')
-              close=t.find('>',b)
-              if close<0: raise SystemExit('body opening tag not closed')
+              b=t.lower().find('<body'); close=t.find('>',b)
+              if b<0 or close<0: raise SystemExit('body tag not found')
               t=t[:close+1]+nav+t[close+1:]
-
-          # Keep the payload inside the document, before </head>.
           if payload:
               h=t.lower().find('</head>')
               if h<0: raise SystemExit('head close not found')
               t=t[:h]+payload+t[h:]
-
-          # Neutralize small badges/chips while preserving interactive pink and yellow brand moments.
           css='''<style id="pulse-visual-shell-v2">/* PULSE VISUAL SHELL V2 */\n.pulse-shell-sidebar{position:fixed;inset:0 auto 0 0;width:232px;z-index:1000;display:flex;flex-direction:column;padding:24px 16px;border-right:1px solid rgba(20,19,27,.10);background:var(--bg);font-family:Inter,system-ui,sans-serif}.pulse-shell-brand{display:flex;align-items:center;gap:10px;margin:0 8px 28px;color:var(--ink);font-weight:800;font-size:18px;text-decoration:none}.pulse-shell-brand-mark{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--yellow);color:var(--ink);font-weight:900}.pulse-shell-nav{display:grid;gap:6px}.pulse-shell-nav a{display:flex;align-items:center;min-height:42px;padding:0 12px;border-radius:10px;color:var(--muted);font-size:13px;font-weight:650;text-decoration:none}.pulse-shell-nav a:hover,.pulse-shell-nav a:focus-visible,.pulse-shell-nav a[aria-current="page"]{background:#fff;color:var(--pink);outline:none}.pulse-shell-topbar{position:fixed;top:0;left:232px;right:0;height:58px;z-index:999;display:flex;align-items:center;padding:0 32px;border-bottom:1px solid rgba(20,19,27,.10);background:rgba(255,250,253,.94);backdrop-filter:blur(10px)}.pulse-shell-breadcrumb{display:flex;gap:8px;color:var(--muted);font-size:12px;font-weight:600}.pulse-shell-breadcrumb strong{color:var(--ink);font-weight:800}.pulse-shell-topbar+*{margin-top:58px}.badge,.chip,.pill,[class*="badge"],[class*="chip"]{background:#fff!important;color:var(--muted)!important;border-color:rgba(20,19,27,.10)!important}h1{font-weight:850!important;letter-spacing:-.045em!important}h2{font-weight:800!important;letter-spacing:-.035em!important}h3{font-weight:750!important}p,li,.muted,.helper,.caption{font-weight:450}.brand-framework .step,.brand-framework .step-icon,.brand-framework [class*="icon"]{background:#fff}@media(max-width:900px){body{padding-left:0!important}.pulse-shell-sidebar{top:auto;right:0;bottom:0;left:0;width:auto;height:62px;padding:6px 10px;border-right:0;border-top:1px solid rgba(20,19,27,.10);flex-direction:row;align-items:center;justify-content:center}.pulse-shell-brand{display:none}.pulse-shell-nav{width:100%;grid-template-columns:repeat(4,1fr);gap:4px}.pulse-shell-nav a{justify-content:center;padding:0 4px;min-height:48px;font-size:11px}.pulse-shell-topbar{left:0;height:52px;padding:0 16px}.pulse-shell-topbar+*{margin-top:52px}main{padding-bottom:76px!important}}body{padding-left:232px!important}@media(max-width:900px){body{padding-left:0!important}} </style>'''
-          # Replace the older v2 style if present; otherwise append CSS before </head>.
-          t=re.sub(r'<style id="pulse-visual-shell-v2">.*?</style>','',t,flags=re.S|re.I)
-          h=t.lower().find('</head>')
-          t=t[:h]+css+t[h:]
-
-          # Ensure the breadcrumb helper script exists inside the document.
+          t=re.sub(r'<style id="pulse-visual-shell-v2">.*?</style>','',t,flags=re.S|re.I); h=t.lower().find('</head>'); t=t[:h]+css+t[h:]
           script='''<script id="pulse-visual-shell-v2-script">(function(){var p=(location.pathname||'').split('/').pop()||'index.html';var r=p==='ask.html'?'ask':p==='intelligence.html'?'intelligence':p==='sources.html'?'sources':'dashboard';document.querySelectorAll('[data-shell-route]').forEach(function(a){if(a.getAttribute('data-shell-route')===r)a.setAttribute('aria-current','page');});var c=document.querySelector('[data-pulse-breadcrumb-current]');if(c)c.textContent=r==='ask'?'Ask AI':r==='intelligence'?'Intelligence':r==='sources'?'Sources':'Dashboard';function s(){var q=['#industrySelect','#industry-select','select[name="industry"]','select[data-industry]','.industry-select','.selected-industry'],e=null;for(var i=0;i<q.length;i++){e=document.querySelector(q[i]);if(e)break;}if(!e||!c)return;var v=e.options&&e.selectedIndex>=0?e.options[e.selectedIndex].textContent.trim():e.textContent.trim();if(v&&v!=='Selecione'&&v!=='Selecionar')c.textContent=v;}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();setTimeout(s,500);})();</script>'''
-          t=re.sub(r'<script id="pulse-visual-shell-v2-script">.*?</script>','',t,flags=re.S|re.I)
-          h=t.lower().find('</body>')
-          t=t[:h]+script+t[h:]
+          t=re.sub(r'<script id="pulse-visual-shell-v2-script">.*?</script>','',t,flags=re.S|re.I); h=t.lower().find('</body>'); t=t[:h]+script+t[h:]
           p.write_text(t,encoding='utf-8')
           print('v2 applied; bytes',len(t))
           PY
@@ -106,3 +72,5 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "fix(ui): finalize Pulse visual shell structure"
           git push origin HEAD:design/pulse-visual-shell
+
+# trigger
