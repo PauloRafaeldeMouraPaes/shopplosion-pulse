@@ -1,7 +1,7 @@
 name: Pulse Single-File Refresh
 on:
   push:
-    branches: [feat/pulse-single-file-local-evidence, main, design/pulse-visual-shell]
+    branches: [feat/pulse-single-file-local-evidence, main]
     paths:
       - 'scripts/*.js'
       - '.github/workflows/pulse-single-file-refresh.yml'
@@ -20,7 +20,7 @@ jobs:
           import re
           p=Path('index.html')
           t=p.read_text(encoding='utf-8')
-          files=['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js','pulse-study-format-extensions.js','pulse-indicator-sparklines.js']
+          files=['pulse-studies.js','pulse-ux-fixes.js','pulse-ux-category-filter.js','pulse-ux-filter-fix.js','pulse-local-evidence.js','pulse-single-file-bridge.js','pulse-local-answer-bridge.js','pulse-study-format-extensions.js']
           for name in files:
               src=Path('scripts')/name
               code=src.read_text(encoding='utf-8')
@@ -42,7 +42,6 @@ jobs:
           assert t.count('<body')==1 and t.count('</body>')==1
           assert 'PULSE_LOCAL_EVIDENCE' in t
           assert 'pulse-study-format-extensions.js' in t
-          assert 'pulse-indicator-sparklines.js' in t
           assert 'PULSE_STUDY_FORMATS' in t
           assert 'pptx-text' in t
           assert 'visual-reference' in t
