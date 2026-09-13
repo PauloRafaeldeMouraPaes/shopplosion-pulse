@@ -1,6 +1,9 @@
 name: Pulse App Auth Bootstrap Fix
 
 on:
+  push:
+    paths:
+      - .github/workflows/pulse-app-auth-fix.yml
   workflow_dispatch:
 
 jobs:
