@@ -1,0 +1,35 @@
+name: Pulse Auth Browser Diagnostic
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  browser-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Test Auth transport in Chromium
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage();
+            const result=await page.evaluate(async()=>{
+              const url='https://ppfuygnpgywfpiqxsfys.supabase.co';
+              const out={};
+              try{const r=await fetch(url+'/auth/v1/settings',{cache:'no-store'});out.settings={status:r.status,body:(await r.text()).slice(0,300)}}catch(e){out.settings={error:String(e?.name||'')+' / '+String(e?.message||e)}}
+              try{const r=await fetch(url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'diagnostic-invalid@example.invalid',password:'diagnostic-invalid-password'}),cache:'no-store'});out.token={status:r.status,body:(await r.text()).slice(0,500)}}catch(e){out.token={error:String(e?.name||'')+' / '+String(e?.message||e)}}
+              return out;
+            });
+            console.log(JSON.stringify(result,null,2));
+            await browser.close();
+            if(result.token?.error||result.settings?.error) process.exit(1);
+          })();
+          NODE
