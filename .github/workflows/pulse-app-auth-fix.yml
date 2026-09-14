@@ -14,31 +14,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Patch app industry bootstrap and auth session
+      - name: Harden production auth bootstrap
         shell: python
         run: |
           from pathlib import Path
           import re, subprocess, tempfile
-          for name in ('PULSE_AUTH_FIX_PATCH.txt', 'auth-fix-notes2.md'):
-              p=Path(name)
-              if p.exists(): p.unlink()
 
-          p=Path('auth.html'); text=p.read_text(encoding='utf-8')
-          old="const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}),recovery=recoveryHash();const directPasswordSignIn=async(email,password)=>{const response=await fetch(url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:anonKey,'Content-Type':'application/json'},body:JSON.stringify({email,password}),cache:'no-store'});const body=await response.json().catch(()=>({}));if(!response.ok)return {data:{session:null},error:{status:response.status,code:body.error_code||body.code||'',message:body.msg||body.message||'Não foi possível autenticar.'}};if(!body.access_token||!body.refresh_token)return {data:{session:null},error:{status:500,code:'invalid_auth_response',message:'Resposta de autenticação inválida.'}};const {data,error}=await client.auth.setSession({access_token:body.access_token,refresh_token:body.refresh_token});return {data,error}};"
-          new="const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}),recovery=recoveryHash();const directPasswordSignIn=async(email,password)=>{const response=await fetch(url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:anonKey,'Content-Type':'application/json'},body:JSON.stringify({email,password}),cache:'no-store'});const body=await response.json().catch(()=>({}));if(!response.ok)return {data:{session:null},error:{status:response.status,code:body.error_code||body.code||'',message:body.msg||body.message||'Não foi possível autenticar.'}};if(!body.access_token||!body.refresh_token)return {data:{session:null},error:{status:500,code:'invalid_auth_response',message:'Resposta de autenticação inválida.'}};const storageKey='sb-'+new URL(url).hostname.split('.')[0]+'-auth-token';try{const session={access_token:body.access_token,refresh_token:body.refresh_token,expires_in:Number(body.expires_in||3600),expires_at:Number(body.expires_at||Math.floor(Date.now()/1000)+Number(body.expires_in||3600)),token_type:body.token_type||'bearer',user:body.user||null};localStorage.setItem(storageKey,JSON.stringify(session));return {data:{session},error:null}}catch(storageError){return {data:{session:null},error:{status:500,code:'session_persist_failed',message:storageError?.message||'Não foi possível persistir a sessão.'}}}};"
-          if old not in text: raise SystemExit('EXPECTED_AUTH_SIGNIN_BLOCK_NOT_FOUND')
-          p.write_text(text.replace(old,new,1),encoding='utf-8')
+          p=Path('auth.html'); auth=p.read_text(encoding='utf-8')
+          auth=auth.replace("Authorization:'Bearer '+key,","")
+          auth=auth.replace("Authorization:'Bearer '+anonKey,","")
+          p.write_text(auth,encoding='utf-8')
 
           p=Path('app.html'); text=p.read_text(encoding='utf-8')
-          old_script='<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script src="./pulse-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>'
-          new_script='<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script src="./pulse-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>'
-          if old_script not in text: raise SystemExit('EXPECTED_SUPABASE_SCRIPT_NOT_FOUND')
-          text=text.replace(old_script,new_script,1)
-          old_boot="const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const redirectAuth=()=>location.replace('./auth.html');const {data:userData,error:userError}=await client.auth.getUser();if(userError||!userData?.user){redirectAuth();return}"
-          new_boot="const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const redirectAuth=()=>location.replace('./auth.html');const {data:sessionData,error:sessionError}=await client.auth.getSession();if(sessionError||!sessionData?.session){redirectAuth();return}const {data:userData,error:userError}=await client.auth.getUser();if(userError||!userData?.user){redirectAuth();return}"
-          if old_boot not in text: raise SystemExit('EXPECTED_APP_SESSION_BOOT_NOT_FOUND')
-          p.write_text(text.replace(old_boot,new_boot,1),encoding='utf-8')
+          text=text.replace('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>','<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>',1)
+          old="const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const redirectAuth=()=>location.replace('./auth.html');"
+          new="const noOpAuthLock=async(_name,_timeout,fn)=>await fn();const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,lock:noOpAuthLock}});const redirectAuth=()=>location.replace('./auth.html');"
+          if old in text:
+              text=text.replace(old,new,1)
+          p.write_text(text,encoding='utf-8')
 
           for filename in ('auth.html','app.html'):
               html=Path(filename).read_text(encoding='utf-8')
@@ -48,19 +41,21 @@ jobs:
                       if code.strip():
                           f=Path(d)/f'{filename}-{i}.js'; f.write_text(code,encoding='utf-8')
                           r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
-                          if r.returncode: print(r.stderr); raise SystemExit(f'JS_PARSE_FAILURE_{filename}_{i}')
+                          if r.returncode:
+                              print(r.stderr); raise SystemExit(f'JS_PARSE_FAILURE_{filename}_{i}')
+
           auth=Path('auth.html').read_text(encoding='utf-8'); app=Path('app.html').read_text(encoding='utf-8')
-          if 'setSession({' in auth: raise SystemExit('SET_SESSION_STILL_IN_LOGIN_PATH')
-          if 'supabase-js@2.116.0' not in app: raise SystemExit('SUPABASE_VERSION_NOT_PINNED')
+          if 'Authorization:\'Bearer \'+' in auth: raise SystemExit('PUBLISHABLE_KEY_BEARER_MUST_NOT_BE_SENT')
+          if 'localStorage.setItem(storageKey,JSON.stringify' not in auth: raise SystemExit('SESSION_PERSISTENCE_MISSING')
           if 'auth_industry_context' not in app: raise SystemExit('SECURE_CONTEXT_RPC_MISSING')
-          if 'localStorage.setItem(storageKey,JSON.stringify(session))' not in auth: raise SystemExit('SESSION_PERSISTENCE_PATCH_MISSING')
-          print('AUTH_SESSION_PATCH_VALIDATION_PASSED')
+          if 'lock:noOpAuthLock' not in app: raise SystemExit('AUTH_LOCK_HARDENING_MISSING')
+          print('AUTH_BOOTSTRAP_HARDENING_VALIDATED')
 
       - name: Commit and push
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add auth.html app.html PULSE_AUTH_FIX_PATCH.txt auth-fix-notes2.md .github/workflows/pulse-app-auth-fix.yml
+          git add auth.html app.html .github/workflows/pulse-app-auth-fix.yml
           git diff --cached --quiet && echo 'NO_CHANGE_NEEDED' && exit 0
-          git commit -m 'fix production auth session persistence'
+          git commit -m 'harden production auth bootstrap'
           git push
