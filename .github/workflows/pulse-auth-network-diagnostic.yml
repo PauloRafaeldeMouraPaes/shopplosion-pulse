@@ -1,0 +1,25 @@
+name: Pulse Auth Network Diagnostic
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  auth-network:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Supabase Auth endpoint
+        env:
+          SUPABASE_URL: https://ppfuygnpgywfpiqxsfys.supabase.co
+        run: |
+          set -e
+          echo "DNS:"
+          getent hosts ppfuygnpgywfpiqxsfys.supabase.co
+          echo "SETTINGS:"
+          curl -sS -o /tmp/settings.out -w 'HTTP %{http_code}\n' --max-time 20 "$SUPABASE_URL/auth/v1/settings"
+          head -c 500 /tmp/settings.out || true
+          echo
+          echo "TOKEN ENDPOINT:"
+          curl -sS -o /tmp/token.out -w 'HTTP %{http_code}\n' --max-time 20 -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" -H 'Content-Type: application/json' -d '{"email":"diagnostic-invalid@example.invalid","password":"diagnostic-invalid-password"}'
+          head -c 500 /tmp/token.out || true
+          echo
