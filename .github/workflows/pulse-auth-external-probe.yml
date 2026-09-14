@@ -1,0 +1,43 @@
+name: Pulse Auth External Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pulse-auth-external-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe Supabase Auth settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://ppfuygnpgywfpiqxsfys.supabase.co/auth/v1/settings'
+          echo 'GET /auth/v1/settings'
+          curl --fail-with-body --silent --show-error --max-time 15 -D /tmp/headers "$URL" -o /tmp/body || { code=$?; echo "curl_exit=$code"; cat /tmp/headers 2>/dev/null || true; cat /tmp/body 2>/dev/null || true; exit $code; }
+          cat /tmp/headers
+          head -c 2000 /tmp/body
+          echo
+      - name: Probe Supabase Auth password endpoint without real credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://ppfuygnpgywfpiqxsfys.supabase.co/auth/v1/token?grant_type=password'
+          KEY='${{ secrets.SUPABASE_PUBLISHABLE_KEY }}'
+          if [ -z "$KEY" ]; then
+            echo 'SUPABASE_PUBLISHABLE_KEY secret is not configured; cannot run credentialed transport probe.'
+            exit 1
+          fi
+          echo 'POST /auth/v1/token with intentionally invalid credentials'
+          code=$(curl --silent --show-error --max-time 15 -o /tmp/token-body -w '%{http_code}' -X POST "$URL" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY" \
+            -H 'Content-Type: application/json' \
+            --data '{"email":"pulse-invalid-probe@example.invalid","password":"invalid-probe-password"}')
+          echo "http_status=$code"
+          cat /tmp/token-body
+          echo
+          test "$code" = '400'
