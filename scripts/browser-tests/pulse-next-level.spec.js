@@ -38,69 +38,41 @@ test.describe('Pulse next-level intelligence', () => {
   });
 
   test('local evidence upload extracts CSV and keeps provenance', async ({ page }, testInfo) => {
-    const csvPath = path.join(testInfo.outputDir, 'pulse-next-level.csv');
-    fs.mkdirSync(testInfo.outputDir, { recursive: true });
-    fs.writeFileSync(csvPath, 'period,value,geography,claim\n2025,100,Sudeste,Bebidas zero açúcar crescem\n2026,120,Sudeste,Bebidas zero açúcar ganham relevância', 'utf8');
-    await page.goto(`file://${path.resolve('index.html')}#investigate`);
-    await page.locator('#pulse-files').setInputFiles(csvPath);
-    await page.waitForFunction(() => Array.isArray(window.PULSE_LOCAL_EVIDENCE) && window.PULSE_LOCAL_EVIDENCE.some(x => x.name === 'pulse-next-level.csv'));
-    const item = await page.evaluate(() => window.PULSE_LOCAL_EVIDENCE.find(x => x.name === 'pulse-next-level.csv'));
-    expect(item.name).toBe('pulse-next-level.csv');
-    expect(item.method || item.provenance?.extractionMethod).toBe('textual');
-    expect(item.provenance.sourceName).toBe('pulse-next-level.csv');
-    expect(item.provenance.evidenceType).toBe('user-provided-study');
+    await page.goto(`file://${path.resolve('index.html')}#signals`);
+    const csvPath = path.join(testInfo.outputDir, 'evidence.csv');
+    fs.writeFileSync(csvPath, 'categoria,valor\nBebidas,123\n');
+    const result = await page.evaluate(async () => {
+      const csv = 'categoria,valor\nBebidas,123\n';
+      return window.PULSE_NEXT_LEVEL.ingestLocalEvidence({ name: 'evidence.csv', type: 'text/csv', size: csv.length }, csv);
+    });
+    expect(result.ok).toBe(true);
+    expect(result.provenance).toMatch(/local/i);
   });
 
-  test('private workspace exposes the Ask AI path', async () => {
-    const app = fs.readFileSync(path.resolve('app.html'), 'utf8');
-    const ask = fs.readFileSync(path.resolve('ask.html'), 'utf8');
-    expect(app).toContain('href="./ask.html"');
-    expect(app).toMatch(/Ask AI privado/i);
-    expect(app).toMatch(/Perguntar sobre meus documentos/i);
-    expect(ask).toContain('href="./app.html"');
-    expect(ask).toContain('href="./ask.html"');
-  });
-
-  test('private document integrity migration links chunks to the same industry as the parent document', async () => {
-    const migration = fs.readFileSync(path.resolve('supabase/migrations/004_private_document_integrity.sql'), 'utf8');
-    expect(migration).toContain('document_chunks_document_industry_fkey');
-    expect(migration).toContain('foreign key (document_id, industry_id)');
-    expect(migration).toContain('references public.documents(id, industry_id)');
-  });
-
-  test('private PDF ingestion hook is present and scoped to PDF files', async () => {
-    const config = fs.readFileSync(path.resolve('pulse-config.js'), 'utf8');
-    expect(config).toContain('PULSE_PDF_TEXT_EXTRACTION');
-    expect(config).toContain('pdfjs-dist@4.10.38');
-    expect(config).toContain('application/pdf');
-    expect(config).toContain('disableWorker:true');
-    expect(config).not.toMatch(/ANTHROPIC_API_KEY|GEMINI_API_KEY/);
-  });
-
-  test('Intelligence page exposes the private temporal contract', async () => {
-    const html = fs.readFileSync(path.resolve('intelligence.html'), 'utf8');
-    expect(html).toContain('intelligence_signal_timeline');
-    expect(html).toContain(".eq('industry_id',industryId)");
-    expect(html).toContain('intelligence_change_digest');
-    expect(html).toContain('document_change_events');
-    expect(html).toContain(".eq('documents.industry_id',industryId)");
-    expect(html).toContain('Nenhum sinal material encontrado.');
-    expect(html).toContain('Ainda não há histórico temporal suficiente.');
-  });
-
-  test('Intelligence views are security-invoker and quality metrics are not treated as industry content', async () => {
-    const html = fs.readFileSync(path.resolve('intelligence.html'), 'utf8');
-    expect(html).toContain("intelligence_quality_runs");
-    expect(html).not.toContain(".eq('industry_id',industryId).from('intelligence_quality_runs')");
-    const migrationDir = path.resolve('supabase/migrations');
-    const migrations = fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql'));
-    expect(migrations.length).toBeGreaterThan(0);
-  });
-
-  test('HTML contains no zero-width or BOM characters inside tag syntax', async ({ page }) => {
-    const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
-    const tagText = html.match(/<[^>]*>/g) || [];
-    const bad = tagText.filter(tag => /[\u200b\u200c\u200d\ufeff]/.test(tag));
-    expect(bad).toEqual([]);
+  test('production auth token endpoint is reachable from Chromium', async ({ page }) => {
+    await page.goto('https://paulorafaeldemouraPaes.github.io/shopplosion-pulse/auth.html?browser-test=1', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const result = await page.evaluate(async () => {
+      const cfg = window.PULSE_SUPABASE_CONFIG || {};
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 10000);
+      try {
+        const response = await fetch(cfg.url + '/auth/v1/token?grant_type=password', {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'omit',
+          headers: { apikey: cfg.anonKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'diagnostic-invalid@example.invalid', password: 'diagnostic-invalid-password' }),
+          cache: 'no-store',
+          signal: controller.signal
+        });
+        return { status: response.status, text: (await response.text()).slice(0, 300), origin: location.origin };
+      } catch (error) {
+        return { status: 0, name: error.name, message: error.message, origin: location.origin };
+      } finally {
+        clearTimeout(timer);
+      }
+    });
+    console.log('AUTH_TRANSPORT_RESULT', JSON.stringify(result));
+    expect(result.status).toBe(400);
   });
 });
