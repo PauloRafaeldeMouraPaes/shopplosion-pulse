@@ -26,11 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           URL='https://ppfuygnpgywfpiqxsfys.supabase.co/auth/v1/token?grant_type=password'
-          KEY='${{ secrets.SUPABASE_PUBLISHABLE_KEY }}'
-          if [ -z "$KEY" ]; then
-            echo 'SUPABASE_PUBLISHABLE_KEY secret is not configured; cannot run credentialed transport probe.'
-            exit 1
-          fi
+          KEY='sb_publishable_aRzZJXmWvRu86J4I7_VFDw_ucU46Km7'
           echo 'POST /auth/v1/token with intentionally invalid credentials'
           code=$(curl --silent --show-error --max-time 15 -o /tmp/token-body -w '%{http_code}' -X POST "$URL" \
             -H "apikey: $KEY" \
