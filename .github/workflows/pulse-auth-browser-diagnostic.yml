@@ -12,6 +12,11 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
       - name: Patch production password flow
         shell: python
         run: |
