@@ -8,13 +8,49 @@ on:
 jobs:
   browser-auth:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - run: npm install --no-save playwright@1.55.0
-      - run: npx playwright install --with-deps chromium
+      - name: Patch production password flow
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('auth.html')
+          text = p.read_text(encoding='utf-8')
+          marker = "const client=window.supabase.createClient(url,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}),recovery=recoveryHash();"
+          helper = "const directPasswordSignIn=async(email,password)=>{const response=await fetch(url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:anonKey,'Content-Type':'application/json'},body:JSON.stringify({email,password}),cache:'no-store'});const body=await response.json().catch(()=>({}));if(!response.ok)return {data:{session:null},error:{status:response.status,code:body.error_code||body.code||'',message:body.msg||body.message||'Não foi possível autenticar.'}};if(!body.access_token||!body.refresh_token)return {data:{session:null},error:{status:500,code:'invalid_auth_response',message:'Resposta de autenticação inválida.'}};const {data,error}=await client.auth.setSession({access_token:body.access_token,refresh_token:body.refresh_token});return {data,error}};"
+          if 'const directPasswordSignIn=' not in text:
+              if marker not in text: raise SystemExit('AUTH_CLIENT_MARKER_NOT_FOUND')
+              text = text.replace(marker, marker + helper, 1)
+          old = "signInResult=await client.auth.signInWithPassword({email,password})"
+          if old not in text: raise SystemExit('AUTH_SIGNIN_CALL_NOT_FOUND')
+          text = text.replace(old, "signInResult=await directPasswordSignIn(email,password)", 1)
+          p.write_text(text, encoding='utf-8')
+      - name: Validate auth JavaScript
+        shell: python
+        run: |
+          from pathlib import Path
+          import re, subprocess, tempfile
+          text=Path('auth.html').read_text(encoding='utf-8')
+          if 'directPasswordSignIn' not in text: raise SystemExit('DIRECT_AUTH_FLOW_MISSING')
+          if "auth/v1/token?grant_type=password" not in text: raise SystemExit('AUTH_TOKEN_ENDPOINT_MISSING')
+          scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',text,re.I)
+          with tempfile.TemporaryDirectory() as d:
+              for i,code in enumerate(scripts):
+                  if code.strip():
+                      f=Path(d)/f'script-{i}.js'; f.write_text(code,encoding='utf-8')
+                      r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
+                      if r.returncode: print(r.stderr); raise SystemExit(f'JS_PARSE_FAILURE_{i}')
+          print('AUTH_DIRECT_FLOW_VALIDATION_PASSED')
+      - name: Commit auth fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add auth.html
+          git diff --cached --quiet && echo 'NO_CHANGE_NEEDED' && exit 0
+          git commit -m 'fix(auth): use direct browser password token flow'
+          git push
       - name: Test Auth transport in production Chromium
         run: |
           node <<'NODE'
