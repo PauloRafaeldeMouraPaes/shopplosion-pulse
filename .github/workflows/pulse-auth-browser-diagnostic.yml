@@ -3,6 +3,7 @@ name: Pulse Auth Browser Diagnostic
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   browser-auth:
@@ -14,22 +15,29 @@ jobs:
           node-version: 24
       - run: npm install --no-save playwright@1.55.0
       - run: npx playwright install --with-deps chromium
-      - name: Test Auth transport in Chromium
+      - name: Test Auth transport in production Chromium
         run: |
           node <<'NODE'
           const { chromium } = require('playwright');
           (async()=>{
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage();
+            await page.goto('https://paulorafaeldemourapaes.github.io/shopplosion-pulse/auth.html?debug=1',{waitUntil:'networkidle'});
             const result=await page.evaluate(async()=>{
-              const url='https://ppfuygnpgywfpiqxsfys.supabase.co';
-              const out={};
-              try{const r=await fetch(url+'/auth/v1/settings',{cache:'no-store'});out.settings={status:r.status,body:(await r.text()).slice(0,300)}}catch(e){out.settings={error:String(e?.name||'')+' / '+String(e?.message||e)}}
-              try{const r=await fetch(url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'diagnostic-invalid@example.invalid',password:'diagnostic-invalid-password'}),cache:'no-store'});out.token={status:r.status,body:(await r.text()).slice(0,500)}}catch(e){out.token={error:String(e?.name||'')+' / '+String(e?.message||e)}}
+              const cfg=window.PULSE_SUPABASE_CONFIG||{};
+              const url=cfg.url;
+              const key=cfg.anonKey;
+              const out={sdkLoaded:!!window.supabase,urlPresent:!!url,keyPresent:!!key};
+              const headers={'apikey':key,'Content-Type':'application/json'};
+              try{const r=await fetch(url+'/auth/v1/settings',{headers:{apikey:key},cache:'no-store'});out.settings={status:r.status,body:(await r.text()).slice(0,300)}}catch(e){out.settings={error:String(e?.name||'')+' / '+String(e?.message||e)}}
+              try{const r=await fetch(url+'/auth/v1/token?grant_type=password',{method:'POST',headers,body:JSON.stringify({email:'diagnostic-invalid@example.invalid',password:'diagnostic-invalid-password'}),cache:'no-store'});out.token={status:r.status,body:(await r.text()).slice(0,500)}}catch(e){out.token={error:String(e?.name||'')+' / '+String(e?.message||e)}}
+              try{const client=window.supabase.createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});const {data,error}=await client.auth.signInWithPassword({email:'diagnostic-invalid@example.invalid',password:'diagnostic-invalid-password'});out.sdk={status:error?.status||null,code:error?.code||null,message:error?.message||null,hasSession:!!data?.session}}catch(e){out.sdk={thrown:true,name:e?.name||'',message:e?.message||''}}
               return out;
             });
             console.log(JSON.stringify(result,null,2));
             await browser.close();
-            if(result.token?.error||result.settings?.error) process.exit(1);
+            if(result.settings?.error||result.token?.error||result.sdk?.thrown) process.exit(1);
+            if(![400,401,422].includes(Number(result.token?.status))) process.exit(2);
+            if(result.sdk?.hasSession) process.exit(3);
           })();
           NODE
