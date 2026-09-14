@@ -1,0 +1,1 @@
+Temporary execution note; superseded by production auth implementation.
