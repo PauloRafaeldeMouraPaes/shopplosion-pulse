@@ -1,0 +1,1 @@
+Auth fix patch is available in the ChatGPT-generated artifact. This placeholder is intentionally not the production change.
