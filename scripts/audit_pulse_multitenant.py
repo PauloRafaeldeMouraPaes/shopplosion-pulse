@@ -24,7 +24,7 @@ architecture = read("docs/PULSE_MULTITENANT_ARCHITECTURE.md")
 
 required_auth = [
     "signInWithPassword",
-    "from('profiles')",
+    "auth_industry_context",
     "@supabase/supabase-js@2",
     "resetPasswordForEmail",
     "updateUser({password})",
@@ -37,13 +37,12 @@ for token in required_auth:
 if not re.search(r"location\.replace\('\./(?:index\.html|app\.html)'\)", auth):
     errors.append("auth-app-redirect-missing")
 
-if "location.origin+location.pathname" not in auth:
+if "new URL('./auth.html',location.href).href" not in auth:
     errors.append("password-recovery-redirect-not-derived-from-current-site")
 
 required_app = [
     "auth.getUser()",
-    "from('profiles')",
-    "from('industries')",
+    "auth_industry_context",
     "from('documents')",
     "from('analyses')",
     "storage.from('pulse-documents')",
@@ -58,6 +57,17 @@ for token in required_app:
         errors.append(f"app-missing:{token}")
 if "Minha indústria" not in app and "Minha indÃºstria" not in app:
     errors.append("app-missing:Minha indústria")
+
+# Browser pages must not directly query tenant membership tables. Tenant context
+# is resolved by the SECURITY DEFINER RPC, while RLS remains the data boundary.
+if re.search(r"from\(['\"]profiles['\"]\)", auth):
+    errors.append("auth-direct-profile-query-forbidden")
+if re.search(r"from\(['\"]industries['\"]\)", auth):
+    errors.append("auth-direct-industry-query-forbidden")
+if re.search(r"from\(['\"]profiles['\"]\)", app):
+    errors.append("app-direct-profile-query-forbidden")
+if re.search(r"from\(['\"]industries['\"]\)", app):
+    errors.append("app-direct-industry-query-forbidden")
 
 # The privileged key must not appear as a configured browser value. Documentation
 # may mention the forbidden key name, so inspect assignments rather than comments.
@@ -97,8 +107,6 @@ for token in [
         errors.append(f"storage-missing:{token}")
 
 # Fail closed only when the login request itself sends a client-selected tenant.
-# The later profiles query is intentionally allowed to read industry_id because
-# the authenticated user's tenant is resolved server-side by the RLS policies.
 if re.search(r"signInWithPassword\(\{[^}]*industry_id", auth):
     errors.append("login-client-industry-authorization-pattern")
 
@@ -112,10 +120,10 @@ if errors:
     sys.exit(1)
 
 print("PULSE MULTITENANT AUDIT: PASS")
-print("- Auth entrypoint present")
+print("- Auth entrypoint and secure tenant-context RPC present")
 print("- Password recovery flow present")
 print("- Authenticated tenant workspace present")
-print("- Private workspace navigation and tenant identity present")
+print("- Browser pages do not directly query tenant membership tables")
 print("- Browser configuration contains no privileged key assignment")
 print("- Browser configuration contains a valid publishable/anon key")
 print("- Tenant tables and RLS present")
