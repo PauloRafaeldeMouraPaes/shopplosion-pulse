@@ -23,3 +23,15 @@ jobs:
           curl -sS -o /tmp/token.out -w 'HTTP %{http_code}\n' --max-time 20 -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" -H 'Content-Type: application/json' -d '{"email":"diagnostic-invalid@example.invalid","password":"diagnostic-invalid-password"}'
           head -c 500 /tmp/token.out || true
           echo
+      - name: Verify published auth page from GitHub Pages
+        run: |
+          set -e
+          URL='https://paulorafaeldemourapaes.github.io/shopplosion-pulse/auth.html'
+          curl -fsSL --max-time 30 -D /tmp/pages.headers "$URL" -o /tmp/auth.html
+          echo "PAGES STATUS:"
+          head -n 20 /tmp/pages.headers
+          echo "AUTH PAGE BYTES: $(wc -c < /tmp/auth.html)"
+          echo "SIGNIN MARKER COUNT: $(grep -o 'signInWithPassword' /tmp/auth.html | wc -l)"
+          echo "RECOVERY MARKER COUNT: $(grep -o 'resetPasswordForEmail' /tmp/auth.html | wc -l)"
+          echo "OLD DIRECT-TOKEN MARKER COUNT: $(grep -o 'auth/v1/token?grant_type=password' /tmp/auth.html | wc -l)"
+          echo "RELEASE TRIGGER MARKER COUNT: $(grep -o 'Pulse auth release trigger' /tmp/auth.html | wc -l)"
