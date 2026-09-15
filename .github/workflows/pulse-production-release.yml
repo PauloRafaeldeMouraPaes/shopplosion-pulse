@@ -91,7 +91,7 @@ jobs:
           base = os.environ["PAGE_URL"].rstrip("/")
           expected_sha = os.environ["RELEASE_SHA"]
           expected_run = int(os.environ["WORKFLOW_RUN_ID"])
-          for path in ["/", "/app.html", "/ask.html", "/intelligence.html"]:
+          for path in ["/", "/auth.html", "/app.html", "/ask.html", "/intelligence.html"]:
               req = urllib.request.Request(base + path, headers={"User-Agent": "Pulse-Release-Healthcheck/1.0"})
               with urllib.request.urlopen(req, timeout=20) as r:
                   body = r.read(250000)
@@ -106,3 +106,5 @@ jobs:
               raise SystemExit("workflow run mismatch")
           print("PULSE PUBLISHED RELEASE - PASS")
           PY
+
+# Production auth investigation trigger: verify the exact published auth.html reaches Pages before user retest.
