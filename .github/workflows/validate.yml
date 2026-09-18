@@ -44,3 +44,14 @@ jobs:
               node --check "$f"
             done
           done
+
+      - name: Smoke test Supabase auth broker from CI
+        run: |
+          set -e
+          echo "AUTH BROKER INVALID CREDENTIALS:"
+          curl -sS --max-time 30 -o /tmp/broker.out -w 'HTTP %{http_code}\n' -X POST 'https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-auth-broker' \
+            -H 'Origin: https://paulorafaeldemourapaes.github.io' \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"login","email":"diagnostic-invalid@example.invalid","password":"diagnostic-invalid-password"}'
+          cat /tmp/broker.out
+          echo
