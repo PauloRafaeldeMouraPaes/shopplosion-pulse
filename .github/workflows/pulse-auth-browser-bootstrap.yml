@@ -1,0 +1,34 @@
+name: Pulse Auth Browser Bootstrap Probe
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install chromium
+      - name: Probe deployed auth bootstrap
+        run: |
+          node <<'NODE'
+          const {chromium}=require('playwright');
+          (async()=>{
+            const b=await chromium.launch({headless:true});
+            const p=await b.newPage();
+            await p.goto('https://paulorafaeldemourapaes.github.io/shopplosion-pulse/auth.html?debug=1',{waitUntil:'commit',timeout:10000});
+            await p.waitForTimeout(5000);
+            console.log(await p.evaluate(()=>JSON.stringify({
+              ready:document.readyState,
+              supabase:!!window.supabase,
+              createClient:typeof window.supabase?.createClient,
+              login:typeof document.getElementById('login')?.onsubmit,
+              forgot:typeof document.getElementById('forgot')?.onclick,
+              scripts:[...document.scripts].map(s=>s.src).filter(Boolean)
+            })));
+            await b.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
