@@ -56,5 +56,20 @@ jobs:
             await browser.close();
             if(result.broker?.error) process.exit(1);
             if(Number(result.broker?.status)!==400) process.exit(2);
+            const recovery=await page.evaluate(async()=>{
+              const cfg=window.PULSE_SUPABASE_CONFIG||{};
+              try{
+                const r=await fetch(cfg.url+'/functions/v1/pulse-auth-broker',{
+                  method:'POST',
+                  headers:{'Origin':location.origin,'Content-Type':'application/json'},
+                  body:JSON.stringify({action:'recover',email:'pulse-diagnostic-invalid@example.com',redirect_to:location.origin+'/shopplosion-pulse/auth.html'}),
+                  cache:'no-store'
+                });
+                return {status:r.status,body:(await r.text()).slice(0,500)};
+              }catch(e){return {error:String(e?.name||'')+' / '+String(e?.message||e)}}
+            });
+            console.log('RECOVERY_BROKER',JSON.stringify(recovery,null,2));
+            if(recovery.error) process.exit(3);
+            if(Number(recovery.status)!==200) process.exit(4);
           })();
           NODE
