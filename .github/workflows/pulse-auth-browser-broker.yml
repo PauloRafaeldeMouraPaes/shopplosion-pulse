@@ -1,0 +1,40 @@
+name: Pulse Auth Browser Broker Probe
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install chromium
+      - name: Probe deployed broker from browser
+        run: |
+          node <<'NODE'
+          const {chromium}=require('playwright');
+          (async()=>{
+            const b=await chromium.launch({headless:true});
+            const p=await b.newPage();
+            await p.goto('https://paulorafaeldemourapaes.github.io/shopplosion-pulse/auth.html?debug=1',{waitUntil:'commit',timeout:10000});
+            await p.waitForTimeout(5000);
+            const result=await p.evaluate(async()=>{
+              const cfg=window.PULSE_SUPABASE_CONFIG||{};
+              try{
+                const r=await fetch(cfg.url+'/functions/v1/pulse-auth-broker',{
+                  method:'POST',
+                  headers:{Origin:location.origin,Authorization:'Bearer '+cfg.anonKey,'Content-Type':'application/json'},
+                  body:JSON.stringify({action:'login',email:'diagnostic-invalid@example.invalid',password:'diagnostic-invalid-password'}),
+                  cache:'no-store',signal:AbortSignal.timeout(10000)
+                });
+                return {status:r.status,body:(await r.text()).slice(0,300)};
+              }catch(e){return {error:String(e?.name||'')+' / '+String(e?.message||e)}}
+            });
+            console.log(JSON.stringify(result));
+            await b.close();
+            if(result.error||result.status!==400) process.exit(1);
+          })().catch(e=>{console.error(e);process.exit(2)});
+          NODE
