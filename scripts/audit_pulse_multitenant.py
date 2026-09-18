@@ -41,7 +41,6 @@ if "new URL('./auth.html',location.href).href" not in auth:
 
 required_app = [
     "auth_industry_context",
-    "auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}",
     "from('documents')",
     "from('analyses')",
     "storage.from('pulse-documents')",
