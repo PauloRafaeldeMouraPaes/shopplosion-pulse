@@ -55,8 +55,7 @@ document.getElementById('upload').addEventListener('click',async()=>{const input
 
 })().catch(error=>{console.error('pulse-app-init',error);const el=document.getElementById('message');if(el){el.textContent='Não foi possível inicializar a área privada.';el.className='msg show error'}});
 </script>
-<script src="./pulse-shell.js?v=20260918.9"></script><script src="./pulse-workspace-v3.js?v=20260918.22"></script><script id="pulse-workspace-v3-inline">window.__PULSE_WORKSPACE_V3_LOADED=false;
-(()=>{if(window.__PULSE_WORKSPACE_V3_LOADED)return;window.__PULSE_WORKSPACE_V3_LOADED=true;'use strict';
+<script src="./pulse-shell.js?v=20260918.9"></script><script src="./pulse-workspace-v3.js?v=20260918.22"></script><script id="pulse-workspace-v3-inline">(()=>{if(window.__PULSE_WORKSPACE_V3_LOADED)return;window.__PULSE_WORKSPACE_V3_LOADED=true;'use strict';
 const path=location.pathname.split('/').pop()||'index.html',hash=location.hash.replace(/^#/,'');
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
