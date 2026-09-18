@@ -1,4 +1,4 @@
-(()=>{'use strict';
+(()=>{if(window.__PULSE_WORKSPACE_V3_LOADED)return;window.__PULSE_WORKSPACE_V3_LOADED=true;'use strict';
 const path=location.pathname.split('/').pop()||'index.html',hash=location.hash.replace(/^#/,'');
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
