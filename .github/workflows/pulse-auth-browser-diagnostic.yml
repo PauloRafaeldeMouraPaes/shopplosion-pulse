@@ -40,6 +40,7 @@ jobs:
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage();
             await page.goto('https://paulorafaeldemourapaes.github.io/shopplosion-pulse/auth.html?debug=1',{waitUntil:'commit',timeout:10000});
+            await page.waitForFunction(()=>!!(window.supabase&&typeof window.supabase.createClient==='function'&&document.getElementById('login')?.onsubmit&&document.getElementById('forgot')?.onclick),{timeout:15000});
             const bootstrap=await page.evaluate(()=>({
               supabaseLoaded:!!(window.supabase&&typeof window.supabase.createClient==='function'),
               loginHandler:typeof document.getElementById('login')?.onsubmit==='function',
