@@ -38,6 +38,13 @@ jobs:
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage();
             await page.goto('https://paulorafaeldemourapaes.github.io/shopplosion-pulse/auth.html?debug=1',{waitUntil:'networkidle'});
+            const bootstrap=await page.evaluate(()=>({
+              supabaseLoaded:!!(window.supabase&&typeof window.supabase.createClient==='function'),
+              loginHandler:typeof document.getElementById('login')?.onsubmit==='function',
+              forgotHandler:typeof document.getElementById('forgot')?.onclick==='function'
+            }));
+            console.log('AUTH_BOOTSTRAP',JSON.stringify(bootstrap));
+            if(!bootstrap.supabaseLoaded||!bootstrap.loginHandler||!bootstrap.forgotHandler) process.exit(5);
             const result=await page.evaluate(async()=>{
               const cfg=window.PULSE_SUPABASE_CONFIG||{};
               const out={urlPresent:!!cfg.url,keyPresent:!!cfg.anonKey};
