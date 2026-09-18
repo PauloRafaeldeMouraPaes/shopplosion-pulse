@@ -4,7 +4,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const routes={hoje:'./intelligence.html?v=20260918.20',universo:'./index.html?v=20260918.20',base:'./app.html?v=20260918.20#documents',investigacao:'./ask.html?v=20260918.20',analises:'./app.html?v=20260918.20#analyses'};
 function active(){if(path==='intelligence.html')return'hoje';if(path==='ask.html')return'investigacao';if(path==='app.html')return hash==='analyses'||hash.startsWith('analysis=')?'analises':'base';if(path==='sources.html')return'base';return'universo'}
-function shell(){return q('.pulse-rail')&&q('.pulse-mainbar')}
+function shell(){return !!(q('.pulse-shell-sidebar')||q('.pulse-shell-topbar')||q('.layout'))}
 function hideLegacy(){qa('.layout,body>header,.shell>.top,.pulse-shell-sidebar,.pulse-shell-topbar').forEach(x=>x.classList.add('pv3-legacy-hidden'));qa('main:not(.pv3-app)').forEach(x=>x.classList.add('pv3-legacy-hidden'))}
 function nextFor(a){return a==='universo'?['Investigar','./ask.html?v=20260918.20']:a==='hoje'?['Abrir Universo','./index.html?v=20260918.20']:a==='base'?['Investigar documentos','./ask.html?v=20260918.20']:a==='investigacao'?['Salvar como análise','./app.html?v=20260918.20#analyses']:['Abrir análise','./app.html?v=20260918.20#analyses']}
 function head(title,sub,a){const n=nextFor(a);return'<div class="pv3-head"><div><div class="pv3-kicker">PULSE · WORKSPACE</div><h1>'+title+'</h1><p>'+sub+'</p></div><a class="pv3-next" href="'+n[1]+'"><span>Próximo passo</span><strong>'+n[0]+' →</strong></a></div>'}
