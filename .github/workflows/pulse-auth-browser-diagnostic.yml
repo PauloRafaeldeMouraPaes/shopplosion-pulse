@@ -44,7 +44,7 @@ jobs:
               try{
                 const r=await fetch(cfg.url+'/functions/v1/pulse-auth-broker',{
                   method:'POST',
-                  headers:{'Origin':location.origin,'Content-Type':'application/json'},
+                  headers:{'Origin':location.origin,'Authorization':'Bearer '+cfg.anonKey,'Content-Type':'application/json'},
                   body:JSON.stringify({action:'login',email:'diagnostic-invalid@example.invalid',password:'diagnostic-invalid-password'}),
                   cache:'no-store'
                 });
