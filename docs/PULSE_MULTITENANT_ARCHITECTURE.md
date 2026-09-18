@@ -7,7 +7,7 @@ Transformar o Pulse em um produto multiempresa no qual cada indústria possui au
 ## Decisão arquitetural
 
 - Frontend: aplicação Pulse hospedada inicialmente de forma gratuita via GitHub/Netlify.
-- Autenticação: Supabase Auth.
+- Autenticação: Supabase Auth, com um Edge Function broker do próprio projeto para contornar a indisponibilidade do hostname Auth no caminho de alguns navegadores. O broker não armazena credenciais; apenas encaminha as operações ao Supabase Auth via TLS.
 - Banco: PostgreSQL via Supabase.
 - Arquivos: Supabase Storage privado.
 - Isolamento: `industry_id` + Row Level Security (RLS).
@@ -57,13 +57,13 @@ Cada tabela tenant-scoped deve possuir RLS habilitado e políticas baseadas no `
 
 ## Fluxo
 
-1. Usuário autentica.
-2. Supabase fornece a sessão.
-3. Perfil determina a indústria e o papel.
-4. Pulse carrega somente dados autorizados pela RLS.
-5. Upload usa caminho privado associado à indústria.
-6. Análises são persistidas com `industry_id`.
-7. Logout encerra a sessão local.
+1. Usuário autentica pelo formulário do Pulse.
+2. O navegador envia a operação ao Edge Function `pulse-auth-broker`; o broker encaminha login/refresh/recuperação ao Supabase Auth e não persiste senhas.
+3. A sessão retornada é mantida no armazenamento padrão do navegador; chamadas de banco/storage usam o access token em `Authorization`.
+4. O RPC `auth_industry_context` e a RLS determinam a indústria e o papel.
+5. Pulse carrega somente dados autorizados pela RLS.
+6. Upload usa caminho privado associado à indústria.
+7. Logout remove a sessão local.
 
 ## Não fazer
 
