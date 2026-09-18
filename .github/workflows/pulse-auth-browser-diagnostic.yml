@@ -53,7 +53,6 @@ jobs:
               return out;
             });
             console.log(JSON.stringify(result,null,2));
-            await browser.close();
             if(result.broker?.error) process.exit(1);
             if(Number(result.broker?.status)!==400) process.exit(2);
             const recovery=await page.evaluate(async()=>{
