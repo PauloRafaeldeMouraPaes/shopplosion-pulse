@@ -51,25 +51,18 @@
   const show=(text,type='ok')=>{msg.textContent=text;msg.className='msg show '+type};
   const redirect=()=>location.replace('./auth.html');
   if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){show('Configuração do Supabase indisponível.','error');return}
-  const storageKey='sb-'+new URL(cfg.url).hostname.split('.')[0]+'-auth-token';
-  const readStoredSession=()=>{try{return JSON.parse(localStorage.getItem(storageKey)||'null')}catch{return null}};
-  let session=readStoredSession();
-  if(!session?.access_token||!session?.refresh_token||!session?.user){redirect();return}
-  if(Number(session.expires_at||0)<=Math.floor(Date.now()/1000)+60){
-    try{
-      const rr=await fetch(cfg.url+'/functions/v1/pulse-auth-broker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'refresh',refresh_token:session.refresh_token}),cache:'no-store'});
-      const rb=await rr.json().catch(()=>({}));
-      if(!rr.ok||!rb.access_token||!rb.refresh_token)throw Error('refresh_failed');
-      session={...session,...rb,user:rb.user||session.user};
-      localStorage.setItem(storageKey,JSON.stringify(session));
-    }catch{localStorage.removeItem(storageKey);redirect();return}
-  }
+  const client=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,lock:async(_name,_timeout,fn)=>await fn()}});
+  let session=null;
+  try{
+    const {data,error}=await client.auth.getSession();
+    if(error||!data?.session){redirect();return}
+    session=data.session;
+  }catch{redirect();return}
   const user=session.user;
-  const client=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{headers:{Authorization:'Bearer '+session.access_token}}});
   const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',user.id).single();
-  if(profileError||!profile){localStorage.removeItem(storageKey);redirect();return}
+  if(profileError||!profile){redirect();return}
   const {data:industry,error:industryError}=await client.from('industries').select('id,name,status').eq('id',profile.industry_id).single();
-  if(industryError||!industry||industry.status!=='active'){localStorage.removeItem(storageKey);redirect();return}
+  if(industryError||!industry||industry.status!=='active'){redirect();return}
   document.getElementById('industryName').textContent=industry.name;
   document.getElementById('userEmail').textContent=user.email||'';
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
@@ -121,7 +114,7 @@
   document.getElementById('search').addEventListener('click',searchEvidence);
   document.getElementById('generate').addEventListener('click',generateAnswer);
   document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer()});
-  document.getElementById('logout').addEventListener('click',()=>{localStorage.removeItem(storageKey);redirect()});
+  document.getElementById('logout').addEventListener('click',async()=>{try{await client.auth.signOut()}finally{redirect()}});
 })().catch(()=>{const el=document.getElementById('message');el.textContent='Não foi possível inicializar o Ask AI privado.';el.className='msg show error'});
 </script>
 </body>
