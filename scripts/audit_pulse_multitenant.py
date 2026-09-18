@@ -36,12 +36,12 @@ for token in required_auth:
 if not re.search(r"location\.replace\('\./(?:index\.html|app\.html)'\)", auth):
     errors.append("auth-app-redirect-missing")
 
-if "location.origin+location.pathname" not in auth:
+if "new URL('./auth.html',location.href).href" not in auth:
     errors.append("password-recovery-redirect-not-derived-from-current-site")
 
 required_app = [
     "auth_industry_context",
-    "Authorization:'Bearer '+session.access_token",
+    "auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}",
     "from('documents')",
     "from('analyses')",
     "storage.from('pulse-documents')",
