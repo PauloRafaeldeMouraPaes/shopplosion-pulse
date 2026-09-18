@@ -27,8 +27,11 @@ jobs:
         run: |
           set -e
           echo "AUTH BROKER INVALID CREDENTIALS:"
-          curl -sS --max-time 30 -D /tmp/broker.headers -o /tmp/broker.out -X POST 'https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-auth-broker'             -H 'Origin: https://paulorafaeldemourapaes.github.io'             -H 'Content-Type: application/json'             -d '{"action":"login","email":"diagnostic-invalid@example.invalid","password":"diagnostic-invalid-password"}'             -w 'HTTP %{http_code}
-'
+          curl -sS --max-time 30 -D /tmp/broker.headers -o /tmp/broker.out -X POST 'https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-auth-broker' \
+            -H 'Origin: https://paulorafaeldemourapaes.github.io' \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"login","email":"diagnostic-invalid@example.invalid","password":"diagnostic-invalid-password"}' \
+            -w 'HTTP %{http_code}\n'
           cat /tmp/broker.out
           echo
       - name: Check Auth from Supabase Edge runtime
