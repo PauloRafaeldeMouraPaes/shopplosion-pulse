@@ -27,7 +27,7 @@ required_auth = [
     "action:'login'",
     "action:'recover'",
     "action:'update_password'",
-    "auth_industry_context",
+    "action:'industry_context'",
 ]
 for token in required_auth:
     if token not in auth:
@@ -40,7 +40,8 @@ if "new URL('./auth.html',location.href).href" not in auth:
     errors.append("password-recovery-redirect-not-derived-from-current-site")
 
 required_app = [
-    "auth_industry_context",
+    "functions/v1/pulse-auth-broker",
+    "action:'industry_context'",
     "from('documents')",
     "from('analyses')",
     "storage.from('pulse-documents')",
