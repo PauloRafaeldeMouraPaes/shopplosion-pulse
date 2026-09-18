@@ -68,3 +68,71 @@ body.pulse-shell-ready main.wrap>section:first-child:after{
  body.pulse-shell-ready .hero,body.pulse-shell-ready .panel{animation:pulse-enter .28s ease-out both}
  @keyframes pulse-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 }
+/* PULSE V3 — unified workspace, replacing the legacy dashboard composition */
+body.pulse-shell-ready:has(.layout){
+  --pulse-bg:#f6f7f9;--pulse-panel:#fff;--pulse-text:#15171c;--pulse-muted:#6b7280;--pulse-border:#e6e8ec;
+  background:var(--pulse-bg)!important;
+}
+body.pulse-shell-ready:has(.layout) .pulse-shell-sidebar,
+body.pulse-shell-ready:has(.layout) .pulse-shell-topbar{display:none!important}
+body.pulse-shell-ready:has(.layout) .shell>.top{display:none!important}
+body.pulse-shell-ready:has(.layout) .layout{display:block!important;min-height:0!important}
+body.pulse-shell-ready:has(.layout) .layout>aside{display:none!important}
+body.pulse-shell-ready:has(.layout) main{max-width:1280px!important;width:auto!important;margin:0!important;padding:0 44px 80px!important}
+body.pulse-shell-ready:has(.layout) .journey-map,
+body.pulse-shell-ready:has(.layout) .journey-status{display:none!important}
+body.pulse-shell-ready:has(.layout) .screen{max-width:1120px;margin:0 auto}
+body.pulse-shell-ready:has(.layout) .screen[aria-hidden="false"]{display:block}
+body.pulse-shell-ready:has(.layout) #overview>.intro{max-width:760px!important;padding-right:0!important;margin:0!important}
+body.pulse-shell-ready:has(.layout) .brand-hero-visual{display:none!important}
+body.pulse-shell-ready:has(.layout) .intro h1{font-size:42px!important;line-height:1.05!important;letter-spacing:-.055em!important;margin:8px 0 12px!important}
+body.pulse-shell-ready:has(.layout) .intro p{font-size:16px!important;max-width:680px!important}
+body.pulse-shell-ready:has(.layout) .update-badge{display:inline-flex!important;margin:18px 0 22px!important;padding:7px 10px!important;border-radius:999px!important;background:#fff!important;border:1px solid var(--pulse-border)!important;color:#6b7280!important}
+body.pulse-shell-ready:has(.layout) .hero-grid{grid-template-columns:minmax(0,1.7fr) minmax(260px,.7fr)!important;gap:16px!important}
+body.pulse-shell-ready:has(.layout) .hero,
+body.pulse-shell-ready:has(.layout) .box,
+body.pulse-shell-ready:has(.layout) .card,
+body.pulse-shell-ready:has(.layout) .lens,
+body.pulse-shell-ready:has(.layout) .rows,
+body.pulse-shell-ready:has(.layout) .sources,
+body.pulse-shell-ready:has(.layout) .answer,
+body.pulse-shell-ready:has(.layout) .upload-hero{
+  background:var(--pulse-panel)!important;border:1px solid var(--pulse-border)!important;border-radius:16px!important;box-shadow:0 1px 2px rgba(16,24,40,.03)!important;
+}
+body.pulse-shell-ready:has(.layout) .hero{color:var(--pulse-text)!important;padding:28px!important}
+body.pulse-shell-ready:has(.layout) .hero .eyebrow{color:#b4235a!important}
+body.pulse-shell-ready:has(.layout) .hero p{color:var(--pulse-muted)!important}
+body.pulse-shell-ready:has(.layout) .hero .primary{background:#e51b67!important;color:#fff!important;border-radius:10px!important}
+body.pulse-shell-ready:has(.layout) .card,body.pulse-shell-ready:has(.layout) .box{padding:18px!important}
+body.pulse-shell-ready:has(.layout) .card b{font-size:15px!important}
+body.pulse-shell-ready:has(.layout) .metrics{border-color:var(--pulse-border)!important}
+body.pulse-shell-ready:has(.layout) .rows{overflow:hidden}
+body.pulse-shell-ready:has(.layout) .row{padding:16px!important}
+body.pulse-shell-ready:has(.layout) .row b{font-size:16px!important}
+body.pulse-shell-ready:has(.layout) .opp{gap:14px!important}
+body.pulse-shell-ready:has(.layout) .opp .box{min-height:190px!important}
+body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas{margin-top:24px!important;border:0!important;border-radius:18px!important;background:transparent!important;box-shadow:none!important;padding:0!important}
+body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas .p5-head{padding:0 2px 12px!important}
+body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas .p5-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas .p5-card{background:#fff!important;border:1px solid var(--pulse-border)!important;border-radius:16px!important;padding:20px!important;box-shadow:0 1px 2px rgba(16,24,40,.03)!important}
+body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas .p5-card.is-focus{border-color:#f1a7c2!important;box-shadow:0 0 0 1px #f6d4e0,0 8px 28px rgba(16,24,40,.05)!important}
+body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas .p5-title{font-size:16px!important;line-height:1.25!important}
+body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas .p5-body{font-size:13px!important;line-height:1.5!important}
+body.pulse-shell-ready:has(.layout) .pulse-workspace-head{
+  max-width:1120px;margin:0 auto;padding:30px 0 26px;display:flex;align-items:flex-end;justify-content:space-between;gap:28px;border-bottom:1px solid var(--pulse-border);
+}
+body.pulse-shell-ready:has(.layout) .pulse-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a3164e;margin-bottom:8px}
+body.pulse-shell-ready:has(.layout) .pulse-workspace-head h1{font-size:30px!important;letter-spacing:-.04em!important;margin:0 0 6px!important}
+body.pulse-shell-ready:has(.layout) .pulse-workspace-head p{font-size:14px!important;color:var(--pulse-muted)!important;margin:0!important}
+body.pulse-shell-ready:has(.layout) .pulse-next-action{min-width:190px;padding:12px 14px;border:1px solid #edbfd0;border-radius:12px;background:#fff7fa;color:#8f1648;text-decoration:none;display:flex;flex-direction:column;gap:3px;transition:transform .16s,box-shadow .16s}
+body.pulse-shell-ready:has(.layout) .pulse-next-action:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(229,27,103,.09)}
+body.pulse-shell-ready:has(.layout) .pulse-next-action span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9b7a86}
+body.pulse-shell-ready:has(.layout) .pulse-next-action strong{font-size:13px}
+@media(max-width:800px){
+ body.pulse-shell-ready:has(.layout) main{padding:0 16px 88px!important}
+ body.pulse-shell-ready:has(.layout) .pulse-workspace-head{display:block;padding:22px 0}
+ body.pulse-shell-ready:has(.layout) .pulse-next-action{margin-top:16px;width:100%;box-sizing:border-box}
+ body.pulse-shell-ready:has(.layout) .hero-grid,.pulse-shell-ready:has(.layout) .opp{grid-template-columns:1fr!important}
+ body.pulse-shell-ready:has(.layout) #pulse-opportunity-canvas .p5-grid{grid-template-columns:1fr!important}
+ body.pulse-shell-ready:has(.layout) .intro h1{font-size:32px!important}
+}
