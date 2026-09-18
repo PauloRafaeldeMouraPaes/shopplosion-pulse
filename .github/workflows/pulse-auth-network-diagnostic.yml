@@ -23,6 +23,14 @@ jobs:
           curl -sS -o /tmp/token.out -w 'HTTP %{http_code}\n' --max-time 20 -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" -H 'Content-Type: application/json' -H 'apikey: sb_publishable_aRzZJXmWvRu86J4I7_VFDw_ucU46Km7' -d '{"email":"diagnostic-invalid@example.invalid","password":"diagnostic-invalid-password"}'
           head -c 500 /tmp/token.out || true
           echo
+      - name: Check Auth broker from Supabase Edge runtime
+        run: |
+          set -e
+          echo "AUTH BROKER INVALID CREDENTIALS:"
+          curl -sS --max-time 30 -D /tmp/broker.headers -o /tmp/broker.out -X POST 'https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-auth-broker'             -H 'Origin: https://paulorafaeldemourapaes.github.io'             -H 'Content-Type: application/json'             -d '{"action":"login","email":"diagnostic-invalid@example.invalid","password":"diagnostic-invalid-password"}'             -w 'HTTP %{http_code}
+'
+          cat /tmp/broker.out
+          echo
       - name: Check Auth from Supabase Edge runtime
         run: |
           set -e
