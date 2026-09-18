@@ -46,7 +46,7 @@ required_app = [
     "from('analyses')",
     "storage.from('pulse-documents')",
     "industry.id+'/'+crypto.randomUUID()",
-    "localStorage.removeItem(storageKey)",
+    "auth.signOut()",
     "Universo Pulse",
     "workspaceNote",
     "id=\"role\"",
