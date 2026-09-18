@@ -34,12 +34,6 @@ jobs:
             -w 'HTTP %{http_code}\n'
           cat /tmp/broker.out
           echo
-      - name: Check Auth from Supabase Edge runtime
-        run: |
-          set -e
-          echo "EDGE DIAGNOSTIC:"
-          curl -fsS --max-time 30 'https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-auth-network-diagnostic' | tee /tmp/edge-diagnostic.json
-          echo
       - name: Verify published auth page from GitHub Pages
         run: |
           set -e
