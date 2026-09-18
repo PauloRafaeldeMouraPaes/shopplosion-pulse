@@ -55,14 +55,20 @@
   let session=null;
   try{
     const {data,error}=await client.auth.getSession();
-    if(error||!data?.session){redirect();return}
+    if(error||!data?.session){show('Sessão não encontrada.','error');setTimeout(redirect,300);return}
     session=data.session;
-  }catch{redirect();return}
+  }catch{show('Não foi possível recuperar sua sessão.','error');return}
   const user=session.user;
-  const {data:profile,error:profileError}=await client.from('profiles').select('industry_id,role').eq('id',user.id).single();
-  if(profileError||!profile){redirect();return}
-  const {data:industry,error:industryError}=await client.from('industries').select('id,name,status').eq('id',profile.industry_id).single();
-  if(industryError||!industry||industry.status!=='active'){redirect();return}
+  let context=null;
+  try{
+    const r=await fetch(cfg.url+'/functions/v1/pulse-auth-broker',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({action:'industry_context',access_token:session.access_token}),cache:'no-store'});
+    const body=await r.json().catch(()=>null);
+    if(!r.ok)throw new Error('broker_http_'+r.status);
+    context=Array.isArray(body)?body[0]:body;
+  }catch(e){show('Não foi possível validar a indústria agora. A sessão foi preservada.','error');return}
+  if(!context?.industry_id||context.industry_status!=='active'){show('A conta não possui uma indústria ativa.','error');return}
+  const profile={industry_id:context.industry_id,role:context.role};
+  const industry={id:context.industry_id,name:context.industry_name,status:context.industry_status};
   document.getElementById('industryName').textContent=industry.name;
   document.getElementById('userEmail').textContent=user.email||'';
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
