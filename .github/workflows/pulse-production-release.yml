@@ -13,7 +13,7 @@ permissions:
 jobs:
   release-gate:
     name: Release Gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       - name: Checkout exact release commit
@@ -50,7 +50,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: release-gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     environment: github-pages
     steps:
@@ -106,5 +106,3 @@ jobs:
               raise SystemExit("workflow run mismatch")
           print("PULSE PUBLISHED RELEASE - PASS")
           PY
-
-# Production auth investigation trigger: verify the exact published auth.html reaches Pages before user retest.
