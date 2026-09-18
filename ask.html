@@ -54,10 +54,23 @@
   const client=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   let session=null;
   try{
-    const {data,error}=await client.auth.getSession();
-    if(error||!data?.session){show('Sessão não encontrada.','error');setTimeout(redirect,300);return}
-    session=data.session;
-  }catch{show('Não foi possível recuperar sua sessão.','error');return}
+    const current=await client.auth.getSession();
+    if(current.data?.session){
+      session=current.data.session;
+    }else{
+      const storageKey='sb-'+new URL(cfg.url).hostname.split('.')[0]+'-auth-token';
+      let stored=null;
+      try{stored=JSON.parse(localStorage.getItem(storageKey)||'null')}catch{}
+      const accessToken=stored?.access_token||stored?.currentSession?.access_token;
+      const refreshToken=stored?.refresh_token||stored?.currentSession?.refresh_token;
+      if(accessToken&&refreshToken){
+        const restored=await client.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+        if(restored.error||!restored.data?.session) throw restored.error||new Error('session_restore_failed');
+        session=restored.data.session;
+      }
+    }
+    if(!session){show('Não foi possível recuperar a sessão nesta página.','error');return}
+  }catch(e){show('Não foi possível recuperar a sessão nesta página.','error');return}
   const user=session.user;
   let context=null;
   try{
