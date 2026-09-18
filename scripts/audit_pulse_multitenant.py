@@ -23,12 +23,11 @@ storage = read("supabase/migrations/002_storage_and_membership_hardening.sql")
 architecture = read("docs/PULSE_MULTITENANT_ARCHITECTURE.md")
 
 required_auth = [
-    "signInWithPassword",
+    "functions/v1/pulse-auth-broker",
+    "action:'login'",
+    "action:'recover'",
+    "action:'update_password'",
     "auth_industry_context",
-    "@supabase/supabase-js@2",
-    "resetPasswordForEmail",
-    "updateUser({password})",
-    "PASSWORD_RECOVERY",
 ]
 for token in required_auth:
     if token not in auth:
@@ -37,17 +36,17 @@ for token in required_auth:
 if not re.search(r"location\.replace\('\./(?:index\.html|app\.html)'\)", auth):
     errors.append("auth-app-redirect-missing")
 
-if "new URL('./auth.html',location.href).href" not in auth:
+if "location.origin+location.pathname" not in auth:
     errors.append("password-recovery-redirect-not-derived-from-current-site")
 
 required_app = [
-    "auth.getUser()",
     "auth_industry_context",
+    "Authorization:'Bearer '+session.access_token",
     "from('documents')",
     "from('analyses')",
     "storage.from('pulse-documents')",
     "industry.id+'/'+crypto.randomUUID()",
-    "auth.signOut()",
+    "localStorage.removeItem(storageKey)",
     "Universo Pulse",
     "workspaceNote",
     "id=\"role\"",
