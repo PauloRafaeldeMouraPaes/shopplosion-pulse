@@ -7,6 +7,10 @@ on:
     branches: [main, pulse-next-level-reconciliation]
   workflow_dispatch:
 
+concurrency:
+  group: pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
