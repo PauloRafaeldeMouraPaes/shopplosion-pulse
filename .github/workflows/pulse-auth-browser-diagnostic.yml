@@ -1,8 +1,6 @@
 name: Pulse Auth Browser Diagnostic
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
