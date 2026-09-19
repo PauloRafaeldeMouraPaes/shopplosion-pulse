@@ -1,8 +1,7 @@
 name: Pulse Auth Network Diagnostic
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: pulse-${{ github.workflow }}-${{ github.ref }}
