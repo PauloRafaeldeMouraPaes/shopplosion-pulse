@@ -33,7 +33,7 @@ jobs:
       - name: Run deterministic adversarial audit
         run: python3 scripts/audit_pulse_adversarial.py
       - name: Audit single-file product contracts
-        run: python3 scripts/audit_pulse_single_file.py
+        run: python3 scripts/audit_pulse_workspace.py
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
       - name: Run semantic data integrity checks
