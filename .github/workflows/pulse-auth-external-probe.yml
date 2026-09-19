@@ -7,6 +7,10 @@ on:
       - '.github/workflows/pulse-auth-external-probe.yml'
   workflow_dispatch:
 
+concurrency:
+  group: pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   probe:
     runs-on: ubuntu-latest
