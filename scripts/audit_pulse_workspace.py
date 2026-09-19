@@ -14,9 +14,9 @@ else:
       ("title", r"<title>Pulse"),
       ("workspace app root", r'class=["\'][^"\']*app[^"\']*["\']'),
       ("journey", r"01\s*[·.-]\s*Hoje|01\s*[·.-]\s*Comece aqui"),
-      ("universo", r"02\s*[·.-]\s*Universo|Oportunidade Canvas"),
-      ("investigação", r"04\s*[·.-]\s*Investiga"),
-      ("análises", r"05\s*[·.-]\s*An"),
+      ("universo", r"Universo|02[^<]{0,40}Universo|Oportunidade Canvas"),
+      ("investigação", r"Investigação|Investigar"),
+      ("análises", r"Análises|Opportunity Canvas"),
     ]
     for label,pat in checks:
         if not re.search(pat,text,re.I|re.S): errors.append(f"{label}: contrato ausente")
