@@ -73,8 +73,8 @@ body.pulse-shell-ready:has(.layout){
   --pulse-bg:#f6f7f9;--pulse-panel:#fff;--pulse-text:#15171c;--pulse-muted:#6b7280;--pulse-border:#e6e8ec;
   background:var(--pulse-bg)!important;
 }
-body.pulse-shell-ready:has(.layout) .pulse-shell-sidebar,
-body.pulse-shell-ready:has(.layout) .pulse-shell-topbar{display:none!important}
+body.pulse-shell-ready:has(.layout) .pulse-rail,
+body.pulse-shell-ready:has(.layout) .pulse-mainbar{display:none!important}
 body.pulse-shell-ready:has(.layout) .shell>.top{display:none!important}
 body.pulse-shell-ready:has(.layout) .layout{display:block!important;min-height:0!important}
 body.pulse-shell-ready:has(.layout) .layout>aside{display:none!important}
