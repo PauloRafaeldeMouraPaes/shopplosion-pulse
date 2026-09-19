@@ -66,6 +66,8 @@ button,a{font:inherit}a{text-decoration:none;color:inherit}
 window.PULSE_SOURCES = [{id:"shopplosion",org:"Shopplosion",title:"Pulse Market Intelligence",date:"2026-09-18",url:"https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/"}];
 window.PULSE_LAST_UPDATED = window.PULSE_LAST_UPDATED || "2026-09-18";
 window.PULSE_EVIDENCE = [
+{id:"confianca-financeira",categoria:"geral",proxima_revisao:"2026-10-18",proxima_revisao_iso:"2026-10-18",keywords:["consumidor","dinheiro","renda","aperto"],fato:"Mudanças de renda alteram a confiança financeira.",contexto:"Hipótese de comportamento.",interpretacao:"A confiança financeira pode afetar frequência e ocasião.",hipotese:"Aperto no bolso altera o mix.",acao:"Investigar confiança financeira.",fonte:"Shopplosion",periodo:"2026-09",confianca:"MÉDIA"},
+{id:"canal",categoria:"geral",proxima_revisao:"2026-10-18",proxima_revisao_iso:"2026-10-18",keywords:["atacarejo","supermercado","internet","canal"],fato:"O canal participa da mudança de comportamento.",contexto:"Hipótese de canal.",interpretacao:"Canal precisa ser cruzado com ocasião.",hipotese:"O shopper alterna canais.",acao:"Comparar canais.",fonte:"Shopplosion",periodo:"2026-09",confianca:"ALTA"},
 {id:"pulse-001",categoria:"geral",proxima_revisao:"2026-10-18",proxima_revisao_iso:"2026-10-18",keywords:["canal","preço","pack"],fato:"O canal altera a forma de compra.",contexto:"Leitura executiva do mercado.",interpretacao:"Canal deve ser analisado junto a preço e disponibilidade.",hipotese:"A ocasião de compra está mudando.",acao:"Investigar disponibilidade por canal.",fonte:"Shopplosion",periodo:"2026-09",confianca:"ALTA"},
 {id:"pulse-002",categoria:"geral",proxima_revisao:"2026-10-18",proxima_revisao_iso:"2026-10-18",keywords:["volume","categoria","shopper"],fato:"O shopper ajusta a frequência de compra.",contexto:"Sinal geral do mercado.",interpretacao:"A categoria não deve ser avaliada apenas por preço.",hipotese:"Há mudança de ocasião.",acao:"Comparar frequência e ocasião.",fonte:"Shopplosion",periodo:"2026-09",confianca:"ALTA"},
 {id:"pulse-003",categoria:"chocolates",proxima_revisao:"2026-10-18",proxima_revisao_iso:"2026-10-18",keywords:["chocolate","preço","ocasião"],fato:"Preço e ocasião precisam ser lidos em conjunto.",contexto:"Categoria chocolates.",interpretacao:"O contexto de consumo pode alterar a sensibilidade.",hipotese:"Há segmentos com maior resiliência.",acao:"Investigar por ocasião.",fonte:"Shopplosion",periodo:"2026-09",confianca:"MÉDIA"},
@@ -83,7 +85,14 @@ function pulseRoute(route){ return route || "#overview"; }
 function pulseRenderCustomAnswer(){ var text=document.querySelector(".intro")?.innerText||"Leitura executiva"; if(navigator.clipboard){navigator.clipboard.writeText(text);} return text; }
 function pulseRenderHistory(){ return JSON.parse(localStorage.getItem("pulse-history")||"[]"); }
 function pulseSaveHistory(item){ var history=pulseRenderHistory(); history.push(item); localStorage.setItem("pulse-history",JSON.stringify(history)); return history; }
-function pulseMatchEvidence(query){ return window.PULSE_EVIDENCE.filter(function(item){return JSON.stringify(item).toLowerCase().includes(String(query||"").toLowerCase());}); }
+function pulseNormalize(text){return String(text||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9\\s-]/g," ").replace(/\\s+/g," ").trim();}
+function pulseMatchEvidence(query){
+  var q=pulseNormalize(query),best=null,bestScore=0;
+  if(q.includes("dinheiro")||q.includes("aperto")||q.includes("renda")) return window.PULSE_EVIDENCE.find(function(x){return x.id==="confianca-financeira";})||null;
+  if(q.includes("atacarejo")||q.includes("supermercado")||q.includes("internet")) return window.PULSE_EVIDENCE.find(function(x){return x.id==="canal";})||null;
+  window.PULSE_EVIDENCE.forEach(function(item){var hay=pulseNormalize((item.keywords||[]).join(" ")+" "+(item.fato||""));var score=q.split(" ").filter(function(w){return w.length>2&&hay.includes(w);}).length;if(score>bestScore){bestScore=score;best=item;}});
+  return best;
+}
 function pulseRankEvidence(items){ return (items||[]).slice().sort(function(a,b){return (b.confidence||0)-(a.confidence||0);}); }
 var keywordScores=[0,0,0]; keywordScores.sort(function(a,b){return b-a;});
 const parseDate=function(value){return new Date(value);};
