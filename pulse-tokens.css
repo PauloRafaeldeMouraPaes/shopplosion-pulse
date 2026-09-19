@@ -1,0 +1,88 @@
+/* GERADO por scripts/build_design_tokens.py a partir de design/tokens.json. */
+/* Não edite à mão — edite design/tokens.json (ou o Design System Pulse) e rode o script de novo. */
+/* Fonte: paulorafaeldemourapaes/shopplosion-pulse@main@0f94517, sincronizado em 2026-09-19 */
+
+:root, [data-theme="light"] {
+  --surface-canvas: #ffffff; /* Fundo de documentos, respostas e análises. */
+  --surface-app: #f7f6f4; /* Fundo de listas e do inspetor. */
+  --surface-sunken: #f2f0ec; /* Chips, campos e blocos neutros. */
+  --surface-rail: #14141a; /* Rail de contexto (navegação fixa) e modo apresentação. */
+  --ink-1: #16151a; /* Títulos e ação secundária sólida, sobre surface-canvas e surface-app. */
+  --ink-2: #4a4852; /* Corpo de apoio, sobre surface-canvas e surface-app. */
+  --ink-3: #6e6b76; /* Rótulos e metadados, sobre surface-canvas e surface-app; nunca abaixo de 11 px. */
+  --brand-pulse: #e51b67; /* Ação primária, seleção e citação. Nada decorativo em magenta. */
+  --brand-soft: #fdebf1; /* Destaque de trecho citado; fundo sob texto em brand-pulse ou ink-1. */
+  --on-brand: #ffffff; /* Texto e ícones sobre brand-pulse; só em peso 500 ou acima. */
+  --on-rail: #ffffff; /* Texto e ícones sobre surface-rail (item de navegação ativo, marca). */
+  --on-rail-muted: #b9b7c0; /* Itens de navegação inativos no rail, sobre surface-rail. */
+  --state-processing: #0e8e96; /* Estado processando/indexando de um documento ou fonte. */
+  --state-ok: #2f7d57; /* Estado disponível/confirmado. */
+  --state-attention: #b8862b; /* Estado parcial, contradição entre evidências ou confiança média. */
+  --state-error: #c0362c; /* Estado de falha, sempre acompanhado da causa e da ação de correção. */
+  --line-1: #e5e1db; /* Divisórias e bordas de cartão. Uma borda por agrupamento: borda no cartão OU divisória na lista, nunca as duas. */
+  --shadow-panel: 0 8px 24px rgba(20,20,26,.08); /* Elevação nível 1: painéis, dropdowns, o inspetor. */
+  --shadow-overlay: 0 16px 48px rgba(20,20,26,.16); /* Elevação nível 2: modais, menu de comando (⌘K). Cartão em lista não usa sombra, usa borda (line-1). */
+}
+
+:root {
+  --space-4: 4px; /* Passo base da grade de 4 px. */
+  --space-8: 8px; /* Espaçamento entre ícone e rótulo, gaps pequenos. */
+  --space-12: 12px; /* Padding interno de campos e chips. */
+  --space-16: 16px; /* Padding de cartão em lista, gaps de grid. */
+  --space-24: 24px; /* Padding de painel, espaçamento entre blocos. */
+  --space-32: 32px; /* Margem de seção, padding de canvas em telas amplas. */
+  --space-48: 48px; /* Respiro entre blocos de topo de página. */
+  --space-64: 64px; /* Margem inferior de página, rail recolhido (largura). */
+  --rail-width: 240px; /* Largura do rail de contexto fixo em telas desktop. */
+  --inspector-width: 360px; /* Largura do inspetor (painel lateral direito, recolhível, nunca modal). */
+  --radius-control: 6px; /* Controles: botões, campos, itens de lista de comando. */
+  --radius-card: 10px; /* Cartões de objeto e itens de lista. */
+  --radius-panel: 14px; /* Painéis, o inspetor, superfícies de investigação. */
+  --radius-chip: 999px; /* Chips, selos de confiança, badges de estado. */
+  --breakpoint-mobile: 640px; /* Acima disso, mobile vira desktop. Abaixo: rail vira barra inferior, inspetor vira folha. */
+  --breakpoint-desktop: 1024px; /* A partir daqui, layout desktop: rail fixo lateral, inspetor simultâneo ao canvas. */
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.display { /* Título principal de Hoje e de páginas de objeto (ex.: nome do documento). */
+  font-family: var(--font-sans);
+  font-size: 32px;
+  line-height: 34px;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+.title { /* Títulos de seção dentro de um objeto (ex.: cabeçalho de uma análise). */
+  font-family: var(--font-sans);
+  font-size: 24px;
+  line-height: 28px;
+  letter-spacing: -0.02em;
+  font-weight: 750;
+}
+.section { /* Cabeçalhos de painel e cartão (ex.: "Fontes cadastradas"). */
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+.reading { /* Leitura longa: respostas do Ask AI, texto de análises, trechos citados. Largura confortável: máx. 68 caracteres por linha. */
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 400;
+}
+.interface { /* Texto padrão de interface: rótulo de campo, texto de botão, corpo de linha de lista. */
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+.label { /* Rótulos e metadados em caixa alta: tipo do objeto, período, confiança, timestamps. Aplicar text-transform: uppercase junto ao estilo. */
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}

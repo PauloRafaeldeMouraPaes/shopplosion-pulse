@@ -1,4 +1,5 @@
-:root{--pv3-bg:#f6f7f9;--pv3-surface:#fff;--pv3-ink:#15171c;--pv3-muted:#68707d;--pv3-line:#e4e7ec;--pv3-brand:#e51b67;--pv3-soft:#fff1f6;--pv3-radius:16px}
+/* Fase 1 (design system Pulse): idem — aponta para pulse-tokens.css. Ver docs/DESIGN_SYSTEM_SYNC.md. */
+:root{--pv3-bg:var(--surface-app);--pv3-surface:var(--surface-canvas);--pv3-ink:var(--ink-1);--pv3-muted:var(--ink-2);--pv3-line:var(--line-1);--pv3-brand:var(--brand-pulse);--pv3-soft:var(--brand-soft);--pv3-radius:var(--radius-panel)}
 .pv3-app{min-height:calc(100vh - 52px);background:var(--pv3-bg);padding:32px 40px 72px;box-sizing:border-box}
 .pv3-frame{max-width:1180px;margin:0 auto}
 .pv3-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px}

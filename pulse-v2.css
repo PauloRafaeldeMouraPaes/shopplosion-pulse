@@ -1,7 +1,8 @@
+/* Fase 1 (design system Pulse): idem — aponta para pulse-tokens.css. Ver docs/DESIGN_SYSTEM_SYNC.md. */
 :root{
-  --p-bg:#f5f4f1;--p-surface:#fff;--p-surface2:#fbfaf8;--p-ink:#17161b;--p-muted:#716e78;
-  --p-line:#e5e1db;--p-brand:#e51b67;--p-brand-soft:#fdebf2;--p-dark:#17171d;
-  --p-radius:18px;--p-shadow:0 14px 40px rgba(23,22,27,.07);
+  --p-bg:var(--surface-app);--p-surface:var(--surface-canvas);--p-surface2:var(--surface-sunken);--p-ink:var(--ink-1);--p-muted:var(--ink-2);
+  --p-line:var(--line-1);--p-brand:var(--brand-pulse);--p-brand-soft:var(--brand-soft);--p-dark:var(--surface-rail);
+  --p-radius:var(--radius-panel);--p-shadow:var(--shadow-panel);
 }
 html,body{background:var(--p-bg)!important;color:var(--p-ink)!important}
 body.pulse-shell-ready{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
@@ -70,7 +71,7 @@ body.pulse-shell-ready main.wrap>section:first-child:after{
 }
 /* PULSE V3 — unified workspace, replacing the legacy dashboard composition */
 body.pulse-shell-ready:has(.layout){
-  --pulse-bg:#f6f7f9;--pulse-panel:#fff;--pulse-text:#15171c;--pulse-muted:#6b7280;--pulse-border:#e6e8ec;
+  --pulse-bg:var(--surface-app);--pulse-panel:var(--surface-canvas);--pulse-text:var(--ink-1);--pulse-muted:var(--ink-2);--pulse-border:var(--line-1);
   background:var(--pulse-bg)!important;
 }
 body.pulse-shell-ready:has(.layout) .pulse-rail,

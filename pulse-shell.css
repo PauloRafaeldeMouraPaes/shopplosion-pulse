@@ -1,4 +1,5 @@
-:root{--pulse-canvas:#fff;--pulse-app:#f7f6f4;--pulse-sunken:#f2f0ec;--pulse-rail:#14141a;--pulse-ink:#16151a;--pulse-ink2:#4a4852;--pulse-ink3:#6e6b76;--pulse-brand:#e51b67;--pulse-soft:#fdebf1;--pulse-line:#e5e1db;--pulse-rail-w:240px}
+/* Fase 1 (design system Pulse): estas variáveis eram a fonte da cor/raio; agora só apontam para pulse-tokens.css, gerado de design/tokens.json. Ver docs/DESIGN_SYSTEM_SYNC.md. */
+:root{--pulse-canvas:var(--surface-canvas);--pulse-app:var(--surface-app);--pulse-sunken:var(--surface-sunken);--pulse-rail:var(--surface-rail);--pulse-ink:var(--ink-1);--pulse-ink2:var(--ink-2);--pulse-ink3:var(--ink-3);--pulse-brand:var(--brand-pulse);--pulse-soft:var(--brand-soft);--pulse-line:var(--line-1);--pulse-rail-w:var(--rail-width)}
 html{background:var(--pulse-app)}body.pulse-shell-ready{background:var(--pulse-app)!important;color:var(--pulse-ink)!important;padding-left:var(--pulse-rail-w);transition:padding-left .18s cubic-bezier(.2,0,0,1)}
 body.pulse-shell-ready>header.pulse-original-header{display:none!important}
 .pulse-rail{position:fixed;z-index:1000;inset:0 auto 0 0;width:var(--pulse-rail-w);background:var(--pulse-rail);color:#fff;display:flex;flex-direction:column;padding:18px 14px;box-sizing:border-box}

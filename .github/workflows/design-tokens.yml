@@ -1,0 +1,34 @@
+name: Sync design tokens
+
+# Sempre que design/tokens.json mudar (você exportou uma nova versão do
+# Design System Pulse e colou aqui), este workflow roda
+# scripts/build_design_tokens.py e commita o pulse-tokens.css
+# regenerado de volta no branch — sem passo manual depois do export.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "design/tokens.json"
+      - "scripts/build_design_tokens.py"
+  workflow_dispatch: {}
+
+jobs:
+  build-tokens:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gerar pulse-tokens.css a partir de design/tokens.json
+        run: python3 scripts/build_design_tokens.py
+
+      - name: Commitar pulse-tokens.css se mudou
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: sincroniza pulse-tokens.css com design/tokens.json"
+          file_pattern: pulse-tokens.css
