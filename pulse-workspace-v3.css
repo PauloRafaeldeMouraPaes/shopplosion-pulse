@@ -34,4 +34,5 @@
 }
 @media(max-width:560px){.pv3-shell-nav{padding-left:6px;padding-right:6px}.pv3-app{padding-bottom:calc(20px + var(--pv3-nav-height));}}
 
-body.pv3-active{padding-left:0!important}body.pv3-active .pulse-shell-sidebar,body.pv3-active .pulse-shell-topbar{display:none!important}.pv3-app{padding-left:calc(40px + 220px)!important;width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;position:relative!important;left:auto!important;right:auto!important;transform:none!important}.pv3-app *{box-sizing:border-box}
+body.pv3-active{padding-left:0!important}body.pv3-active .pulse-shell-sidebar,body.pv3-active .pulse-shell-topbar{display:none!important}.pv3-app{width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;position:relative!important;left:auto!important;right:auto!important;transform:none!important}.pv3-app *{box-sizing:border-box}
+@media(min-width:901px){.pv3-app{padding-left:calc(40px + 220px)!important}}
