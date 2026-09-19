@@ -6,6 +6,10 @@ on:
       - .github/workflows/pulse-app-auth-fix.yml
   workflow_dispatch:
 
+concurrency:
+  group: pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   patch-app:
     runs-on: ubuntu-latest
