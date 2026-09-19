@@ -16,7 +16,7 @@ button,a{font:inherit}a{text-decoration:none;color:inherit}
 .header{padding:28px 40px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:20px}.logos{display:flex;align-items:center;gap:28px}.shop{font-size:25px;font-weight:950;color:#ec1980;letter-spacing:-1.5px}.pulse{font-size:20px;font-weight:900}.pulse small{font-size:11px;color:#98a1b4;font-weight:650;margin-left:8px;letter-spacing:.3px}.universe{font-weight:750;color:#454c5d}.universe span{font-weight:900}
 .context{height:54px;background:#fff7fb;border-block:1px solid #f0dfe7;padding:0 32px;display:flex;align-items:center;gap:18px}.context b{color:var(--pink)}
 .workspace{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - 189px)}
-.journey{background:var(--navy);padding:24px 14px;color:#d9e0ef}.journey h3{font-size:12px;letter-spacing:1.4px;margin:0 10px 18px;color:#9da9c1}.step{display:block;padding:13px 10px;border-radius:12px;margin-bottom:5px}.step strong{display:block;font-size:14px;color:#e9edf6}.step span{font-size:12px;color:#8f9bb4;display:block;margin-top:4px}.step.active{background:var(--blue)}.step.active strong,.step.active span{color:#fff}
+.journey{background:var(--navy);padding:24px 14px;color:#d9e0ef}.journey h3{font-size:12px;letter-spacing:1.4px;margin:0 10px 18px;color:#9da9c1}.step{display:block;padding:13px 10px;border-radius:12px;margin-bottom:5px}.step strong{display:block;font-size:14px;color:#e9edf6}.step span{font-size:12px;color:#8f9bb4;display:block;margin-top:4px}.step.active{background:var(--blue)}.step.active strong,.step.active span{color:#fff}.journey-step.is-current b{color:#fff!important}
 .content{padding:38px 34px 70px;max-width:1160px;width:100%;margin:0 auto}.eyebrow{font-size:12px;font-weight:900;letter-spacing:1.2px;color:var(--pink)}h1{font-size:clamp(34px,5vw,58px);line-height:.98;letter-spacing:-2.5px;margin:8px 0 12px}.intro{font-size:17px;color:var(--muted);max-width:760px;line-height:1.55;margin:0 0 28px}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}.metric,.card{border:1px solid var(--line);border-radius:16px;background:#fff}.metric{padding:18px}.metric small{color:var(--muted);font-weight:750}.metric strong{display:block;font-size:25px;margin-top:7px}
 .canvas{border:1px solid #dfe3ea;border-radius:18px;padding:22px;background:#fff;box-shadow:0 8px 25px rgba(17,24,39,.04)}.canvasTop{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.canvas h2{margin:0;font-size:22px}.canvas p{color:var(--muted);line-height:1.5}.badge{font-size:11px;font-weight:850;color:#6b7280;white-space:nowrap}
@@ -36,7 +36,7 @@ button,a{font:inherit}a{text-decoration:none;color:inherit}
 <main class="main">
 <div class="crumb">Pulse <b>/</b><b>Workspace</b></div>
 <header class="header"><div class="logos"><div class="shop">Shopplosion</div><div class="pulse">PULSE <small>Brasil Market Intelligence</small></div></div><div class="universe">UNIVERSO <span>Brasil · CPG</span></div></header>
-<div class="context"><b>Todas as categorias</b><span>Visão completa do mercado.</span></div>
+<div class="context"><b>Todas as categorias</b><span>Visão completa do mercado.</span><select id="pulse-category-select" aria-label="Selecionar categoria"><option>todas as categorias</option><option>café</option><option>chocolate</option><option>bebidas</option></select></div>
 <div class="workspace">
 <nav class="journey" aria-label="Jornada"><h3>JORNADA</h3><a class="step active" href="#overview"><strong>01 · Comece aqui</strong><span>Visão executiva</span></a><a class="step" href="#movimentos"><strong>02 · O que mudou</strong><span>Sinais de mercado</span></a><a class="step" href="#drivers"><strong>03 · Por que mudou</strong><span>Diagnóstico</span></a><a class="step" href="#opportunities"><strong>04 · Onde crescer</strong><span>Oportunidades</span></a><a class="step" href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/ask.html"><strong>05 · Investigar</strong><span>IA + estudos</span></a></nav>
 <section class="content" id="overview">
@@ -52,11 +52,34 @@ button,a{font:inherit}a{text-decoration:none;color:inherit}
 </div>
 <div class="next"><span>Próximo passo: transformar a hipótese em investigação.</span><a href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/ask.html">Investigar →</a></div>
 </div>
-<div class="canvas" id="movimentos" style="margin-top:16px"><div class="eyebrow">02 · O QUE MUDOU</div><h2>O shopper brasileiro está ajustando a forma de comprar — não abandonando as categorias.</h2><p>Use esta leitura como ponto de partida. O diagnóstico deve separar movimento, driver e evidência antes de concluir sobre oportunidade.</p></div>
+<div class="canvas" id="signals"><div class="eyebrow">EVIDÊNCIAS</div><h2>Sinais que sustentam a investigação</h2><p>Use a evidência local para organizar hipóteses antes de avançar.</p><div class="tags"><span class="tag">Preço</span><span class="tag">Volume</span><span class="tag">Canal</span></div><h3>SUA BASE LOCAL</h3><p>Estes estudos ficam salvos apenas neste navegador.</p></div><div class="canvas" id="movimentos" style="margin-top:16px"><div class="eyebrow">02 · O QUE MUDOU</div><h2>O shopper brasileiro está ajustando a forma de comprar — não abandonando as categorias.</h2><p>Use esta leitura como ponto de partida. O diagnóstico deve separar movimento, driver e evidência antes de concluir sobre oportunidade.</p></div>
 <div class="canvas" id="drivers" style="margin-top:16px"><div class="eyebrow">03 · POR QUE MUDOU</div><h2>Drivers e evidências</h2><p>Preço, volume, canal e comportamento devem ser lidos em conjunto. A hipótese precisa ser validada antes de virar decisão.</p></div>
 </section>
 </div>
 </main>
+</div>
+<script>
+window.PULSE_EVIDENCE = window.PULSE_EVIDENCE || [];
+window.PULSE_LOCAL_EVIDENCE = window.PULSE_LOCAL_EVIDENCE || [];
+window.pulseMatchEvidence = window.pulseMatchEvidence || function(query){
+  return window.PULSE_EVIDENCE.filter(function(item){ return JSON.stringify(item).toLowerCase().includes(String(query||"").toLowerCase()); });
+};
+window.pulseRankEvidence = window.pulseRankEvidence || function(items){
+  return (items||[]).slice().sort(function(a,b){return (b.confidence||0)-(a.confidence||0);});
+};
+document.getElementById("pulse-category-select").addEventListener("change",function(event){
+  document.dispatchEvent(new CustomEvent("pulse:category-change",{detail:{category:event.target.value}}));
+});
+var clone=document.createElement("button");
+clone.type="button";
+clone.className="tag";
+clone.textContent="Adicionar hipótese";
+clone.addEventListener('click',function(){
+  window.PULSE_LOCAL_EVIDENCE.push({createdAt:new Date().toISOString(),category:document.getElementById("pulse-category-select").value});
+});
+document.querySelector(".tags").appendChild(clone);
+</script>
+</body></html>
 </div>
 <nav class="bottom" aria-label="Navegação"><a class="active" href="#overview"><b>01</b>Hoje</a><a href="#overview"><b>02</b>Universo</a><a href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/app.html#documents"><b>03</b>Base</a><a href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/ask.html"><b>04</b>Investigar</a><a href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/app.html#analyses"><b>05</b>Análises</a></nav>
 </body></html>
