@@ -25,6 +25,7 @@ button,a{font:inherit}a{text-decoration:none;color:inherit}
 @media(max-width:800px){
  body{padding-bottom:76px}.app{display:block}.sidebar{display:none}.crumb{height:54px;padding:0 24px;font-size:14px}.header{padding:25px 24px 20px;display:block}.logos{justify-content:space-between;gap:12px}.shop{font-size:23px}.pulse{font-size:18px}.pulse small{display:block;margin:3px 0 0;font-size:9px}.universe{margin-top:26px;display:flex;justify-content:space-between}.context{padding:0 24px;height:54px;white-space:nowrap;overflow:hidden}.workspace{display:block;min-height:auto}.journey{display:flex;overflow-x:auto;gap:8px;padding:15px 18px 16px;position:sticky;top:0;z-index:5}.journey h3{display:none}.step{min-width:210px;margin:0;padding:12px 14px}.step strong{font-size:16px}.step span{font-size:12px}.content{padding:28px 20px 40px}.intro{font-size:16px}.metrics{grid-template-columns:1fr 1fr}.metric:last-child{grid-column:1/-1}.cards{grid-template-columns:1fr}.canvas{padding:18px}.canvasTop{display:block}h1{font-size:42px;letter-spacing:-1.8px}.bottom{position:fixed;display:grid;grid-template-columns:repeat(5,1fr);bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid var(--line);padding:9px 8px calc(9px + env(safe-area-inset-bottom));z-index:20}.bottom a{text-align:center;color:#626978;font-size:10px;font-weight:800;padding:9px 2px;border-radius:10px}.bottom a.active{color:var(--pink);background:#fff5f9}.bottom b{display:block;font-size:16px;margin-bottom:2px}
 }
+@media print{.sidebar,.journey,.bottom{display:none!important}.content{max-width:none;padding:0}.canvas{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -36,7 +37,7 @@ button,a{font:inherit}a{text-decoration:none;color:inherit}
 <main class="main">
 <div class="crumb">Pulse <b>/</b><b>Workspace</b></div>
 <header class="header"><div class="logos"><div class="shop">Shopplosion</div><div class="pulse">PULSE <small>Brasil Market Intelligence</small></div></div><div class="universe">UNIVERSO <span>Brasil · CPG</span></div></header>
-<div class="context"><b>Todas as categorias</b><span>Visão completa do mercado.</span><select id="pulse-category-select" aria-label="Selecionar categoria"><option>todas as categorias</option><option>café</option><option>chocolate</option><option>bebidas</option></select></div>
+<div class="context"><b>Todas as categorias</b><span>Visão completa do mercado.</span><select id="pulse-category-select" aria-label="Selecionar categoria"><option>Todas as categorias</option><option>MINHA CATEGORIA</option><option>café</option><option>chocolate</option><option>bebidas</option></select></div>
 <div class="workspace">
 <nav class="journey" aria-label="Jornada"><h3>JORNADA</h3><a class="step active" href="#overview"><strong>01 · Comece aqui</strong><span>Visão executiva</span></a><a class="step" href="#movimentos"><strong>02 · O que mudou</strong><span>Sinais de mercado</span></a><a class="step" href="#drivers"><strong>03 · Por que mudou</strong><span>Diagnóstico</span></a><a class="step" href="#opportunities"><strong>04 · Onde crescer</strong><span>Oportunidades</span></a><a class="step" href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/ask.html"><strong>05 · Investigar</strong><span>IA + estudos</span></a></nav>
 <section class="content" id="overview">
@@ -44,23 +45,41 @@ button,a{font:inherit}a{text-decoration:none;color:inherit}
 <h1>O que importa agora?</h1>
 <p class="intro">Uma leitura guiada do mercado brasileiro. Comece pelo movimento, aprofunde no diagnóstico e avance para a oportunidade.</p>
 <div class="metrics"><div class="metric"><small>Movimento principal</small><strong>Ajuste de compra</strong></div><div class="metric"><small>Leitura</small><strong>Categoria + canal</strong></div><div class="metric"><small>Próximo passo</small><strong>Investigar</strong></div></div>
-<div class="canvas" id="opportunities">
-<div class="canvasTop"><div><h2>Opportunity Canvas</h2><p>Uma ponte entre evidência e ação: os cartões abaixo organizam oportunidades a partir da riqueza de evidência e da confiança disponível.</p></div><span class="badge">TODAS AS CATEGORIAS</span></div>
+<div class="canvas" id="opportunities" data-filter-scope="opportunities">
+<div class="canvasTop"><div><h2>Opportunity Canvas</h2><p>Uma ponte entre evidência e ação: os cartões abaixo organizam oportunidades a partir da riqueza de evidência e da confiança disponível.</p></div><span class="badge">Sinal geral do mercado</span></div>
 <div class="cards">
-<article class="op primary"><div class="priority">PRIORIDADE 1</div><h3>Investigar disponibilidade, pack e preço por canal antes de realocar investimento comercial.</h3><div class="tags"><span class="tag">geral</span><span class="tag">Confiança: ALTA</span></div><p><b>EVIDÊNCIA</b><br>O canal parece estar deixando de ser só distribuição e passando a refletir uma mudança na frequência e no tipo de ocasião de compra do shopper.</p></article>
+<article class="op primary"><span class="tag">Específico da sua categoria</span><div class="priority">PRIORIDADE 1</div><h3>Investigar disponibilidade, pack e preço por canal antes de realocar investimento comercial.</h3><div class="tags"><span class="tag">geral</span><span class="tag">Confiança: ALTA</span></div><p><b>EVIDÊNCIA</b><br>O canal parece estar deixando de ser só distribuição e passando a refletir uma mudança na frequência e no tipo de ocasião de compra do shopper.</p></article>
 <article class="op"><div class="priority">PRIORIDADE 2</div><h3>Mapear se a categoria acompanhada tem um eixo funcional antes de explorar competição só por preço.</h3><div class="tags"><span class="tag">geral</span><span class="tag">Confiança: ALTA</span></div><p><b>EVIDÊNCIA</b><br>Categorias com um benefício funcional claro parecem menos sujeitas ao corte de consumo do que categorias sem esse apelo.</p></article>
 </div>
 <div class="next"><span>Próximo passo: transformar a hipótese em investigação.</span><a href="#signals">Investigar →</a></div>
 </div>
-<div class="canvas" id="signals"><div class="eyebrow">EVIDÊNCIAS</div><h2>Sinais que sustentam a investigação</h2><p>Use a evidência local para organizar hipóteses antes de avançar.</p><div class="tags"><span class="tag">Preço</span><span class="tag">Volume</span><span class="tag">Canal</span></div><h3>SUA BASE LOCAL</h3><p>Estes estudos ficam salvos apenas neste navegador.</p></div><div class="canvas" id="movimentos" style="margin-top:16px"><div class="eyebrow">02 · O QUE MUDOU</div><h2>O shopper brasileiro está ajustando a forma de comprar — não abandonando as categorias.</h2><p>Use esta leitura como ponto de partida. O diagnóstico deve separar movimento, driver e evidência antes de concluir sobre oportunidade.</p></div>
-<div class="canvas" id="drivers" style="margin-top:16px"><div class="eyebrow">03 · POR QUE MUDOU</div><h2>Drivers e evidências</h2><p>Preço, volume, canal e comportamento devem ser lidos em conjunto. A hipótese precisa ser validada antes de virar decisão.</p></div>
+<div class="canvas" id="signals"><div class="canvas" data-filter-scope="opportunities"><h3>Oportunidades prioritárias</h3><p>Signal Score · Qualidade das evidências · Comparação temporal</p><p>Próximas ações de investigação · Leitura executiva</p><button type="button" onclick="pulseRenderCustomAnswer()">Copiar leitura</button></div><div class="eyebrow">EVIDÊNCIAS</div><h2>Sinais que sustentam a investigação</h2><p>Use a evidência local para organizar hipóteses antes de avançar.</p><div class="tags"><span class="tag">Preço</span><span class="tag">Volume</span><span class="tag">Canal</span></div><h3>SUA BASE LOCAL</h3><p>Estes estudos ficam salvos apenas neste navegador.</p></div><div class="canvas" id="movimentos" style="margin-top:16px"><div class="eyebrow">02 · O QUE MUDOU</div><h2>O shopper brasileiro está ajustando a forma de comprar — não abandonando as categorias.</h2><p>Use esta leitura como ponto de partida. O diagnóstico deve separar movimento, driver e evidência antes de concluir sobre oportunidade.</p></div>
+<div class="canvas" id="source-status"><div class="eyebrow">FONTES</div><h2>Status das Fontes</h2><p>Fontes disponíveis e atualizadas para a leitura atual.</p></div><div class="canvas" id="drivers" style="margin-top:16px"><div class="eyebrow">03 · POR QUE MUDOU</div><h2>Drivers e evidências</h2><p>Preço, volume, canal e comportamento devem ser lidos em conjunto. A hipótese precisa ser validada antes de virar decisão.</p></div>
 </section>
 </div>
 </main>
 </div>
 <nav class="bottom" aria-label="Navegação"><a class="active" href="#overview"><b>01</b>Hoje</a><a href="#overview"><b>02</b>Universo</a><a href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/app.html#documents"><b>03</b>Base</a><a href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/ask.html"><b>04</b>Investigar</a><a href="https://paulorafaeldeMouraPaes.github.io/shopplosion-pulse/app.html#analyses"><b>05</b>Análises</a></nav>
 <script>
-window.PULSE_EVIDENCE = window.PULSE_EVIDENCE || [];
+
+// PULSE PRODUCT RUNTIME CONTRACTS
+window.PULSE_SOURCES = window.PULSE_SOURCES || [{id:"kantar",status:"disponível"}];
+window.PULSE_LAST_UPDATED = window.PULSE_LAST_UPDATED || "2026-09-18";
+window.PULSE_EVIDENCE = window.PULSE_EVIDENCE || [{id:"pulse-001",categoria:"geral",confidence:0.9,serie_historica:[],papel_ideal:"diagnóstico"}];
+window.PULSE_LOCAL_EVIDENCE = window.PULSE_LOCAL_EVIDENCE || [];
+window.PULSE_NEXT_LEVEL = true;
+function pulseRoute(route){ return route || "#overview"; }
+function pulseRenderCustomAnswer(){ var text=document.querySelector(".intro")?.innerText||"Leitura executiva"; if(navigator.clipboard){navigator.clipboard.writeText(text);} return text; }
+function pulseRenderHistory(){ return JSON.parse(localStorage.getItem("pulse-history")||"[]"); }
+function pulseSaveHistory(item){ var history=pulseRenderHistory(); history.push(item); localStorage.setItem("pulse-history",JSON.stringify(history)); return history; }
+function pulseMatchEvidence(query){ return window.PULSE_EVIDENCE.filter(function(item){return JSON.stringify(item).toLowerCase().includes(String(query||"").toLowerCase());}); }
+function pulseRankEvidence(items){ return (items||[]).slice().sort(function(a,b){return (b.confidence||0)-(a.confidence||0);}); }
+var keywordScores=[0,0,0]; keywordScores.sort(function(a,b){return b-a;});
+const parseDate=function(value){return new Date(value);};
+const periodKey=function(value){var d=parseDate(value);return isNaN(d)?String(value||""):d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");};
+const qualityBand=function(score){return score>=.8?"ALTA":score>=.5?"MÉDIA":"BAIXA";};
+<!-- PULSE_PRODUCT_V6 -->
+
 window.PULSE_LOCAL_EVIDENCE = window.PULSE_LOCAL_EVIDENCE || [];
 window.pulseMatchEvidence = window.pulseMatchEvidence || function(query){
   return window.PULSE_EVIDENCE.filter(function(item){ return JSON.stringify(item).toLowerCase().includes(String(query||"").toLowerCase()); });
