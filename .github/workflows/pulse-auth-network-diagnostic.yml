@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   auth-network:
     runs-on: ubuntu-latest
