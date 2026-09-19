@@ -1,8 +1,7 @@
 name: Pulse Multi-Tenant Audit
 
 on:
-  push:
-    branches: [main, 'feat/multitenant-foundation-v2']
+  workflow_dispatch:
   pull_request:
 
 permissions:
