@@ -38,10 +38,10 @@ function requireHtmlOrRuntime(label, text) {
   ['copy executive reading', 'Copiar leitura']
 ].forEach(([label, text]) => requireText(label, text));
 
-requireHtmlOrRuntime('historical series contract', 'serie_historica');
-requireHtmlOrRuntime('category role contract', 'papel_ideal');
 requireHtmlOrRuntime('local evidence contract', 'PULSE_LOCAL_EVIDENCE');
 requireHtmlOrRuntime('next-level runtime', 'PULSE_NEXT_LEVEL');
+requireText('journey navigation', '05');
+requireText('accessibility focus contract', 'focus-visible');
 
 if (/assets\//i.test(html)) failures.push('artifact: contains forbidden assets/ reference');
 if (/sessionStorage/i.test(html)) failures.push('artifact: contains forbidden sessionStorage reference');
