@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "release_sha": "ff94af57e66c6e236929a8f3d586b9a3e65c12df",
+  "workflow_run_id": 35412891046,
+  "page_url": "https://paulorafaeldemourapaes.github.io/shopplosion-pulse/",
+  "checks": {
+    "repository_index_has_new_workspace": true,
+    "repository_index_has_no_legacy_layout": true,
+    "live_index_has_new_workspace": true,
+    "live_index_has_no_legacy_layout": true
+  }
+}
