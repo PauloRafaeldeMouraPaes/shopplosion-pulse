@@ -7,6 +7,10 @@ on:
       - 'scripts/pulse-study-format-extensions.js'
       - '.github/workflows/pulse-study-format-refresh.yml'
   workflow_dispatch:
+concurrency:
+  group: pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
