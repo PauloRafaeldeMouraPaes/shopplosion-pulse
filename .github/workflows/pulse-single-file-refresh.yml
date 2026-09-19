@@ -6,6 +6,10 @@ on:
       - 'scripts/*.js'
       - '.github/workflows/pulse-single-file-refresh.yml'
   workflow_dispatch:
+concurrency:
+  group: pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
