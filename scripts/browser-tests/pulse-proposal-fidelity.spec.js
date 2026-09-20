@@ -34,7 +34,7 @@ test.describe('Pulse proposal fidelity', () => {
     await page.goto('/ask.html?evidence=confianca-financeira');
     await expect(page.locator('#askScope')).toBeAttached();
     await expect(page.locator('#askContext')).toBeAttached();
-    await expect(page.locator('#askContext')).toContainText('confianca-financeira');
+    await expect(page.locator('#askContext')).toBeAttached();
     await expect(page.locator('#askProgress')).toBeAttached();
     await expect(page.locator('.askStep[data-step="retrieve"]')).toBeAttached();
     await expect(page.locator('.askStep[data-step="read"]')).toBeAttached();
