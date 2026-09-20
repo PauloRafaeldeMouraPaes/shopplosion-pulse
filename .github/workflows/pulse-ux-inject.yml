@@ -111,7 +111,15 @@ jobs:
           suggestion_handlers = len(re.findall(r'\.pulse-suggestion[^\n]{0,240}addEventListener\(["\']click', text, re.I))
           if suggestion_handlers > 1: errors.append('handlers concorrentes de .pulse-suggestion detectados')
           if errors: print('VALIDATION FAILED'); print('\n'.join('- '+e for e in errors)); raise SystemExit(1)
-          scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',text,re.I)
+          # Product V6 is a generated HTML <script> wrapper. Strip the wrapper
+          # before scanning HTML script blocks, then parse its inner JS separately.
+          # This prevents the validator from treating Product V6's own </script>
+          # as the end of the surrounding HTML script block.
+          product_match = re.search(r'<!-- PULSE_PRODUCT_V6 -->\s*<script>([\s\S]*?)</script>', text, flags=re.I)
+          product_code = product_match.group(1) if product_match else ''
+          scan_text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->\s*<script>[\s\S]*?</script>\s*', '', text, count=1, flags=re.I)
+          scripts=re.findall(r'<script(?:\s+[^>]*)?>([\s\S]*?)</script>',scan_text,re.I)
+          if product_code.strip(): scripts.append(product_code)
           with tempfile.TemporaryDirectory() as d:
               for i,code in enumerate(scripts):
                   if code.strip():
