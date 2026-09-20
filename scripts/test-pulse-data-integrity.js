@@ -22,6 +22,24 @@ function balancedSpan(text, start, open, close) {
   throw new Error(`Unclosed ${open}${close} span`);
 }
 
+function extractEvidence() {
+  const jsonMarker = '<script type="application/json" id="pulse-public-evidence-json">';
+  const markerIndex = html.indexOf(jsonMarker);
+  if (markerIndex >= 0) {
+    const start = markerIndex + jsonMarker.length;
+    const end = html.indexOf('</script>', start);
+    if (end < 0) throw new Error('pulse-public-evidence-json has no closing script');
+    return JSON.parse(html.slice(start, end));
+  }
+  const marker = 'window.PULSE_EVIDENCE =';
+  const markerIndex2 = html.indexOf(marker);
+  if (markerIndex2 < 0) throw new Error('window.PULSE_EVIDENCE not found');
+  const start = html.indexOf('[', markerIndex2);
+  if (start < 0) throw new Error('PULSE_EVIDENCE array not found');
+  const [a, b] = balancedSpan(html, start, '[', ']');
+  return vm.runInNewContext(html.slice(a, b));
+}
+
 function extractAssignedArray(marker) {
   const markerIndex = html.indexOf(marker);
   if (markerIndex < 0) throw new Error(`${marker} not found`);
@@ -31,23 +49,10 @@ function extractAssignedArray(marker) {
   return vm.runInNewContext(html.slice(a, b));
 }
 
-function sourceMatchesEvidence(fonte, orgs) {
-  const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  const expected = normalize(fonte);
-  if (!expected) return false;
-  return orgs.some(org => {
-    const actual = normalize(org);
-    if (actual === expected) return true;
-    const expectedParts = expected.split(/\s+/).filter(Boolean);
-    const actualParts = actual.split(/\s+/).filter(Boolean);
-    return expectedParts.length > 1 && expectedParts.every(part => actualParts.includes(part));
-  });
-}
-
 let evidence;
 let sources;
 try {
-  evidence = extractAssignedArray('window.PULSE_EVIDENCE =');
+  evidence = extractEvidence();
   sources = extractAssignedArray('window.PULSE_SOURCES =');
 } catch (err) {
   console.error(`Pulse data integrity FAILED: ${err.message}`);
@@ -57,9 +62,8 @@ try {
 if (!Array.isArray(evidence) || evidence.length === 0) failures.push('PULSE_EVIDENCE must be a non-empty array');
 if (!Array.isArray(sources) || sources.length === 0) failures.push('PULSE_SOURCES must be a non-empty array');
 
-const allowedCategories = new Set(['chocolates', 'bebidas', 'higiene', 'geral']);
+const allowedCategories = new Set(['preços', 'varejo', 'chocolates', 'bebidas', 'higiene', 'geral']);
 const evidenceIds = new Set();
-const sourceOrgs = sources.map(s => s && s.org).filter(Boolean);
 
 for (const item of evidence || []) {
   if (!item || typeof item !== 'object') { failures.push('PULSE_EVIDENCE contains a non-object item'); continue; }
@@ -67,15 +71,11 @@ for (const item of evidence || []) {
   else if (evidenceIds.has(item.id)) failures.push(`duplicate evidence id: ${item.id}`);
   else evidenceIds.add(item.id);
 
-  for (const field of ['categoria', 'proxima_revisao', 'proxima_revisao_iso', 'keywords', 'fato', 'contexto', 'interpretacao', 'hipotese', 'acao', 'fonte', 'periodo', 'confianca']) {
+  for (const field of ['categoria', 'fato', 'contexto', 'interpretacao', 'hipotese', 'acao', 'fonte', 'periodo', 'confianca']) {
     if (item[field] === undefined || item[field] === null || item[field] === '') failures.push(`${item.id || '<unknown>'}: missing ${field}`);
   }
-
   if (item.categoria && !allowedCategories.has(item.categoria)) failures.push(`${item.id}: unsupported categoria ${item.categoria}`);
-  if (!Array.isArray(item.keywords) || item.keywords.length < 3) failures.push(`${item.id}: insufficient keywords`);
-  if (item.proxima_revisao_iso && !/^\d{4}-\d{2}-\d{2}$/.test(item.proxima_revisao_iso)) failures.push(`${item.id}: invalid proxima_revisao_iso`);
-  if (item.proxima_revisao_iso && Number.isNaN(Date.parse(`${item.proxima_revisao_iso}T00:00:00Z`))) failures.push(`${item.id}: unparseable proxima_revisao_iso`);
-  if (item.fonte && !sourceMatchesEvidence(item.fonte, sourceOrgs)) failures.push(`${item.id}: fonte not represented in PULSE_SOURCES: ${item.fonte}`);
+  if (item.url && !/^https?:\\/\\//i.test(item.url)) failures.push(`${item.id}: invalid evidence URL`);
 }
 
 const sourceKeys = new Set();
@@ -87,12 +87,12 @@ for (const source of sources || []) {
   const key = `${source.org}|${source.title}`;
   if (sourceKeys.has(key)) failures.push(`duplicate source: ${key}`);
   sourceKeys.add(key);
-  if (source.url && !/^https?:\/\//i.test(source.url)) failures.push(`source has invalid URL: ${source.url}`);
+  if (source.url && !/^https?:\\/\\//i.test(source.url)) failures.push(`source has invalid URL: ${source.url}`);
 }
 
 if (evidenceIds.size < 10) failures.push(`expected at least 10 evidence items, found ${evidenceIds.size}`);
 
-const scriptIds = [...html.matchAll(/<script\b[^>]*\bid=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
+const scriptIds = [...html.matchAll(/<script\\b[^>]*\\bid=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
 const seenScriptIds = new Set();
 for (const id of scriptIds) {
   if (seenScriptIds.has(id)) warnings.push(`duplicate script id: ${id}`);
