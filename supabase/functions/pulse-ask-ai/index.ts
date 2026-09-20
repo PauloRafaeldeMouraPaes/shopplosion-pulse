@@ -63,57 +63,63 @@ Deno.serve(async (req) => {
   if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
   const allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
 
-  let body: { query?: string }
+  let body: { query?: string, scope?: string, public_evidence?: any[] }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
+  const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
+  const publicEvidence = Array.isArray(body.public_evidence) ? body.public_evidence.slice(0, 20) : []
   const terms = termsFor(query)
   if (!query || !terms.length) return json({ error: 'invalid_query', message: 'Digite uma pergunta válida.' }, 400)
 
-  if (foreignIndustryMention(query, industry.name, allIndustryNames)) {
-    return json({
-      answer: 'Não posso fornecer informações privadas de outra indústria. Posso responder somente com evidências da indústria autenticada.',
-      citations: [],
-      scope_rejected: true,
-    })
-  }
-
   const filters = terms.map((term) => `content.ilike.%${term}%`).join(',')
-  const { data: chunks, error: chunkError } = await supabase
-    .from('document_chunks')
-    .select('id,document_id,chunk_index,content,source_type,created_at')
-    .eq('industry_id', profile.industry_id)
-    .or(filters)
-    .limit(80)
-  if (chunkError) return json({ error: 'retrieval_failed', message: 'Falha ao recuperar as evidências privadas.' }, 500)
-
-  const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
-  const ranked = (chunks || []).map((chunk) => ({ ...chunk, score: score(chunk.content || '') })).filter((chunk) => chunk.score > 0).sort((a, b) => b.score - a.score || a.chunk_index - b.chunk_index).slice(0, 8)
-  if (!ranked.length) return json({ answer: 'Não encontrei evidências relevantes na base privada da sua indústria.', citations: [] })
-
-  const documentIds = Array.from(new Set(ranked.map((chunk) => chunk.document_id)))
-  const { data: documents, error: documentError } = await supabase
-    .from('documents')
-    .select('id,filename')
-    .eq('industry_id', profile.industry_id)
-    .in('id', documentIds)
-  if (documentError) return json({ error: 'document_lookup_failed', message: 'As evidências foram encontradas, mas os documentos não puderam ser identificados.' }, 500)
-  const documentMap = Object.fromEntries((documents || []).map((document) => [document.id, document]))
-  const evidence = ranked.map((chunk, index) => ({ ref: `E${index + 1}`, document: documentMap[chunk.document_id]?.filename || 'Documento privado', document_id: chunk.document_id, document_chunk_id: chunk.id, chunk: Number(chunk.chunk_index) + 1, source_type: chunk.source_type || 'text', content: String(chunk.content || '').slice(0, 5000) }))
+  let ranked: any[] = []
+  let documentMap: Record<string,string> = {}
+  if (scope !== 'universe') {
+    const { data: chunks, error: chunkError } = await supabase
+      .from('document_chunks')
+      .select('id,document_id,chunk_index,content,source_type,created_at')
+      .eq('industry_id', profile.industry_id)
+      .or(filters)
+      .limit(80)
+    if (chunkError) return json({ error: 'retrieval_failed', message: 'Falha ao recuperar as evidências privadas.' }, 500)
+    const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
+    const privateRanked = (chunks || []).map((chunk) => ({ ...chunk, score: score(chunk.content || ''), scope_source: 'private' })).filter((chunk) => chunk.score > 0).sort((a, b) => b.score - a.score || a.chunk_index - b.chunk_index).slice(0, 8)
+    const documentIds = Array.from(new Set(privateRanked.map((chunk) => chunk.document_id)))
+    if (documentIds.length) {
+      const { data: documents, error: documentError } = await supabase.from('documents').select('id,filename').eq('industry_id', profile.industry_id).in('id', documentIds)
+      if (documentError) return json({ error: 'document_lookup_failed', message: 'As evidências foram encontradas, mas os documentos não puderam ser identificados.' }, 500)
+      documentMap = Object.fromEntries((documents || []).map((document) => [document.id, document.filename]))
+    }
+    ranked = privateRanked
+  }
+  if (scope !== 'industry') {
+    const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
+    const publicRanked = publicEvidence.map((item: any) => {
+      const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ')
+      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado' }
+    }).filter((item: any) => item.score > 0).sort((a: any, b: any) => b.score - a.score).slice(0, 8)
+    ranked = scope === 'both' ? [...ranked, ...publicRanked].sort((a, b) => b.score - a.score).slice(0, 12) : publicRanked
+  }
+  if (!ranked.length) return json({ answer: scope === 'universe' ? 'Não encontrei evidências relevantes no mercado publicado para esta pergunta.' : 'Não encontrei evidências relevantes no escopo selecionado.', citations: [], scope })
+  const evidence = ranked.map((item, index) => {
+    if (item.scope_source === 'public') return { ref: `E${index + 1}`, document: `Mercado publicado · ${item.public_evidence_id || 'evidência'}`, document_id: null, document_chunk_id: null, chunk: 1, source_type: 'public', public_evidence_id: item.public_evidence_id, content: String(item.content || '').slice(0, 5000) }
+    return { ref: `E${index + 1}`, document: documentMap[item.document_id] || 'Documento privado', document_id: item.document_id, document_chunk_id: item.id, chunk: Number(item.chunk_index) + 1, source_type: item.source_type || 'text', content: String(item.content || '').slice(0, 5000) }
+  })
   const evidenceText = evidence.map((item) => `<evidence ref="${item.ref}" document="${item.document}" chunk="${item.chunk}" source="${item.source_type}">${item.content}</evidence>`).join('\n')
 
-  const system = 'Você é o analista privado do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Nunca mencione ou atribua fatos a uma indústria diferente da indústria autenticada. Não revele dados fora das evidências. Quando a pergunta não pedir o nome da indústria, não nomeie nenhuma indústria na resposta; use apenas "sua indústria" ou "a indústria autenticada".'
-  const prompt = `Pergunta do usuário: ${query}\n\nIndústria autenticada: ${industry.name}\n\nEvidências recuperadas exclusivamente dessa indústria:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Não mencione nomes de outras indústrias, mesmo que apareçam no conteúdo de algum documento.`
+  const system = 'Você é o analista do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Em escopo privado, nunca revele dados fora da indústria autenticada. Em escopo público, trate as evidências como mercado publicado. Em escopo combinado, diferencie claramente o que vem do mercado publicado e o que vem da indústria autenticada.'
+  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nIndústria autenticada: ${industry.name}\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex].`
   const providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } }) })
   if (!providerResponse.ok) { const detail = await providerResponse.text(); return json({ error: 'llm_provider_failed', provider_status: providerResponse.status, message: providerMessage(providerResponse.status, detail) }, 502) }
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
   if (!answer) return json({ error: 'empty_llm_response' }, 502)
-  if (foreignIndustryInAnswer(answer, industry.name, allIndustryNames)) {
+  if (scope !== 'universe' && foreignIndustryInAnswer(answer, industry.name, allIndustryNames)) {
     return json({
       answer: 'A resposta foi bloqueada porque o modelo tentou mencionar uma indústria fora do escopo autenticado. Nenhum dado de outra indústria foi retornado.',
       citations: [],
       scope_rejected: true,
     }, 200)
   }
-  return json({ answer, model, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type })) })
+  return json({ answer, model, scope, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
 })
