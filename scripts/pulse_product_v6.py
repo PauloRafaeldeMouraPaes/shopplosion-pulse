@@ -55,8 +55,26 @@ const css=document.createElement('style');css.textContent='#pulse-v6-lab{margin:
 
 def main():
     text = INDEX.read_text(encoding='utf-8')
-    if MARKER in text:
-        text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->.*?</script>\s*', lambda _m: JS, text, count=1, flags=re.S)
+    js_body = re.sub(
+        r'^\\s*<!-- PULSE_PRODUCT_V6 -->\\s*<script>\\s*|\\s*</script>\\s*$',
+        '',
+        JS,
+        flags=re.S,
+    )
+    marker_pos = text.find(MARKER)
+    if marker_pos >= 0:
+        script_open = text.rfind('<script', 0, marker_pos)
+        script_close = text.rfind('</script>', 0, marker_pos)
+        if script_open > script_close:
+            # The marker is already inside an inline script. Replace only the
+            # generated V6 segment and keep the surrounding script valid.
+            end = text.find('</script>', marker_pos)
+            if end < 0:
+                raise RuntimeError('Product V6 marker sem fechamento de script')
+            text = text[:marker_pos] + js_body + '\\n' + text[end:]
+        else:
+            # Legacy standalone wrapper: replace the whole generated block.
+            text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->.*?</script>\\s*', lambda _m: JS, text, count=1, flags=re.S)
     else:
         pos = text.lower().rfind('</body>')
         if pos < 0:
@@ -64,6 +82,5 @@ def main():
         text = text[:pos] + JS + text[pos:]
     INDEX.write_text(text, encoding='utf-8')
     print('Pulse Product V6 intelligence layer evolved')
-
 if __name__ == '__main__':
     main()
