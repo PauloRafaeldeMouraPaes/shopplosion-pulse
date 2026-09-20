@@ -39,9 +39,12 @@ for token in required_tokens:
 if "href=\"#signals\"" not in text and "data-target=\"#signals\"" not in text:
     errors.append("CTA principal para #signals não encontrado")
 
-# Suggestions should have one consolidated runtime handler.
-if text.count("clone.addEventListener('click'") != 1:
+# Suggestions in the current Workspace V3 are handled by the single consolidated installer.
+# Legacy hypothesis controls may still contain their own click listener; they are not suggestion handlers.
+if text.count("function installSuggestionHandler()") != 1:
     errors.append("handler consolidado de sugestões não está único")
+if text.count("installSuggestionHandler();") != 1:
+    errors.append("instalador consolidado de sugestões não é chamado uma única vez")
 
 # Basic structural HTML balance check, ignoring void elements.
 class BalanceParser(HTMLParser):
