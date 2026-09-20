@@ -41,3 +41,6 @@ jobs:
       - name: Run command palette smoke tests
         if: always()
         run: npx playwright test scripts/browser-tests/pulse-command-palette-v3.spec.js
+      - name: Run mobile reprojection smoke tests
+        if: always()
+        run: npx playwright test scripts/browser-tests/pulse-mobile-v3.spec.js

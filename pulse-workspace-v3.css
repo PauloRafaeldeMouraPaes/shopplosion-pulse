@@ -63,3 +63,19 @@ body.pv3-active{padding-left:0!important}body.pv3-active .pulse-shell-sidebar,bo
 .pv3-command-items a{padding:10px;border-radius:8px;text-decoration:none;color:var(--pv3-ink);font-size:13px}
 .pv3-command-items a:hover,.pv3-command-items a:focus-visible{background:var(--pv3-soft)}
 @media(max-width:900px){.pv3-command-menu{top:auto;bottom:calc(var(--pv3-nav-height,72px) + 10px);left:8px;right:8px;transform:none;width:auto}.pv3-command-trigger{display:none}}
+
+/* Fase 6 (reprojeção mobile): a proposta rejeita explicitamente transformar o rail de 5 destinos
+   numa barra inferior de 5 ícones. No mobile a barra inferior fica só com Hoje/Base/Investigação
+   (o fluxo do dia a dia); Universo e Análises passam para um cabeçalho de escopo próprio, fixo no
+   topo, só nessa largura. */
+.pv3-scope-header{display:none}
+@media(max-width:900px){
+  .pv3-shell-nav a[data-nav="universo"],.pv3-shell-nav a[data-nav="analises"]{display:none}
+  .pv3-shell-nav{grid-template-columns:repeat(3,1fr)}
+  .pv3-scope-header{display:flex;position:fixed;top:0;left:0;right:0;z-index:1250;gap:6px;padding:8px 10px;background:#fff;border-bottom:1px solid var(--pv3-line);box-sizing:border-box}
+  .pv3-scope-header a{flex:1;text-align:center;padding:9px 6px;border-radius:9px;background:#f4f2ef;color:var(--pv3-muted);text-decoration:none;font:700 12px inherit}
+  .pv3-scope-header a[aria-current="page"]{background:#fff0f5;color:var(--pv3-brand)}
+  .pv3-scope-header a:focus-visible{outline:3px solid var(--pv3-brand);outline-offset:-3px}
+  .pv3-app{padding-top:66px}
+}
+@media(max-width:560px){.pv3-app{padding-top:62px}}
