@@ -25,8 +25,13 @@
 @media(prefers-reduced-motion:no-preference){.pv3-card{animation:pv3-in .22s ease-out both}@keyframes pv3-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}}
 @media(prefers-reduced-motion:reduce){.pv3-card{animation:none!important}}
 
-.pv3-shell-nav{position:fixed;left:0;top:0;bottom:0;width:220px;z-index:1300;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:24px 14px;background:#fff;border-right:1px solid var(--pv3-line);box-sizing:border-box}.pv3-shell-nav a{display:grid;grid-template-columns:28px 1fr;align-items:center;min-height:42px;padding:0 10px;border-radius:10px;color:var(--pv3-muted);text-decoration:none;font:700 13px Inter,system-ui,sans-serif}.pv3-shell-nav a span{font-size:9px;letter-spacing:.08em;color:#a0a5ae}.pv3-shell-nav a:hover{background:#fff1f6;color:var(--pv3-brand)}.pv3-shell-nav a:focus-visible{background:#fff1f6;color:var(--pv3-brand);outline:3px solid var(--pv3-brand);outline-offset:2px}.pv3-shell-nav a[aria-current="page"]{background:#fff1f6;color:var(--pv3-brand)}.pv3-shell-nav a{display:grid;grid-template-columns:28px 1fr;align-items:center;min-height:42px;padding:0 10px;border-radius:10px;color:var(--pv3-muted);text-decoration:none;font:700 13px Inter,system-ui,sans-serif}.pv3-shell-nav a span{font-size:9px;letter-spacing:.08em;color:#a0a5ae}.pv3-shell-nav a:hover{background:#fff1f6;color:var(--pv3-brand)}.pv3-shell-nav a:focus-visible{background:#fff1f6;color:var(--pv3-brand);outline:3px solid var(--pv3-brand);outline-offset:2px}.pv3-shell-nav a[aria-current="page"]{background:#fff1f6;color:var(--pv3-brand)}
-@media(max-width:900px){
+.pv3-shell-nav{position:fixed;left:0;top:0;bottom:0;width:240px;z-index:1300;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:24px 14px;background:#fff;border-right:1px solid var(--pv3-line);box-sizing:border-box}.pv3-shell-nav a{display:grid;grid-template-columns:28px 1fr;align-items:center;min-height:42px;padding:0 10px;border-radius:10px;color:var(--pv3-muted);text-decoration:none;font:700 13px Inter,system-ui,sans-serif}.pv3-shell-nav a span{font-size:9px;letter-spacing:.08em;color:#a0a5ae}.pv3-shell-nav a:hover{background:#fff1f6;color:var(--pv3-brand)}.pv3-shell-nav a:focus-visible{background:#fff1f6;color:var(--pv3-brand);outline:3px solid var(--pv3-brand);outline-offset:2px}.pv3-shell-nav a[aria-current="page"]{background:#fff1f6;color:var(--pv3-brand)}.pv3-shell-nav a{display:grid;grid-template-columns:28px 1fr;align-items:center;min-height:42px;padding:0 10px;border-radius:10px;color:var(--pv3-muted);text-decoration:none;font:700 13px Inter,system-ui,sans-serif}.pv3-shell-nav a span{font-size:9px;letter-spacing:.08em;color:#a0a5ae}.pv3-shell-nav a:hover{background:#fff1f6;color:var(--pv3-brand)}.pv3-shell-nav a:focus-visible{background:#fff1f6;color:var(--pv3-brand);outline:3px solid var(--pv3-brand);outline-offset:2px}.pv3-shell-nav a[aria-current="page"]{background:#fff1f6;color:var(--pv3-brand)}
+@media(max-width:1023px){
+  .pv3-shell-nav{width:64px;padding-left:8px;padding-right:8px}
+  .pv3-shell-nav a{grid-template-columns:1fr;justify-items:center}
+  .pv3-shell-nav a span:first-child{display:block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:7px;background:#f0ece8;color:#5a5650}
+  .pv3-shell-nav a[aria-current="page"] span:first-child{background:var(--pv3-brand);color:#fff}
+  .pv3-shell-nav a:not([data-nav]){}
   .pv3-app{padding-left:18px!important}
   .pv3-shell-nav{position:fixed;left:0;right:0;top:auto;bottom:0;width:auto;height:var(--pv3-nav-height);z-index:1300;flex-direction:row;justify-content:stretch;padding:5px 8px var(--pv3-nav-safe);}
   :root{--pv3-nav-content:62px;--pv3-nav-safe:env(safe-area-inset-bottom,0px);--pv3-nav-height:calc(var(--pv3-nav-content) + var(--pv3-nav-safe));}
@@ -69,7 +74,7 @@ body.pv3-active{padding-left:0!important}body.pv3-active .pulse-shell-sidebar,bo
    (o fluxo do dia a dia); Universo e Análises passam para um cabeçalho de escopo próprio, fixo no
    topo, só nessa largura. */
 .pv3-scope-header{display:none}
-@media(max-width:900px){
+@media(max-width:640px){
   .pv3-shell-nav a[data-nav="universo"],.pv3-shell-nav a[data-nav="analises"]{display:none}
   .pv3-shell-nav{grid-template-columns:repeat(3,1fr)}
   .pv3-scope-header{display:flex;position:fixed;top:0;left:0;right:0;z-index:1250;gap:6px;padding:8px 10px;background:#fff;border-bottom:1px solid var(--pv3-line);box-sizing:border-box}
@@ -79,3 +84,9 @@ body.pv3-active{padding-left:0!important}body.pv3-active .pulse-shell-sidebar,bo
   .pv3-app{padding-top:66px}
 }
 @media(max-width:560px){.pv3-app{padding-top:62px}}
+
+/* Proposal fidelity: desktop starts at 1024; tablet rail collapses; mobile <=640 uses bottom navigation. */
+@media(min-width:1024px){.pv3-app{padding-left:calc(40px + 240px)!important}.pv3-shell-nav{width:240px}}
+@media(max-width:1023px) and (min-width:641px){.pv3-app{padding-left:calc(18px + 64px)!important}.pv3-shell-nav{width:64px}.pv3-shell-nav a{grid-template-columns:1fr;justify-items:center}.pv3-shell-nav a span:last-child{display:none}.pv3-shell-nav a span:first-child{width:30px;height:30px;display:grid;place-items:center;border-radius:7px;background:#f0ece8;color:#5a5650}.pv3-shell-nav a[aria-current="page"] span:first-child{background:var(--pv3-brand);color:#fff}}
+@media(max-width:640px){.pv3-app{padding-left:10px!important}.pv3-shell-nav{width:auto;height:calc(var(--pv3-nav-content) + var(--pv3-nav-safe));display:grid;grid-template-columns:repeat(3,1fr);left:0;right:0;top:auto;bottom:0}.pv3-shell-nav a[data-nav="universo"],.pv3-shell-nav a[data-nav="analises"]{display:none}.pv3-scope-header{display:flex;position:fixed;top:0;left:0;right:0;z-index:1250;gap:6px;padding:8px 10px;background:#fff;border-bottom:1px solid var(--pv3-line)}.pv3-scope-header a{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#f4f2ef;color:var(--pv3-muted);text-decoration:none;font:700 12px inherit}.pv3-scope-header a[aria-current="page"]{background:#fff0f5;color:var(--pv3-brand)}}
+@media(prefers-reduced-motion:reduce){.pv3-card,.pv3-inspector{animation:none!important;transition:none!important}}
