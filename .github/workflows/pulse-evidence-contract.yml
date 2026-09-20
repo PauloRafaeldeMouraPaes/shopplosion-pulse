@@ -21,3 +21,5 @@ jobs:
           node-version: 20
       - name: Validate deterministic evidence semantics
         run: node scripts/validate-study-evidence.js
+      - name: Validate condução dismissal/silence contract
+        run: node scripts/validate-conducao-contract.js

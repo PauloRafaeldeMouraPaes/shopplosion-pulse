@@ -29,3 +29,6 @@ jobs:
         run: npx playwright test scripts/browser-tests/pulse-shopper-filters.spec.js
       - name: Run next-level smoke tests
         run: npx playwright test scripts/browser-tests/pulse-next-level.spec.js
+      - name: Run condução smoke tests
+        if: always()
+        run: npx playwright test scripts/browser-tests/pulse-conducao.spec.js

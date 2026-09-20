@@ -37,3 +37,12 @@
 
 body.pv3-active{padding-left:0!important}body.pv3-active .pulse-shell-sidebar,body.pv3-active .pulse-shell-topbar{display:none!important}.pv3-app{width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;position:relative!important;left:auto!important;right:auto!important;transform:none!important}.pv3-app *{box-sizing:border-box}
 @media(min-width:901px){.pv3-app{padding-left:calc(40px + 220px)!important}}
+
+/* Fase 3 (estados e condução): uma recomendação por vez, sempre dispensável. */
+.pulse-conducao{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 16px;padding:13px 16px;border:1px solid #e8b6ca;border-radius:12px;background:#fff7fa;box-shadow:0 5px 18px rgba(163,22,78,.07)}
+.pulse-conducao-text{font-size:13px;color:#5a1d38;line-height:1.45;flex:1;min-width:220px}
+.pulse-conducao-actions{display:flex;align-items:center;gap:8px;flex:none}
+.pulse-conducao-cta{display:inline-flex;align-items:center;height:34px;padding:0 12px;border-radius:8px;background:#e51b67;color:#fff;text-decoration:none;font:800 12px inherit}
+.pulse-conducao-dismiss{height:34px;padding:0 12px;border:1px solid #e8b6ca;border-radius:8px;background:#fff;color:#8f1648;font:700 12px inherit;cursor:pointer}
+.pulse-conducao-dismiss:hover{background:#fdebf1}
+@media(max-width:640px){.pulse-conducao{flex-direction:column;align-items:stretch}.pulse-conducao-actions{justify-content:flex-end}}
