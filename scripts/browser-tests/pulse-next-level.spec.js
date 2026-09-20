@@ -1,45 +1,51 @@
 const { test, expect } = require('@playwright/test');
-const path = require('path');
 
-test.describe('Pulse next-level intelligence', () => {
-  test('next-level runtime is present in the single-file artifact', async ({ page }) => {
-    await page.goto(`file://${path.resolve('index.html')}#signals`);
-    const state = await page.evaluate(() => ({history:Array.isArray(window.serie_historica),role:Array.isArray(window.papel_ideal),local:Array.isArray(window.PULSE_LOCAL_EVIDENCE),next:!!window.PULSE_NEXT_LEVEL,single:!!window.PULSE_SINGLE_FILE_READY}));
-    expect(state.history).toBe(true); expect(state.role).toBe(true); expect(state.local).toBe(true); expect(state.next).toBe(true); expect(state.single).toBe(true);
+test.describe('Pulse next-level contracts — V3', () => {
+  test('single-file workspace expõe registries públicos e estado local', async ({ page }) => {
+    await page.goto('/index.html#overview');
+    const state = await page.evaluate(() => ({
+      evidence: Array.isArray(window.PULSE_EVIDENCE),
+      sources: Array.isArray(window.PULSE_SOURCES),
+      local: Array.isArray(window.PULSE_LOCAL_EVIDENCE),
+      next: !!window.PULSE_NEXT_LEVEL,
+      single: !!window.PULSE_SINGLE_FILE_READY
+    }));
+    expect(state.evidence).toBe(true);
+    expect(state.sources).toBe(true);
+    expect(state.local).toBe(true);
+    expect(state.next).toBe(true);
+    expect(state.single).toBe(true);
   });
-  test('historical comparison reports observed change without causal inference', async ({ page }) => {
-    await page.goto(`file://${path.resolve('index.html')}#signals`);
-    const result = await page.evaluate(() => window.PULSE_NEXT_LEVEL.compareSeries(120,100));
-    expect(result.status).toBe('observed_change'); expect(result.delta).toBe(20); expect(result.deltaPct).toBe(20); expect(result.causal).toBe(false);
+
+  test('evidências carregam estrutura factual, contexto, hipótese, ação e proveniência', async ({ page }) => {
+    await page.goto('/index.html#overview');
+    const sample = await page.evaluate(() => (window.PULSE_EVIDENCE || [])[0]);
+    expect(sample).toBeTruthy();
+    expect(sample.id).toBeTruthy();
+    expect(sample.fato).toBeTruthy();
+    expect(sample.contexto).toBeTruthy();
+    expect(sample.hipotese).toBeTruthy();
+    expect(sample.acao).toBeTruthy();
+    expect(sample.fonte).toBeTruthy();
+    expect(sample.periodo).toBeTruthy();
+    expect(sample.confianca).toBeTruthy();
   });
-  test('category role is explicitly heuristic', async ({ page }) => {
-    await page.goto(`file://${path.resolve('index.html')}#signals`);
-    const result = await page.evaluate(() => window.PULSE_NEXT_LEVEL.setCategoryRole('Bebidas','defender valor',[{id:'e1'}]));
-    expect(result.category).toBe('Bebidas'); expect(result.role).toBe('defender valor'); expect(result.evidenceCount).toBe(1); expect(result.provenance).toMatch(/heurística/i);
+
+  test('Inspector mantém a evidência ligada à sua origem e confiança', async ({ page }) => {
+    await page.goto('/index.html#overview');
+    const id = await page.locator('#pv3-signals .pv3-item[data-evidence-id]').first().getAttribute('data-evidence-id');
+    const expected = await page.evaluate(id => (window.PULSE_EVIDENCE || []).find(x => String(x.id) === String(id)), id);
+    await page.locator('#pv3-signals .pv3-item[data-evidence-id]').first().getByRole('button', { name: 'Ver evidência' }).click();
+    await expect(page.locator('#pv3-inspector')).toContainText(expected.fonte);
+    await expect(page.locator('#pv3-inspector')).toContainText(expected.periodo);
+    await expect(page.locator('#pv3-inspector')).toContainText(expected.confianca);
   });
-  test('local evidence state is present and preserves provenance data', async ({ page }) => {
-    await page.goto(`file://${path.resolve('index.html')}#signals`);
-    const result = await page.evaluate(() => {
-      const rows = Array.isArray(window.PULSE_LOCAL_EVIDENCE) ? window.PULSE_LOCAL_EVIDENCE : [];
-      const sample = rows.find(x => x && (x.provenance || x.summary || x.name));
-      return {ok:Array.isArray(rows), count:rows.length, sample:sample ? {
-        hasProvenance: !!(sample.provenance || sample.summary?.provenance || sample.source),
-        hasName: !!sample.name
-      } : null};
-    });
-    expect(result.ok).toBe(true);
-    expect(result.count).toBeGreaterThanOrEqual(0);
-    if (result.sample) expect(result.sample.hasName).toBe(true);
-  });
-  test('production auth token endpoint is reachable from Chromium', async ({ page }) => {
-    await page.goto('https://paulorafaeldemouraPaes.github.io/shopplosion-pulse/auth.html?browser-test=1',{waitUntil:'domcontentloaded',timeout:30000});
-    const result = await page.evaluate(async () => {
-      const cfg=window.PULSE_SUPABASE_CONFIG||{}; const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),10000);
-      try { const response=await fetch(cfg.url+'/auth/v1/token?grant_type=password',{method:'POST',mode:'cors',credentials:'omit',headers:{apikey:cfg.anonKey,'Content-Type':'application/json'},body:JSON.stringify({email:'diagnostic-invalid@example.invalid',password:'diagnostic-invalid-password'}),cache:'no-store',signal:controller.signal}); return {status:response.status,text:(await response.text()).slice(0,300),origin:location.origin}; }
-      catch(error){ return {status:0,name:error.name,message:error.message,origin:location.origin}; }
-      finally{ clearTimeout(timer); }
-    });
-    console.log('AUTH_TRANSPORT_RESULT',JSON.stringify(result));
-    expect(result.status).toBe(400);
+
+  test('Base e Análises continuam sendo destinos distintos do Workspace', async ({ page }) => {
+    await page.goto('/index.html#overview');
+    const links = await page.locator('.pv3-shell-nav a').evaluateAll(as => as.map(a => ({name:a.dataset.nav, href:a.getAttribute('href')})));
+    expect(links.find(x => x.name === 'base').href).toContain('#documents');
+    expect(links.find(x => x.name === 'analises').href).toContain('#analyses');
+    expect(links.find(x => x.name === 'investigacao').href).toContain('ask.html');
   });
 });
