@@ -2,6 +2,7 @@
 'use strict';
 // Canonical Pulse workspace runtime: one shell, one navigation system, one inspector.
 // Single-file Universe mirrors this exact runtime.
+// HTML structure is validated before publication.
 const path=location.pathname.split('/').pop()||'index.html', hash=location.hash.replace(/^#/,'');
 const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
