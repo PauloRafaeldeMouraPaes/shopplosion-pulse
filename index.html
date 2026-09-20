@@ -115,7 +115,7 @@ const parseDate=function(value){return new Date(value);};
 const periodKey=function(value){var d=parseDate(value);return isNaN(d)?String(value||""):d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");};
 const qualityBand=function(score){return score>=.8?"ALTA":score>=.5?"MÉDIA":"BAIXA";};
 <!-- PULSE_PRODUCT_V6 -->
-<script>
+
 (()=>{
 'use strict';
 if(window.__PULSE_PRODUCT_V6__)return;window.__PULSE_PRODUCT_V6__=true;
@@ -159,7 +159,7 @@ function render(){
 }
 const css=document.createElement('style');css.textContent='#pulse-v6-lab{margin:32px auto;max-width:1180px;padding:28px;border:1px solid rgba(20,20,20,.12);border-radius:22px;background:#fff;box-shadow:0 12px 36px rgba(0,0,0,.06);font-family:inherit}.pulse-v6-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.pulse-v6-head h2{margin:5px 0;font-size:26px}.pulse-v6-head p{margin:0;opacity:.7}.pulse-v6-actions{display:flex;gap:8px;flex-wrap:wrap}.pulse-v6-actions button{border:1px solid rgba(20,20,20,.15);border-radius:10px;padding:9px 12px;background:#fff;cursor:pointer}.pulse-v6-exec{margin-top:18px;padding:16px;border-radius:14px;background:rgba(20,20,20,.045)}.pulse-v6-exec p{margin:6px 0 0}.pulse-v6-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}.pulse-v6-grid article{border:1px solid rgba(20,20,20,.1);border-radius:16px;padding:18px}.pulse-v6-grid h3{margin:0 0 12px}.pulse-v6-row{display:grid;grid-template-columns:1fr auto;gap:3px 10px;padding:10px 0;border-top:1px solid rgba(20,20,20,.08)}.pulse-v6-row span{font-weight:800}.pulse-v6-row small{grid-column:1/-1;opacity:.62}.pulse-v6-wide{grid-column:1/-1}.pulse-v6-quality{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.pulse-v6-quality span{padding:10px;border-radius:10px;background:rgba(20,20,20,.045);display:flex;flex-direction:column;gap:2px}@media(max-width:760px){.pulse-v6-head{flex-direction:column}.pulse-v6-grid{grid-template-columns:1fr}.pulse-v6-wide{grid-column:auto}.pulse-v6-quality{grid-template-columns:repeat(2,1fr)}}@media print{#pulse-v6-lab{box-shadow:none;border:0}#pulse-v6-actions,#pulse-v6-copy,#pulse-v6-print{display:none}.pulse-v6-wide{grid-column:1/-1}}';document.head.appendChild(css);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true});else render();
 })();
-</script>
+
 
 </script>
 
