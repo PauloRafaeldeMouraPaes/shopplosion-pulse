@@ -53,7 +53,7 @@
   const show=(text,type='ok')=>{msg.textContent=text;msg.className='msg show '+type};
   const redirect=()=>location.replace('./auth.html');
   if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){show('Configuração do Supabase indisponível.','error');return}
-  const client=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  const client=pulseCreateClient();
   let session=null;
   try{
     const current=await client.auth.getSession();
