@@ -26,3 +26,5 @@ body.pv3-active{padding:0!important;background:var(--pv4-bg)!important;color:var
 
 .pv4-head{position:relative}.pv3-breadcrumb{position:absolute;left:0;top:8px;display:flex;gap:7px;align-items:center;font-size:10px;font-weight:700;color:#8b8e96}.pv3-breadcrumb strong{color:#202127}.pv3-breadcrumb span:nth-child(2){color:#c1c2c6}
 @media(max-width:640px){.pv4-head{padding-top:44px}.pv3-breadcrumb{top:5px}}
+
+.pv4-source-link{color:#7a7e87;text-decoration:none;font-size:9px}.pv4-source-link:hover{color:#a3164e;text-decoration:underline}
