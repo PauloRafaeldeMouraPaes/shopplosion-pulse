@@ -26,14 +26,19 @@ const cfg=window.PULSE_SUPABASE_CONFIG||{},message=document.getElementById('mess
 if(!url||!key||!window.supabase||typeof window.supabase.createClient!=='function'){show('Configuração do Supabase indisponível.','error');return}
 if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const redirectAuth=()=>location.replace('./auth.html');
-const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 let sessionData;
 try{sessionData=(await client.auth.getSession())?.data||null}catch(e){show('Não foi possível recuperar a sessão da conta.','error');return}
 let session=sessionData?.session||null;const user=session?.user||null;
 if(!session){
-  const hash=new URLSearchParams(location.hash.replace(/^#/,''));
-  const recovery=hash.get('type')==='recovery';
-  if(!recovery){redirectAuth();return}
+  // A navegação interna usa #documents/#analyses. Não trate o hash do workspace como callback de autenticação.
+  // Aguarda a recuperação assíncrona da sessão antes de redirecionar para login.
+  await new Promise(r=>setTimeout(r,900));
+  try{session=(await client.auth.getSession())?.data?.session||null}catch(e){}
+  if(!session){
+    show('Sua sessão não foi recuperada nesta navegação. O Pulse não encerrou a conta; tente atualizar a página.','error');
+    return;
+  }
 }
 if(session?.user){
   document.getElementById('userEmail').textContent=session.user.email||'conta autenticada';
