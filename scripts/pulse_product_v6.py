@@ -71,10 +71,10 @@ def main():
             end = text.find('</script>', marker_pos)
             if end < 0:
                 raise RuntimeError('Product V6 marker sem fechamento de script')
-            text = text[:marker_pos] + js_body + '\\n' + text[end:]
+            text = text[:marker_pos] + js_body + '\n' + text[end:]
         else:
             # Legacy standalone wrapper: replace the whole generated block.
-            text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->.*?</script>\\s*', lambda _m: JS, text, count=1, flags=re.S)
+            text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->.*?</script>\s*', lambda _m: JS, text, count=1, flags=re.S)
     else:
         pos = text.lower().rfind('</body>')
         if pos < 0:
