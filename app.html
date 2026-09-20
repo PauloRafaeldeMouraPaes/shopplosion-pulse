@@ -31,7 +31,7 @@ const cfg=window.PULSE_SUPABASE_CONFIG||{},message=document.getElementById('mess
 if(!url||!key||!window.supabase||typeof window.supabase.createClient!=='function'){show('Configuração do Supabase indisponível.','error');return}
 if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const redirectAuth=()=>location.replace('./auth.html');
-const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const client=pulseCreateClient();
 let sessionData;
 try{sessionData=(await client.auth.getSession())?.data||null}catch(e){show('Não foi possível recuperar a sessão da conta.','error');return}
 let session=sessionData?.session||null;const user=session?.user||null;
