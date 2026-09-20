@@ -75,7 +75,7 @@ for (const item of evidence || []) {
     if (item[field] === undefined || item[field] === null || item[field] === '') failures.push(`${item.id || '<unknown>'}: missing ${field}`);
   }
   if (item.categoria && !allowedCategories.has(item.categoria)) failures.push(`${item.id}: unsupported categoria ${item.categoria}`);
-  if (item.url && !/^https?:\\/\\//i.test(item.url)) failures.push(`${item.id}: invalid evidence URL`);
+  if (item.url && !/^https?:\/\//i.test(item.url)) failures.push(`${item.id}: invalid evidence URL`);
 }
 
 const sourceKeys = new Set();
@@ -87,12 +87,12 @@ for (const source of sources || []) {
   const key = `${source.org}|${source.title}`;
   if (sourceKeys.has(key)) failures.push(`duplicate source: ${key}`);
   sourceKeys.add(key);
-  if (source.url && !/^https?:\\/\\//i.test(source.url)) failures.push(`source has invalid URL: ${source.url}`);
+  if (source.url && !/^https?:\/\//i.test(source.url)) failures.push(`source has invalid URL: ${source.url}`);
 }
 
 if (evidenceIds.size < 10) failures.push(`expected at least 10 evidence items, found ${evidenceIds.size}`);
 
-const scriptIds = [...html.matchAll(/<script\\b[^>]*\\bid=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
+const scriptIds = [...html.matchAll(/<script\b[^>]*\bid=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
 const seenScriptIds = new Set();
 for (const id of scriptIds) {
   if (seenScriptIds.has(id)) warnings.push(`duplicate script id: ${id}`);
