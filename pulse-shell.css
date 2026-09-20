@@ -60,3 +60,5 @@ body.pulse-shell-ready>header.pulse-original-header{display:none!important}
   body.pulse-shell-ready{padding-top:58px}
 }
 @media(prefers-reduced-motion:reduce){.pulse-inspector{transition:none!important}}
+
+@media(max-width:640px){.pulse-nav{grid-template-columns:repeat(3,minmax(0,1fr))}.pulse-nav a:nth-child(2),.pulse-nav a:nth-child(5){display:none}.pulse-nav a{min-height:60px}.pulse-nav a span:last-child{display:block!important}}
