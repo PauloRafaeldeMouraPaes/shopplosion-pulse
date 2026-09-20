@@ -32,3 +32,6 @@ jobs:
       - name: Run condução smoke tests
         if: always()
         run: npx playwright test scripts/browser-tests/pulse-conducao.spec.js
+      - name: Run Universo reprojection smoke tests
+        if: always()
+        run: npx playwright test scripts/browser-tests/pulse-universo-v3.spec.js
