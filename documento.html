@@ -52,7 +52,7 @@
       const refreshToken=stored?.refresh_token||stored?.currentSession?.refresh_token;
       if(accessToken&&refreshToken){const restored=await client.auth.setSession({access_token:accessToken,refresh_token:refreshToken});if(restored.error||!restored.data?.session)throw restored.error||new Error('session_restore_failed');session=restored.data.session}
     }
-    if(!session){redirect();return}
+    if(!session){document.getElementById('content').innerHTML='<div class="empty">Sessão não recuperada nesta navegação. Atualize a página; a conta não foi desconectada.</div>';return}
   }catch(e){redirect();return}
   const user=session.user;
   let context=null;
