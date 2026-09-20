@@ -23,3 +23,5 @@ jobs:
         run: node scripts/validate-study-evidence.js
       - name: Validate condução dismissal/silence contract
         run: node scripts/validate-conducao-contract.js
+      - name: Validate analysis publish/limits contract
+        run: node scripts/validate-analysis-publish-contract.js
