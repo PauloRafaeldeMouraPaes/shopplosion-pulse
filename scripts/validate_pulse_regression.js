@@ -24,7 +24,7 @@ function requireHtmlOrRuntime(label, text) {
   ['workspace inspector', 'pv4-inspector'],
   ['workspace proposal story', 'pv4-story']
 ].forEach(([label, text]) => {
-  const haystack = label.startsWith('workspace') ? workspace : html;
+  const haystack = label === 'workspace runtime' ? html : (label.startsWith('workspace') ? workspace : html);
   requireText(label, text, haystack);
 });
 
