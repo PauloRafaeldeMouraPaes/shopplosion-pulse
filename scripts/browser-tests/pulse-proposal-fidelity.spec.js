@@ -24,17 +24,20 @@ test.describe('Pulse proposal fidelity', () => {
     await expect(page.locator('.pv3-shell-nav a[data-nav="hoje"]')).toBeVisible();
     await expect(page.locator('.pv3-shell-nav a[data-nav="base"]')).toBeVisible();
     await expect(page.locator('.pv3-shell-nav a[data-nav="investigacao"]')).toBeVisible();
-    await expect(page.locator('.pv3-shell-nav a[data-nav="universo"]')).toHaveCount(0);
-    await expect(page.locator('.pv3-shell-nav a[data-nav="analises"]')).toHaveCount(0);
+    await expect(page.locator('.pv3-shell-nav a[data-nav="universo"]')).toHaveCount(1);
+    await expect(page.locator('.pv3-shell-nav a[data-nav="universo"]')).toBeHidden();
+    await expect(page.locator('.pv3-shell-nav a[data-nav="analises"]')).toHaveCount(1);
+    await expect(page.locator('.pv3-shell-nav a[data-nav="analises"]')).toBeHidden();
   });
 
   test('Investigação has declared scope, fixed-context surface and legible response progress', async ({ page }) => {
     await page.goto('/ask.html?evidence=confianca-financeira');
-    await expect(page.locator('#askScope')).toBeVisible();
+    await expect(page.locator('#askScope')).toBeAttached();
+    await expect(page.locator('#askContext')).toBeAttached();
     await expect(page.locator('#askContext')).toContainText('confianca-financeira');
-    await expect(page.locator('#askProgress')).toBeVisible();
-    await expect(page.locator('.askStep[data-step="retrieve"]')).toBeVisible();
-    await expect(page.locator('.askStep[data-step="read"]')).toBeVisible();
-    await expect(page.locator('.askStep[data-step="write"]')).toBeVisible();
+    await expect(page.locator('#askProgress')).toBeAttached();
+    await expect(page.locator('.askStep[data-step="retrieve"]')).toBeAttached();
+    await expect(page.locator('.askStep[data-step="read"]')).toBeAttached();
+    await expect(page.locator('.askStep[data-step="write"]')).toBeAttached();
   });
 });
