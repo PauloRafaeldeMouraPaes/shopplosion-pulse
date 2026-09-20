@@ -30,7 +30,7 @@
       <button id="search" type="button">Buscar evidências</button>
       <button id="generate" class="secondary" type="button">Gerar resposta</button>
     </div>
-    <div class="askScopeSelect"><label for="askScope">Escopo da pergunta</label><select id="askScope" aria-label="Escopo da pergunta"><option value="industry">Minha indústria · privado</option><option value="universe" disabled>Universo · público (disponível no contexto público)</option><option value="both" disabled>Ambos · disponível quando o contexto público estiver habilitado</option></select></div><div id="askContext" class="askContext" aria-label="Contexto fixado"></div><div id="askProgress" class="askProgress" role="status" aria-live="polite"><div class="askProgressTitle">Progresso da resposta</div><div class="askSteps"><div class="askStep" data-step="retrieve">Recuperando trechos</div><div class="askStep" data-step="read">Lendo evidências</div><div class="askStep" data-step="write">Redigindo resposta</div></div></div><div class="note">RLS continua sendo a autoridade de isolamento. O LLM nunca recebe dados de outra indústria.</div>
+    <div class="askScopeSelect"><label for="askScope">Escopo da pergunta</label><select id="askScope" aria-label="Escopo da pergunta"><option value="industry">Minha indústria · privado</option><option value="universe">Universo · público</option><option value="both">Ambos · público + privado</option></select></div><div id="askContext" class="askContext" aria-label="Contexto fixado"></div><div id="askProgress" class="askProgress" role="status" aria-live="polite"><div class="askProgressTitle">Progresso da resposta</div><div class="askSteps"><div class="askStep" data-step="retrieve">Recuperando trechos</div><div class="askStep" data-step="read">Lendo evidências</div><div class="askStep" data-step="write">Redigindo resposta</div></div></div><div class="note">RLS continua sendo a autoridade de isolamento. O LLM nunca recebe dados de outra indústria.</div>
     <div id="message" class="msg" role="status" aria-live="polite"></div>
   </section>
   <section id="answerPanel" class="panel hidden">
@@ -90,18 +90,27 @@
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
   const score=(content,terms)=>{const text=normalize(content);return terms.reduce((n,t)=>n+(text.split(t).length-1),0)};
+  async function loadPublicEvidence(){try{const html=await fetch('./index.html?v=20260920.01',{cache:'no-store'}).then(r=>r.text());const doc=new DOMParser().parseFromString(html,'text/html');const node=doc.querySelector('#pulse-public-evidence-json');return node?JSON.parse(node.textContent||'[]'):[]}catch(e){console.warn('pulse-public-evidence',e);return[]}}
   async function retrieve(raw){
-    const terms=termsFor(raw);
-    if(!terms.length) throw new Error('Digite uma pergunta válida.');
-    const filters=terms.map(t=>'content.ilike.%'+t+'%').join(',');
-    const {data:chunks,error}=await client.from('document_chunks').select('id,document_id,chunk_index,content,source_type,created_at').eq('industry_id',profile.industry_id).or(filters).limit(80);
-    if(error) throw new Error('Não foi possível consultar os blocos privados.');
-    const rows=(chunks||[]).map(c=>({...c,score:score(c.content,terms)})).filter(c=>c.score>0).sort((a,b)=>b.score-a.score||a.chunk_index-b.chunk_index).slice(0,20);
-    const docIds=Array.from(new Set(rows.map(r=>r.document_id)));
-    let docs=[];
+    const terms=termsFor(raw);if(!terms.length) throw new Error('Digite uma pergunta válida.');
+    const scope=document.getElementById('askScope')?.value||'industry';
+    let privateRows=[];
+    if(scope!=='universe'){
+      const filters=terms.map(t=>'content.ilike.%'+t+'%').join(',');
+      const {data:chunks,error}=await client.from('document_chunks').select('id,document_id,chunk_index,content,source_type,created_at').eq('industry_id',profile.industry_id).or(filters).limit(80);
+      if(error) throw new Error('Não foi possível consultar os blocos privados.');
+      privateRows=(chunks||[]).map(c=>({...c,score:score(c.content,terms)})).filter(c=>c.score>0).sort((a,b)=>b.score-a.score||a.chunk_index-b.chunk_index).slice(0,20);
+    }
+    let publicRows=[];
+    if(scope!=='industry'){
+      const publicEvidence=await loadPublicEvidence();
+      publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:score(text,terms),publicEvidence:e}}).filter(r=>r.score>0).sort((a,b)=>b.score-a.score).slice(0,12);
+    }
+    const rows=(scope==='industry'?privateRows:scope==='universe'?publicRows:[...privateRows,...publicRows].sort((a,b)=>b.score-a.score)).slice(0,20);
+    const docIds=Array.from(new Set(rows.map(r=>r.document_id).filter(Boolean)));let docs=[];
     if(docIds.length){const res=await client.from('documents').select('id,filename,mime_type').eq('industry_id',profile.industry_id).in('id',docIds);if(!res.error)docs=res.data||[]}
     const byId=Object.fromEntries(docs.map(d=>[d.id,d]));
-    return {rows,byId};
+    return {rows,byId,publicRows,scope};
   }
   function render(rows,byId){
     const title=document.getElementById('resultTitle');
@@ -111,7 +120,7 @@
   }
   async function searchEvidence(){
     document.getElementById('search').disabled=true;setProgress('retrieve');show('Buscando somente na base privada…','ok');
-    try{const found=await retrieve(document.getElementById('query').value);render(found.rows,found.byId);show(found.rows.length?'Evidências recuperadas.':'Nenhum resultado encontrado.','ok')}catch(e){show(e.message||'Falha na busca.','error')}finally{document.getElementById('search').disabled=false}
+    try{const found=await retrieve(document.getElementById('query').value);render(found.rows,found.byId);show(found.rows.length?'Evidências recuperadas no escopo '+document.getElementById('askScope').selectedOptions[0].text+'.':'Nenhum resultado encontrado no escopo selecionado.','ok')}catch(e){show(e.message||'Falha na busca.','error')}finally{document.getElementById('search').disabled=false}
   }
   function setProgress(step){const box=document.getElementById('askProgress');if(!box)return;box.classList.add('show');const order=['retrieve','read','write'],idx=order.indexOf(step);box.querySelectorAll('.askStep').forEach((el,i)=>{el.classList.toggle('active',i===idx);el.classList.toggle('done',i<idx)})}
 function initAskContext(){const params=new URLSearchParams(location.search),id=params.get('evidence');const box=document.getElementById('askContext');if(!box)return;if(id){box.innerHTML='<span class="askContextChip">EV · '+esc(id)+'</span><span class="muted">Contexto fixado da evidência selecionada</span>'}else{box.innerHTML='<span class="muted">Nenhum objeto fixado. Você pode perguntar usando apenas o acervo privado.</span>'}}
