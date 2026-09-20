@@ -13,7 +13,7 @@ else:
       ("viewport", r'<meta[^>]+name=["\']viewport["\']'),
       ("title", r"<title>Pulse"),
       ("workspace app root", r'class=["\'][^"\']*app[^"\']*["\']'),
-      ("journey", r"01\s*[·.-]\s*Hoje|01\s*[·.-]\s*Comece aqui|data-nav=[\"\']hoje[\"\']"),
+      ("journey", r"01\s*[·.-]\s*Hoje|01\s*[·.-]\s*Comece aqui|\[\[\s*['\"]hoje['\"],\s*['\"]01['\"],\s*['\"]Hoje['\"]"),
       ("universo", r"Universo|02[^<]{0,40}Universo|Oportunidade Canvas"),
       ("investigação", r"Investigação|Investigar"),
       ("análises", r"Análises|Opportunity Canvas"),
