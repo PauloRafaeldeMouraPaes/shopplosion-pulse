@@ -48,7 +48,7 @@
   const init=async()=>{
     const cfg=window.PULSE_SUPABASE_CONFIG||{};
     if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){location.replace('./auth.html');return}
-    const db=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const db=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
     const {data:sessionData,error:sessionError}=await db.auth.getSession();
     const session=sessionData?.session;
     if(sessionError||!session){document.getElementById('signalList').innerHTML='<div class="empty">Sessão não encontrada.</div>';return}
