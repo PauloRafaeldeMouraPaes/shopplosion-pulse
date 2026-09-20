@@ -72,7 +72,7 @@ def main():
             text = text[:marker_pos] + marker_block + text[end_pos:]
         else:
             # Standalone marker: replace the generated block, including wrapper.
-            text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->[\\s\\S]*?</script>\\s*',
+            text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->[\s\S]*?</script>\s*',
                           lambda _m: JS,
                           text,
                           count=1,
