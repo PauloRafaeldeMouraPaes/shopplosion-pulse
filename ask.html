@@ -122,7 +122,7 @@
     document.getElementById('search').disabled=true;setProgress('retrieve');show('Buscando somente na base privada…','ok');
     try{const found=await retrieve(document.getElementById('query').value);render(found.rows,found.byId);show(found.rows.length?'Evidências recuperadas no escopo '+document.getElementById('askScope').selectedOptions[0].text+'.':'Nenhum resultado encontrado no escopo selecionado.','ok')}catch(e){show(e.message||'Falha na busca.','error')}finally{document.getElementById('search').disabled=false}
   }
-  function setProgress(step){const box=document.getElementById('askProgress');if(!box)return;box.classList.add('show');const order=['retrieve','read','write'],idx=order.indexOf(step);box.querySelectorAll('.askStep').forEach((el,i)=>{el.classList.toggle('active',i===idx);el.classList.toggle('done',i<idx)})}
+  function setProgress(step,count){const box=document.getElementById('askProgress');if(!box)return;box.classList.add('show');const order=['retrieve','read','write'],idx=order.indexOf(step);box.querySelectorAll('.askStep').forEach((el,i)=>{el.classList.toggle('active',i===idx);el.classList.toggle('done',i<idx)});const read=box.querySelector('[data-step="read"]');if(read&&count!=null)read.textContent='Lendo '+count+' evidência(s)'}
 function initAskContext(){const params=new URLSearchParams(location.search),id=params.get('evidence');const box=document.getElementById('askContext');if(!box)return;if(id){box.innerHTML='<span class="askContextChip">EV · '+esc(id)+'</span><span class="muted">Contexto fixado da evidência selecionada</span>'}else{box.innerHTML='<span class="muted">Nenhum objeto fixado. Você pode perguntar usando apenas o acervo privado.</span>'}}
 initAskContext();
 async function generateAnswer(){
