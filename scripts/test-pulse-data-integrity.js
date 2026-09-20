@@ -62,7 +62,7 @@ try {
 if (!Array.isArray(evidence) || evidence.length === 0) failures.push('PULSE_EVIDENCE must be a non-empty array');
 if (!Array.isArray(sources) || sources.length === 0) failures.push('PULSE_SOURCES must be a non-empty array');
 
-const allowedCategories = new Set(['preços', 'varejo', 'chocolates', 'bebidas', 'higiene', 'geral']);
+const allowedCategories = new Set(['preços', 'varejo', 'varejo ampliado', 'São Paulo', 'chocolates', 'bebidas', 'higiene', 'geral']);
 const evidenceIds = new Set();
 
 for (const item of evidence || []) {
