@@ -1,0 +1,19 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Fixture: Base (Workspace V3)</title>
+<link rel="stylesheet" href="../../../pulse-tokens.css">
+<link rel="stylesheet" href="../../../pulse-shell.css">
+<link rel="stylesheet" href="../../../pulse-workspace-v3.css">
+</head><body>
+<!--
+  Fixture de teste para a reprojeção da Base (Fase 3c). Não é parte do
+  produto publicado: reproduz apenas o contrato de DOM real que app.html
+  fornece ao Workspace V3 (#documents, #analyses, #file), sem a autenticação
+  Supabase, para exercitar o pulse-workspace-v3.js de produção sem
+  credenciais reais. Fica na última posição do caminho como "app.html" de
+  propósito, porque pulse-workspace-v3.js decide a rota pelo nome do
+  arquivo (location.pathname.split('/').pop()).
+-->
+<input id="file" type="file" style="display:none">
+<div id="documents"></div>
+<div id="analyses"></div>
+<script src="../../../pulse-workspace-v3.js"></script>
+</body></html>

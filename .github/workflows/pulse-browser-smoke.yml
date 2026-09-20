@@ -35,3 +35,6 @@ jobs:
       - name: Run Universo reprojection smoke tests
         if: always()
         run: npx playwright test scripts/browser-tests/pulse-universo-v3.spec.js
+      - name: Run Base reprojection smoke tests
+        if: always()
+        run: npx playwright test scripts/browser-tests/pulse-base-v3.spec.js
