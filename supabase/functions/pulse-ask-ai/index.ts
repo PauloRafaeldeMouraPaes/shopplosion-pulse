@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     .in('id', documentIds)
   if (documentError) return json({ error: 'document_lookup_failed', message: 'As evidências foram encontradas, mas os documentos não puderam ser identificados.' }, 500)
   const documentMap = Object.fromEntries((documents || []).map((document) => [document.id, document]))
-  const evidence = ranked.map((chunk, index) => ({ ref: `E${index + 1}`, document: documentMap[chunk.document_id]?.filename || 'Documento privado', chunk: Number(chunk.chunk_index) + 1, source_type: chunk.source_type || 'text', content: String(chunk.content || '').slice(0, 5000) }))
+  const evidence = ranked.map((chunk, index) => ({ ref: `E${index + 1}`, document: documentMap[chunk.document_id]?.filename || 'Documento privado', document_id: chunk.document_id, document_chunk_id: chunk.id, chunk: Number(chunk.chunk_index) + 1, source_type: chunk.source_type || 'text', content: String(chunk.content || '').slice(0, 5000) }))
   const evidenceText = evidence.map((item) => `<evidence ref="${item.ref}" document="${item.document}" chunk="${item.chunk}" source="${item.source_type}">${item.content}</evidence>`).join('\n')
 
   const system = 'Você é o analista privado do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Nunca mencione ou atribua fatos a uma indústria diferente da indústria autenticada. Não revele dados fora das evidências. Quando a pergunta não pedir o nome da indústria, não nomeie nenhuma indústria na resposta; use apenas "sua indústria" ou "a indústria autenticada".'
@@ -115,5 +115,5 @@ Deno.serve(async (req) => {
       scope_rejected: true,
     }, 200)
   }
-  return json({ answer, model, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, chunk: item.chunk, source_type: item.source_type })) })
+  return json({ answer, model, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type })) })
 })
