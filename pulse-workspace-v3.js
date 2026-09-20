@@ -46,4 +46,69 @@ const sync=()=>{const ans=q('#answer'),c=q('#citations'),r=q('#results');if(ans&
 function sources(){hideLegacy();const app=mount(head('Fontes','Gerencie as origens usadas pelo workspace. Fontes externas e registros de proveniência permanecem separados da base privada.','base')+'<div class="pv3-grid"><section class="pv3-card wide"><h2>Fontes registradas</h2><div id="pv3-sources" class="pv3-list"></div></section><section class="pv3-card"><h2>Adicionar fonte</h2><p>Use o formulário existente para preservar a integração atual.</p><div style="margin-top:16px"><button id="pv3-add-source" class="pv3-action" type="button">Abrir cadastro</button></div></section></div>');const render=()=>{const src=q('#list');const list=q('#pv3-sources',app);if(src){const items=qa('.source',src);list.innerHTML=items.length?items.map(x=>'<article class="pv3-item"><strong>'+esc(textOf(q('.name',x))||textOf(x).slice(0,100))+'</strong><span>'+esc(textOf(x))+'</span></article>').join(''):'<div class="pv3-empty">Nenhuma fonte registrada.</div>'}};render();new MutationObserver(muts=>{if(muts.every(m=>app.contains(m.target)))return;render()}).observe(document.body,{childList:true,subtree:true});const add=q('#add');if(add)q('#pv3-add-source',app).onclick=()=>add.click()}
 function init(){if(q('.pv3-app'))return;document.body.classList.add('pv3-active');enhanceShell();const a=active();if(path==='sources.html')sources();else if(a==='universo')universe();else if(a==='hoje')today();else if(a==='base')base(false);else if(a==='analises')base(true);else investigation()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else requestAnimationFrame(init);setTimeout(()=>{if(!q('.pv3-app'))init()},250);
+/* PULSE_INSPECTOR_BREADCRUMB_V1 */
+(function(){
+  'use strict';
+  if(window.__PULSE_INSPECTOR_BREADCRUMB_V1)return;
+  window.__PULSE_INSPECTOR_BREADCRUMB_V1=true;
+  var q=function(s,r){return(r||document).querySelector(s)}, qa=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+  function currentPage(){
+    var p=location.pathname.split('/').pop()||'index.html';
+    return p==='intelligence.html'?'Hoje':p==='app.html'?(location.hash==='#analyses'?'Análises':'Base'):p==='ask.html'?'Investigação':p==='sources.html'?'Fontes':'Universo';
+  }
+  function addBreadcrumb(){
+    var head=q('.pv3-head'); if(!head||q('.pv3-breadcrumb',head))return;
+    var title=q('h1',head), text=title?title.textContent.trim():currentPage();
+    var b=document.createElement('div'); b.className='pv3-breadcrumb'; b.innerHTML='<span>Pulse</span><span aria-hidden="true">/</span><strong>'+esc(currentPage())+'</strong><span aria-hidden="true">/</span><span>'+esc(text)+'</span>';
+    head.insertBefore(b,head.firstChild);
+  }
+  function ensureInspector(){
+    if(q('#pv3-inspector'))return;
+    var panel=document.createElement('aside'); panel.id='pv3-inspector'; panel.className='pv3-inspector'; panel.setAttribute('aria-label','Inspector de evidência'); panel.setAttribute('aria-hidden','true');
+    panel.innerHTML='<div class="pv3-inspector-head"><div><span class="pv3-inspector-kicker">INSPECTOR</span><h2 id="pv3-inspector-title">Detalhes</h2></div><button type="button" id="pv3-inspector-close" aria-label="Fechar Inspector">Fechar</button></div><div id="pv3-inspector-body"></div>';
+    document.body.appendChild(panel);
+    q('#pv3-inspector-close',panel).addEventListener('click',closeInspector);
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInspector()});
+  }
+  function openInspector(item){
+    ensureInspector();
+    var panel=q('#pv3-inspector'), body=q('#pv3-inspector-body',panel), e=item||{};
+    var title=e.fato||e.title||e.name||'Evidência Pulse';
+    var source=e.fonte||e.sourceName||'Fonte não informada', period=e.periodo||'Período não informado', confidence=e.confianca||'Não classificada';
+    body.innerHTML='<div class="pv3-inspector-section"><span class="pv3-inspector-label">FATO</span><p>'+esc(e.fato||e.text||e.excerpt||title)+'</p></div>'+
+      '<div class="pv3-inspector-section"><span class="pv3-inspector-label">CONTEXTO</span><p>'+esc(e.contexto||'Contexto associado à evidência disponível.')+'</p></div>'+
+      '<div class="pv3-inspector-section"><span class="pv3-inspector-label">INTERPRETAÇÃO</span><p>'+esc(e.interpretacao||'Nenhuma interpretação adicional registrada.')+'</p></div>'+
+      '<div class="pv3-inspector-section"><span class="pv3-inspector-label">HIPÓTESE</span><p>'+esc(e.hipotese||'Validar esta leitura com evidências adicionais antes da decisão.')+'</p></div>'+
+      '<div class="pv3-inspector-section"><span class="pv3-inspector-label">PRÓXIMA AÇÃO</span><p>'+esc(e.acao||'Investigar a hipótese no contexto da categoria e do canal.')+'</p></div>'+
+      '<dl class="pv3-inspector-meta"><div><dt>Fonte</dt><dd>'+esc(source)+'</dd></div><div><dt>Período</dt><dd>'+esc(period)+'</dd></div><div><dt>Confiança</dt><dd>'+esc(confidence)+'</dd></div>'+(e.id?'<div><dt>ID</dt><dd>'+esc(e.id)+'</dd></div>':'')+'</dl>';
+    panel.classList.add('open');panel.setAttribute('aria-hidden','false');
+    var close=q('#pv3-inspector-close',panel);if(close)close.focus();
+  }
+  function closeInspector(){var p=q('#pv3-inspector');if(!p)return;p.classList.remove('open');p.setAttribute('aria-hidden','true')}
+  function bindCards(){
+    document.addEventListener('click',function(ev){
+      var item=ev.target.closest&&ev.target.closest('.pv3-item[data-evidence-id]');
+      if(!item||ev.target.closest('a,button,select,input'))return;
+      var id=item.getAttribute('data-evidence-id'), data=(window.PULSE_EVIDENCE||[]).find(function(x){return String(x.id)===String(id)});
+      if(data){ev.preventDefault();openInspector(data)}
+    });
+    qa('.pv3-item[data-evidence-id]').forEach(function(item){
+      if(item.querySelector('.pv3-inspect-action'))return;
+      var b=document.createElement('button');b.type='button';b.className='pv3-inspect-action';b.textContent='Ver evidência';b.addEventListener('click',function(){var id=item.getAttribute('data-evidence-id'),data=(window.PULSE_EVIDENCE||[]).find(function(x){return String(x.id)===String(id)});if(data)openInspector(data)});
+      item.appendChild(b);
+    });
+  }
+  function addStyles(){
+    if(q('#pv3-inspector-styles'))return;
+    var s=document.createElement('style');s.id='pv3-inspector-styles';s.textContent='.pv3-breadcrumb{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:11px;color:#667085;font-weight:700}.pv3-breadcrumb strong{color:#101828}.pv3-inspect-action{margin-top:10px;border:1px solid #d0d5dd;background:#fff;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:850;color:#28447e;cursor:pointer}.pv3-inspect-action:hover{background:#f8f9fc}.pv3-inspector{position:fixed;z-index:1000;top:0;right:0;width:min(420px,calc(100vw - 20px));height:100vh;background:#fff;border-left:1px solid #e4e7ec;box-shadow:-12px 0 35px rgba(16,24,40,.14);transform:translateX(105%);transition:transform .2s ease;overflow:auto;padding:20px}.pv3-inspector.open{transform:translateX(0)}.pv3-inspector-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid #eaecf0}.pv3-inspector-kicker{font-size:9px;letter-spacing:.12em;font-weight:950;color:#e51b67}.pv3-inspector h2{margin:4px 0 0;font-size:20px}.pv3-inspector-head button{border:1px solid #d0d5dd;background:#fff;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800;cursor:pointer}.pv3-inspector-section{padding:14px 0;border-bottom:1px solid #f0f2f5}.pv3-inspector-label{font-size:9px;letter-spacing:.08em;font-weight:950;color:#667085}.pv3-inspector-section p{margin:6px 0 0;color:#344054;font-size:13px;line-height:1.55}.pv3-inspector-meta{display:grid;gap:8px;margin:16px 0 0}.pv3-inspector-meta div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #f2f4f7}.pv3-inspector-meta dt{font-size:11px;color:#667085;font-weight:750}.pv3-inspector-meta dd{margin:0;font-size:11px;font-weight:850;text-align:right;color:#101828}@media(max-width:700px){.pv3-inspector{width:100%;padding:16px}.pv3-breadcrumb{overflow:hidden;white-space:nowrap}.pv3-breadcrumb span,.pv3-breadcrumb strong{overflow:hidden;text-overflow:ellipsis}}';document.head.appendChild(s);
+  }
+  function boot(){
+    addStyles();ensureInspector();addBreadcrumb();bindCards();
+    var observer=new MutationObserver(function(){addBreadcrumb();bindCards()});
+    observer.observe(document.body,{childList:true,subtree:true});
+    window.PULSE_OPEN_INSPECTOR=openInspector;window.PULSE_CLOSE_INSPECTOR=closeInspector;
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,0)});else setTimeout(boot,0);
+})();
 })();
