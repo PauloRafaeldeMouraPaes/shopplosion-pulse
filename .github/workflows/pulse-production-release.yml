@@ -1,4 +1,5 @@
 name: Pulse Production Release
+# Publishes the exact main tree, including the generated single-file artifact.
 
 on:
   push:
