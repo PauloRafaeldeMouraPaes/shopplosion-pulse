@@ -55,32 +55,46 @@ const css=document.createElement('style');css.textContent='#pulse-v6-lab{margin:
 
 def main():
     text = INDEX.read_text(encoding='utf-8')
-    js_body = re.sub(
-        r'^\\s*<!-- PULSE_PRODUCT_V6 -->\\s*<script>\\s*|\\s*</script>\\s*$',
-        '',
-        JS,
-        flags=re.S,
-    )
+    # Keep one canonical JS body. The generator must work both when the marker
+    # lives inside an existing inline <script> and when it is a standalone block.
+    marker_body = JS.split('<script>', 1)[1].rsplit('</script>', 1)[0].strip()
+    marker_block = MARKER + '\n' + marker_body + '\n'
     marker_pos = text.find(MARKER)
     if marker_pos >= 0:
         script_open = text.rfind('<script', 0, marker_pos)
         script_close = text.rfind('</script>', 0, marker_pos)
         if script_open > script_close:
-            # The marker is already inside an inline script. Replace only the
-            # generated V6 segment and keep the surrounding script valid.
-            end = text.find('</script>', marker_pos)
-            if end < 0:
+            # Marker is already inside an inline script: replace through that
+            # script's closing tag with marker + JS body, leaving one outer close.
+            end_pos = text.find('</script>', marker_pos)
+            if end_pos < 0:
                 raise RuntimeError('Product V6 marker sem fechamento de script')
-            text = text[:marker_pos] + js_body + '\n' + text[end:]
+            text = text[:marker_pos] + marker_block + text[end_pos:]
         else:
-            # Legacy standalone wrapper: replace the whole generated block.
-            text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->.*?</script>\s*', lambda _m: JS, text, count=1, flags=re.S)
+            # Standalone marker: replace the generated block, including wrapper.
+            text = re.sub(r'<!-- PULSE_PRODUCT_V6 -->[\\s\\S]*?</script>\\s*',
+                          lambda _m: JS,
+                          text,
+                          count=1,
+                          flags=re.I)
     else:
         pos = text.lower().rfind('</body>')
         if pos < 0:
             raise RuntimeError('index.html sem </body>')
         text = text[:pos] + JS + text[pos:]
+    # Normalize only the known corruption: duplicate closing tags immediately
+    # after Product V6. Never touch legitimate script blocks elsewhere.
+    marker_pos = text.find(MARKER)
+    if marker_pos >= 0:
+        v6_end = text.find('})();', marker_pos)
+        if v6_end >= 0:
+            tail_start = v6_end + len('})();')
+            tail = text[tail_start:]
+            while tail.lstrip().startswith('</script>'):
+                tail = tail.lstrip()[len('</script>'):]
+            text = text[:tail_start] + '\n</script>\n' + tail.lstrip('\n')
     INDEX.write_text(text, encoding='utf-8')
     print('Pulse Product V6 intelligence layer evolved')
+
 if __name__ == '__main__':
     main()
