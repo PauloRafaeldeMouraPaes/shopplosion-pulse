@@ -55,6 +55,9 @@ const css=document.createElement('style');css.textContent='#pulse-v6-lab{margin:
 
 def main():
     text = INDEX.read_text(encoding='utf-8')
+    if '__PULSE_CANONICAL_WORKSPACE_PAGE__' in text:
+        print('Canonical workspace: Product V6 legacy layer disabled')
+        return
     # Keep one canonical JS body. The generator must work both when the marker
     # lives inside an existing inline <script> and when it is a standalone block.
     marker_body = JS.split('<script>', 1)[1].rsplit('</script>', 1)[0].strip()
