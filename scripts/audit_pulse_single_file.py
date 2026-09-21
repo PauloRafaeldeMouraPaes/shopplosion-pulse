@@ -12,6 +12,7 @@ if not INDEX.exists():
     sys.exit(1)
 
 text = INDEX.read_text(encoding="utf-8")
+canonical_workspace = "__PULSE_CANONICAL_WORKSPACE_PAGE__" in text
 workspace = Path("pulse-workspace-v3.js").read_text(encoding="utf-8") if Path("pulse-workspace-v3.js").exists() else ""
 
 # Single-file contract: local runtime scripts/assets must be inline/embedded.
@@ -20,20 +21,25 @@ if re.search(r'<script[^>]+(?:src|href)=["\'][^"\']*scripts/', text, re.I):
 if re.search(r'(?:src|href)=["\'][^"\']*assets/', text, re.I):
     errors.append("index.html referencia assets/ externos")
 
-# Core runtime contracts expected by the current product.
-required_tokens = [
-    "window.PULSE_EVIDENCE",
-    "window.PULSE_LOCAL_EVIDENCE",
-    "window.pulseMatchEvidence",
-    "window.pulseRankEvidence",
-    "pulse-category-select",
-    "pulse:category-change",
-    "SUA BASE LOCAL",
-    "Estes estudos ficam salvos apenas neste navegador",
-    "journey-step.is-current b{color:#fff!important}",
-]
+# The public Universe is now a canonical multi-route workspace, so legacy
+# single-file UX contracts are intentionally not embedded in index.html.
+required_tokens = ["window.PULSE_EVIDENCE", "pulse-workspace-v3.js", "pulse-workspace-v3.css", "pv4-rail", "pv4-inspector"]
+if canonical_workspace:
+    required_tokens = ["window.PULSE_EVIDENCE", "__PULSE_CANONICAL_WORKSPACE_PAGE__", "pulse-workspace-v3.js", "pulse-workspace-v3.css", "pv4-rail", "pv4-inspector"]
+else:
+    required_tokens = [
+        "window.PULSE_EVIDENCE",
+        "window.PULSE_LOCAL_EVIDENCE",
+        "window.pulseMatchEvidence",
+        "window.pulseRankEvidence",
+        "pulse-category-select",
+        "pulse:category-change",
+        "SUA BASE LOCAL",
+        "Estes estudos ficam salvos apenas neste navegador",
+        "journey-step.is-current b{color:#fff!important}",
+    ]
 for token in required_tokens:
-    if token not in text:
+    if token not in text and token not in workspace:
         errors.append(f"contrato ausente: {token}")
 
 # Primary CTA must point to the first evidence screen, not skip a journey step.
@@ -42,9 +48,9 @@ if "href=\"#signals\"" not in text and "data-target=\"#signals\"" not in text an
 
 # Suggestions in the current Workspace V3 are handled by the single consolidated installer.
 # Legacy hypothesis controls may still contain their own click listener; they are not suggestion handlers.
-if text.count("function installSuggestionHandler()") != 1:
+if not canonical_workspace and text.count("function installSuggestionHandler()") != 1:
     errors.append("handler consolidado de sugestões não está único")
-if text.count("installSuggestionHandler();") != 1:
+if not canonical_workspace and text.count("installSuggestionHandler();") != 1:
     errors.append("instalador consolidado de sugestões não é chamado uma única vez")
 
 # Basic structural HTML balance check, ignoring void elements.
