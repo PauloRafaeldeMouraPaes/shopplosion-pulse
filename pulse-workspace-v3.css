@@ -28,3 +28,7 @@ body.pv3-active{padding:0!important;background:var(--pv4-bg)!important;color:var
 @media(max-width:640px){.pv4-head{padding-top:44px}.pv3-breadcrumb{top:5px}}
 
 .pv4-source-link{color:#7a7e87;text-decoration:none;font-size:9px}.pv4-source-link:hover{color:#a3164e;text-decoration:underline}
+
+/* canonical mobile shell: scope selector remains visible on mobile; destination rail remains the same five-item product navigation */
+@media (min-width:768px){.pv4-mobile-scope{display:none!important}}
+@media (max-width:767px){.pv4-rail nav a{display:flex!important}.pv4-rail nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
