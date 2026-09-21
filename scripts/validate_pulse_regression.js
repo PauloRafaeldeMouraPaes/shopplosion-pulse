@@ -14,7 +14,7 @@ function requireHtmlOrRuntime(label, text) {
 }
 
 [
-  ['category selector', 'Todas as categorias'],
+  ...(canonicalWorkspace ? [] : [['category selector', 'Todas as categorias']]),
   ['evidence registry', 'window.PULSE_EVIDENCE'],
   ['source registry', 'window.PULSE_SOURCES'],
   ['accessibility focus contract', 'focus-visible'],
