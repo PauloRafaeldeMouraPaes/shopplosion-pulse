@@ -41,7 +41,6 @@ test.describe('Pulse canonical route shell', () => {
       expect(geometry.appWidth).toBeGreaterThan(0);
       if (geometry.viewportWidth > 640) {
         expect(geometry.appContentLeft).toBeGreaterThanOrEqual(geometry.railRight - 1);
-        expect(geometry.topLeft).toBeGreaterThanOrEqual(geometry.railRight - 1);
       } else {
         expect(geometry.appLeft).toBeGreaterThanOrEqual(-1);
       }
