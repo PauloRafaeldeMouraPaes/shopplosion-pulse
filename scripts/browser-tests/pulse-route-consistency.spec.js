@@ -21,9 +21,35 @@ test.describe('Pulse canonical route shell', () => {
       await expect(page.locator('.pv4-rail nav a[aria-current="page"]')).toHaveCount(1);
       await expect(page.locator(`.pv4-rail nav a[data-nav="${active}"]`)).toHaveAttribute('aria-current', 'page');
       await expect(page.locator('.pulse-rail, .pulse-mainbar, .legacy-shell, .legacy-workspace')).toHaveCount(0);
+      const geometry = await page.evaluate(() => {
+        const rail = document.querySelector('.pv4-rail');
+        const app = document.querySelector('.pv4-app');
+        const top = document.querySelector('.pv4-top');
+        const rr = rail.getBoundingClientRect();
+        const ar = app.getBoundingClientRect();
+        const tr = top.getBoundingClientRect();
+        return {
+          railRight: rr.right,
+          appLeft: ar.left,
+          appWidth: ar.width,
+          viewportWidth: innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          topLeft: tr.left
+        };
+      });
+      expect(geometry.appWidth).toBeGreaterThan(0);
+      if (geometry.viewportWidth > 640) {
+        expect(geometry.appLeft).toBeGreaterThanOrEqual(geometry.railRight - 1);
+        expect(geometry.topLeft).toBeGreaterThanOrEqual(geometry.railRight - 1);
+      } else {
+        expect(geometry.appLeft).toBeGreaterThanOrEqual(-1);
+      }
+      expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewportWidth + 2);
       const bodyText = await page.locator('body').innerText();
       expect(bodyText).not.toContain('const path=location.pathname');
       expect(bodyText).not.toContain('(()=>{if(window.__PULSE_WORKSPACE_V5__)');
+      expect(bodyText).not.toContain('Adicionar observação');
+      expect(bodyText).not.toContain('pulse-history-period');
     });
   }
 
