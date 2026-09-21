@@ -1,11 +1,11 @@
 const { test, expect } = require('@playwright/test');
 
 const routes = [
-  ['/index.html?v=20260921.10#overview', 'universo'],
-  ['/base.html?v=20260921.10#documents', 'base'],
-  ['/ask.html?v=20260921.10', 'investigacao'],
-  ['/app.html?v=20260921.10#analyses', 'analises'],
-  ['/intelligence.html?v=20260921.10', 'hoje']
+  ['/index.html?v=20260921.13#overview', 'universo'],
+  ['/base.html?v=20260921.13#documents', 'base'],
+  ['/ask.html?v=20260921.13', 'investigacao'],
+  ['/app.html?v=20260921.13#analyses', 'analises'],
+  ['/intelligence.html?v=20260921.13', 'hoje']
 ];
 
 test.describe('Pulse canonical route shell', () => {
@@ -15,6 +15,8 @@ test.describe('Pulse canonical route shell', () => {
       await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
       await expect(page.locator('.pv4-rail')).toHaveCount(1);
       await expect(page.locator('.pv4-top')).toHaveCount(1);
+      await expect(page.locator('.pv4-scope-toggle')).toHaveCount(0);
+      await expect(page.locator('.pv4-scope select')).toHaveCount(1);
       await expect(page.locator('.pv4-command-menu')).toHaveCount(1);
       await expect(page.locator('.pv4-app')).toHaveCount(1);
       await expect(page.locator('.pv4-rail nav a')).toHaveCount(5);
@@ -55,7 +57,7 @@ test.describe('Pulse canonical route shell', () => {
 
   test('mobile keeps all five destinations', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 800 });
-    await page.goto('/index.html?v=20260921.10#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.13#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
     const links = page.locator('.pv4-rail nav a');
     await expect(links).toHaveCount(5);
@@ -66,10 +68,22 @@ test.describe('Pulse canonical route shell', () => {
   });
 
   test('Universe has real evidence and Inspector contract', async ({ page }) => {
-    await page.goto('/index.html?v=20260921.10#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.13#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('#pv3-signals .pv4-evidence').first().waitFor({ state: 'visible', timeout: 10000 });
     const total = await page.evaluate(() => Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE.length : 0);
     expect(total).toBeGreaterThan(0);
+    const metrics = await page.evaluate(() => {
+      const ev = Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE : [];
+      const categories = new Set(ev.map(e => String(e.categoria || '').trim().toLocaleLowerCase('pt-BR')).filter(Boolean)).size;
+      const high = ev.filter(e => /^(alta|high)$/i.test(String(e.confianca || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, ''))).length;
+      return { count: ev.length, categories, high };
+    });
+    expect(metrics.count).toBeGreaterThan(0);
+    expect(metrics.categories).toBeGreaterThan(0);
+    expect(metrics.high).toBeGreaterThan(0);
+    await expect(page.locator('.pv4-at-a-glance')).toContainText(String(metrics.count));
+    await expect(page.locator('.pv4-at-a-glance')).toContainText(String(metrics.categories));
+    await expect(page.locator('.pv4-at-a-glance')).toContainText(String(metrics.high));
     await expect(page.locator('#pv3-signals .pv4-evidence')).toHaveCount(total);
     await page.locator('#pv3-signals .pv4-evidence').first().click();
     await expect(page.locator('.pv4-inspector.open')).toBeVisible();
