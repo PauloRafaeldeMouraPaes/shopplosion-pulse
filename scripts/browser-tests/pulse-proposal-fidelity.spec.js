@@ -9,7 +9,7 @@ test.describe('Pulse proposal fidelity', () => {
     await expect(page.locator('.pv4-canvas')).toBeVisible();
     const card = page.locator('.pv4-evidence[data-evidence-id]').first();
     await card.locator('.pv4-inspect').click();
-    const inspector = page.locator('#pv4-inspector');
+    const inspector = page.locator('#pv3-inspector');
     await expect(inspector).toHaveClass(/open/);
     await expect(inspector).toContainText('FATO');
     await expect(inspector).toContainText('ORIGEM');
