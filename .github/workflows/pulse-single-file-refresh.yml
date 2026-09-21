@@ -44,8 +44,10 @@ jobs:
           import re, subprocess, tempfile
           t=Path('index.html').read_text(encoding='utf-8')
           if '__PULSE_CANONICAL_WORKSPACE_PAGE__' in t:
-              required=['window.PULSE_EVIDENCE','pulse-workspace-v3.js','pulse-workspace-v3.css','pv4-rail','pv4-inspector']
-              missing=[x for x in required if x not in t]
+              required=['window.PULSE_EVIDENCE','pulse-workspace-v3.js','pulse-workspace-v3.css']
+              workspace=Path('pulse-workspace-v3.js').read_text(encoding='utf-8')
+              required_runtime=['pv4-rail','pv4-inspector','data-nav']
+              missing=[x for x in required if x not in t]+[x for x in required_runtime if x not in workspace]
               if missing: raise SystemExit('canonical workspace missing: '+', '.join(missing))
               print('CANONICAL WORKSPACE REFRESH - PASS'); raise SystemExit(0)
           assert 'assets/' not in t
