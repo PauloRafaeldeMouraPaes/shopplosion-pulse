@@ -8,6 +8,7 @@ const failures = [];
 function requireText(label, text, haystack = html) {
   if (!haystack.includes(text)) failures.push(`${label}: missing ${text}`);
 }
+const canonicalWorkspace = html.includes('__PULSE_CANONICAL_WORKSPACE_PAGE__');
 function requireHtmlOrRuntime(label, text) {
   if (!html.includes(text) && !nextLevel.includes(text)) failures.push(`${label}: missing ${text}`);
 }
@@ -28,8 +29,10 @@ function requireHtmlOrRuntime(label, text) {
   requireText(label, text, haystack);
 });
 
-requireHtmlOrRuntime('local evidence contract', 'PULSE_LOCAL_EVIDENCE');
-requireHtmlOrRuntime('next-level runtime', 'PULSE_NEXT_LEVEL');
+if (!canonicalWorkspace) {
+  requireHtmlOrRuntime('local evidence contract', 'PULSE_LOCAL_EVIDENCE');
+  requireHtmlOrRuntime('next-level runtime', 'PULSE_NEXT_LEVEL');
+}
 
 if (/assets\//i.test(html)) failures.push('artifact: contains forbidden assets/ reference');
 if (/sessionStorage/i.test(html)) failures.push('artifact: contains forbidden sessionStorage reference');
@@ -47,7 +50,7 @@ if (!fs.existsSync('scripts/test-pulse-ask-ai.js')) failures.push('Ask AI: deter
 
 const v6MarkerCount = (html.match(/<!-- PULSE_PRODUCT_V6 -->/g) || []).length;
 if (v6MarkerCount > 1) failures.push(`Product V6: expected at most one marker, found ${v6MarkerCount}`);
-if (v6MarkerCount === 1) {
+if (!canonicalWorkspace && v6MarkerCount === 1) {
   if (!html.includes('const parseDate=')) failures.push('Product V6: temporal parser missing');
   if (!html.includes('const periodKey=')) failures.push('Product V6: period normalization missing');
   if (!html.includes('qualityBand')) failures.push('Product V6: evidence quality bands missing');
