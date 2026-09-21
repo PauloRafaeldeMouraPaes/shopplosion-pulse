@@ -151,5 +151,6 @@ async function generateAnswer(){
   document.getElementById('logout').addEventListener('click',async()=>{try{await client.auth.signOut()}finally{redirect()}});
 })().catch(()=>{const el=document.getElementById('message');el.textContent='Não foi possível inicializar o Ask AI privado.';el.className='msg show error'});
 </script>
+<script src="./pulse-workspace-v3.js?v=20260921.05"></script>
 </body>
 </html>
