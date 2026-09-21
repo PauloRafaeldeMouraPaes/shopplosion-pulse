@@ -91,10 +91,13 @@ jobs:
         run: |
           from pathlib import Path
           import re, subprocess, tempfile
-          p=Path('index.html'); text=p.read_text(encoding='utf-8')
-          if '__PULSE_CANONICAL_WORKSPACE_PAGE__' in t:
-              print('Canonical workspace: inline refresh disabled')
-              raise SystemExit(0); errors=[]
+          p=Path('index.html'); text=p.read_text(encoding='utf-8'); errors=[]
+          if '__PULSE_CANONICAL_WORKSPACE_PAGE__' in text:
+              required=['window.PULSE_EVIDENCE','pulse-workspace-v3.js','pulse-workspace-v3.css','pv4-rail','pv4-inspector']
+              errors=[f'canonical contract missing: {x}' for x in required if x not in text]
+              if errors:
+                  print('VALIDATION FAILED'); print('\n'.join('- '+e for e in errors)); raise SystemExit(1)
+              print('CANONICAL WORKSPACE ARTIFACT - PASS'); raise SystemExit(0)
           if 'assets/' in text or 'assets\\' in text: errors.append('referência assets/ encontrada')
           if re.search(r'<script[^>]+src=["\']/scripts/',text,re.I): errors.append('script JS local externo ainda referenciado')
           if text.count('<html')!=1 or text.count('</html>')!=1: errors.append('estrutura html desequilibrada')
