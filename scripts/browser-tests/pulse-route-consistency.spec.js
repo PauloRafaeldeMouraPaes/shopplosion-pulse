@@ -1,11 +1,11 @@
 const { test, expect } = require('@playwright/test');
 
 const routes = [
-  ['/index.html?v=20260921.14#overview', 'universo'],
-  ['/base.html?v=20260921.14#documents', 'base'],
-  ['/ask.html?v=20260921.14', 'investigacao'],
-  ['/app.html?v=20260921.14#analyses', 'analises'],
-  ['/intelligence.html?v=20260921.14', 'hoje']
+  ['/index.html?v=20260921.15#overview', 'universo'],
+  ['/base.html?v=20260921.15#documents', 'base'],
+  ['/ask.html?v=20260921.15', 'investigacao'],
+  ['/app.html?v=20260921.15#analyses', 'analises'],
+  ['/intelligence.html?v=20260921.15', 'hoje']
 ];
 
 test.describe('Pulse canonical route shell', () => {
@@ -55,9 +55,26 @@ test.describe('Pulse canonical route shell', () => {
     });
   }
 
+  test('scope selection stays on the current route', async ({ page }) => {
+    for (const [url] of routes) {
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+      await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
+      const before = await page.evaluate(() => location.pathname + location.search + location.hash);
+      const select = page.locator('.pv4-scope select');
+      await select.selectOption('industry');
+      await expect(select).toHaveValue('industry');
+      await expect(page.locator('#pv3-scope-name')).toHaveText('Minha indústria');
+      await expect.poll(() => page.evaluate(() => location.pathname + location.search + location.hash)).toBe(before);
+      await select.selectOption('both');
+      await expect(select).toHaveValue('both');
+      await expect(page.locator('#pv3-scope-name')).toHaveText('Ambos');
+      await expect.poll(() => page.evaluate(() => location.pathname + location.search + location.hash)).toBe(before);
+    }
+  });
+
   test('mobile keeps all five destinations', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 800 });
-    await page.goto('/index.html?v=20260921.14#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
     const links = page.locator('.pv4-rail nav a');
     await expect(links).toHaveCount(5);
@@ -68,7 +85,7 @@ test.describe('Pulse canonical route shell', () => {
   });
 
   test('Universe has real evidence and Inspector contract', async ({ page }) => {
-    await page.goto('/index.html?v=20260921.14#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('#pv3-signals .pv4-evidence').first().waitFor({ state: 'visible', timeout: 10000 });
     const total = await page.evaluate(() => Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE.length : 0);
     expect(total).toBeGreaterThan(0);
@@ -93,7 +110,7 @@ test.describe('Pulse canonical route shell', () => {
   });
 
   test('rail navigation uses a single smooth route transition', async ({ page }) => {
-    await page.goto('/index.html?v=20260921.14#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
     await page.locator('[data-nav="base"]').click();
     await expect(page.locator('html.pv3-leaving')).toHaveCount(1);
