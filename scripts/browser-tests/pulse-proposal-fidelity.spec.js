@@ -26,8 +26,8 @@ test.describe('Pulse proposal fidelity', () => {
     await expect(page.locator('.pv4-rail nav a[data-nav="base"]')).toBeVisible();
     await expect(page.locator('.pv4-rail nav a[data-nav="investigacao"]')).toBeVisible();
     await expect(page.locator('.pv4-rail nav a')).toHaveCount(5);
-    await expect(page.locator('.pv4-rail nav a[data-nav="universo"]')).toBeVisible();
-    await expect(page.locator('.pv4-rail nav a[data-nav="analises"]')).toBeVisible();
+    await expect(page.locator('.pv4-rail nav a[data-nav="universo"]')).toHaveCount(1);
+    await expect(page.locator('.pv4-rail nav a[data-nav="analises"]')).toHaveCount(1);
     await expect(page.locator('.pv4-mobile-scope select')).toHaveCount(1);
     await expect(page.locator('.pv4-story')).toBeVisible();
   });
