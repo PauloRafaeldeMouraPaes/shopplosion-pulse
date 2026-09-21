@@ -1,11 +1,11 @@
 const { test, expect } = require('@playwright/test');
 
 const routes = [
-  ['/index.html?v=20260921.13#overview', 'universo'],
-  ['/base.html?v=20260921.13#documents', 'base'],
-  ['/ask.html?v=20260921.13', 'investigacao'],
-  ['/app.html?v=20260921.13#analyses', 'analises'],
-  ['/intelligence.html?v=20260921.13', 'hoje']
+  ['/index.html?v=20260921.14#overview', 'universo'],
+  ['/base.html?v=20260921.14#documents', 'base'],
+  ['/ask.html?v=20260921.14', 'investigacao'],
+  ['/app.html?v=20260921.14#analyses', 'analises'],
+  ['/intelligence.html?v=20260921.14', 'hoje']
 ];
 
 test.describe('Pulse canonical route shell', () => {
@@ -57,7 +57,7 @@ test.describe('Pulse canonical route shell', () => {
 
   test('mobile keeps all five destinations', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 800 });
-    await page.goto('/index.html?v=20260921.13#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.14#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
     const links = page.locator('.pv4-rail nav a');
     await expect(links).toHaveCount(5);
@@ -68,7 +68,7 @@ test.describe('Pulse canonical route shell', () => {
   });
 
   test('Universe has real evidence and Inspector contract', async ({ page }) => {
-    await page.goto('/index.html?v=20260921.13#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.14#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('#pv3-signals .pv4-evidence').first().waitFor({ state: 'visible', timeout: 10000 });
     const total = await page.evaluate(() => Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE.length : 0);
     expect(total).toBeGreaterThan(0);
@@ -93,7 +93,7 @@ test.describe('Pulse canonical route shell', () => {
   });
 
   test('rail navigation uses a single smooth route transition', async ({ page }) => {
-    await page.goto('/index.html?v=20260921.13#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.14#overview', { waitUntil: 'domcontentloaded' });
     await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
     await page.locator('[data-nav="base"]').click();
     await expect(page.locator('html.pv3-leaving')).toHaveCount(1);
