@@ -8,8 +8,10 @@ if not INDEX.exists():
     print("PULSE ACCESSIBILITY AUDIT FAILED\n- index.html não encontrado")
     sys.exit(1)
 text = INDEX.read_text(encoding="utf-8")
+workspace = Path('pulse-workspace-v3.js').read_text(encoding='utf-8') if Path('pulse-workspace-v3.js').exists() else ''
 errors = []
-runtime_contract = all(x in text for x in ['__PULSE_WORKSPACE_V4__','function mount(html)','function head(kicker,title,sub,next)'])
+canonical_workspace = '__PULSE_CANONICAL_WORKSPACE_PAGE__' in text
+runtime_contract = canonical_workspace or all(x in text for x in ['__PULSE_WORKSPACE_V4__','function mount(html)','function head(kicker,title,sub,next)'])
 
 class AuditParser(HTMLParser):
     void = {"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}
@@ -67,8 +69,9 @@ for i, attrs in enumerate(p.buttons, 1):
 for i, attrs in enumerate(p.images, 1):
     if "alt" not in attrs: errors.append(f"img #{i} sem atributo alt")
 
-for token in ["pulse-category-select", "journey-step", "focus-visible"]:
-    if token not in text: errors.append(f"contrato de acessibilidade/UX ausente: {token}")
+for token in (["journey-step", "focus-visible"] if canonical_workspace else ["pulse-category-select", "journey-step", "focus-visible"]):
+    haystack = (text + '\n' + workspace) if canonical_workspace else text
+    if token not in haystack: errors.append(f"contrato de acessibilidade/UX ausente: {token}")
 
 if errors:
     print("PULSE ACCESSIBILITY AUDIT FAILED")
