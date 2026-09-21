@@ -47,3 +47,6 @@ jobs:
       - name: Run proposal fidelity smoke tests
         if: always()
         run: npx playwright test scripts/browser-tests/pulse-proposal-fidelity.spec.js
+      - name: Run canonical route shell regression
+        if: always()
+        run: npx playwright test scripts/browser-tests/pulse-route-consistency.spec.js
