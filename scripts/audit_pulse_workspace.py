@@ -7,7 +7,9 @@ errors=[]
 if not p.exists(): errors.append("index.html não encontrado.")
 else:
     text=p.read_text(encoding="utf-8")
-    runtime_contract = all(x in text for x in ['__PULSE_WORKSPACE_V4__','function mount(html)','function head(kicker,title,sub,next)'])
+    workspace=Path('pulse-workspace-v3.js').read_text(encoding='utf-8') if Path('pulse-workspace-v3.js').exists() else ''
+css=Path('pulse-workspace-v3.css').read_text(encoding='utf-8') if Path('pulse-workspace-v3.css').exists() else ''
+runtime_contract = all(x in workspace for x in ['__PULSE_WORKSPACE_V5__','function mount(html)','function head(kicker,title,sub,next)'])
     checks=[
       ("DOCTYPE", r"<!doctype html>"),
       ("lang pt-BR", r'<html[^>]+lang=["\']pt-BR["\']'),
@@ -20,14 +22,16 @@ else:
       ("análises", r"Análises|Opportunity Canvas"),
     ]
     for label,pat in checks:
-        if not re.search(pat,text,re.I|re.S): errors.append(f"{label}: contrato ausente")
+        haystack = text if label in {'DOCTYPE','lang pt-BR','viewport','title'} else (workspace + css + text)
+        if not re.search(pat,haystack,re.I|re.S): errors.append(f"{label}: contrato ausente")
     if re.search(r'(?:src|href)=["\'][^"\']*(?:^|/)assets/',text,re.I): errors.append("referência a assets/ encontrada")
     for value in re.findall(r'(?:src|href)=["\']([^"\']+)["\']',text,re.I):
         if value.startswith(("#","data:","mailto:","tel:","javascript:","http://","https://")): continue
-        if value.startswith(("./","../","/")):
-            errors.append(f"dependência local proibida no single-file workspace: {value}")
-    if re.search(r'<script[^>]+(?:src|href)=["\'][^"\']*(?:scripts/|pulse-)',text,re.I):
-        errors.append("runtime externo/local encontrado; workspace deve ser autocontido")
+        if value.startswith(("./","../","/")) and not value.startswith(("./pulse-workspace-v3.js","./pulse-workspace-v3.css")):
+            errors.append(f"dependência local proibida no workspace: {value}")
+    # The canonical workspace is deliberately shared across routes.
+    if 'pulse-workspace-v3.js' not in text and not runtime_contract:
+        errors.append('runtime canônico do workspace não está referenciado nem presente')
     class P(HTMLParser):
         void={"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}
         def __init__(self): super().__init__(); self.main=0; self.h1=0; self.stack=[]
