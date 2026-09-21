@@ -1,14 +1,15 @@
-(()=>{if(window.__PULSE_WORKSPACE_V4__)return;window.__PULSE_WORKSPACE_V4__=true;
+(()=>{if(window.__PULSE_WORKSPACE_V5__)return;window.__PULSE_WORKSPACE_V5__=true;
 'use strict';
 // Canonical Pulse workspace runtime: one shell, one navigation system, one inspector.
 // Single-file Universe mirrors this exact runtime.
 // HTML structure is validated before publication.
 const path=location.pathname.split('/').pop()||'index.html', hash=location.hash.replace(/^#/,'');
+const staleSelectors=['.pulse-rail','.pulse-mainbar','.pulse-command-menu','.pv4-rail','.pv4-top','.pv4-mobile-scope','.pv4-command-menu','#pv4-inspector','#pulse-app-shell'];staleSelectors.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.remove()));document.body.classList.add('pv3-active');
 const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const routes={hoje:'./intelligence.html?v=20260921.05',universo:'./index.html?v=20260921.05#overview',base:'./base.html?v=20260921.01',investigacao:'./ask.html?v=20260921.05',analises:'./app.html?v=20260921.05#analyses'};
+const routes={hoje:'./intelligence.html?v=20260921.08',universo:'./index.html?v=20260921.08#overview',base:'./base.html?v=20260921.08',investigacao:'./ask.html?v=20260921.08',analises:'./app.html?v=20260921.08#analyses'};
 function active(){if(path==='intelligence.html')return'hoje';if(path==='ask.html')return'investigacao';if(path==='app.html')return hash==='analyses'||hash.startsWith('analysis=')?'analises':'base';return'universo'}
-function legacy(){qa('main,body>header,.layout,.shell>.top,.pulse-rail,.pulse-mainbar,.pulse-shell-sidebar,.pulse-shell-topbar,#pulse-v6-lab').forEach(x=>{if(!x.classList.contains('pv4-app'))x.classList.add('pv4-hidden')})}
+function legacy(){qa('main,body>header,.layout,.shell>.top,.pulse-rail,.pulse-mainbar,.pulse-shell-sidebar,.pulse-shell-topbar,#pulse-v6-lab,.legacy-shell,.legacy-workspace').forEach(x=>{if(!x.classList.contains('pv4-app'))x.classList.add('pv4-hidden')})}
 function nav(){if(q('.pv4-rail'))return;
 const a=active(),n=document.createElement('aside');n.className='pv4-rail pv3-shell-nav';n.innerHTML='<div class="pv4-logo"><span>p</span><strong>Pulse</strong></div><div class="pv4-scope"><small>ESCOPO</small><b>Brasil · CPG</b><span>Universo público</span></div><nav>'+[['hoje','01','Hoje'],['universo','02','Universo'],['base','03','Base'],['investigacao','04','Investigação'],['analises','05','Análises']].map(x=>'<a data-nav="'+x[0]+'" href="'+routes[x[0]]+'"'+(x[0]===a?' aria-current="page"':'')+'><i>'+x[1]+'</i><span>'+x[2]+'</span></a>').join('')+'</nav><button class="pv4-command" type="button"><span>Buscar, ir ou perguntar</span><kbd>⌘K</kbd></button><div class="pv4-rail-foot"><span class="pv4-dot"></span><span>Workspace ativo</span></div>';document.body.appendChild(n);
 const top=document.createElement('header');top.className='pv4-top';top.innerHTML='<div class="pv4-crumb"><span>Pulse</span><b>/</b><strong>'+({hoje:'Hoje',universo:'Universo',base:'Base',investigacao:'Investigação',analises:'Análises'}[a])+'</strong></div><div class="pv4-top-actions"><button class="pv4-scope-toggle" type="button">Universo público <span>⌄</span></button><button class="pv4-top-command" type="button">⌘K</button></div>';document.body.appendChild(top);
