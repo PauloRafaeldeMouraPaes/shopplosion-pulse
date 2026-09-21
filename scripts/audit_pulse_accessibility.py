@@ -69,7 +69,7 @@ for i, attrs in enumerate(p.buttons, 1):
 for i, attrs in enumerate(p.images, 1):
     if "alt" not in attrs: errors.append(f"img #{i} sem atributo alt")
 
-for token in (["journey-step", "focus-visible"] if canonical_workspace else ["pulse-category-select", "journey-step", "focus-visible"]):
+for token in (["data-nav", "pv4-rail", "pv4-command"] if canonical_workspace else ["pulse-category-select", "journey-step", "focus-visible"]):
     haystack = (text + '\n' + workspace) if canonical_workspace else text
     if token not in haystack: errors.append(f"contrato de acessibilidade/UX ausente: {token}")
 
