@@ -31,6 +31,11 @@ jobs:
           root = Path('.')
           index_path = root / 'index.html'
           text = index_path.read_text(encoding='utf-8')
+          canonical = '__PULSE_CANONICAL_WORKSPACE_PAGE__' in text
+          if canonical:
+              print('Canonical workspace: legacy single-file injection disabled')
+          if canonical:
+              raise SystemExit(0)
           sources = [
               'scripts/pulse-studies.js','scripts/pulse-ux-fixes.js','scripts/pulse-ux-category-filter.js','scripts/pulse-ux-filter-fix.js',
               'scripts/pulse-local-evidence.js','scripts/pulse-single-file-bridge.js','scripts/pulse-local-answer-bridge.js','scripts/pulse-next-level-runtime.js'
@@ -86,7 +91,10 @@ jobs:
         run: |
           from pathlib import Path
           import re, subprocess, tempfile
-          p=Path('index.html'); text=p.read_text(encoding='utf-8'); errors=[]
+          p=Path('index.html'); text=p.read_text(encoding='utf-8')
+          if '__PULSE_CANONICAL_WORKSPACE_PAGE__' in t:
+              print('Canonical workspace: inline refresh disabled')
+              raise SystemExit(0); errors=[]
           if 'assets/' in text or 'assets\\' in text: errors.append('referência assets/ encontrada')
           if re.search(r'<script[^>]+src=["\']/scripts/',text,re.I): errors.append('script JS local externo ainda referenciado')
           if text.count('<html')!=1 or text.count('</html>')!=1: errors.append('estrutura html desequilibrada')
