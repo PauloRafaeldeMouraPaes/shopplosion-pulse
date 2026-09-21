@@ -1,5 +1,15 @@
 (()=>{if(window.__PULSE_WORKSPACE_V5__)return;window.__PULSE_WORKSPACE_V5__=true;
 'use strict';
+/* Compatibility contract: legacy single-file consumers keep their public registries,
+   while the canonical workspace owns all visible UI and navigation. */
+window.PULSE_LOCAL_EVIDENCE = Array.isArray(window.PULSE_LOCAL_EVIDENCE) ? window.PULSE_LOCAL_EVIDENCE : [];
+window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {
+  historicalSummary(){ return {status:'insufficient',message:'Use the canonical evidence workspace for historical comparison.'}; },
+  compareSeries(a,b){ const x=Number(a),y=Number(b); if(!Number.isFinite(x)||!Number.isFinite(y)) return {status:'unavailable',causal:false}; return {status:'observed_change',delta:x-y,deltaPct:y===0?null:(x-y)/Math.abs(y)*100,causal:false}; }
+};
+window.PULSE_SINGLE_FILE_READY = true;
+window.pulseMatchEvidence = window.pulseMatchEvidence || ((query,items)=>{const q=String(query||'').toLowerCase();return (Array.isArray(items)?items:[]).filter(x=>JSON.stringify(x).toLowerCase().includes(q));});
+window.pulseRankEvidence = window.pulseRankEvidence || ((items)=>Array.isArray(items)?items.slice():[]);
 // Canonical Pulse workspace runtime: one shell, one navigation system, one inspector.
 // Single-file Universe mirrors this exact runtime.
 // HTML structure is validated before publication.
