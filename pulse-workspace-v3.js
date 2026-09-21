@@ -17,7 +17,7 @@ const path=location.pathname.split('/').pop()||'index.html', hash=location.hash.
 const staleSelectors=['.pulse-rail','.pulse-mainbar','.pulse-command-menu','.pv4-rail','.pv4-top','.pv4-mobile-scope','.pv4-command-menu','#pv4-inspector','#pulse-app-shell'];staleSelectors.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.remove()));document.body.classList.add('pv3-active');
 const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const routes={hoje:'./intelligence.html?v=20260921.13',universo:'./index.html?v=20260921.13#overview',base:'./base.html?v=20260921.13#documents',investigacao:'./ask.html?v=20260921.13',analises:'./app.html?v=20260921.13#analyses'};
+const routes={hoje:'./intelligence.html?v=20260921.14',universo:'./index.html?v=20260921.14#overview',base:'./base.html?v=20260921.14#documents',investigacao:'./ask.html?v=20260921.14',analises:'./app.html?v=20260921.14#analyses'};
 const scopeKey='pulse:scope';const scopeLabels={public:'Público',industry:'Minha indústria',both:'Ambos'};const scopeRoutes={public:routes.universo,industry:routes.base,both:routes.investigacao};
 const getScope=()=>{try{return localStorage.getItem(scopeKey)||'public'}catch{return'public'}};
 const setScope=v=>{try{localStorage.setItem(scopeKey,v)}catch{};const name=document.getElementById('pv3-scope-name');if(name)name.textContent=scopeLabels[v]||scopeLabels.public;const mobile=document.getElementById('pv3-mobile-scope');if(mobile)mobile.value=v;};
