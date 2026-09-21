@@ -19,7 +19,7 @@ function requireHtmlOrRuntime(label, text) {
   ['accessibility focus contract', 'focus-visible'],
   ['workspace runtime', 'pulse-workspace-v3.js'],
   ['workspace five destinations', 'data-nav'],
-  ['workspace scope', 'Brasil · CPG'],
+  ['workspace scope', 'ESCOPO'],
   ['workspace evidence canvas', 'pv4-canvas'],
   ['workspace inspector', 'pv4-inspector'],
   ['workspace proposal story', 'pv4-story']
