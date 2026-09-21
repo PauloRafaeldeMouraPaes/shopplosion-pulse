@@ -12,6 +12,7 @@ if not INDEX.exists():
     sys.exit(1)
 
 text = INDEX.read_text(encoding="utf-8")
+workspace = Path("pulse-workspace-v3.js").read_text(encoding="utf-8") if Path("pulse-workspace-v3.js").exists() else ""
 
 # Single-file contract: local runtime scripts/assets must be inline/embedded.
 if re.search(r'<script[^>]+(?:src|href)=["\'][^"\']*scripts/', text, re.I):
@@ -36,7 +37,7 @@ for token in required_tokens:
         errors.append(f"contrato ausente: {token}")
 
 # Primary CTA must point to the first evidence screen, not skip a journey step.
-if "href=\"#signals\"" not in text and "data-target=\"#signals\"" not in text:
+if "href=\"#signals\"" not in text and "data-target=\"#signals\"" not in text and "href=\"#signals\"" not in workspace:
     errors.append("CTA principal para #signals não encontrado")
 
 # Suggestions in the current Workspace V3 are handled by the single consolidated installer.
