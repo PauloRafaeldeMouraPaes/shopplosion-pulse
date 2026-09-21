@@ -31,6 +31,7 @@ test.describe('Pulse canonical route shell', () => {
         return {
           railRight: rr.right,
           appLeft: ar.left,
+          appContentLeft: ar.left + parseFloat(getComputedStyle(app).paddingLeft || '0'),
           appWidth: ar.width,
           viewportWidth: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
@@ -39,7 +40,7 @@ test.describe('Pulse canonical route shell', () => {
       });
       expect(geometry.appWidth).toBeGreaterThan(0);
       if (geometry.viewportWidth > 640) {
-        expect(geometry.appLeft).toBeGreaterThanOrEqual(geometry.railRight - 1);
+        expect(geometry.appContentLeft).toBeGreaterThanOrEqual(geometry.railRight - 1);
         expect(geometry.topLeft).toBeGreaterThanOrEqual(geometry.railRight - 1);
       } else {
         expect(geometry.appLeft).toBeGreaterThanOrEqual(-1);
