@@ -18,10 +18,10 @@ const staleSelectors=['.pulse-rail','.pulse-mainbar','.pulse-command-menu','.pv4
 const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const routes={hoje:'./intelligence.html?v=20260921.14',universo:'./index.html?v=20260921.14#overview',base:'./base.html?v=20260921.14#documents',investigacao:'./ask.html?v=20260921.14',analises:'./app.html?v=20260921.14#analyses'};
-const scopeKey='pulse:scope';const scopeLabels={public:'Público',industry:'Minha indústria',both:'Ambos'};const scopeRoutes={public:routes.universo,industry:routes.base,both:routes.investigacao};
+const scopeKey='pulse:scope';const scopeLabels={public:'Público',industry:'Minha indústria',both:'Ambos'};
 const getScope=()=>{try{return localStorage.getItem(scopeKey)||'public'}catch{return'public'}};
 const setScope=v=>{try{localStorage.setItem(scopeKey,v)}catch{};const name=document.getElementById('pv3-scope-name');if(name)name.textContent=scopeLabels[v]||scopeLabels.public;const mobile=document.getElementById('pv3-mobile-scope');if(mobile)mobile.value=v;};
-const goScope=v=>{setScope(v);location.href=scopeRoutes[v]||routes.universo;};
+const goScope=v=>{setScope(v);document.dispatchEvent(new CustomEvent('pulse:scope-change',{detail:{scope:v}}));};
 function active(){if(path==='intelligence.html')return'hoje';if(path==='ask.html')return'investigacao';if(path==='base.html')return'base';if(path==='app.html')return hash==='analyses'||hash.startsWith('analysis=')?'analises':'base';return'universo'}
 function legacy(){qa('main,body>header,.layout,.shell>.top,.pulse-rail,.pulse-mainbar,.pulse-shell-sidebar,.pulse-shell-topbar,#pulse-v6-lab,.legacy-shell,.legacy-workspace').forEach(x=>{if(!x.classList.contains('pv4-app'))x.classList.add('pv4-hidden')})}
 function nav(){if(q('.pv4-rail'))return;
