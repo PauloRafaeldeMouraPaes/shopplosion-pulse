@@ -6,7 +6,7 @@
 const path=location.pathname.split('/').pop()||'index.html', hash=location.hash.replace(/^#/,'');
 const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const routes={hoje:'./intelligence.html?v=20260920.04',universo:'./index.html?v=20260920.04#overview',base:'./base.html?v=20260921.01',investigacao:'./ask.html?v=20260920.04',analises:'./app.html?v=20260920.04#analyses'};
+const routes={hoje:'./intelligence.html?v=20260921.05',universo:'./index.html?v=20260921.05#overview',base:'./base.html?v=20260921.01',investigacao:'./ask.html?v=20260921.05',analises:'./app.html?v=20260921.05#analyses'};
 function active(){if(path==='intelligence.html')return'hoje';if(path==='ask.html')return'investigacao';if(path==='app.html')return hash==='analyses'||hash.startsWith('analysis=')?'analises':'base';return'universo'}
 function legacy(){qa('main,body>header,.layout,.shell>.top,.pulse-rail,.pulse-mainbar,.pulse-shell-sidebar,.pulse-shell-topbar').forEach(x=>{if(!x.classList.contains('pv4-app'))x.classList.add('pv4-hidden')})}
 function nav(){if(q('.pv4-rail'))return;
