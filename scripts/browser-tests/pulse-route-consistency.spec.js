@@ -91,4 +91,14 @@ test.describe('Pulse canonical route shell', () => {
     await expect(page.locator('.pv4-inspector')).toContainText('ORIGEM');
     await expect(page.locator('.pv4-inspector')).toContainText('HIPÓTESE');
   });
+
+  test('rail navigation uses a single smooth route transition', async ({ page }) => {
+    await page.goto('/index.html?v=20260921.13#overview', { waitUntil: 'domcontentloaded' });
+    await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('[data-nav="base"]').click();
+    await expect(page.locator('html.pv3-leaving')).toHaveCount(1);
+    await page.waitForURL(/base\.html/);
+    await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
+    await expect(page.locator('.pv4-rail nav a[aria-current="page"]')).toHaveAttribute('data-nav', 'base');
+  });
 });
