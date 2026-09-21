@@ -63,16 +63,16 @@ async function computeSignal(client,industryId){
   }
   const pendentes=ids.filter(id=>!indexedIds.has(id)).length;
   if(pendentes>0){
-    return{key:'documentos_pendentes',text:pendentes===1?'1 documento está aguardando indexação: sem isso, ele não vira evidência.':pendentes+' documentos estão aguardando indexação: sem isso, eles não viram evidência.',cta:'Indexar na Base',href:'./app.html?v=20260919.31#documents'};
+    return{key:'documentos_pendentes',text:pendentes===1?'1 documento está aguardando indexação: sem isso, ele não vira evidência.':pendentes+' documentos estão aguardando indexação: sem isso, eles não viram evidência.',cta:'Indexar na Base',href:'./app.html?v=20260921.10#documents'};
   }
   if(!totalDocs){
-    return{key:'base_vazia',text:'Sua base ainda não tem nenhum documento. Adicione um para começar a extrair evidências.',cta:'Adicionar documento',href:'./app.html?v=20260919.31#documents'};
+    return{key:'base_vazia',text:'Sua base ainda não tem nenhum documento. Adicione um para começar a extrair evidências.',cta:'Adicionar documento',href:'./app.html?v=20260921.10#documents'};
   }
   // 2) evidências qualificadas novas (últimos 7 dias) que ainda não foram usadas em nenhuma análise salva.
   const since=new Date(Date.now()-7*86400000).toISOString();
   const {count:novas}=await client.from('evidence').select('id',{count:'exact',head:true}).eq('industry_id',industryId).gte('created_at',since);
   if(novas){
-    return{key:'evidencias_novas',text:novas===1?'1 evidência nova foi qualificada nos últimos 7 dias.':novas+' evidências novas foram qualificadas nos últimos 7 dias.',cta:'Ver na Investigação',href:'./ask.html?v=20260919.31'};
+    return{key:'evidencias_novas',text:novas===1?'1 evidência nova foi qualificada nos últimos 7 dias.':novas+' evidências novas foram qualificadas nos últimos 7 dias.',cta:'Ver na Investigação',href:'./ask.html?v=20260921.10'};
   }
   return null;
 }
