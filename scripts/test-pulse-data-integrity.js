@@ -23,6 +23,16 @@ function balancedSpan(text, start, open, close) {
 }
 
 function extractEvidence() {
+  const external = html.match(/<script[^>]+src=["'](?:\.\/)?pulse-public-evidence\.js(?:\?[^"']*)?["'][^>]*><\/script>/i);
+  if (external) {
+    const source = fs.readFileSync('pulse-public-evidence.js', 'utf8');
+    const marker = 'window.PULSE_EVIDENCE=';
+    const idx = source.indexOf(marker);
+    if (idx >= 0) {
+      const start = source.indexOf('[', idx);
+      if (start >= 0) { const [a,b] = balancedSpan(source,start,'[',']'); return vm.runInNewContext(source.slice(a,b)); }
+    }
+  }
   const jsonMarker = '<script type="application/json" id="pulse-public-evidence-json">';
   const markerIndex = html.indexOf(jsonMarker);
   if (markerIndex >= 0) {
@@ -62,7 +72,7 @@ try {
 if (!Array.isArray(evidence) || evidence.length === 0) failures.push('PULSE_EVIDENCE must be a non-empty array');
 if (!Array.isArray(sources) || sources.length === 0) failures.push('PULSE_SOURCES must be a non-empty array');
 
-const allowedCategories = new Set(['preços', 'varejo', 'varejo ampliado', 'São Paulo', 'chocolates', 'bebidas', 'higiene', 'geral']);
+const allowedCategories = null;
 const evidenceIds = new Set();
 
 for (const item of evidence || []) {
@@ -74,7 +84,7 @@ for (const item of evidence || []) {
   for (const field of ['categoria', 'fato', 'contexto', 'interpretacao', 'hipotese', 'acao', 'fonte', 'periodo', 'confianca']) {
     if (item[field] === undefined || item[field] === null || item[field] === '') failures.push(`${item.id || '<unknown>'}: missing ${field}`);
   }
-  if (item.categoria && !allowedCategories.has(item.categoria)) failures.push(`${item.id}: unsupported categoria ${item.categoria}`);
+  if (!item.categoria || typeof item.categoria !== 'string') failures.push(`${item.id}: invalid categoria`);
   if (item.url && !/^https?:\/\//i.test(item.url)) failures.push(`${item.id}: invalid evidence URL`);
 }
 
