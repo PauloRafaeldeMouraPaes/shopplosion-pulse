@@ -4,14 +4,11 @@
 window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',anonKey:'sb_publishable_aRzZJXmWvRu86J4I7_VFDw_ucU46Km7'};
 
 (function(){
-  if(typeof window==='undefined'||typeof File==='undefined'||!File.prototype||typeof File.prototype.text!=='function')return;
-  const nativeText=File.prototype.text;
-  const isPdf=file=>String(file?.type||'').toLowerCase()==='application/pdf'||/\.pdf$/i.test(String(file?.name||''));
   let pdfjsPromise=null;
   const loadPdfJs=()=>{if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(!pdfjsPromise)pdfjsPromise=import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs');return pdfjsPromise};
   const extractPdfText=async file=>{const pdfjs=await loadPdfJs();const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),disableWorker:true}).promise;const pages=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n);const content=await page.getTextContent();const text=content.items.map(item=>String(item?.str||'')).join(' ').replace(/\s+/g,' ').trim();if(text)pages.push('[Página '+n+']\n'+text)}return pages.join('\n\n').trim()};
-  File.prototype.text=function(){return isPdf(this)?extractPdfText(this):nativeText.call(this)};
-  window.PULSE_PDF_TEXT_EXTRACTION={enabled:true,library:'pdfjs-dist',version:'4.10.38',mode:'browser-local'};
+  window.PULSE_PDF_TEXT_EXTRACTION={enabled:true,library:'pdfjs-dist',version:'4.10.38',mode:'explicit'};
+  window.PULSE_EXTRACT_PDF_TEXT=extractPdfText;
 })();
 
 /* Shared auth client configuration. All private pages use the same session policy. */
