@@ -101,7 +101,7 @@ jobs:
           base = os.environ["PAGE_URL"].rstrip("/")
           expected_sha = os.environ["RELEASE_SHA"]
           expected_run = int(os.environ["WORKFLOW_RUN_ID"])
-          for path in ["/", "/auth.html", "/app.html", "/ask.html", "/intelligence.html", "/sources.html"]:
+          for path in ["/", "/auth.html", "/app.html", "/base.html", "/ask.html", "/intelligence.html", "/sources.html", "/pulse-market-updates-20260921.js"]:
               req = urllib.request.Request(base + path, headers={"User-Agent": "Pulse-Release-Healthcheck/1.0"})
               with urllib.request.urlopen(req, timeout=20) as r:
                   body = r.read(250000)
