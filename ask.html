@@ -104,7 +104,8 @@
     let publicRows=[];
     if(scope!=='industry'){
       const publicEvidence=await loadPublicEvidence();
-      const fixedId=new URLSearchParams(location.search).get('evidence');
+      const params=new URLSearchParams(location.search);
+      const fixedId=params.get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
       publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:score(text,terms),publicEvidence:e}}).filter(r=>r.score>0 || String(r.id)===String(fixedId)).sort((a,b)=>String(a.id)===String(fixedId)?-1:String(b.id)===String(fixedId)?1:b.score-a.score).slice(0,12);
     }
     const rows=(scope==='industry'?privateRows:scope==='universe'?publicRows:[...privateRows,...publicRows].sort((a,b)=>b.score-a.score)).slice(0,20);
@@ -140,8 +141,16 @@ initAskContext();
     if(['industry','universe','both'].includes(data.scope))askScope.value=data.scope;
     syncScopeLabel();
     const ctx=document.getElementById('askContext');
-    ctx.innerHTML='<span class="askContextChip">INV · '+esc(data.id)+'</span><span class="muted">Investigação '+esc(data.status||'open')+' · contexto persistente</span>';
+    const origin=data.originating_evidence_id||data.payload?.originating_evidence_id||null;
+    let originItem=null;
+    if(origin) originItem=(await loadPublicEvidence()).find(e=>String(e.id)===String(origin))||null;
+    ctx.innerHTML='<span class="askContextChip">INV · '+esc(data.id)+'</span><span class="muted">Investigação '+esc(data.status||'open')+' · contexto persistente'+(origin?' · evidência de origem '+esc(origin):'')+'</span>';
     window.__pulseInvestigation=data;
+    if(originItem){
+      const fixed=document.getElementById('askContext');
+      fixed.dataset.originatingEvidenceId=originItem.id;
+      if(!document.getElementById('query').value)document.getElementById('query').value='O que os sinais desta investigação ainda não explicam sobre o shopper?';
+    }
     if(data.payload?.answer){
       window.__pulseLastAnswer={query:data.question||'',scope:data.scope||'industry',originating_evidence_id:data.originating_evidence_id||null,answer:data.payload.answer||'',citations:data.payload.citations||[],evidence:data.payload.evidence||[],industry_id:profile.industry_id,investigation_id:data.id};
     }
