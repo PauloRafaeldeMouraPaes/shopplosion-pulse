@@ -18,7 +18,7 @@ if(path==='index.html'&&hash===''){location.replace('./intelligence.html?v=20260
 const staleSelectors=['.pulse-rail','.pulse-mainbar','.pulse-command-menu','.pv4-rail','.pv4-top','.pv4-mobile-scope','.pv4-command-menu','#pv4-inspector','#pulse-app-shell'];staleSelectors.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.remove()));document.body.classList.add('pv3-active');
 const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const routes={hoje:'./intelligence.html?v=20260921.18',universo:'./index.html?v=20260921.18#overview',base:'./base.html?v=20260921.18#documents',investigacao:'./ask.html?v=20260921.18',analises:'./app.html?v=20260921.18#analyses'};
+const routes={hoje:'./intelligence.html?v=20260921.25',universo:'./index.html?v=20260921.25#overview',base:'./base.html?v=20260921.25#documents',investigacao:'./ask.html?v=20260921.25',analises:'./app.html?v=20260921.25#analyses'};
 const scopeKey='pulse:scope';const scopeLabels={public:'Público',industry:'Minha indústria',both:'Ambos'};
 const getScope=()=>{try{return localStorage.getItem(scopeKey)||'public'}catch{return'public'}};
 const setScope=v=>{try{localStorage.setItem(scopeKey,v)}catch{};const name=document.getElementById('pv3-scope-name');if(name)name.textContent=scopeLabels[v]||scopeLabels.public;const mobile=document.getElementById('pv3-mobile-scope');if(mobile)mobile.value=v;};
