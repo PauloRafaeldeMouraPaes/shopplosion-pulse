@@ -11,7 +11,7 @@ if (!ask.includes('pulse-workspace-v3.js')) failures.push('Ask AI canonical work
 for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler', '03 Escrever']) {
   if (!workspace.includes(text)) failures.push(`Ask AI contract missing ${text}`);
 }
-if (!workspace.includes('Minha indústria · Base privada')) failures.push('Ask AI private scope missing');
+if (!workspace.includes("scopeLabels") || !workspace.includes("Público") || !workspace.includes("Minha indústria") || !workspace.includes("Ambos")) failures.push('Ask AI shared scope model missing');
 
 if (failures.length) {
   console.error('Ask AI regression FAILED');
