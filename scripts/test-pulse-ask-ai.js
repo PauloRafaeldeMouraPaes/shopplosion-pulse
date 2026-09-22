@@ -11,6 +11,7 @@ if (!ask.includes('pulse-workspace-v3.js')) failures.push('Ask AI canonical work
 if (!ask.includes("from('investigations')")) failures.push('Investigation persistence missing');
 if (!ask.includes('investigation_id')) failures.push('Analysis-investigation link missing');
 if (!ask.includes('structured')) failures.push('Structured investigation blocks missing');
+if (!ask.includes('shopper_knowledge')) failures.push('Shopper knowledge persistence missing');
 if (!ask.includes('public_evidence:found.publicRows')) failures.push('Public evidence context missing from Ask AI request');
 for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler', '03 Escrever']) {
   if (!workspace.includes(text)) failures.push(`Ask AI contract missing ${text}`);
