@@ -30,6 +30,14 @@ if (!workspace.includes('preloadPrivateEvidence') || !workspace.includes('saved_
 if (!app.includes('knowledgeUpdates') || !app.includes('savedEvidence')) failures.push('Industry knowledge/update panels missing');
 if (!saveEvidenceFunction.includes('saved_evidence') || !saveEvidenceFunction.includes("Authorization") || !saveEvidenceFunction.includes("Bearer ")) failures.push('Authenticated saved evidence function missing');
 
+
+if (!ask.includes("publicEvidence") || !ask.includes("Abrir fonte original")) failures.push('Public Ask AI rendering contract missing');
+if (!ask.includes("target=\"_blank\"")) failures.push('Public source navigation contract missing');
+const askFn = fs.existsSync('supabase/functions/pulse-ask-ai/index.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8') : '';
+if (!askFn.includes("x-goog-api-key")) failures.push('Gemini authentication header missing');
+if (!askFn.includes("gemini-3.5-flash-lite")) failures.push('Current Gemini production model missing');
+if (!askFn.includes("originatingEvidenceId") || !askFn.includes("String(item.public_evidence_id) === originatingEvidenceId")) failures.push('Origin public evidence preservation missing');
+
 if (failures.length) {
   console.error('Ask AI regression FAILED');
   failures.forEach(f => console.error(`- ${f}`));
