@@ -39,8 +39,6 @@ function head(kicker,title,sub,next){return '<div class="pv4-head pv3-head"><div
 function mount(html){const m=document.getElementById('pulse-app-shell')||document.createElement('main');m.className='pv4-app';m.setAttribute('aria-label','Workspace Pulse');m.innerHTML='<div class="pv4-frame">'+html+'</div>';if(!m.isConnected)document.body.appendChild(m);return m}
 function evidence(){
   const valid=v=>v&&typeof v==='object'&&String(v.id??'').trim();
-  if(Array.isArray(window.PULSE_EVIDENCE)&&window.PULSE_EVIDENCE.some(valid)) return window.PULSE_EVIDENCE.filter(valid);
-  try{const n=document.getElementById('pulse-public-evidence-json');const v=n?JSON.parse(n.textContent||'[]'):[];if(Array.isArray(v)&&v.some(valid)){window.PULSE_EVIDENCE=v.filter(valid);return window.PULSE_EVIDENCE}}catch(e){}
   let publicRows=[];
   if(Array.isArray(window.PULSE_EVIDENCE)&&window.PULSE_EVIDENCE.some(valid)) publicRows=window.PULSE_EVIDENCE.filter(valid);
   else{try{const n=document.getElementById('pulse-public-evidence-json');const v=n?JSON.parse(n.textContent||'[]'):[];if(Array.isArray(v)&&v.some(valid)){window.PULSE_EVIDENCE=v.filter(valid);publicRows=window.PULSE_EVIDENCE}}catch(e){}}
