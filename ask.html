@@ -30,7 +30,7 @@
       <button id="search" type="button">Buscar evidências</button>
       <button id="generate" class="secondary" type="button">Gerar resposta</button>
     </div>
-    <div class="askScopeSelect"><label for="askScope">Escopo da pergunta</label><select id="askScope" aria-label="Escopo da pergunta"><option value="industry">Minha indústria · privado</option><option value="universe">Universo · público</option><option value="both">Ambos · público + privado</option></select></div><div id="askContext" class="askContext" aria-label="Contexto fixado"></div><div id="askProgress" class="askProgress" role="status" aria-live="polite"><div class="askProgressTitle">Progresso da resposta</div><div class="askSteps"><div class="askStep" data-step="retrieve">Recuperando trechos</div><div class="askStep" data-step="read">Lendo evidências</div><div class="askStep" data-step="write">Redigindo resposta</div></div></div><div class="note">RLS continua sendo a autoridade de isolamento. O LLM nunca recebe dados de outra indústria.</div>
+    <div class="askScopeSelect"><label for="askScope">Escopo da pergunta</label><select id="askScope" aria-label="Escopo da pergunta"><option value="both" selected>Ambos · público + privado</option><option value="industry">Minha indústria · privado</option><option value="universe">Universo · público</option></select></div><div id="askContext" class="askContext" aria-label="Contexto fixado"></div><div id="askProgress" class="askProgress" role="status" aria-live="polite"><div class="askProgressTitle">Progresso da resposta</div><div class="askSteps"><div class="askStep" data-step="retrieve">Recuperando trechos</div><div class="askStep" data-step="read">Lendo evidências</div><div class="askStep" data-step="write">Redigindo resposta</div></div></div><div class="note">RLS continua sendo a autoridade de isolamento. O LLM nunca recebe dados de outra indústria.</div>
     <div id="message" class="msg" role="status" aria-live="polite"></div>
   </section>
   <section id="answerPanel" class="panel hidden">
@@ -193,7 +193,7 @@ async function loadPriorKnowledge(scope,query){
       document.getElementById('answer').textContent=data.answer||'Resposta vazia.';
       window.__pulseLastAnswer={query,scope,originating_evidence_id:fixedEvidenceId||null,answer:data.answer||'',structured:data.structured||{},knowledge_update:data.knowledge_update||{classification:'insufficient',reason:''},citations:data.citations||[],evidence:retrieved,industry_id:profile.industry_id,priorKnowledge};
       document.getElementById('citations').innerHTML=(data.citations||[]).map(c=>{const label='['+esc(c.ref)+'] '+esc(c.document)+' — bloco '+esc(c.chunk);return c.document_id?'<a class="citationLink" href="./documento.html?v=20260922.03&id='+esc(c.document_id)+'&chunk='+esc(c.chunk)+'">'+label+'</a>':'<span>'+label+'</span>'}).join(' &nbsp;•&nbsp; ');
-      const ku=data.knowledge_update||{};show('Resposta gerada. Atualização do conhecimento: '+String(ku.classification||'insufficient').replace('_',' ')+'.','ok');
+      const ku=data.knowledge_update||{};show((data?.fallback?'Resposta baseada nas evidências recuperadas. A IA não ficou disponível nesta tentativa. ':'Resposta gerada. ')+'Atualização do conhecimento: '+String(ku.classification||'insufficient').replace('_',' ')+'.','ok');
     }catch(e){show(e.message||'Falha na geração.','error')}finally{document.getElementById('generate').disabled=false}
   }
   document.getElementById('search').addEventListener('click',searchEvidence);
