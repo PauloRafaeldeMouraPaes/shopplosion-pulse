@@ -28,7 +28,7 @@ for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler',
 if (!workspace.includes("scopeLabels") || !workspace.includes("Público") || !workspace.includes("Minha indústria") || !workspace.includes("Ambos")) failures.push('Ask AI shared scope model missing');
 if (!workspace.includes('preloadPrivateEvidence') || !workspace.includes('saved_evidence')) failures.push('Shared workspace private saved evidence scope missing');
 if (!app.includes('knowledgeUpdates') || !app.includes('savedEvidence')) failures.push('Industry knowledge/update panels missing');
-if (!saveEvidenceFunction.includes('saved_evidence') || !saveEvidenceFunction.includes('verify_jwt')) failures.push('Authenticated saved evidence function missing');
+if (!saveEvidenceFunction.includes('saved_evidence') || !saveEvidenceFunction.includes("Authorization") || !saveEvidenceFunction.includes("Bearer ")) failures.push('Authenticated saved evidence function missing');
 
 if (failures.length) {
   console.error('Ask AI regression FAILED');
