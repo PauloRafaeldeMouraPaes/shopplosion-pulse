@@ -14,7 +14,7 @@ window.pulseRankEvidence = window.pulseRankEvidence || ((items)=>Array.isArray(i
 // Single-file Universe mirrors this exact runtime.
 // HTML structure is validated before publication.
 const path=location.pathname.split('/').pop()||'index.html', hash=location.hash.replace(/^#/,'');
-if(path==='index.html'&&hash===''){location.replace('./intelligence.html?v=20260921.25');}
+if(location.pathname.endsWith('/')&&hash===''){location.replace('./intelligence.html?v=20260921.25');}
 const staleSelectors=['.pulse-rail','.pulse-mainbar','.pulse-command-menu','.pv4-rail','.pv4-top','.pv4-mobile-scope','.pv4-command-menu','#pv4-inspector','#pulse-app-shell'];staleSelectors.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.remove()));document.body.classList.add('pv3-active');
 const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
