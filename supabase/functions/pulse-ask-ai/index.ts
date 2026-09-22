@@ -132,13 +132,33 @@ Deno.serve(async (req) => {
     if (![429, 500, 502, 503, 504].includes(providerResponse.status) || attempt === 2) break
     await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
   }
+  const deterministicFallback = (reason: string) => {
+    const lead = evidence[0]
+    const fact = lead?.content ? String(lead.content).split(/[\n.]/).map((x) => x.trim()).find(Boolean) || String(lead.content).slice(0, 500) : 'As evidências recuperadas não trazem informação suficiente.'
+    const refs = evidence.slice(0, 4).map((item) => `[${item.ref}]`).join(' ')
+    const answer = `LEITURA: As evidências recuperadas indicam: ${fact} ${refs}
+
+HIPÓTESE: As evidências disponíveis não permitem atribuir um mecanismo de comportamento do shopper sem investigação adicional.
+
+RECOMENDAÇÃO: Cruzar as evidências recuperadas com uma fonte adicional diretamente relacionada à pergunta antes de transformar o sinal em conclusão comportamental.
+
+DESCONHECIDOS: Não é possível afirmar causalidade, mudança de frequência, canal, marca, quantidade ou missão de compra apenas com este conjunto de evidências.
+
+ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a geração por IA não ficou disponível neste momento.`
+    return { answer, structured: { leitura: fact, hipotese: 'As evidências disponíveis não permitem atribuir um mecanismo de comportamento do shopper sem investigação adicional.', recomendacao: 'Cruzar as evidências recuperadas com uma fonte adicional diretamente relacionada à pergunta.', desconhecidos: 'Não é possível afirmar causalidade ou comportamento específico do shopper apenas com este conjunto.' }, knowledge_update: { classification: 'insufficient', reason: reason || 'fallback determinístico por indisponibilidade do provedor', previous_knowledge_count: priorKnowledge.length }, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) }
+  }
+
   if (!providerResponse?.ok) {
     const detail = await providerResponse?.text() || ''
-    return json({ error: 'llm_provider_failed', provider_status: lastProviderStatus, message: providerMessage(lastProviderStatus, detail) }, 502)
+    const fallback = deterministicFallback(`Gemini indisponível (HTTP ${lastProviderStatus}).`)
+    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true })
   }
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
-  if (!answer) return json({ error: 'empty_llm_response' }, 502)
+  if (!answer) {
+    const fallback = deterministicFallback('Gemini retornou uma resposta vazia.')
+    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true })
+  }
   const block = (name: string) => { const m = answer.match(new RegExp(`${name}:\\s*([\\s\\S]*?)(?=\\n(?:LEITURA|HIPÓTESE|RECOMENDAÇÃO|DESCONHECIDOS|ATUALIZAÇÃO):|$)`, 'i')); return m ? m[1].trim() : '' }
   const structured = { leitura: block('LEITURA'), hipotese: block('HIPÓTESE'), recomendacao: block('RECOMENDAÇÃO'), desconhecidos: block('DESCONHECIDOS') }
   const updateRaw = block('ATUALIZAÇÃO')
