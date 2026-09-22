@@ -26,7 +26,7 @@ else:
         # The rebuilt product intentionally shares one canonical workspace runtime
         # across routes. These two local files are the approved product shell,
         # not accidental page-specific dependencies.
-        if value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css")):
+        if value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css", "./pulse-config.js")):
             continue
         if value.startswith(("./", "../", "/")) or not re.match(r"^[a-z][a-z0-9+.-]*:", value, re.I):
             # Relative paths are only valid if the single-file contract explicitly permits them.
