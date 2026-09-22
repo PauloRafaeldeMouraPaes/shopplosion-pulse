@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Ask AI interaction contract', () => {
   test('Buscar evidências públicas no shell visível executa e retorna evidências reais', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.11', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.12', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#pv3-scope-select')).toBeVisible();
     await page.selectOption('#pv3-scope-select', 'public');
     const input=page.locator('.pv4-real-input');
@@ -15,13 +15,12 @@ test.describe('Ask AI interaction contract', () => {
     await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
   });
 
-  test('Busca pública vazia produz feedback visível no shell', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.11', { waitUntil: 'domcontentloaded' });
+  test('Gerar resposta pública funciona sem sessão privada', async ({ page }) => {
+    await page.goto('/ask.html?v=20260922.12', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
-    const input=page.locator('.pv4-real-input');
-    await expect(input).toBeVisible();
-    await input.fill('');
-    await page.locator('.pv4-real-actions button').nth(0).click();
-    await expect(page.locator('#pv4-shell-status')).toContainText('Digite uma pergunta válida');
+    await page.locator('.pv4-real-input').fill('O que os sinais recentes de Alimentação e Bebidas indicam sobre preço e vendas?');
+    await page.locator('.pv4-real-actions button').nth(1).click();
+    await expect(page.locator('#answerPanel')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('#answer')).not.toHaveText('Resposta vazia.');
   });
 });
