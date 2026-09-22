@@ -3,6 +3,8 @@ const fs = require('fs');
 const index = fs.readFileSync(process.argv[2] || 'index.html', 'utf8');
 const ask = fs.existsSync('ask.html') ? fs.readFileSync('ask.html', 'utf8') : '';
 const workspace = fs.existsSync('pulse-workspace-v3.js') ? fs.readFileSync('pulse-workspace-v3.js', 'utf8') : '';
+const app = fs.existsSync('app.html') ? fs.readFileSync('app.html', 'utf8') : '';
+const saveEvidenceFunction = fs.existsSync('supabase/functions/pulse-save-evidence/index.ts') ? fs.readFileSync('supabase/functions/pulse-save-evidence/index.ts', 'utf8') : '';
 const failures = [];
 
 if (!index.includes('window.PULSE_EVIDENCE')) failures.push('public evidence registry missing');
@@ -24,6 +26,9 @@ for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler',
   if (!workspace.includes(text)) failures.push(`Ask AI contract missing ${text}`);
 }
 if (!workspace.includes("scopeLabels") || !workspace.includes("Público") || !workspace.includes("Minha indústria") || !workspace.includes("Ambos")) failures.push('Ask AI shared scope model missing');
+if (!workspace.includes('preloadPrivateEvidence') || !workspace.includes('saved_evidence')) failures.push('Shared workspace private saved evidence scope missing');
+if (!app.includes('knowledgeUpdates') || !app.includes('savedEvidence')) failures.push('Industry knowledge/update panels missing');
+if (!saveEvidenceFunction.includes('saved_evidence') || !saveEvidenceFunction.includes('verify_jwt')) failures.push('Authenticated saved evidence function missing');
 
 if (failures.length) {
   console.error('Ask AI regression FAILED');
