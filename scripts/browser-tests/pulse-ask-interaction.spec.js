@@ -1,23 +1,26 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('Ask AI interaction contract', () => {
-  test('Buscar evidências visível nunca fica sem ação', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.04', { waitUntil: 'domcontentloaded' });
+  test('Buscar evidências públicas executa e retorna evidências reais', async ({ page }) => {
+    await page.goto('/ask.html?v=20260922.10', { waitUntil: 'domcontentloaded' });
+    await page.selectOption('#askScope', 'universe');
+    await page.locator('#query').fill('Alimentação e bebidas');
     const actions=page.locator('.pv4-real-actions button');
     await expect(actions).toHaveCount(2);
-    await expect(actions.nth(0)).toBeVisible();
     await actions.nth(0).click();
     await expect(page.locator('#message')).toHaveClass(/show/);
-    await expect(page.locator('#message')).not.toHaveText('');
+    await expect(page.locator('#message')).toContainText('Evidências públicas recuperadas');
+    await expect(page.locator('#resultTitle')).toContainText('evidência');
+    await expect(page.locator('#results .result')).toHaveCountGreaterThan(0);
   });
 
-  test('Gerar resposta visível nunca fica sem ação', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.04', { waitUntil: 'domcontentloaded' });
+  test('Busca com pergunta inválida produz feedback visível', async ({ page }) => {
+    await page.goto('/ask.html?v=20260922.10', { waitUntil: 'domcontentloaded' });
+    await page.selectOption('#askScope', 'universe');
+    await page.locator('#query').fill('');
     const actions=page.locator('.pv4-real-actions button');
-    await expect(actions).toHaveCount(2);
-    await expect(actions.nth(1)).toBeVisible();
-    await actions.nth(1).click();
+    await actions.nth(0).click();
     await expect(page.locator('#message')).toHaveClass(/show/);
-    await expect(page.locator('#message')).not.toHaveText('');
+    await expect(page.locator('#message')).toContainText('Digite uma pergunta válida');
   });
 });
