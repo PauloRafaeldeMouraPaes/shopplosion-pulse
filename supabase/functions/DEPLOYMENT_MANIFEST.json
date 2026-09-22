@@ -5,10 +5,10 @@
   "functions": [
     {
       "slug": "pulse-ask-ai",
-      "version": 26,
+      "version": 27,
       "status": "ACTIVE",
       "verify_jwt": true,
-      "deployed_sha256": "a1dafca571d652cb1509ae39298f49988c47ab333801a40fbf3726f5075e2b9f",
+      "deployed_sha256": "c82c66b40c4e30abe5a8156c140f3dd9d9b72f57152d40bb8dbb68cd9cb17761",
       "source_path": "supabase/functions/pulse-ask-ai/index.ts"
     },
     {
