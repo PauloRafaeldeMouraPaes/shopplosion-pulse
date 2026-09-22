@@ -147,6 +147,13 @@ initAskContext();
     return data;
   }
   loadInvestigationContext();
+  async function handleSavedEvidence(){
+    const id=new URLSearchParams(location.search).get('saveEvidence');if(!id)return;
+    const item=(await loadPublicEvidence()).find(e=>String(e.id)===String(id));
+    if(!item){show('A evidência solicitada não está disponível no Universo Pulse.','error');return}
+    try{const {data,error}=await client.functions.invoke('pulse-save-evidence',{body:{evidence:item}});if(error||data?.error)throw error||new Error(data?.message||'save_failed');show('Evidência guardada na base da sua indústria. Ela agora pode ser reutilizada em investigações privadas.','ok')}catch(e){show('Não foi possível guardar a evidência na base da indústria.','error')}
+  }
+  handleSavedEvidence();
 async function loadPriorKnowledge(scope){
     const allowed=scope==='universe'?['universe']:scope==='industry'?['industry']:['industry','universe','both'];
     const {data,error}=await client.from('shopper_knowledge').select('id,claim,status,scope,investigation_id,evidence,payload,last_updated_at').in('scope',allowed).order('last_updated_at',{ascending:false}).limit(8);
