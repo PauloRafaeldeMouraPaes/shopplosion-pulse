@@ -156,7 +156,7 @@ initAskContext();
     }
     return data;
   }
-  loadInvestigationContext();
+  const investigationReady=loadInvestigationContext();
   async function handleSavedEvidence(){
     const id=new URLSearchParams(location.search).get('saveEvidence');if(!id)return;
     const item=(await loadPublicEvidence()).find(e=>String(e.id)===String(id));
@@ -177,7 +177,8 @@ async function loadPriorKnowledge(scope,query){
   async function generateAnswer(){
     const query=document.getElementById('query').value.trim();
     const scope=document.getElementById('askScope').value;
-    const fixedEvidenceId=new URLSearchParams(location.search).get('evidence');
+    await investigationReady;
+    const fixedEvidenceId=new URLSearchParams(location.search).get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
     if(!query){show('Digite uma pergunta primeiro.','error');return}
     document.getElementById('generate').disabled=true;show('Recuperando evidências e comparando com conhecimento anterior…','ok');
     try{
