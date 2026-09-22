@@ -63,13 +63,14 @@ Deno.serve(async (req) => {
   if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
   const allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
 
-  let body: { query?: string, scope?: string, public_evidence?: any[], originating_evidence_id?: string | null, retrieved_evidence?: any[] }
+  let body: { query?: string, scope?: string, public_evidence?: any[], originating_evidence_id?: string | null, retrieved_evidence?: any[], prior_knowledge?: any[] }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
   const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
   const publicEvidence = Array.isArray(body.public_evidence) ? body.public_evidence.slice(0, 20) : []
   const originatingEvidenceId = String(body.originating_evidence_id || '').trim().slice(0, 180) || null
   const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
+  const priorKnowledge = Array.isArray(body.prior_knowledge) ? body.prior_knowledge.slice(0, 8) : []
   const terms = termsFor(query)
   const clientPrivateKeys = new Set(clientRetrievedEvidence.filter((item: any) => item?.document_id && Number.isInteger(item?.chunk)).map((item: any) => `${item.document_id}:${item.chunk}`))
   if (!query || !terms.length) return json({ error: 'invalid_query', message: 'Digite uma pergunta válida.' }, 400)
@@ -114,14 +115,18 @@ Deno.serve(async (req) => {
   const evidenceText = evidence.map((item) => `<evidence ref="${item.ref}" document="${item.document}" chunk="${item.chunk}" source="${item.source_type}">${item.content}</evidence>`).join('\n')
 
   const system = 'Você é o analista do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Em escopo privado, nunca revele dados fora da indústria autenticada. Em escopo público, trate as evidências como mercado publicado. Em escopo combinado, diferencie claramente o que vem do mercado publicado e o que vem da indústria autenticada.'
-  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nIndústria autenticada: ${industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar.`
+  const priorKnowledgeText = priorKnowledge.length ? priorKnowledge.map((item: any, index: number) => `<knowledge ref="K${index + 1}" status="${String(item.status || 'proposed')}">${String(item.claim || '').slice(0, 4000)}</knowledge>`).join('\\n') : 'Nenhum conhecimento anterior vinculado.'
+  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nIndústria autenticada: ${industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
   const providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } }) })
   if (!providerResponse.ok) { const detail = await providerResponse.text(); return json({ error: 'llm_provider_failed', provider_status: providerResponse.status, message: providerMessage(providerResponse.status, detail) }, 502) }
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
   if (!answer) return json({ error: 'empty_llm_response' }, 502)
-  const block = (name: string) => { const m = answer.match(new RegExp(`${name}:\\s*([\\s\\S]*?)(?=\\n(?:LEITURA|HIPÓTESE|RECOMENDAÇÃO|DESCONHECIDOS):|$)`, 'i')); return m ? m[1].trim() : '' }
+  const block = (name: string) => { const m = answer.match(new RegExp(`${name}:\\s*([\\s\\S]*?)(?=\\n(?:LEITURA|HIPÓTESE|RECOMENDAÇÃO|DESCONHECIDOS|ATUALIZAÇÃO):|$)`, 'i')); return m ? m[1].trim() : '' }
   const structured = { leitura: block('LEITURA'), hipotese: block('HIPÓTESE'), recomendacao: block('RECOMENDAÇÃO'), desconhecidos: block('DESCONHECIDOS') }
+  const updateRaw = block('ATUALIZAÇÃO')
+  const classMatch = updateRaw.match(/\b(CONSISTENT|POTENTIAL_CHANGE|CONTRADICTION|INSUFFICIENT|OUTDATED)\b/i)
+  const knowledge_update = { classification: classMatch ? classMatch[1].toLowerCase() : 'insufficient', reason: updateRaw.replace(/\b(CONSISTENT|POTENTIAL_CHANGE|CONTRADICTION|INSUFFICIENT|OUTDATED)\b[:\-]?/i,'').trim().slice(0,1500), previous_knowledge_count: priorKnowledge.length }
   if (scope !== 'universe' && foreignIndustryInAnswer(answer, industry.name, allIndustryNames)) {
     return json({
       answer: 'A resposta foi bloqueada porque o modelo tentou mencionar uma indústria fora do escopo autenticado. Nenhum dado de outra indústria foi retornado.',
@@ -129,5 +134,5 @@ Deno.serve(async (req) => {
       scope_rejected: true,
     }, 200)
   }
-  return json({ answer, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
+  return json({ answer, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, knowledge_update, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
 })
