@@ -32,3 +32,22 @@ html.pv3-leaving .pv4-app{opacity:0;transform:translateY(4px);transition:opacity
 /* canonical mobile shell: scope selector remains visible on mobile; destination rail remains the same five-item product navigation */
 @media (min-width:768px){.pv4-mobile-scope{display:none!important}}
 @media (max-width:767px){.pv4-rail nav a{display:flex!important}.pv4-rail nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+
+/* Case actions: preserve hierarchy and make investigation a real action, not a text escape. */
+.pv4-case .pv4-real-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:250px}
+.pv4-case .pv4-real-actions .pv4-primary{margin-top:0}
+.pv4-secondary-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:40px;padding:0 14px;border:1px solid #dca7bc;border-radius:9px;background:#fff7fa;color:#8e1648;text-decoration:none;font-size:11px;font-weight:850;line-height:1}
+.pv4-secondary-action b{font-size:15px;line-height:1}
+.pv4-secondary-action:hover,.pv4-secondary-action:focus-visible{background:#ffeef5;border-color:#a3164e;outline:none}
+.pv4-case-critical{border-color:#e4c5d2!important}
+.pv4-case-contrast{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 18px}
+.pv4-case-contrast article{padding:13px;border:1px solid var(--pv4-line);border-radius:10px;background:#fff}
+.pv4-case-contrast small{display:block;font-size:8px;letter-spacing:.1em;color:#a3164e;font-weight:900}
+.pv4-case-contrast b{display:block;margin-top:5px;font-size:11px;line-height:1.35}
+.pv4-case-contrast span{display:block;margin-top:5px;color:var(--pv4-muted);font-size:10px;line-height:1.45}
+@media(max-width:640px){
+  .pv4-case .pv4-real-actions{justify-content:stretch;min-width:0}
+  .pv4-case .pv4-real-actions .pv4-primary,.pv4-secondary-action{flex:1;min-width:0}
+  .pv4-secondary-action{padding:0 10px}
+  .pv4-case-contrast{grid-template-columns:1fr}
+}
