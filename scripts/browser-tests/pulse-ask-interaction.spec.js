@@ -3,7 +3,6 @@ const { test, expect } = require('@playwright/test');
 test.describe('Ask AI interaction contract', () => {
   test('Buscar evidências públicas executa e retorna evidências reais', async ({ page }) => {
     await page.goto('/ask.html?v=20260922.10', { waitUntil: 'domcontentloaded' });
-    await page.selectOption('#askScope', 'universe');
     await page.locator('#query').fill('Alimentação e bebidas');
     const actions=page.locator('.pv4-real-actions button');
     await expect(actions).toHaveCount(2);
