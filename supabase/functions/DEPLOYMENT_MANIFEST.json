@@ -55,10 +55,10 @@
     },
     {
       "slug": "pulse-ask-ai-worker",
-      "version": 3,
+      "version": 4,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "ee4a973bb68693e70412122aa7d6a4f5c58ca9e11566be4095a04c21dfaa915d",
+      "deployed_sha256": "b8f6c5250fc62565dcf425a5b7763e67f1ad7e32bc956d09806efafa8bdc0099",
       "source_path": "supabase/functions/pulse-ask-ai-worker/index.ts",
       "auth": "internal_worker_token"
     },
