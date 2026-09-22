@@ -38,8 +38,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
   const authorization = req.headers.get('Authorization')
-  if (!authorization?.startsWith('Bearer ')) return json({ error: 'missing_authorization' }, 401)
-
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const publishableMap = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')
   const geminiKey = Deno.env.get('GEMINI_API_KEY')
@@ -51,22 +49,29 @@ Deno.serve(async (req) => {
   try { const parsed = JSON.parse(publishableMap); publishableKey = parsed.default || Object.values(parsed)[0] || '' } catch { return json({ error: 'invalid_supabase_key_configuration' }, 500) }
   if (!publishableKey) return json({ error: 'missing_publishable_key' }, 500)
 
-  const supabase = createClient(supabaseUrl, publishableKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false, autoRefreshToken: false } })
-  const { data: userData, error: userError } = await supabase.auth.getUser()
-  if (userError || !userData.user) return json({ error: 'invalid_session' }, 401)
-
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('industry_id').eq('id', userData.user.id).single()
-  if (profileError || !profile?.industry_id) return json({ error: 'profile_not_found' }, 403)
-  const { data: industry, error: industryError } = await supabase.from('industries').select('id,name,status').eq('id', profile.industry_id).single()
-  if (industryError || !industry || industry.status !== 'active') return json({ error: 'industry_not_active' }, 403)
-  const { data: industries, error: industriesError } = await supabase.from('industries').select('name').eq('status', 'active')
-  if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
-  const allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
-
   let body: { query?: string, scope?: string, public_evidence?: any[], originating_evidence_id?: string | null, retrieved_evidence?: any[], prior_knowledge?: any[] }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
   const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
+  const publicMode = scope === 'universe' && !authorization
+  if (!authorization && !publicMode) return json({ error: 'missing_authorization' }, 401)
+  const supabase = createClient(supabaseUrl, publishableKey, { global: { headers: authorization ? { Authorization: authorization } : {} }, auth: { persistSession: false, autoRefreshToken: false } })
+  let profile: { industry_id?: string } = {}
+  let industry: { id?: string, name?: string, status?: string } = { name: 'mercado publicado', status: 'public' }
+  let allIndustryNames: string[] = []
+  if (!publicMode) {
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (userError || !userData.user) return json({ error: 'invalid_session' }, 401)
+    const { data: profileData, error: profileError } = await supabase.from('profiles').select('industry_id').eq('id', userData.user.id).single()
+    if (profileError || !profileData?.industry_id) return json({ error: 'profile_not_found' }, 403)
+    profile = profileData
+    const { data: industryData, error: industryError } = await supabase.from('industries').select('id,name,status').eq('id', profile.industry_id).single()
+    if (industryError || !industryData || industryData.status !== 'active') return json({ error: 'industry_not_active' }, 403)
+    industry = industryData
+    const { data: industries, error: industriesError } = await supabase.from('industries').select('name').eq('status', 'active')
+    if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
+    allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
+  }
   const publicEvidence = Array.isArray(body.public_evidence) ? body.public_evidence.slice(0, 20) : []
   const originatingEvidenceId = String(body.originating_evidence_id || '').trim().slice(0, 180) || null
   const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
@@ -118,7 +123,7 @@ Deno.serve(async (req) => {
 
   const system = 'Você é o analista do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Em escopo privado, nunca revele dados fora da indústria autenticada. Em escopo público, trate as evidências como mercado publicado. Em escopo combinado, diferencie claramente o que vem do mercado publicado e o que vem da indústria autenticada.'
   const priorKnowledgeText = priorKnowledge.length ? priorKnowledge.map((item: any, index: number) => `<knowledge ref="K${index + 1}" status="${String(item.status || 'proposed')}">${String(item.claim || '').slice(0, 4000)}</knowledge>`).join('\\n') : 'Nenhum conhecimento anterior vinculado.'
-  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nIndústria autenticada: ${industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
+  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nContexto: ${publicMode ? 'mercado publicado; nenhum dado privado foi autorizado' : 'indústria autenticada: ' + industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
   let providerResponse: Response | null = null
   let lastProviderStatus = 0
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -164,7 +169,7 @@ ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a gera�
   const updateRaw = block('ATUALIZAÇÃO')
   const classMatch = updateRaw.match(/\b(CONSISTENT|POTENTIAL_CHANGE|CONTRADICTION|INSUFFICIENT|OUTDATED)\b/i)
   const knowledge_update = { classification: classMatch ? classMatch[1].toLowerCase() : 'insufficient', reason: updateRaw.replace(/\b(CONSISTENT|POTENTIAL_CHANGE|CONTRADICTION|INSUFFICIENT|OUTDATED)\b[:\-]?/i,'').trim().slice(0,1500), previous_knowledge_count: priorKnowledge.length }
-  if (scope !== 'universe' && foreignIndustryInAnswer(answer, industry.name, allIndustryNames)) {
+  if (!publicMode && scope !== 'universe' && foreignIndustryInAnswer(answer, industry.name || '', allIndustryNames)) {
     return json({
       answer: 'A resposta foi bloqueada porque o modelo tentou mencionar uma indústria fora do escopo autenticado. Nenhum dado de outra indústria foi retornado.',
       citations: [],
