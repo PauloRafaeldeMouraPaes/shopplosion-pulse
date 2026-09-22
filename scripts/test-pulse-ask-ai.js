@@ -36,7 +36,7 @@ if (!ask.includes("target=\"_blank\"")) failures.push('Public source navigation 
 const askFn = fs.existsSync('supabase/functions/pulse-ask-ai/index.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8') : '';
 if (!askFn.includes("x-goog-api-key")) failures.push('Gemini authentication header missing');
 if (!askFn.includes("gemini-3.5-flash-lite")) failures.push('Current Gemini production model missing');
-if (!askFn.includes("originatingEvidenceId") || !askFn.includes("String(item.public_evidence_id) === originatingEvidenceId")) failures.push('Origin public evidence preservation missing');
+if (!askFn.includes("originatingEvidenceId") || !askFn.includes("public_evidence_id") || !askFn.includes("String(item.id) === originatingEvidenceId")) failures.push('Origin public evidence preservation missing');
 
 if (failures.length) {
   console.error('Ask AI regression FAILED');
