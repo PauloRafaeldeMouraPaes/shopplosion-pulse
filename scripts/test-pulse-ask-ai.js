@@ -41,3 +41,5 @@ console.log('Ask AI regression PASSED');
 // Persistent investigation and shopper knowledge contract verified.
 
 // Final validation marker: shared scope, saved evidence and knowledge update loop.
+
+if (workspace.includes("function evidence(){") && workspace.indexOf("if(scope==='industry') return privateEvidence") < workspace.indexOf("function confidenceHigh")) failures.push('Scope filter ordering is invalid');
