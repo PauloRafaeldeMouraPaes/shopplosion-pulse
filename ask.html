@@ -51,8 +51,12 @@
   const cfg=window.PULSE_SUPABASE_CONFIG||{};
   const msg=document.getElementById('message');
   const show=(text,type='ok')=>{msg.textContent=text;msg.className='msg show '+type};
+  let askReadyResolve;const askReady=new Promise(resolve=>{askReadyResolve=resolve});let askInitError='';
+  const failInit=(message)=>{askInitError=message;show(message,'error');askReadyResolve(false)};
+  const bindActionButtons=()=>{const s=document.getElementById('search'),g=document.getElementById('generate');if(s)s.onclick=async()=>{s.disabled=true;await askReady;if(askInitError){show(askInitError,'error');s.disabled=false;return}return searchEvidence()};if(g)g.onclick=async()=>{g.disabled=true;await askReady;if(askInitError){show(askInitError,'error');g.disabled=false;return}return generateAnswer()}};
+  bindActionButtons();
   const redirect=()=>location.replace('./auth.html');
-  if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){show('Configuração do Supabase indisponível.','error');return}
+  if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){failInit('O mecanismo de busca ainda não foi inicializado. Recarregue o Pulse para tentar novamente.');return}
   const client=pulseCreateClient();
   let session=null;
   try{
@@ -71,8 +75,8 @@
         session=restored.data.session;
       }
     }
-    if(!session){show('Não foi possível recuperar a sessão nesta página.','error');return}
-  }catch(e){show('Não foi possível recuperar a sessão nesta página.','error');return}
+    if(!session){failInit('Sua sessão não está disponível nesta página. Entre novamente no Pulse para habilitar a busca e a geração de respostas.');return}
+  }catch(e){failInit('Não foi possível recuperar a sessão nesta página. A busca foi interrompida antes de ser inicializada.');return}
   const user=session.user;
   let context=null;
   try{
@@ -80,8 +84,8 @@
     const body=await r.json().catch(()=>null);
     if(!r.ok)throw new Error('broker_http_'+r.status);
     context=Array.isArray(body)?body[0]:body;
-  }catch(e){show('Não foi possível validar a indústria agora. A sessão foi preservada.','error');return}
-  if(!context?.industry_id||context.industry_status!=='active'){show('A conta não possui uma indústria ativa.','error');return}
+  }catch(e){failInit('Não foi possível validar a indústria agora. A busca não foi inicializada. Tente recarregar a página.');return}
+  if(!context?.industry_id||context.industry_status!=='active'){failInit('A conta não possui uma indústria ativa. A busca e a geração de respostas permanecem bloqueadas.');return}
   const profile={industry_id:context.industry_id,role:context.role};
   const industry={id:context.industry_id,name:context.industry_name,status:context.industry_status};
   document.getElementById('industryName').textContent=industry.name;
@@ -196,8 +200,19 @@ async function loadPriorKnowledge(scope,query){
       const ku=data.knowledge_update||{};show((data?.fallback?'Resposta baseada nas evidências recuperadas. A IA não ficou disponível nesta tentativa. ':'Resposta gerada. ')+'Atualização do conhecimento: '+String(ku.classification||'insufficient').replace('_',' ')+'.','ok');
     }catch(e){show(e.message||'Falha na geração.','error')}finally{document.getElementById('generate').disabled=false}
   }
-  document.getElementById('search').addEventListener('click',searchEvidence);
-  document.getElementById('generate').addEventListener('click',generateAnswer);
+  document.getElementById('saveAnalysis').addEventListener('click',async()=>{const a=window.__pulseLastAnswer;if(!a){show('Gere uma resposta antes de salvar.','error');return}const btn=document.getElementById('saveAnalysis');btn.disabled=true;show('Salvando investigação, conhecimento e histórico de mudança…','ok');try{const title=(a.query||'Investigação Pulse').slice(0,120),now=new Date().toISOString();const investigationPayload={version:2,type:'investigation',question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',evidence:a.evidence,citations:a.citations,answer:a.answer,structured:a.structured||{},knowledge_update:a.knowledge_update||{},interpretation:a.structured?.leitura||a.answer,hypotheses:a.structured?.hipotese?[a.structured.hipotese]:[],counter_evidence:[],unknowns:a.structured?.desconhecidos?[a.structured.desconhecidos] : ['Validar a leitura com evidência adicional quando necessário.'],suggested_tests:['Recuperar evidências adicionais específicas para a pergunta.'],recommended_next_steps:['Revisar a evidência no Inspector e atualizar a investigação quando novos sinais surgirem.'],updated_at:now};let invId=window.__pulseInvestigation?.id||new URLSearchParams(location.search).get('investigation');let inv=null;if(invId){const {data,error}=await client.from('investigations').update({title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).eq('id',invId).select('id').single();if(error||!data?.id)throw error||new Error('investigation_update_failed');inv=data}else{const {data,error}=await client.from('investigations').insert({industry_id:profile.industry_id,created_by:user.id,title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).select('id').single();if(error||!data?.id)throw error||new Error('investigation_save_failed');inv=data}
+      const knowledgeClaim=a.structured?.leitura||a.answer||a.query,knowledgeEvidence=a.evidence||[],prior=a.priorKnowledge?.[0]||null,ku=a.knowledge_update||{classification:'insufficient',reason:''};
+      let knowledgeRow=null;
+      if(invId){const {data,error}=await client.from('shopper_knowledge').select('id,claim,status,scope,evidence').eq('investigation_id',inv.id).maybeSingle();if(error)throw error;knowledgeRow=data}
+      if(!knowledgeRow&&prior?.investigation_id===inv.id)knowledgeRow=prior;
+      const previousClaim=knowledgeRow?.claim||prior?.claim||null;
+      const knowledgePayload={version:2,scope:a.scope,originating_evidence_id:a.originating_evidence_id,investigation_id:inv.id,structured:a.structured||{},knowledge_update:ku};
+      if(!knowledgeRow){const {data,error}=await client.from('shopper_knowledge').upsert({industry_id:profile.industry_id,created_by:user.id,investigation_id:inv.id,claim:knowledgeClaim,source_type:'investigation',scope:a.scope,status:'proposed',evidence:knowledgeEvidence,payload:knowledgePayload,last_updated_at:now},{onConflict:'investigation_id'}).select('id,claim,status,scope,evidence').single();if(error||!data?.id)throw error||new Error('knowledge_save_failed');knowledgeRow=data}
+      else{const {error}=await client.from('shopper_knowledge').update({claim:knowledgeClaim,scope:a.scope,evidence:knowledgeEvidence,payload:knowledgePayload,last_updated_at:now}).eq('id',knowledgeRow.id);if(error)throw error}
+      const {error:updateError}=await client.from('knowledge_updates').insert({industry_id:profile.industry_id,created_by:user.id,knowledge_id:knowledgeRow.id,investigation_id:inv.id,classification:ku.classification||'insufficient',previous_claim:previousClaim,current_claim:knowledgeClaim,confidence:null,evidence:knowledgeEvidence,scope:a.scope,reason:ku.reason||'A atualização foi registrada sem confiança numérica automática.',payload:{version:1,prior_knowledge:prior||null,knowledge_update:ku,checked_from:'pulse-ask-ai'},checked_at:now});if(updateError)throw updateError;
+      const {data,error}=await client.from('analyses').insert({industry_id:profile.industry_id,created_by:user.id,title,investigation_id:inv.id,payload:{version:4,type:'evidence_analysis',query:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,investigation_id:inv.id,answer:a.answer,citations:a.citations,evidence:a.evidence,hypothesis:a.structured?.hipotese||'',recommendation:a.structured?.recomendacao||'',unknowns:a.structured?.desconhecidos?[a.structured.desconhecidos]:investigationPayload.unknowns,knowledge_update:ku,knowledge_id:knowledgeRow.id,created_at:now}}).select('id').single();if(error||!data?.id)throw error||new Error('analysis_save_failed');show('Investigação, análise e histórico de conhecimento salvos. Abrindo o artefato…','ok');location.href='./app.html?v=20260922.03#analysis='+encodeURIComponent(data.id)}catch(e){console.error('pulse-save-investigation',e);show('Não foi possível salvar a investigação: '+(e.message||'erro desconhecido'),'error')}finally{btn.disabled=false}});
+  document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer();});
+  askReadyResolve(true);
   document.getElementById('saveAnalysis').addEventListener('click',async()=>{const a=window.__pulseLastAnswer;if(!a){show('Gere uma resposta antes de salvar.','error');return}const btn=document.getElementById('saveAnalysis');btn.disabled=true;show('Salvando investigação, conhecimento e histórico de mudança…','ok');try{const title=(a.query||'Investigação Pulse').slice(0,120),now=new Date().toISOString();const investigationPayload={version:2,type:'investigation',question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',evidence:a.evidence,citations:a.citations,answer:a.answer,structured:a.structured||{},knowledge_update:a.knowledge_update||{},interpretation:a.structured?.leitura||a.answer,hypotheses:a.structured?.hipotese?[a.structured.hipotese]:[],counter_evidence:[],unknowns:a.structured?.desconhecidos?[a.structured.desconhecidos] : ['Validar a leitura com evidência adicional quando necessário.'],suggested_tests:['Recuperar evidências adicionais específicas para a pergunta.'],recommended_next_steps:['Revisar a evidência no Inspector e atualizar a investigação quando novos sinais surgirem.'],updated_at:now};let invId=window.__pulseInvestigation?.id||new URLSearchParams(location.search).get('investigation');let inv=null;if(invId){const {data,error}=await client.from('investigations').update({title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).eq('id',invId).select('id').single();if(error||!data?.id)throw error||new Error('investigation_update_failed');inv=data}else{const {data,error}=await client.from('investigations').insert({industry_id:profile.industry_id,created_by:user.id,title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).select('id').single();if(error||!data?.id)throw error||new Error('investigation_save_failed');inv=data}
       const knowledgeClaim=a.structured?.leitura||a.answer||a.query,knowledgeEvidence=a.evidence||[],prior=a.priorKnowledge?.[0]||null,ku=a.knowledge_update||{classification:'insufficient',reason:''};
       let knowledgeRow=null;
