@@ -17,7 +17,7 @@ if (!ask.includes('shopper_knowledge')) failures.push('Shopper knowledge persist
 if (!ask.includes('knowledge_updates')) failures.push('Knowledge update history persistence missing');
 if (!ask.includes('prior_knowledge')) failures.push('Prior shopper knowledge comparison missing');
 if (!ask.includes('pulse-save-evidence')) failures.push('Persistent saved evidence flow missing');
-if (!index.includes('20260922.01')) failures.push('Public workspace cache version not refreshed');
+if (!index.includes('20260922.03')) failures.push('Public workspace cache version is not canonical');
 if (!workspace.includes('MOVIMENTO OBSERVÁVEL')) failures.push('Today narrative still uses static movement claim');
 if (!workspace.includes('ev.slice(0,2).map')) failures.push('Today Opportunity Canvas is not evidence-derived');
 if (!workspace.includes("routes.investigacao+'?saveEvidence='")) failures.push('Inspector persistent save action missing');
