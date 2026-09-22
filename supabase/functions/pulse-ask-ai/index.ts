@@ -63,12 +63,15 @@ Deno.serve(async (req) => {
   if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
   const allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
 
-  let body: { query?: string, scope?: string, public_evidence?: any[] }
+  let body: { query?: string, scope?: string, public_evidence?: any[], originating_evidence_id?: string | null, retrieved_evidence?: any[] }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
   const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
   const publicEvidence = Array.isArray(body.public_evidence) ? body.public_evidence.slice(0, 20) : []
+  const originatingEvidenceId = String(body.originating_evidence_id || '').trim().slice(0, 180) || null
+  const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
   const terms = termsFor(query)
+  const clientPrivateKeys = new Set(clientRetrievedEvidence.filter((item: any) => item?.document_id && Number.isInteger(item?.chunk)).map((item: any) => `${item.document_id}:${item.chunk}`))
   if (!query || !terms.length) return json({ error: 'invalid_query', message: 'Digite uma pergunta válida.' }, 400)
 
   const filters = terms.map((term) => `content.ilike.%${term}%`).join(',')
@@ -91,6 +94,9 @@ Deno.serve(async (req) => {
       documentMap = Object.fromEntries((documents || []).map((document) => [document.id, document.filename]))
     }
     ranked = privateRanked
+    const serverPrivateKeys = new Set(privateRanked.map((item: any) => `${item.document_id}:${Number(item.chunk_index)}`))
+    const clientMatchCount = Array.from(clientPrivateKeys).filter((key) => serverPrivateKeys.has(key)).length
+    if (clientRetrievedEvidence.length && clientMatchCount === 0 && scope !== 'universe') return json({ error: 'retrieval_context_mismatch', message: 'O contexto recuperado no navegador não coincide com a recuperação autorizada no servidor. Atualize a busca e tente novamente.' }, 409)
   }
   if (scope !== 'industry') {
     const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
@@ -108,7 +114,7 @@ Deno.serve(async (req) => {
   const evidenceText = evidence.map((item) => `<evidence ref="${item.ref}" document="${item.document}" chunk="${item.chunk}" source="${item.source_type}">${item.content}</evidence>`).join('\n')
 
   const system = 'Você é o analista do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Em escopo privado, nunca revele dados fora da indústria autenticada. Em escopo público, trate as evidências como mercado publicado. Em escopo combinado, diferencie claramente o que vem do mercado publicado e o que vem da indústria autenticada.'
-  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nIndústria autenticada: ${industry.name}\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex].`
+  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nIndústria autenticada: ${industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex].`
   const providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } }) })
   if (!providerResponse.ok) { const detail = await providerResponse.text(); return json({ error: 'llm_provider_failed', provider_status: providerResponse.status, message: providerMessage(providerResponse.status, detail) }, 502) }
   const providerJson = await providerResponse.json()
@@ -121,5 +127,5 @@ Deno.serve(async (req) => {
       scope_rejected: true,
     }, 200)
   }
-  return json({ answer, model, scope, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
+  return json({ answer, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
 })
