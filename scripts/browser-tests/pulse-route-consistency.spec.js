@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 const routes = [
-  ['/index.html?v=20260921.15#universo', 'universo'],
+  ['/index.html?v=20260921.15#overview', 'universo'],
   ['/base.html?v=20260921.15#documents', 'base'],
   ['/ask.html?v=20260921.15', 'investigacao'],
   ['/app.html?v=20260921.15#analyses', 'analises'],
