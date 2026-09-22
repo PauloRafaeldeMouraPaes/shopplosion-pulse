@@ -104,7 +104,8 @@
     let publicRows=[];
     if(scope!=='industry'){
       const publicEvidence=await loadPublicEvidence();
-      publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:score(text,terms),publicEvidence:e}}).filter(r=>r.score>0).sort((a,b)=>b.score-a.score).slice(0,12);
+      const fixedId=new URLSearchParams(location.search).get('evidence');
+      publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:score(text,terms),publicEvidence:e}}).filter(r=>r.score>0 || String(r.id)===String(fixedId)).sort((a,b)=>String(a.id)===String(fixedId)?-1:String(b.id)===String(fixedId)?1:b.score-a.score).slice(0,12);
     }
     const rows=(scope==='industry'?privateRows:scope==='universe'?publicRows:[...privateRows,...publicRows].sort((a,b)=>b.score-a.score)).slice(0,20);
     const docIds=Array.from(new Set(rows.map(r=>r.document_id).filter(Boolean)));let docs=[];
@@ -123,7 +124,7 @@
     try{const found=await retrieve(document.getElementById('query').value);render(found.rows,found.byId);show(found.rows.length?'Evidências recuperadas no escopo '+document.getElementById('askScope').selectedOptions[0].text+'.':'Nenhum resultado encontrado no escopo selecionado.','ok')}catch(e){show(e.message||'Falha na busca.','error')}finally{document.getElementById('search').disabled=false}
   }
   function setProgress(step,count){const box=document.getElementById('askProgress');if(!box)return;box.classList.add('show');const order=['retrieve','read','write'],idx=order.indexOf(step);box.querySelectorAll('.askStep').forEach((el,i)=>{el.classList.toggle('active',i===idx);el.classList.toggle('done',i<idx)});const read=box.querySelector('[data-step="read"]');if(read&&count!=null)read.textContent='Lendo '+count+' evidência(s)'}
-function initAskContext(){const params=new URLSearchParams(location.search),id=params.get('evidence');const box=document.getElementById('askContext');if(!box)return;if(id){box.innerHTML='<span class="askContextChip">EV · '+esc(id)+'</span><span class="muted">Contexto fixado da evidência selecionada</span>'}else{box.innerHTML='<span class="muted">Nenhum objeto fixado. Você pode perguntar usando apenas o acervo privado.</span>'}}
+async function initAskContext(){const params=new URLSearchParams(location.search),id=params.get('evidence');const box=document.getElementById('askContext');if(!box)return;if(id){const item=(await loadPublicEvidence()).find(e=>String(e.id)===String(id));box.innerHTML='<span class="askContextChip">EV · '+esc(id)+'</span><span class="muted">Contexto fixado da evidência selecionada'+(item?' · '+esc(item.fonte||'Universo Pulse'):'')+'</span>';if(item){document.getElementById('query').value='O que os sinais recentes indicam sobre o contexto de compra de alimentos e o que ainda não sabemos sobre o shopper?';if(askScope.value==='industry')askScope.value='both';syncScopeLabel()}}else{box.innerHTML='<span class="muted">Nenhum objeto fixado. Você pode perguntar usando apenas o acervo privado.</span>'}}
 initAskContext();
   const scopeMap={industry:'Minha indústria · privado',universe:'Universo · público',both:'Ambos · público + privado'};
   const askScope=document.getElementById('askScope');
