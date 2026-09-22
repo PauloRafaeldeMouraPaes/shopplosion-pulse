@@ -154,11 +154,15 @@ initAskContext();
     try{const {data,error}=await client.functions.invoke('pulse-save-evidence',{body:{evidence:item}});if(error||data?.error)throw error||new Error(data?.message||'save_failed');show('Evidência guardada na base da sua indústria. Ela agora pode ser reutilizada em investigações privadas.','ok')}catch(e){show('Não foi possível guardar a evidência na base da indústria.','error')}
   }
   handleSavedEvidence();
-async function loadPriorKnowledge(scope){
+async function loadPriorKnowledge(scope,query){
     const allowed=scope==='universe'?['universe']:scope==='industry'?['industry']:['industry','universe','both'];
-    const {data,error}=await client.from('shopper_knowledge').select('id,claim,status,scope,investigation_id,evidence,payload,last_updated_at').in('scope',allowed).order('last_updated_at',{ascending:false}).limit(8);
-    if(error)return[];
-    return data||[];
+    const investigationId=new URLSearchParams(location.search).get('investigation');
+    let q=client.from('shopper_knowledge').select('id,claim,status,scope,investigation_id,evidence,payload,last_updated_at').in('scope',allowed).order('last_updated_at',{ascending:false}).limit(50);
+    if(investigationId)q=q.eq('investigation_id',investigationId);
+    const {data,error}=await q;if(error)return[];
+    const rows=data||[];if(investigationId)return rows.slice(0,8);
+    const terms=termsFor(query);if(!terms.length)return[];
+    return rows.map(k=>({...k,_score:terms.reduce((n,t)=>n+(normalize(k.claim).includes(t)?1:0),0)})).filter(k=>k._score>0).sort((a,b)=>b._score-a._score||String(b.last_updated_at).localeCompare(String(a.last_updated_at))).slice(0,8);
   }
   async function generateAnswer(){
     const query=document.getElementById('query').value.trim();
@@ -168,7 +172,7 @@ async function loadPriorKnowledge(scope){
     document.getElementById('generate').disabled=true;show('Recuperando evidências e comparando com conhecimento anterior…','ok');
     try{
       const found=await retrieve(query);render(found.rows,found.byId);setProgress('read',found.rows.length);
-      const priorKnowledge=await loadPriorKnowledge(scope);
+      const priorKnowledge=await loadPriorKnowledge(scope,query);
       const retrieved=found.rows.slice(0,12).map(r=>({document_id:r.document_id,chunk:r.chunk_index,quote:r.content,source_type:r.source_type,score:r.score,public_evidence:r.publicEvidence||null}));
       const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query,scope,originating_evidence_id:fixedEvidenceId||null,public_evidence:found.publicRows.map(r=>r.publicEvidence).filter(Boolean),retrieved_evidence:retrieved,prior_knowledge:priorKnowledge.map(k=>({id:k.id,claim:k.claim,status:k.status,scope:k.scope,investigation_id:k.investigation_id}))}});
       if(error){let detail=null;try{detail=await error.context?.json()}catch{}throw new Error(detail?.message||error.message||'Não foi possível gerar a resposta.')}
@@ -190,9 +194,10 @@ async function loadPriorKnowledge(scope){
       let knowledgeRow=null;
       if(invId){const {data,error}=await client.from('shopper_knowledge').select('id,claim,status,scope,evidence').eq('investigation_id',inv.id).maybeSingle();if(error)throw error;knowledgeRow=data}
       if(!knowledgeRow&&prior?.investigation_id===inv.id)knowledgeRow=prior;
+      const previousClaim=knowledgeRow?.claim||prior?.claim||null;
       if(!knowledgeRow){const {data,error}=await client.from('shopper_knowledge').insert({industry_id:profile.industry_id,created_by:user.id,investigation_id:inv.id,claim:knowledgeClaim,source_type:'investigation',scope:a.scope,status:'proposed',evidence:knowledgeEvidence,payload:{version:2,scope:a.scope,originating_evidence_id:a.originating_evidence_id,investigation_id:inv.id,structured:a.structured||{},knowledge_update:ku},last_updated_at:now}).select('id,claim,status,scope,evidence').single();if(error||!data?.id)throw error||new Error('knowledge_save_failed');knowledgeRow=data}
       else{const {error}=await client.from('shopper_knowledge').update({claim:knowledgeClaim,scope:a.scope,evidence:knowledgeEvidence,payload:{version:2,scope:a.scope,originating_evidence_id:a.originating_evidence_id,investigation_id:inv.id,structured:a.structured||{},knowledge_update:ku},last_updated_at:now}).eq('id',knowledgeRow.id);if(error)throw error}
-      const {error:updateError}=await client.from('knowledge_updates').insert({industry_id:profile.industry_id,created_by:user.id,knowledge_id:knowledgeRow.id,investigation_id:inv.id,classification:ku.classification||'insufficient',previous_claim:prior?.claim||null,current_claim:knowledgeClaim,confidence:null,evidence:knowledgeEvidence,scope:a.scope,reason:ku.reason||'A atualização foi registrada sem confiança numérica automática.',payload:{version:1,prior_knowledge:prior||null,knowledge_update:ku,checked_from:'pulse-ask-ai'},checked_at:now});if(updateError)throw updateError;
+      const {error:updateError}=await client.from('knowledge_updates').insert({industry_id:profile.industry_id,created_by:user.id,knowledge_id:knowledgeRow.id,investigation_id:inv.id,classification:ku.classification||'insufficient',previous_claim:previousClaim,current_claim:knowledgeClaim,confidence:null,evidence:knowledgeEvidence,scope:a.scope,reason:ku.reason||'A atualização foi registrada sem confiança numérica automática.',payload:{version:1,prior_knowledge:prior||null,knowledge_update:ku,checked_from:'pulse-ask-ai'},checked_at:now});if(updateError)throw updateError;
       const {data,error}=await client.from('analyses').insert({industry_id:profile.industry_id,created_by:user.id,title,investigation_id:inv.id,payload:{version:4,type:'evidence_analysis',query:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,investigation_id:inv.id,answer:a.answer,citations:a.citations,evidence:a.evidence,hypothesis:a.structured?.hipotese||'',recommendation:a.structured?.recomendacao||'',unknowns:a.structured?.desconhecidos?[a.structured.desconhecidos]:investigationPayload.unknowns,knowledge_update:ku,knowledge_id:knowledgeRow.id,created_at:now}}).select('id').single();if(error||!data?.id)throw error||new Error('analysis_save_failed');show('Investigação, análise e histórico de conhecimento salvos. Abrindo o artefato…','ok');location.href='./app.html?v=20260922.01#analysis='+encodeURIComponent(data.id)}catch(e){console.error('pulse-save-investigation',e);show('Não foi possível salvar a investigação: '+(e.message||'erro desconhecido'),'error')}finally{btn.disabled=false}});
   document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer()});
   document.getElementById('logout').addEventListener('click',async()=>{try{await client.auth.signOut()}finally{redirect()}});
