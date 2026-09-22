@@ -11,7 +11,7 @@ test.describe('Ask AI interaction contract', () => {
     await expect(page.locator('#message')).toHaveClass(/show/);
     await expect(page.locator('#message')).toContainText('Evidências públicas recuperadas');
     await expect(page.locator('#resultTitle')).toContainText('evidência');
-    await expect(page.locator('#results .result')).toHaveCountGreaterThan(0);
+    await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
   });
 
   test('Busca com pergunta inválida produz feedback visível', async ({ page }) => {
