@@ -38,6 +38,11 @@ if (!askFn.includes("x-goog-api-key")) failures.push('Gemini authentication head
 if (!askFn.includes("gemini-3.5-flash-lite")) failures.push('Current Gemini production model missing');
 if (!askFn.includes("originatingEvidenceId") || !askFn.includes("public_evidence_id") || !askFn.includes("String(item.id) === originatingEvidenceId")) failures.push('Origin public evidence preservation missing');
 
+if (!ask.includes('<option value="both" selected>Ambos · público + privado</option>')) failures.push('Ask AI default combined scope missing');
+const askFnText = fs.existsSync('supabase/functions/pulse-ask-ai/index.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8') : '';
+if (!askFnText.includes('deterministicFallback')) failures.push('Ask AI evidence fallback missing');
+if (!askFnText.includes('fallback: true')) failures.push('Ask AI fallback response contract missing');
+
 if (failures.length) {
   console.error('Ask AI regression FAILED');
   failures.forEach(f => console.error(`- ${f}`));
