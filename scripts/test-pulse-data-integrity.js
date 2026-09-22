@@ -100,6 +100,9 @@ for (const source of sources || []) {
   if (source.url && !/^https?:\/\//i.test(source.url)) failures.push(`source has invalid URL: ${source.url}`);
 }
 
+const sourceUrls = new Set((sources || []).map(s => String(s.url || '')));
+for (const item of evidence || []) if (item.url && !sourceUrls.has(item.url)) failures.push(item.id + ': evidence source URL is missing from PULSE_SOURCES');
+
 if (evidenceIds.size < 10) failures.push(`expected at least 10 evidence items, found ${evidenceIds.size}`);
 
 const scriptIds = [...html.matchAll(/<script\b[^>]*\bid=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
