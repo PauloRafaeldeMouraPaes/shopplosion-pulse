@@ -51,3 +51,14 @@ html.pv3-leaving .pv4-app{opacity:0;transform:translateY(4px);transition:opacity
   .pv4-secondary-action{padding:0 10px}
   .pv4-case-contrast{grid-template-columns:1fr}
 }
+
+.pv4-series-section{margin:12px 0;border:1px solid var(--pv4-line);border-radius:12px;background:#fff;padding:0 18px 18px}
+.pv4-series-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pv4-series-card{display:grid;gap:6px;padding:13px;border:1px solid var(--pv4-line);border-radius:10px;background:#fbfaf9}
+.pv4-series-card small{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#a3164e;font-weight:900}
+.pv4-series-card b{font-size:10px;margin-left:6px;color:#596274}
+.pv4-series-card strong{font-size:11px;line-height:1.4}
+.pv4-series-card span{font-size:9px;color:var(--pv4-muted)}
+.pv4-series-card button{justify-self:start;border:0;background:none;padding:0;color:#a3164e;font-size:10px;font-weight:850;cursor:pointer}
+@media(max-width:900px){.pv4-series-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.pv4-series-grid{grid-template-columns:1fr}.pv4-series-section{padding:0 12px 12px}}
