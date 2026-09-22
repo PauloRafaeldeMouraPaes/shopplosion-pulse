@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Pulse proposal fidelity', () => {
   test('desktop workspace exposes the five proposal destinations, scope and evidence inspector', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/index.html?v=20260920.04');
+    await page.goto('/index.html?v=20260921.26');
     await expect(page.locator('.pv4-rail nav a[data-nav]')).toHaveCount(5);
     await expect(page.locator('.pv4-scope')).toContainText('Brasil · CPG');
     await expect(page.locator('.pv4-canvas')).toBeVisible();
@@ -21,7 +21,7 @@ test.describe('Pulse proposal fidelity', () => {
 
   test('mobile proposal keeps only daily destinations in bottom navigation and exposes scope destinations separately', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/index.html?v=20260920.04');
+    await page.goto('/index.html?v=20260921.26');
     await expect(page.locator('.pv4-rail nav a[data-nav="hoje"]')).toBeVisible();
     await expect(page.locator('.pv4-rail nav a[data-nav="base"]')).toBeVisible();
     await expect(page.locator('.pv4-rail nav a[data-nav="investigacao"]')).toBeVisible();
@@ -33,8 +33,8 @@ test.describe('Pulse proposal fidelity', () => {
   });
 
   test('Investigação exposes fixed scope, explicit context and three-step progress', async ({ page }) => {
-    await page.goto('/ask.html?v=20260920.04');
-    await expect(page.locator('.pv4-ask-context')).toContainText('Minha indústria · Base privada');
+    await page.goto('/ask.html?v=20260921.26');
+    await expect(page.locator('.pv4-ask-context')).toContainText('Público');
     await expect(page.locator('.pv4-progress')).toContainText('01 Recuperar');
     await expect(page.locator('.pv4-progress')).toContainText('02 Ler');
     await expect(page.locator('.pv4-progress')).toContainText('03 Escrever');
