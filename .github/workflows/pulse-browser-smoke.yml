@@ -50,3 +50,6 @@ jobs:
       - name: Run canonical route shell regression
         if: always()
         run: npx playwright test scripts/browser-tests/pulse-route-consistency.spec.js
+      - name: Run Ask AI interaction smoke tests
+        if: always()
+        run: npx playwright test scripts/browser-tests/pulse-ask-interaction.spec.js
