@@ -12,6 +12,13 @@ if (!ask.includes("from('investigations')")) failures.push('Investigation persis
 if (!ask.includes('investigation_id')) failures.push('Analysis-investigation link missing');
 if (!ask.includes('structured')) failures.push('Structured investigation blocks missing');
 if (!ask.includes('shopper_knowledge')) failures.push('Shopper knowledge persistence missing');
+if (!ask.includes('knowledge_updates')) failures.push('Knowledge update history persistence missing');
+if (!ask.includes('prior_knowledge')) failures.push('Prior shopper knowledge comparison missing');
+if (!ask.includes('pulse-save-evidence')) failures.push('Persistent saved evidence flow missing');
+if (!index.includes('20260922.01')) failures.push('Public workspace cache version not refreshed');
+if (!workspace.includes('MOVIMENTO OBSERVÁVEL')) failures.push('Today narrative still uses static movement claim');
+if (!workspace.includes('ev.slice(0,2).map')) failures.push('Today Opportunity Canvas is not evidence-derived');
+if (!workspace.includes("routes.investigacao+'?saveEvidence='")) failures.push('Inspector persistent save action missing');
 if (!ask.includes('public_evidence:found.publicRows')) failures.push('Public evidence context missing from Ask AI request');
 for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler', '03 Escrever']) {
   if (!workspace.includes(text)) failures.push(`Ask AI contract missing ${text}`);
