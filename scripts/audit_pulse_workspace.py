@@ -43,7 +43,7 @@ else:
     for value in re.findall(r'(?:src|href)=["\']([^"\']+)["\']', text, re.I):
         if value.startswith(("#", "data:", "mailto:", "tel:", "javascript:", "http://", "https://")):
             continue
-        if value.startswith(("./", "../", "/")) and not value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css")):
+        if value.startswith(("./", "../", "/")) and not value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css", "./pulse-config.js")):
             errors.append(f"dependência local proibida no workspace: {value}")
 
     if "pulse-workspace-v3.js" not in text:
