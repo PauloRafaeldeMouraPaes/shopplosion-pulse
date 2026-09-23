@@ -21,7 +21,11 @@ if (!index.includes('20260922.08')) failures.push('Public workspace cache versio
 if (!workspace.includes('MOVIMENTO OBSERVÁVEL')) failures.push('Today narrative still uses static movement claim');
 if (!workspace.includes('ev.slice(0,2).map')) failures.push('Today Opportunity Canvas is not evidence-derived');
 if (!workspace.includes("routes.investigacao+'?saveEvidence='")) failures.push('Inspector persistent save action missing');
-if (!ask.includes('public_evidence:found.publicRows')) failures.push('Public evidence context missing from Ask AI request');
+if (!ask.includes('selected.map(r=>r.publicEvidence)') && !ask.includes('public_evidence:selected.map')) failures.push('Selected public evidence context missing from Ask AI request');
+if (!ask.includes('id="questionBuilder"') || !ask.includes('questionExample')) failures.push('Guided question builder missing');
+if (!ask.includes('data-evidence-key') || !ask.includes('selectedEvidenceIds')) failures.push('Explicit evidence selection contract missing');
+if (!ask.includes('O Pulse não escolhe automaticamente o primeiro resultado.')) failures.push('Evidence auto-selection guard missing');
+if (!ask.includes('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.')) failures.push('Readiness guard before answer missing');
 for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler', '03 Escrever']) {
   if (!workspace.includes(text)) failures.push(`Ask AI contract missing ${text}`);
 }
