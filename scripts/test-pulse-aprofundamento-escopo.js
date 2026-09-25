@@ -1,0 +1,18 @@
+const assert=require('assert');
+const p=require('./pulse-aprofundamento-escopo');
+const q=p.buildQuestions({id:'e1',confidence:'baixa'},'Trade');
+assert(q.length<=6 && q.length>=3);
+assert(new Set(q.map(x=>x.texto)).size===q.length);
+assert(q.every(x=>x.evidenceId==='e1'));
+assert.strictEqual(p.researchTrigger('Por que o shopper troca de marca?').trigger,true);
+assert.strictEqual(p.researchTrigger('Por que o varejo cresceu em junho?').trigger,false);
+assert.strictEqual(p.researchTrigger('Minha categoria cresceu por canal?',{baseAnswers:true}).trigger,false);
+assert.strictEqual(p.researchTrigger('Decido pack e preço',{lowConfidence:true}).trigger,true);
+assert.strictEqual(p.methodFor('Por que o shopper troca de marca?').method,'Qualitativo antes do quantitativo');
+assert.strictEqual(p.methodFor('Quantos shoppers compram por missão?').method,'Online quantitativo');
+assert.strictEqual(p.methodFor('Decisão na gôndola e ruptura').method,'Campo');
+assert.strictEqual(p.methodFor('Sensibilidade a preço e faixas').method,'Online quantitativo');
+assert.strictEqual(p.methodFor('Atacarejo com transformador').method,'Campo');
+assert.strictEqual(p.hasUnsupportedNumbers('Cresceu 17,7%', ['Cresceu 17,7%']),false);
+assert.strictEqual(p.hasUnsupportedNumbers('Cresceu 18%', ['Cresceu 17,7%']),true);
+console.log('pulse aprofundamento/escopo: PASS');
