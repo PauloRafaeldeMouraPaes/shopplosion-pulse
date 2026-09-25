@@ -20,7 +20,7 @@
     Decisão:()=>({tipo:'Decisão',quem:'Seus dados',texto:'Se esta hipótese se confirmar, qual decisão de preço, pack, promoção, mix, canal ou execução muda?'})
   };
   function buildQuestions(evidence,area){
-    const e=evidence||{}; const id=String(e.id||e.document_id||'sem-id');
+    const e=evidence||{}; const id=String(e.id||e.publicEvidence?.id||e.public_evidence?.id||e.document_id||'sem-id');
     const conf=String(e.confidence??e.confianca??'').toLowerCase();
     const sourceCount=Number(e.source_count||e.sources_count||0);
     const priority=areaPriority[area]||['Recorte','Contraprova','Dado interno','Tendência','Porquê do shopper','Decisão'];
