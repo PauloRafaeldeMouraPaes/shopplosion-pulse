@@ -9,6 +9,10 @@ const routes = [
 ];
 
 test.describe('Pulse canonical route shell', () => {
+  test.beforeEach(async ({ page }) => {
+    page.on('pageerror', err => console.log('[PAGEERROR]', err.stack || err.message));
+    page.on('console', msg => { if (msg.type() === 'error') console.log('[CONSOLE_ERROR]', msg.text()); });
+  });
   for (const [url, active] of routes) {
     test(`canonical shell: ${active}`, async ({ page }) => {
       await page.goto(url, { waitUntil: 'domcontentloaded' });
