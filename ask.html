@@ -192,7 +192,7 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
   const evidenceKey=r=>String(r?.id||r?.publicEvidence?.id||((r?.document_id||'')+':'+(r?.chunk_index??'')));
-  const syncSelectionUI=()=>{
+  function syncSelectionUI(){
     const el=document.getElementById('selectionCount');
     if(el)el.textContent=selectedEvidenceIds.size+' evidência(s) selecionada(s)';
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>{
@@ -200,7 +200,7 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
       input.checked=checked;
       input.closest('.result')?.classList.toggle('selected',checked);
     });
-  };
+  }
   function bindEvidenceSelection(){
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>input.addEventListener('change',()=>{
       if(input.checked)selectedEvidenceIds.add(input.dataset.evidenceKey);else selectedEvidenceIds.delete(input.dataset.evidenceKey);
