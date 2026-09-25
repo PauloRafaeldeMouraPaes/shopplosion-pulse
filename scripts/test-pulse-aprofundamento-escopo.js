@@ -15,4 +15,8 @@ assert.strictEqual(p.methodFor('Sensibilidade a preço e faixas').method,'Online
 assert.strictEqual(p.methodFor('Atacarejo com transformador').method,'Campo');
 assert.strictEqual(p.hasUnsupportedNumbers('Cresceu 17,7%', ['Cresceu 17,7%']),false);
 assert.strictEqual(p.hasUnsupportedNumbers('Cresceu 18%', ['Cresceu 17,7%']),true);
+const brief=p.buildBrief({query:'Por que o shopper troca de marca?',evidence:[{id:'e1',fato:'Aumentou 17,7%',hipotese:'Investigar a troca de marca',fonte:'Fonte A'}]});
+assert.strictEqual(brief.sample,'[A DEFINIR]');
+assert.strictEqual(brief.deadline,'[A DEFINIR]');
+assert.strictEqual(brief.cost,'[A DEFINIR]');
 console.log('pulse aprofundamento/escopo: PASS');
