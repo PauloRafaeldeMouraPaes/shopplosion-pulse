@@ -1,7 +1,4 @@
 const { test, expect } = require('@playwright/test');
-const fs = require('fs'); const vm = require('vm');
-try { new vm.Script(fs.readFileSync('pulse-workspace-v3.js','utf8')); console.log('[VM_CHECK] workspace syntax PASS'); } catch (e) { console.log('[VM_CHECK] workspace syntax FAIL', e.stack); }
-try { new vm.Script(fs.readFileSync('pulse-public-evidence.js','utf8')); console.log('[VM_CHECK] evidence syntax PASS'); } catch (e) { console.log('[VM_CHECK] evidence syntax FAIL', e.stack); }
 
 const routes = [
   ['/index.html?v=20260921.15#overview', 'universo'],
@@ -12,10 +9,6 @@ const routes = [
 ];
 
 test.describe('Pulse canonical route shell', () => {
-  test.beforeEach(async ({ page }) => {
-    page.on('pageerror', err => console.log('[PAGEERROR]', err.stack || err.message));
-    page.on('console', msg => { if (msg.type() === 'error') console.log('[CONSOLE_ERROR]', msg.text()); });
-  });
   for (const [url, active] of routes) {
     test(`canonical shell: ${active}`, async ({ page }) => {
       await page.goto(url, { waitUntil: 'domcontentloaded' });
