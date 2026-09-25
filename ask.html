@@ -201,13 +201,13 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
       input.closest('.result')?.classList.toggle('selected',checked);
     });
   };
-  const bindEvidenceSelection=()=>{
+  function bindEvidenceSelection(){
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>input.addEventListener('change',()=>{
       if(input.checked)selectedEvidenceIds.add(input.dataset.evidenceKey);else selectedEvidenceIds.delete(input.dataset.evidenceKey);
       syncSelectionUI();
     }));
     syncSelectionUI();
-  };
+  }
   const score=(content,terms)=>{const text=normalize(content);return terms.reduce((n,t)=>n+(text.split(t).length-1),0)};
   async function loadPublicEvidence(){return Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[]}
   async function retrieve(raw){
