@@ -34,7 +34,7 @@ test.describe('Ask AI interaction contract', () => {
     const actions=page.locator('.pv4-real-actions button');
     await actions.nth(0).click();
     await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
-    await page.locator('#results input[data-evidence-key]').first().check({force:true});
+    await page.locator('#results input[data-evidence-key]').first().evaluate(el=>el.click());
     await actions.nth(1).click();
     await expect(page.locator('#pv4-response')).toBeVisible();
     await expect(page.locator('#pv4-response')).not.toHaveText('Aguardando uma pergunta.');
