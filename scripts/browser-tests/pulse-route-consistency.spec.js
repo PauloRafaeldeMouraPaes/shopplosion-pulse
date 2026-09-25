@@ -1,4 +1,7 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs'); const vm = require('vm');
+try { new vm.Script(fs.readFileSync('pulse-workspace-v3.js','utf8')); console.log('[VM_CHECK] workspace syntax PASS'); } catch (e) { console.log('[VM_CHECK] workspace syntax FAIL', e.stack); }
+try { new vm.Script(fs.readFileSync('pulse-public-evidence.js','utf8')); console.log('[VM_CHECK] evidence syntax PASS'); } catch (e) { console.log('[VM_CHECK] evidence syntax FAIL', e.stack); }
 
 const routes = [
   ['/index.html?v=20260921.15#overview', 'universo'],
