@@ -35,7 +35,7 @@
     if(ctx.divergence===true) return {trigger:true,reason:'Há divergência entre evidências ou estudos.'};
     if(ctx.internalGap===true) return {trigger:true,reason:'A lacuna depende de dado interno que ainda não foi fornecido.'};
     if(/shopper.*(por que|troca|escolh|motiva|percepc)|motiv|percepc|decisao.*pdv|gondola|missao.*compra|ocasiao.*compra|aceita pagar|sensibilidade.*preco|hierarquia.*escolha|troca.*marca/.test(s)) return {trigger:true,reason:'A pergunta pede motivação, percepção ou decisão do shopper, que dado de mercado sozinho não responde.'};
-    if((ctx.lowConfidence===true||ctx.singleSource===true)&&/decis|estrateg|preco|pack|promoc|sortimento|mix|canal|portifolio/.test(s)) return {trigger:true,reason:'A decisão está apoiada em fonte única; ainda falta contraprova independente.'};
+    if(ctx.singleSource===true&&/decis|estrateg|preco|pack|promoc|sortimento|mix|canal|portifolio/.test(s)) return {trigger:true,reason:'A decisão está apoiada em fonte única; ainda falta contraprova independente.'};
     return {trigger:false,reason:'A pergunta é respondível pela base disponível sem pesquisa primária.'};
   }
   function methodFor(query){
