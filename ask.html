@@ -85,7 +85,6 @@
   const failInit=(message)=>{askInitError=message;askReadyResolve(false)};
     const selectedEvidenceIds=new Set();
   window.__pulseSelectedEvidenceIds=selectedEvidenceIds;
-  const bindEvidenceSelection=()=>{
   const runPublicSearchImmediately=()=>{
     const qv=String(document.getElementById('query')?.value||'').trim();
     const terms=qv.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').split(/[^a-z0-9]+/).filter(t=>t.length>=2).slice(0,10);
@@ -202,6 +201,7 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
       input.closest('.result')?.classList.toggle('selected',checked);
     });
   };
+  const bindEvidenceSelection=()=>{
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>input.addEventListener('change',()=>{
       if(input.checked)selectedEvidenceIds.add(input.dataset.evidenceKey);else selectedEvidenceIds.delete(input.dataset.evidenceKey);
       syncSelectionUI();
