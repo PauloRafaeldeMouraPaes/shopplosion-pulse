@@ -11,8 +11,8 @@ test.describe('Ask AI interaction contract', () => {
     const actions=page.locator('.pv4-real-actions button');
     await expect(actions).toHaveCount(2);
     await actions.nth(0).click();
-    await expect(page.locator('#pv4-shell-status')).toContainText('Evidências públicas recuperadas');
     await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
+    await expect(page.locator('#pv4-shell-status')).toContainText('Evidências públicas recuperadas');
   });
 
   test('Gerar resposta pública funciona sem sessão privada', async ({ page }) => {
@@ -31,7 +31,11 @@ test.describe('Ask AI interaction contract', () => {
     });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('O que os sinais recentes de Alimentação e Bebidas indicam sobre preço e vendas?');
-    await page.locator('.pv4-real-actions button').nth(1).click();
+    const actions=page.locator('.pv4-real-actions button');
+    await actions.nth(0).click();
+    await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
+    await page.locator('#results input[data-evidence-key]').first().evaluate(el=>el.click());
+    await actions.nth(1).click();
     await expect(page.locator('#pv4-response')).toBeVisible();
     await expect(page.locator('#pv4-response')).not.toHaveText('Aguardando uma pergunta.');
     await expect(page.locator('#pv4-shell-status')).not.toHaveText('');

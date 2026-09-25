@@ -26,7 +26,9 @@
 .evidenceSelectionBar strong{color:#4f5868}
 @media(max-width:640px){.questionBuilderHead{display:block}.evidenceSelectionBar{align-items:flex-start;flex-direction:column}}
 </style><style id="pulse-analysis-actions">.analysisActions{display:flex;gap:8px;align-items:center;margin:0 0 12px}.analysisActions button,.analysisActions a{border:1px solid #e1e4ea;border-radius:9px;padding:9px 12px;background:#fff;color:#4f5868;font:700 12px inherit;text-decoration:none;cursor:pointer}.analysisActions button{background:#e51b67;border-color:#e51b67;color:#fff}.analysisActions button:disabled{opacity:.6;cursor:wait}@media(max-width:640px){.analysisActions{flex-wrap:wrap}}</style><style id="pulse-workflow-ask">.pulseWorkflow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin:18px 0 4px}.pulseWorkflow a{min-width:0;padding:11px 12px;border:1px solid #e5e1dc;border-radius:11px;background:#fff;text-decoration:none;color:#4f5868;display:grid;gap:2px}.pulseWorkflow a.current{border-color:#e8b6ca;box-shadow:0 5px 18px rgba(163,22,78,.07)}.pulseWorkflow a.done{background:#faf9f7}.pulseWorkflow span:first-child{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;border-radius:50%;background:#f0ece8;font-size:10px;font-weight:800}.pulseWorkflow a.current span:first-child{background:#e51b67;color:#fff}.pulseWorkflow b{font-size:12px}.pulseWorkflow small{font-size:10px;color:#7a7780}.pulseWorkflow .arrow{color:#aaa5ad;font-weight:700}@media(max-width:640px){.pulseWorkflow{grid-template-columns:1fr;gap:6px}.pulseWorkflow .arrow{display:none}}
-</style><link rel="stylesheet" href="./pulse-workspace-v3.css?v=20260922.17"><script src="./pulse-public-evidence.js?v=20260922.17"></script><script>if(new URLSearchParams(location.search).get("v")!=="20260922.17")location.replace("./ask.html?v=20260922.17")</script></head>
+</style><link rel="stylesheet" href="./pulse-workspace-v3.css?v=20260922.17"><script src="./pulse-public-evidence.js?v=20260922.17"></script><script>if(new URLSearchParams(location.search).get("v")!=="20260922.17")location.replace("./ask.html?v=20260922.17")</script><style id="pulse-aprofundamento-ui">
+.pulse-deepen{margin-top:14px;padding:15px;border:1px solid #e7dce2;border-radius:12px;background:#fff8fb}.pulse-deepen h3{margin:0;font-size:13px;color:#8e1648}.pulse-deepen p{margin:5px 0 0;color:#687284;font-size:11px;line-height:1.45}.pulse-deepen-list{display:grid;gap:7px;margin-top:11px}.pulse-deepen-btn{display:block;width:100%;text-align:left;border:1px solid #e2d8dd;border-radius:9px;background:#fff;padding:9px 10px;cursor:pointer;font:600 11px inherit;color:#3f4652}.pulse-deepen-btn:hover,.pulse-deepen-btn:focus-visible{border-color:#a3164e;color:#8e1648;outline:none}.pulse-deepen-meta{display:block;margin-bottom:3px;font-size:9px;font-weight:850;color:#a3164e;text-transform:uppercase;letter-spacing:.06em}.pulse-research{margin-top:14px;padding:15px;border:1px solid #dedbd5;border-radius:12px;background:#faf9f7}.pulse-research h3{margin:0;font-size:13px}.pulse-research .briefGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pulse-research .briefItem{padding:9px;border:1px solid #e7e3dd;border-radius:9px;background:#fff}.pulse-research small{display:block;font-size:9px;color:#8a8790;font-weight:850;text-transform:uppercase;letter-spacing:.06em}.pulse-research strong{display:block;margin-top:4px;font-size:11px;line-height:1.4}.pulse-research-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.pulse-research-actions button{border:1px solid #d7c3cc;border-radius:8px;background:#fff;padding:8px 10px;font:800 10px inherit;color:#8e1648;cursor:pointer}.pulse-research-actions button.primary{background:#e51b67;color:#fff;border-color:#e51b67}.pulse-area{margin-top:10px;display:flex;align-items:center;gap:7px;font-size:11px;color:#687284}.pulse-area select{height:34px;border:1px solid #dfe4ec;border-radius:8px;background:#fff;padding:0 8px;font:inherit}@media(max-width:640px){.pulse-research .briefGrid{grid-template-columns:1fr}}
+</style></head>
 <body>
 <header>
   <div class="brand">SHOPPLOSION PULSE</div>
@@ -81,7 +83,9 @@
   const show=(text,type='ok')=>{msg.textContent=text;msg.className='msg show '+type;document.dispatchEvent(new CustomEvent('pulse:ask-status',{detail:{text:String(text||''),type}}))};
   let askReadyResolve;const askReady=new Promise(resolve=>{askReadyResolve=resolve});let askInitError='';
   const failInit=(message)=>{askInitError=message;askReadyResolve(false)};
-    const runPublicSearchImmediately=()=>{
+    const selectedEvidenceIds=new Set();
+  window.__pulseSelectedEvidenceIds=selectedEvidenceIds;
+  const runPublicSearchImmediately=()=>{
     const qv=String(document.getElementById('query')?.value||'').trim();
     const terms=qv.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').split(/[^a-z0-9]+/).filter(t=>t.length>=2).slice(0,10);
     if(!terms.length){show('Digite uma pergunta válida.','error');return false}
@@ -127,7 +131,7 @@
       const safe=String(answer||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
       answerEl.innerHTML=safe.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong>$1</strong>').replace(/\\n\\n/g,'<br><br>').replace(/\\n/g,'<br>');
       window.__pulseLastAnswer={query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,answer,structured:{},knowledge_update:{classification:'insufficient',reason:fallback?'leitura pública determinística':'resposta pública'},citations,evidence:selected.map(x=>x.e),priorKnowledge:[]};
-      document.getElementById('citations').innerHTML=citations.map(c=>'<span>['+String(c.ref||'')+'] '+String(c.document||'')+'</span>').join(' &nbsp;•&nbsp; ');
+      document.getElementById('citations').innerHTML=(citations||[]).map(c=>'<span>['+String(c.ref||'')+'] '+String(c.document||'')+'</span>').join(' &nbsp;•&nbsp; ')+selected.slice(0,6).map(x=>{const e=x.e||x.publicEvidence||x;const m=window.PULSE_EVIDENCE_MODEL?.assess?window.PULSE_EVIDENCE_MODEL.assess(e,query):{natureza:'[A DEFINIR]',fato_verificado_na_fonte:'[A DEFINIR]',alcance_para_pergunta:'[A DEFINIR]'};return '<div class="evidenceScope" style="margin-top:8px"><strong>'+esc(e.fonte||e.id||'Evidência')+'</strong> · Natureza: '+esc(m.natureza)+' · Fato na fonte: '+esc(m.fato_verificado_na_fonte)+' · Alcance: '+esc(m.alcance_para_pergunta)+'</div>'}).join('');
       document.getElementById('saveAnalysis').disabled=true;
       setProgress('write');
       show(fallback?'Leitura baseada nas evidências selecionadas.':'Resposta gerada a partir das evidências selecionadas.','ok')
@@ -187,10 +191,8 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
-  const selectedEvidenceIds=new Set();
-  window.__pulseSelectedEvidenceIds=selectedEvidenceIds;
   const evidenceKey=r=>String(r?.id||r?.publicEvidence?.id||((r?.document_id||'')+':'+(r?.chunk_index??'')));
-  const syncSelectionUI=()=>{
+  function syncSelectionUI(){
     const el=document.getElementById('selectionCount');
     if(el)el.textContent=selectedEvidenceIds.size+' evidência(s) selecionada(s)';
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>{
@@ -198,14 +200,14 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
       input.checked=checked;
       input.closest('.result')?.classList.toggle('selected',checked);
     });
-  };
-  const bindEvidenceSelection=()=>{
+  }
+  function bindEvidenceSelection(){
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>input.addEventListener('change',()=>{
       if(input.checked)selectedEvidenceIds.add(input.dataset.evidenceKey);else selectedEvidenceIds.delete(input.dataset.evidenceKey);
       syncSelectionUI();
     }));
     syncSelectionUI();
-  };
+  }
   const score=(content,terms)=>{const text=normalize(content);return terms.reduce((n,t)=>n+(text.split(t).length-1),0)};
   async function loadPublicEvidence(){return Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[]}
   async function retrieve(raw){
@@ -233,6 +235,8 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
     function render(rows,byId){
     const title=document.getElementById('resultTitle');
     const results=document.getElementById('results');
+    const question=document.getElementById('query')?.value||'';
+    window.__PULSE_CURRENT_QUESTION=question;
     title.textContent=rows.length?rows.length+' evidência(s) encontrada(s)':'Nenhuma evidência encontrada';
     const fixedId=new URLSearchParams(location.search).get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
     results.innerHTML=rows.length?
@@ -353,5 +357,6 @@ async function loadPriorKnowledge(scope,query){
 </script>
 <script src="./pulse-public-evidence.js?v=20260922.17"></script>
 <script src="./pulse-workspace-v3.js?v=20260922.17"></script>
-</body>
+<script src="./scripts/pulse-aprofundamento-escopo.js?v=20260925.aprofundamento"></script>
+<script src="./scripts/pulse-aprofundamento-ui.js?v=20260925.aprofundamento"></script></body>
 </html>
