@@ -29,6 +29,7 @@
     ordered.forEach(type=>{if(out.length>=6||seen.has(type))return;const t=templates[type];if(!t)return;const q=t(e),key=normalize(q.texto);if(!seen.has(key)){seen.add(key);out.push({...q,evidenceId:id});}});
     return out.slice(0,6);
   }
+  function classifyQuestion(q){const s=normalize(q);if(/shopper|motiva|percepc|gondola|decisao no pdv|missao|ocasiao|marca|pack/.test(s))return'shopper';if(/por que|porque|explica|cresceu|caiu|movimento|sinal/.test(s))return'mercado';return'geral'}
   function researchTrigger(query,ctx={}){
     const s=normalize(query);
     if(ctx.baseAnswers===true) return {trigger:false,reason:'A base disponível já responde à pergunta.'};
@@ -58,5 +59,5 @@
     const q=String(input.query||'').trim(),ev=Array.isArray(input.evidence)?input.evidence:[],m=methodFor(q);
     return {decision:q||'[A DEFINIR]',questions:[q||'[A DEFINIR]'],hypotheses:ev.slice(0,5).map((e,i)=>({text:e.hypotese||e.hypothesis||'[A DEFINIR]',evidence:e.id||e.document_id||'E'+(i+1),source:e.fonte||e.source_title||e.source_type||'[A DEFINIR]'})),whatPulseKnows:ev.map(e=>e.fato||e.content||e.quote||'').filter(Boolean).slice(0,8),method:m.method,why:m.why,audience:'[A DEFINIR]',recortes:['canal','região','classe','varejista'],deliverables:['brief de pesquisa','base de leitura por recorte','limitações do método'],sample:'[A DEFINIR]',deadline:'[A DEFINIR]',cost:'[A DEFINIR]',determines:['quantidade de recortes','incidência do público','margem de erro desejada']};
   }
-  return {buildQuestions,areaPriority,researchTrigger,methodFor,hasUnsupportedNumbers,buildBrief};
+  return {buildQuestions,areaPriority,researchTrigger,methodFor,hasUnsupportedNumbers,buildBrief,classifyQuestion};
 });
