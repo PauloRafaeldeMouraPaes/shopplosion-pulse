@@ -53,9 +53,9 @@ Deno.serve(async (req) => {
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
   const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
-  const publicMode = scope === 'universe' && !authorization
-  if (!authorization && !publicMode) return json({ error: 'missing_authorization' }, 401)
-  const supabase = createClient(supabaseUrl, publishableKey, { global: { headers: authorization ? { Authorization: authorization } : {} }, auth: { persistSession: false, autoRefreshToken: false } })
+  if (!authorization || !authorization.startsWith('Bearer ')) return json({ error: 'missing_authorization' }, 401)
+  const publicMode = false
+  const supabase = createClient(supabaseUrl, publishableKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false, autoRefreshToken: false } })
   let profile: { industry_id?: string } = {}
   let industry: { id?: string, name?: string, status?: string } = { name: 'mercado publicado', status: 'public' }
   let allIndustryNames: string[] = []
