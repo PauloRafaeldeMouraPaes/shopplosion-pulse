@@ -21,13 +21,12 @@
   };
   function buildQuestions(evidence,area){
     const e=evidence||{}; const id=String(e.id||e.publicEvidence?.id||e.public_evidence?.id||e.document_id||'sem-id');
-    const conf=String(e.confidence??e.confianca??'').toLowerCase();
     const sourceCount=Number(e.source_count||e.sources_count||0);
     const priority=areaPriority[area]||['Recorte','Contraprova','Dado interno','Tendência','Porquê do shopper','Decisão'];
-    const ordered=(conf.includes('baixo')||conf.includes('low')||sourceCount===1)?['Contraprova','Dado interno',...priority]:priority;
+    const ordered=(sourceCount===1)?['Contraprova','Dado interno',...priority]:priority;
     const out=[]; const seen=new Set();
-    ordered.forEach(type=>{if(out.length>=6||seen.has(type))return;const t=templates[type];if(!t)return;const q=t(e),key=normalize(q.texto);if(!seen.has(key)){seen.add(key);out.push({...q,evidenceId:id});}});
-    return out.slice(0,6);
+    ordered.forEach(type=>{if(out.length>=3||seen.has(type))return;const t=templates[type];if(!t)return;const q=t(e),key=normalize(q.texto);if(!seen.has(key)){seen.add(key);out.push({...q,evidenceId:id});}});
+    return out.slice(0,3);
   }
   function classifyQuestion(q){const s=normalize(q);if(/shopper|motiva|percepc|gondola|decisao no pdv|missao|ocasiao|marca|pack/.test(s))return'shopper';if(/por que|porque|explica|cresceu|caiu|movimento|sinal/.test(s))return'mercado';return'geral'}
   function researchTrigger(query,ctx={}){
@@ -36,7 +35,7 @@
     if(ctx.divergence===true) return {trigger:true,reason:'Há divergência entre evidências ou estudos.'};
     if(ctx.internalGap===true) return {trigger:true,reason:'A lacuna depende de dado interno que ainda não foi fornecido.'};
     if(/shopper.*(por que|troca|escolh|motiva|percepc)|motiv|percepc|decisao.*pdv|gondola|missao.*compra|ocasiao.*compra|aceita pagar|sensibilidade.*preco|hierarquia.*escolha|troca.*marca/.test(s)) return {trigger:true,reason:'A pergunta pede motivação, percepção ou decisão do shopper, que dado de mercado sozinho não responde.'};
-    if((ctx.lowConfidence===true||ctx.singleSource===true)&&/decis|estrateg|preco|pack|promoc|sortimento|mix|canal|portifolio/.test(s)) return {trigger:true,reason:'A decisão está apoiada em evidência de baixa confiança ou fonte única.'};
+    if((ctx.lowConfidence===true||ctx.singleSource===true)&&/decis|estrateg|preco|pack|promoc|sortimento|mix|canal|portifolio/.test(s)) return {trigger:true,reason:'A decisão está apoiada em fonte única; ainda falta contraprova independente.'};
     return {trigger:false,reason:'A pergunta é respondível pela base disponível sem pesquisa primária.'};
   }
   function methodFor(query){
