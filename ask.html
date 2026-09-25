@@ -83,7 +83,9 @@
   const show=(text,type='ok')=>{msg.textContent=text;msg.className='msg show '+type;document.dispatchEvent(new CustomEvent('pulse:ask-status',{detail:{text:String(text||''),type}}))};
   let askReadyResolve;const askReady=new Promise(resolve=>{askReadyResolve=resolve});let askInitError='';
   const failInit=(message)=>{askInitError=message;askReadyResolve(false)};
-    const runPublicSearchImmediately=()=>{
+    const selectedEvidenceIds=new Set();
+  window.__pulseSelectedEvidenceIds=selectedEvidenceIds;
+  const runPublicSearchImmediately=()=>{
     const qv=String(document.getElementById('query')?.value||'').trim();
     const terms=qv.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').split(/[^a-z0-9]+/).filter(t=>t.length>=2).slice(0,10);
     if(!terms.length){show('Digite uma pergunta válida.','error');return false}
@@ -189,8 +191,6 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
-  const selectedEvidenceIds=new Set();
-  window.__pulseSelectedEvidenceIds=selectedEvidenceIds;
   const evidenceKey=r=>String(r?.id||r?.publicEvidence?.id||((r?.document_id||'')+':'+(r?.chunk_index??'')));
   const syncSelectionUI=()=>{
     const el=document.getElementById('selectionCount');
