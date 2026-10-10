@@ -126,7 +126,7 @@
     const selected=matches.filter(x=>selectedEvidenceIds.has(String(x.e.id)));
     const escAnswer=value=>String(value??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
     if(!selected.length){show('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.','error');setProgress('retrieve',matches.length);return}
-    const renderAnswer=(answer,citations=[],fallback=false)=>{
+    const renderAnswer=(answer,citations=[],fallback=false,providerMessage='')=>{
       document.getElementById('answerPanel').classList.remove('hidden');
       const answerEl=document.getElementById('answer');
       const safe=String(answer||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
@@ -135,7 +135,7 @@
       document.getElementById('citations').innerHTML=(citations||[]).map(c=>'<span>['+String(c.ref||'')+'] '+String(c.document||'')+'</span>').join(' &nbsp;•&nbsp; ')+selected.slice(0,6).map(x=>{const e=x.e||x.publicEvidence||x;const m=window.PULSE_EVIDENCE_MODEL?.assess?window.PULSE_EVIDENCE_MODEL.assess(e,query):{natureza:'[A DEFINIR]',fato_verificado_na_fonte:'[A DEFINIR]',alcance_para_pergunta:'[A DEFINIR]'};return '<div class="evidenceScope" style="margin-top:8px"><strong>'+escAnswer(e.fonte||e.id||'Evidência')+'</strong> · Natureza: '+escAnswer(m.natureza)+' · Fato na fonte: '+escAnswer(m.fato_verificado_na_fonte)+' · Alcance: '+escAnswer(m.alcance_para_pergunta)+'</div>'}).join('');
       document.getElementById('saveAnalysis').disabled=true;
       setProgress('write');
-      show(fallback?'Leitura baseada nas evidências selecionadas.':'Resposta gerada a partir das evidências selecionadas.','ok')
+      const providerNote=fallback&&providerMessage?' Motivo informado pelo provedor: '+String(providerMessage).slice(0,300):'';show((fallback?'Leitura baseada nas evidências selecionadas.':'Resposta gerada a partir das evidências selecionadas.')+providerNote,'ok')
     };
     const lead=selected[0].e;
     const localAnswer='LEITURA: '+String(lead.fato||lead.contexto||'As evidências selecionadas trazem sinais relacionados à pergunta.')+' [E1]\\n\\nHIPÓTESE: As evidências selecionadas não permitem, sozinhas, atribuir um mecanismo específico de comportamento do shopper.\\n\\nRECOMENDAÇÃO: Cruzar os sinais selecionados com evidências diretamente relacionadas a preço, volume, quantidade, categoria ou canal antes de concluir.\\n\\nDESCONHECIDOS: O conjunto selecionado não permite afirmar causalidade ou uma mudança específica de frequência, canal, marca, quantidade ou missão.\\n\\nATUALIZAÇÃO: INSUFFICIENT — leitura baseada nas evidências públicas selecionadas.';
@@ -149,7 +149,7 @@
     try{
       const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,public_evidence:selected.map(x=>x.e),retrieved_evidence:selected.map(x=>({document_id:null,chunk_index:0,quote:[x.e.fato,x.e.contexto,x.e.interpretacao,x.e.hipotese,x.e.acao].filter(Boolean).join(' '),source_type:'public',score:x.score,public_evidence:x.e})),prior_knowledge:[]}),cache:'no-store'});
       const data=await r.json().catch(()=>null);
-      if(r.ok&&data&&!data.error&&data.answer){renderAnswer(data.answer,data.citations||[],Boolean(data.fallback));return}
+      if(r.ok&&data&&!data.error&&data.answer){renderAnswer(data.answer,data.citations||[],Boolean(data.fallback),data.provider_message||'');return}
       show('A IA não concluiu a resposta. A leitura inicial baseada nas evidências permanece disponível.','error');
     }catch{
       show('Não foi possível conectar à IA. A leitura inicial baseada nas evidências permanece disponível.','error');
