@@ -54,6 +54,34 @@ jobs:
       - name: Deploy only pulse-ask-ai
         run: supabase functions deploy pulse-ask-ai --project-ref "$SUPABASE_PROJECT_ID"
 
+      - name: Verify deployed function metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE_FILE="$(mktemp)"
+          curl --fail --silent --show-error --max-time 30 \
+            --output "$RESPONSE_FILE" \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/functions/pulse-ask-ai"
+          python3 - "$RESPONSE_FILE" <<'PY'
+          import json, sys
+          from pathlib import Path
+          fn = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if fn.get("slug") != "pulse-ask-ai":
+              raise SystemExit("DEPLOYED_FUNCTION_SLUG_MISMATCH")
+          if fn.get("status") != "ACTIVE":
+              raise SystemExit("DEPLOYED_FUNCTION_NOT_ACTIVE")
+          if fn.get("verify_jwt") is not True:
+              raise SystemExit("DEPLOYED_FUNCTION_JWT_VERIFICATION_NOT_ENABLED")
+          if not isinstance(fn.get("version"), int) or fn["version"] < 1:
+              raise SystemExit("DEPLOYED_FUNCTION_VERSION_MISSING")
+          if not isinstance(fn.get("ezbr_sha256"), str) or len(fn["ezbr_sha256"]) != 64:
+              raise SystemExit("DEPLOYED_FUNCTION_SHA_MISSING")
+          print(f"Supabase function version: {fn['version']}")
+          print(f"Supabase function SHA256: {fn['ezbr_sha256']}")
+          print("SUPABASE ASK AI DEPLOYED METADATA CHECK: PASS")
+          PY
+
       - name: Verify invalid JWT is rejected by the gateway
         shell: bash
         run: |
