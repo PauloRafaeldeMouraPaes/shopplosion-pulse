@@ -8,8 +8,12 @@ export function isGoodEvidenceQuote(quote, content) {
 export function deterministicCandidate(item) {
   const text = String(item.content || "");
   const sentences = text.split(/(?<=[.!?])\s+/).map((s) => s.replace(/\s+/g, " ").trim()).filter((s) => s.length >= 35 && s.length <= 500);
-  const quote = sentences.find((s) => isGoodEvidenceQuote(s, text) && /(de .{1,60} para |subiu|cresceu|avançou|passou|aument|queda|redu[cç][aã]o|contra |comparad|atingiu|somou|registrou|totalizou|alcançou|foi de |chegou a )/i.test(s));
-  if (!quote) return null;
+  const changeIndex = sentences.findIndex((s) => isGoodEvidenceQuote(s, text) && /(de .{1,60} para |subiu|cresceu|avançou|passou|aument|queda|redu[cç][aã]o|contra |comparad|atingiu|somou|registrou|totalizou|alcançou|foi de |chegou a )/i.test(s));
+  if (changeIndex < 0) return null;
+  let quote = sentences[changeIndex];
+  const explicitTopic = /(chocolate|cacau|produ[cç][aã]o|consumo|p[aá]scoa|ovos|lan[cç]amentos?|exporta[cç][aã]o|importa[cç][aã]o|empregos?)/i.test(quote);
+  if (!explicitTopic && changeIndex > 0) quote = sentences[changeIndex - 1] + " " + quote;
+  if (!isGoodEvidenceQuote(quote, text)) return null;
   const title = quote.length <= 180 ? quote : quote.slice(0, 177) + "...";
   return {
     signal_type: "change",
