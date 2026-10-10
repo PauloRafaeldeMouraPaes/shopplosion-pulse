@@ -85,25 +85,33 @@
     },
     {
       "slug": "pulse-external-signal-worker",
-      "version": 5,
+      "version": 6,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "a07bb795c0f7671eb4c9aed5d68c1688ba40456c6187bacac13ce8adb213f4c6",
+      "deployed_sha256": "46f3fd6a8426350d186cbfefffb5e9aedfd81b86a9d206fc0eac49458140db53",
       "source_path": "supabase/functions/pulse-external-signal-worker/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
         "supabase/functions/pulse-external-signal-worker/index.ts",
         "supabase/functions/pulse-external-signal-worker/quality.mjs"
-      ]
+      ],
+      "deployment_drift": false,
+      "drift_reason": ""
     },
     {
       "slug": "pulse-external-deterministic-backstop",
-      "version": 2,
+      "version": 3,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "d41c36173a151d096fc3233e7c49ddb5772f004b7f01aaba82cdd37482fa455a",
+      "deployed_sha256": "f1d046acbfb98cd1c6f935024ad993a969350eb0296ee837919c0b35257e8244",
       "source_path": "supabase/functions/pulse-external-deterministic-backstop/index.ts",
-      "auth": "internal_worker_token"
+      "auth": "internal_worker_token",
+      "source_files": [
+        "supabase/functions/pulse-external-deterministic-backstop/index.ts",
+        "supabase/functions/pulse-external-deterministic-backstop/quality.mjs"
+      ],
+      "deployment_drift": false,
+      "drift_reason": ""
     },
     {
       "slug": "pulse-index-bootstrap",
