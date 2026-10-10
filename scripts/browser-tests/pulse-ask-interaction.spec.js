@@ -47,6 +47,7 @@ test.describe('Ask AI interaction contract', () => {
         })
       });
     });
+    await page.addInitScript(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
     await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
@@ -54,7 +55,6 @@ test.describe('Ask AI interaction contract', () => {
     await actions.nth(0).click();
     await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
     await page.locator('#results input[data-evidence-key]').first().evaluate(el=>el.click());
-    await page.evaluate(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
     await actions.nth(1).click();
     await expect(page.locator('#pv4-response')).toContainText('RESPOSTA DE IA AUTENTICADA');
     expect(authorization).toBe('Bearer test-industry-token');
