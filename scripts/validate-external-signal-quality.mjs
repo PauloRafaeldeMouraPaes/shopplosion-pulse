@@ -80,6 +80,7 @@ const localizedDateIndex = sourceWorker.indexOf("const localized=bodyText.match(
 const metadataDateIndex = sourceWorker.indexOf("const meta=metaValue(html,");
 assert.ok(localizedDateIndex >= 0 && metadataDateIndex > localizedDateIndex, "visible publication dates should win over conflicting metadata timestamps");
 assert.match(sourceWorker, /const namedDate=bodyText\.match/ , "HTML capture should parse dates written with Portuguese month names");
+assert.match(sourceWorker, /\(\?:de\\s\+\)\?\(janeiro/, "Portuguese dates with the preposition de should be parsed");
 assert.match(sourceWorker, /janeiro.*fevereiro.*março.*julho/, "Portuguese month-name date parsing must cover the calendar");
 assert.match(sourceWorker, /descoberta.*items=items\.filter/, "discovery feeds must filter out articles unrelated to the pilot category");
 assert.match(sourceWorker, /chocolate\|cacau\|p\[aá\]scoa\|doces\|confeitaria\|achocolatado/, "discovery feeds should retain category-relevant articles only");
