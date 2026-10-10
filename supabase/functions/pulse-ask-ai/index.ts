@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { PULSE_PUBLIC_EVIDENCE } from './public-evidence.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -10,13 +11,13 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const normalize = (value: string) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 const termsFor = (value: string) => Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter((term) => term.length >= 2))).slice(0, 8)
 
-const providerMessage = (status: number, raw: string) => {
-  let message = ''
-  try { const parsed = JSON.parse(raw); message = String(parsed?.error?.message || parsed?.message || '') } catch {}
+const providerMessage = (status: number) => {
   if (status === 401 || status === 403) return 'A chave Gemini foi recusada. Verifique se ela está ativa e vinculada ao projeto correto.'
-  if (status === 429) return 'O limite gratuito do Gemini foi atingido. Aguarde a renovação da cota e tente novamente.'
-  if (status === 400) return message ? `O Gemini recusou a solicitação: ${message}` : 'O Gemini recusou a solicitação. Verifique o projeto, a chave e o modelo configurado.'
-  return message ? `O Gemini retornou um erro: ${message}` : `O Gemini retornou HTTP ${status}.`
+  if (status === 429) return 'A quota ou o limite de uso do Gemini foi atingido. Verifique os limites do projeto e tente novamente.'
+  if (status === 400) return 'O Gemini recusou a solicitação. Verifique o modelo e os parâmetros configurados e tente novamente.'
+  if (status === 0) return 'Não foi possível conectar ao Gemini. A leitura determinística baseada nas evidências foi mantida.'
+  if (status === 408 || status >= 500) return 'O Gemini está temporariamente indisponível. A leitura determinística baseada nas evidências foi mantida; tente novamente em instantes.'
+  return `A geração por IA falhou (HTTP ${status}). A leitura determinística baseada nas evidências foi mantida.`
 }
 
 const industryNameMatches = (text: string, currentIndustry: string, allIndustryNames: string[]) => {
@@ -43,19 +44,18 @@ Deno.serve(async (req) => {
   const geminiKey = Deno.env.get('GEMINI_API_KEY')
   const model = Deno.env.get('PULSE_LLM_MODEL') || 'gemini-3.5-flash-lite'
   if (!supabaseUrl || !publishableMap) return json({ error: 'supabase_runtime_not_configured' }, 500)
-  if (!geminiKey) return json({ error: 'llm_provider_not_configured' }, 503)
 
   let publishableKey = ''
   try { const parsed = JSON.parse(publishableMap); publishableKey = parsed.default || Object.values(parsed)[0] || '' } catch { return json({ error: 'invalid_supabase_key_configuration' }, 500) }
   if (!publishableKey) return json({ error: 'missing_publishable_key' }, 500)
 
-  let body: { query?: string, scope?: string, public_evidence?: any[], originating_evidence_id?: string | null, retrieved_evidence?: any[], prior_knowledge?: any[] }
+  let body: { query?: string, scope?: string, originating_evidence_id?: string | null, selected_public_evidence_ids?: string[], retrieved_evidence?: any[], prior_knowledge?: any[] }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
   const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
-  const publicMode = scope === 'universe' && !authorization
-  if (!authorization && !publicMode) return json({ error: 'missing_authorization' }, 401)
-  const supabase = createClient(supabaseUrl, publishableKey, { global: { headers: authorization ? { Authorization: authorization } : {} }, auth: { persistSession: false, autoRefreshToken: false } })
+  if (!authorization || !authorization.startsWith('Bearer ')) return json({ error: 'missing_authorization' }, 401)
+  const publicMode = false
+  const supabase = createClient(supabaseUrl, publishableKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false, autoRefreshToken: false } })
   let profile: { industry_id?: string } = {}
   let industry: { id?: string, name?: string, status?: string } = { name: 'mercado publicado', status: 'public' }
   let allIndustryNames: string[] = []
@@ -72,13 +72,30 @@ Deno.serve(async (req) => {
     if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
     allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
   }
-  const publicEvidence = Array.isArray(body.public_evidence) ? body.public_evidence.slice(0, 20) : []
   const originatingEvidenceId = String(body.originating_evidence_id || '').trim().slice(0, 180) || null
+  const requestedPublicEvidenceIds = new Set(Array.isArray(body.selected_public_evidence_ids) ? body.selected_public_evidence_ids.slice(0, 12).map((id) => String(id || '').trim().slice(0, 180)).filter(Boolean) : [])
   const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
-  const priorKnowledge = Array.isArray(body.prior_knowledge) ? body.prior_knowledge.slice(0, 8) : []
+  const requestedPriorKnowledgeIds = Array.isArray(body.prior_knowledge)
+    ? Array.from(new Set(body.prior_knowledge.slice(0, 8).map((item: any) => String(item?.id || '')).filter((id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)))
+    : []
+  let priorKnowledge: any[] = []
   const terms = termsFor(query)
   const clientPrivateKeys = new Set(clientRetrievedEvidence.filter((item: any) => item?.document_id && Number.isInteger(item?.chunk)).map((item: any) => `${item.document_id}:${item.chunk}`))
   if (!query || !terms.length) return json({ error: 'invalid_query', message: 'Digite uma pergunta válida.' }, 400)
+  if (scope !== 'universe' && requestedPriorKnowledgeIds.length) {
+    const allowedKnowledgeScopes = scope === 'universe' ? ['universe'] : scope === 'industry' ? ['industry'] : ['industry', 'universe', 'both']
+    const { data: knowledgeRows, error: knowledgeError } = await supabase
+      .from('shopper_knowledge')
+      .select('id,claim,status,scope,investigation_id')
+      .eq('industry_id', profile.industry_id)
+      .in('id', requestedPriorKnowledgeIds)
+      .in('scope', allowedKnowledgeScopes)
+      .limit(8)
+    if (knowledgeError) return json({ error: 'prior_knowledge_retrieval_failed', message: 'O conhecimento anterior não pôde ser validado no escopo autenticado. Tente novamente.' }, 500)
+    priorKnowledge = (knowledgeRows || []).map((item: any) => ({
+      id: item.id, claim: item.claim, status: item.status, scope: item.scope, investigation_id: item.investigation_id,
+    }))
+  }
 
   const filters = terms.map((term) => `content.ilike.%${term}%`).join(',')
   let ranked: any[] = []
@@ -106,38 +123,64 @@ Deno.serve(async (req) => {
   }
   if (scope !== 'industry') {
     const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
-    const publicRanked = publicEvidence.map((item: any) => {
+    const publicRanked = PULSE_PUBLIC_EVIDENCE.map((item: any) => {
       const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ')
-      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado' }
-    }).filter((item: any) => item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId))
+      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null }
+    }).filter((item: any) => requestedPublicEvidenceIds.has(String(item.id)) && (item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId)))
       .sort((a: any, b: any) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score)
       .slice(0, 8)
     ranked = scope === 'both' ? [...ranked, ...publicRanked].sort((a, b) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score).slice(0, 12) : publicRanked
   }
-  if (!ranked.length) return json({ answer: scope === 'universe' ? 'Não encontrei evidências relevantes no mercado publicado para esta pergunta.' : 'Não encontrei evidências relevantes no escopo selecionado.', citations: [], scope })
+  if (!ranked.length) {
+    const answer = scope === 'universe'
+      ? 'Não encontrei evidências relevantes no mercado publicado para esta pergunta.'
+      : 'Não encontrei evidências relevantes no escopo selecionado.'
+    return json({ answer, citations: [], scope, fallback: true, answer_source: 'deterministic_no_evidence', fallback_reason: 'no_relevant_evidence' })
+  }
   const evidence = ranked.map((item, index) => {
-    if (item.scope_source === 'public') return { ref: `E${index + 1}`, document: `Mercado publicado · ${item.public_evidence_id || 'evidência'}`, document_id: null, document_chunk_id: null, chunk: 1, source_type: 'public', public_evidence_id: item.public_evidence_id, content: String(item.content || '').slice(0, 5000) }
+    if (item.scope_source === 'public') return { ref: `E${index + 1}`, document: String(item.public_source || `Mercado publicado · ${item.public_evidence_id || 'evidência'}`), document_id: null, document_chunk_id: null, chunk: 1, source_type: 'public', public_evidence_id: item.public_evidence_id, source_url: item.public_source_url || null, content: String(item.content || '').slice(0, 5000) }
     return { ref: `E${index + 1}`, document: documentMap[item.document_id] || 'Documento privado', document_id: item.document_id, document_chunk_id: item.id, chunk: Number(item.chunk_index) + 1, source_type: item.source_type || 'text', content: String(item.content || '').slice(0, 5000) }
   })
   const evidenceText = evidence.map((item) => `<evidence ref="${item.ref}" document="${item.document}" chunk="${item.chunk}" source="${item.source_type}">${item.content}</evidence>`).join('\n')
 
   const system = 'Você é o analista do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Em escopo privado, nunca revele dados fora da indústria autenticada. Em escopo público, trate as evidências como mercado publicado. Em escopo combinado, diferencie claramente o que vem do mercado publicado e o que vem da indústria autenticada.'
   const priorKnowledgeText = priorKnowledge.length ? priorKnowledge.map((item: any, index: number) => `<knowledge ref="K${index + 1}" status="${String(item.status || 'proposed')}">${String(item.claim || '').slice(0, 4000)}</knowledge>`).join('\\n') : 'Nenhum conhecimento anterior vinculado.'
-  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nContexto: ${publicMode ? 'mercado publicado; nenhum dado privado foi autorizado' : 'indústria autenticada: ' + industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
+  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nContexto: ${scope === 'universe' ? 'mercado publicado; nenhum dado privado foi incluído' : scope === 'both' ? 'mercado publicado combinado com evidências privadas e conhecimento anterior autorizado da indústria autenticada: ' + industry.name : 'indústria autenticada: ' + industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
+  if (!geminiKey) {
+    const fallback = deterministicFallback('A chave do provedor Gemini não está configurada.')
+    return json({
+      ...fallback,
+      model,
+      scope,
+      originating_evidence_id: originatingEvidenceId,
+      fallback: true,
+      answer_source: 'deterministic_fallback',
+      provider_message: 'A geração por IA não está configurada no servidor. A leitura determinística baseada nas evidências foi mantida.'
+    })
+  }
+
   let providerResponse: Response | null = null
   let lastProviderStatus = 0
   for (let attempt = 0; attempt < 3; attempt++) {
-    providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': geminiKey },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } })
-    })
-    lastProviderStatus = providerResponse.status
+    try {
+      providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': geminiKey },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } })
+      })
+      lastProviderStatus = providerResponse.status
+    } catch {
+      providerResponse = null
+      lastProviderStatus = 0
+      if (attempt === 2) break
+      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
+      continue
+    }
     if (providerResponse.ok) break
     if (![429, 500, 502, 503, 504].includes(providerResponse.status) || attempt === 2) break
     await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
   }
-  const deterministicFallback = (reason: string) => {
+  function deterministicFallback(reason: string) {
     const lead = evidence[0]
     const fact = lead?.content ? String(lead.content).split(/[\n.]/).map((x) => x.trim()).find(Boolean) || String(lead.content).slice(0, 500) : 'As evidências recuperadas não trazem informação suficiente.'
     const refs = evidence.slice(0, 4).map((item) => `[${item.ref}]`).join(' ')
@@ -150,19 +193,18 @@ RECOMENDAÇÃO: Cruzar as evidências recuperadas com uma fonte adicional direta
 DESCONHECIDOS: Não é possível afirmar causalidade, mudança de frequência, canal, marca, quantidade ou missão de compra apenas com este conjunto de evidências.
 
 ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a geração por IA não ficou disponível neste momento.`
-    return { answer, structured: { leitura: fact, hipotese: 'As evidências disponíveis não permitem atribuir um mecanismo de comportamento do shopper sem investigação adicional.', recomendacao: 'Cruzar as evidências recuperadas com uma fonte adicional diretamente relacionada à pergunta.', desconhecidos: 'Não é possível afirmar causalidade ou comportamento específico do shopper apenas com este conjunto.' }, knowledge_update: { classification: 'insufficient', reason: reason || 'fallback determinístico por indisponibilidade do provedor', previous_knowledge_count: priorKnowledge.length }, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) }
+    return { answer, structured: { leitura: fact, hipotese: 'As evidências disponíveis não permitem atribuir um mecanismo de comportamento do shopper sem investigação adicional.', recomendacao: 'Cruzar as evidências recuperadas com uma fonte adicional diretamente relacionada à pergunta.', desconhecidos: 'Não é possível afirmar causalidade ou comportamento específico do shopper apenas com este conjunto.' }, knowledge_update: { classification: 'insufficient', reason: reason || 'fallback determinístico por indisponibilidade do provedor', previous_knowledge_count: priorKnowledge.length }, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null, source_url: item.source_url || null })) }
   }
 
   if (!providerResponse?.ok) {
-    const detail = await providerResponse?.text() || ''
     const fallback = deterministicFallback(`Gemini indisponível (HTTP ${lastProviderStatus}).`)
-    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true })
+    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true, answer_source: 'deterministic_fallback', provider_message: providerMessage(lastProviderStatus) })
   }
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
   if (!answer) {
     const fallback = deterministicFallback('Gemini retornou uma resposta vazia.')
-    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true })
+    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true, answer_source: 'deterministic_fallback', provider_message: 'O Gemini retornou uma resposta vazia. A leitura determinística baseada nas evidências foi mantida.' })
   }
   const block = (name: string) => { const m = answer.match(new RegExp(`${name}:\\s*([\\s\\S]*?)(?=\\n(?:LEITURA|HIPÓTESE|RECOMENDAÇÃO|DESCONHECIDOS|ATUALIZAÇÃO):|$)`, 'i')); return m ? m[1].trim() : '' }
   const structured = { leitura: block('LEITURA'), hipotese: block('HIPÓTESE'), recomendacao: block('RECOMENDAÇÃO'), desconhecidos: block('DESCONHECIDOS') }
@@ -176,5 +218,5 @@ ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a gera�
       scope_rejected: true,
     }, 200)
   }
-  return json({ answer, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, knowledge_update, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
+  return json({ answer, answer_source: 'llm', fallback: false, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, knowledge_update, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null, source_url: item.source_url || null })) })
 })

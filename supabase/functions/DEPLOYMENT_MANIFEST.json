@@ -5,11 +5,14 @@
   "functions": [
     {
       "slug": "pulse-ask-ai",
-      "version": 27,
+      "version": 30,
       "status": "ACTIVE",
-      "verify_jwt": true,
-      "deployed_sha256": "c82c66b40c4e30abe5a8156c140f3dd9d9b72f57152d40bb8dbb68cd9cb17761",
-      "source_path": "supabase/functions/pulse-ask-ai/index.ts"
+      "verify_jwt": false,
+      "deployed_sha256": "021a1005b9ff7637e82f49eec3b8f2a0cc554010e11092708fecd196445d222f",
+      "source_path": "supabase/functions/pulse-ask-ai/index.ts",
+      "desired_verify_jwt": true,
+      "deployment_drift": true,
+      "drift_reason": "The last live Supabase Production metadata audit found version 30 with verify_jwt=false; the secured branch implementation has not been deployed."
     },
     {
       "slug": "pulse-index-documents",

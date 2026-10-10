@@ -33,6 +33,19 @@ def main() -> int:
             errors.append(f"invalid deployed_sha256 for {slug}")
         if not isinstance(auth, bool):
             errors.append(f"verify_jwt must be boolean for {slug}")
+        desired_auth = entry.get("desired_verify_jwt", auth)
+        drift = entry.get("deployment_drift", False)
+        drift_reason = entry.get("drift_reason", "")
+        if not isinstance(desired_auth, bool):
+            errors.append(f"desired_verify_jwt must be boolean for {slug}")
+        if not isinstance(drift, bool):
+            errors.append(f"deployment_drift must be boolean for {slug}")
+        elif isinstance(auth, bool) and isinstance(desired_auth, bool) and drift != (auth != desired_auth):
+            errors.append(f"deployment_drift does not match deployed/desired verify_jwt for {slug}")
+        if drift and not drift_reason:
+            errors.append(f"drift_reason is required when deployment_drift is true for {slug}")
+        if not drift and drift_reason:
+            errors.append(f"drift_reason must be empty when deployment_drift is false for {slug}")
         if lifecycle not in {"active", "legacy_disabled_scheduler"}:
             errors.append(f"invalid lifecycle for {slug}: {lifecycle}")
 

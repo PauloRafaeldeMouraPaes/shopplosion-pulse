@@ -92,7 +92,7 @@ test.describe('Pulse canonical route shell', () => {
     const metrics = await page.evaluate(() => {
       const ev = Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE : [];
       const categories = new Set(ev.map(e => String(e.categoria || '').trim().toLocaleLowerCase('pt-BR')).filter(Boolean)).size;
-      const high = ev.filter(e => ['ALTA','HIGH'].includes(String(e.confianca || '').trim().toUpperCase())).length;
+      const high = ev.filter(e => window.PULSE_EVIDENCE_MODEL?.assess && window.PULSE_EVIDENCE_MODEL.assess(e).natureza !== '[A DEFINIR]').length;
       return { count: ev.length, categories, high };
     });
     expect(metrics.count).toBeGreaterThan(0);

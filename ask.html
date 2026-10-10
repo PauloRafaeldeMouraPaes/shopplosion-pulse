@@ -26,7 +26,9 @@
 .evidenceSelectionBar strong{color:#4f5868}
 @media(max-width:640px){.questionBuilderHead{display:block}.evidenceSelectionBar{align-items:flex-start;flex-direction:column}}
 </style><style id="pulse-analysis-actions">.analysisActions{display:flex;gap:8px;align-items:center;margin:0 0 12px}.analysisActions button,.analysisActions a{border:1px solid #e1e4ea;border-radius:9px;padding:9px 12px;background:#fff;color:#4f5868;font:700 12px inherit;text-decoration:none;cursor:pointer}.analysisActions button{background:#e51b67;border-color:#e51b67;color:#fff}.analysisActions button:disabled{opacity:.6;cursor:wait}@media(max-width:640px){.analysisActions{flex-wrap:wrap}}</style><style id="pulse-workflow-ask">.pulseWorkflow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin:18px 0 4px}.pulseWorkflow a{min-width:0;padding:11px 12px;border:1px solid #e5e1dc;border-radius:11px;background:#fff;text-decoration:none;color:#4f5868;display:grid;gap:2px}.pulseWorkflow a.current{border-color:#e8b6ca;box-shadow:0 5px 18px rgba(163,22,78,.07)}.pulseWorkflow a.done{background:#faf9f7}.pulseWorkflow span:first-child{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;border-radius:50%;background:#f0ece8;font-size:10px;font-weight:800}.pulseWorkflow a.current span:first-child{background:#e51b67;color:#fff}.pulseWorkflow b{font-size:12px}.pulseWorkflow small{font-size:10px;color:#7a7780}.pulseWorkflow .arrow{color:#aaa5ad;font-weight:700}@media(max-width:640px){.pulseWorkflow{grid-template-columns:1fr;gap:6px}.pulseWorkflow .arrow{display:none}}
-</style><link rel="stylesheet" href="./pulse-workspace-v3.css?v=20260922.17"><script src="./pulse-public-evidence.js?v=20260922.17"></script><script>if(new URLSearchParams(location.search).get("v")!=="20260922.17")location.replace("./ask.html?v=20260922.17")</script></head>
+</style><link rel="stylesheet" href="./pulse-workspace-v3.css?v=20260922.17"><script src="./pulse-public-evidence.js?v=20260922.17"></script><script>if(new URLSearchParams(location.search).get("v")!=="20260922.17")location.replace("./ask.html?v=20260922.17")</script><style id="pulse-aprofundamento-ui">
+.pulse-deepen{margin-top:14px;padding:15px;border:1px solid #e7dce2;border-radius:12px;background:#fff8fb}.pulse-deepen h3{margin:0;font-size:13px;color:#8e1648}.pulse-deepen p{margin:5px 0 0;color:#687284;font-size:11px;line-height:1.45}.pulse-deepen-list{display:grid;gap:7px;margin-top:11px}.pulse-deepen-btn{display:block;width:100%;text-align:left;border:1px solid #e2d8dd;border-radius:9px;background:#fff;padding:9px 10px;cursor:pointer;font:600 11px inherit;color:#3f4652}.pulse-deepen-btn:hover,.pulse-deepen-btn:focus-visible{border-color:#a3164e;color:#8e1648;outline:none}.pulse-deepen-meta{display:block;margin-bottom:3px;font-size:9px;font-weight:850;color:#a3164e;text-transform:uppercase;letter-spacing:.06em}.pulse-research{margin-top:14px;padding:15px;border:1px solid #dedbd5;border-radius:12px;background:#faf9f7}.pulse-research h3{margin:0;font-size:13px}.pulse-research .briefGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pulse-research .briefItem{padding:9px;border:1px solid #e7e3dd;border-radius:9px;background:#fff}.pulse-research small{display:block;font-size:9px;color:#8a8790;font-weight:850;text-transform:uppercase;letter-spacing:.06em}.pulse-research strong{display:block;margin-top:4px;font-size:11px;line-height:1.4}.pulse-research-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.pulse-research-actions button{border:1px solid #d7c3cc;border-radius:8px;background:#fff;padding:8px 10px;font:800 10px inherit;color:#8e1648;cursor:pointer}.pulse-research-actions button.primary{background:#e51b67;color:#fff;border-color:#e51b67}.pulse-area{margin-top:10px;display:flex;align-items:center;gap:7px;font-size:11px;color:#687284}.pulse-area select{height:34px;border:1px solid #dfe4ec;border-radius:8px;background:#fff;padding:0 8px;font:inherit}@media(max-width:640px){.pulse-research .briefGrid{grid-template-columns:1fr}}
+</style></head>
 <body>
 <header>
   <div class="brand">SHOPPLOSION PULSE</div>
@@ -81,7 +83,9 @@
   const show=(text,type='ok')=>{msg.textContent=text;msg.className='msg show '+type;document.dispatchEvent(new CustomEvent('pulse:ask-status',{detail:{text:String(text||''),type}}))};
   let askReadyResolve;const askReady=new Promise(resolve=>{askReadyResolve=resolve});let askInitError='';
   const failInit=(message)=>{askInitError=message;askReadyResolve(false)};
-    const runPublicSearchImmediately=()=>{
+    const selectedEvidenceIds=new Set();
+  window.__pulseSelectedEvidenceIds=selectedEvidenceIds;
+  const runPublicSearchImmediately=()=>{
     const qv=String(document.getElementById('query')?.value||'').trim();
     const terms=qv.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').split(/[^a-z0-9]+/).filter(t=>t.length>=2).slice(0,10);
     if(!terms.length){show('Digite uma pergunta válida.','error');return false}
@@ -106,7 +110,7 @@
       '<div class="evidenceSelectionBar"><span id="selectionCount"><strong>0</strong> evidência(s) selecionada(s)</span><span>Selecione as evidências que realmente sustentam sua pergunta. O Pulse não escolhe automaticamente o primeiro resultado.</span></div>'+
       rows.map(({e,score})=>{
         const key=String(e.id||''),isOrigin=String(e.id)===String(fixedId);
-        return '<article class="result'+(selectedEvidenceIds.has(key)?' selected':'')+'"><div class="resultHead"><div class="resultSelect"><input type="checkbox" data-evidence-key="'+escLocal(key)+'" '+(selectedEvidenceIds.has(key)?'checked':'')+' aria-label="Selecionar evidência"><div><div class="resultTitle">'+escLocal(e.fonte||e.id||'Evidência pública')+(isOrigin?'<span class="resultOrigin">EVIDÊNCIA DE ORIGEM</span>':'')+'</div><div class="muted">'+escLocal(e.tipo||'Evidência')+' · '+escLocal(e.periodo||'')+'</div></div></div><span class="badge">público • relevância '+score+'</span></div><div class="snippet">'+escLocal(e.fato||'')+'</div></article>';
+        return '<article class="result'+(selectedEvidenceIds.has(key)?' selected':'')+'"><div class="resultHead"><div class="resultSelect"><input type="checkbox" data-evidence-key="'+escLocal(key)+'" '+(selectedEvidenceIds.has(key)?'checked':'')+' aria-label="Selecionar evidência"><div><div class="resultTitle">'+escLocal(e.fonte||e.id||'Evidência pública')+(isOrigin?'<span class="resultOrigin">EVIDÊNCIA DE ORIGEM</span>':'')+'</div><div class="muted">'+escLocal(e.tipo||'Evidência')+' · '+escLocal(e.periodo||'')+'</div></div></div><span class="badge">público • relevância '+score+'</span></div><div class="snippet">'+escLocal(e.fato||'')+'</div>'+(e.natureza||e.universo_observado||e.nao_representa||e.alcance_para_pergunta?'<div class="muted evidenceScopeNote" style="margin-top:8px"><div><strong>Natureza:</strong> '+escLocal(e.natureza&&e.natureza!=='[A DEFINIR]'?e.natureza:'Não informada')+'</div><div><strong>Universo observado:</strong> '+escLocal(e.universo_observado&&e.universo_observado!=='[A DEFINIR]'?e.universo_observado:'Não informado')+'</div><div><strong>Limite da evidência:</strong> '+escLocal(e.nao_representa&&e.nao_representa!=='[A DEFINIR]'?e.nao_representa:'Não informado')+'</div><div><strong>Alcance para a pergunta:</strong> '+escLocal(e.alcance_para_pergunta&&e.alcance_para_pergunta!=='[A DEFINIR]'?e.alcance_para_pergunta:'Não classificado')+'</div></div>':'')+'</article>';
       }).join('')
       :'<div class="empty">Nenhuma evidência pública contém os termos pesquisados.</div>';
     if(fixedId&&rows.some(x=>String(x.e.id)===String(fixedId)))selectedEvidenceIds.add(String(fixedId));
@@ -120,27 +124,45 @@
     runPublicSearchImmediately();
     const matches=Array.isArray(window.__pulsePublicMatches)?window.__pulsePublicMatches:[];
     const selected=matches.filter(x=>selectedEvidenceIds.has(String(x.e.id)));
+    const escAnswer=value=>String(value??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
     if(!selected.length){show('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.','error');setProgress('retrieve',matches.length);return}
-    const renderAnswer=(answer,citations=[],fallback=false)=>{
+    const renderAnswer=(answer,citations=[],fallback=false,providerMessage='',answerSource='')=>{
+      const source=answerSource||(fallback?'deterministic_fallback':'llm');
       document.getElementById('answerPanel').classList.remove('hidden');
       const answerEl=document.getElementById('answer');
       const safe=String(answer||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
       answerEl.innerHTML=safe.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong>$1</strong>').replace(/\\n\\n/g,'<br><br>').replace(/\\n/g,'<br>');
-      window.__pulseLastAnswer={query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,answer,structured:{},knowledge_update:{classification:'insufficient',reason:fallback?'leitura pública determinística':'resposta pública'},citations,evidence:selected.map(x=>x.e),priorKnowledge:[]};
-      document.getElementById('citations').innerHTML=citations.map(c=>'<span>['+String(c.ref||'')+'] '+String(c.document||'')+'</span>').join(' &nbsp;•&nbsp; ');
+      window.__pulseLastAnswer={query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,answer,answer_source:source,fallback:source.startsWith('deterministic_'),structured:{},knowledge_update:{classification:'insufficient',reason:source.startsWith('deterministic_')?'leitura pública determinística':'resposta pública'},citations,evidence:source==='deterministic_no_evidence'?[]:selected.map(x=>x.e),priorKnowledge:[]};
+      document.getElementById('citations').innerHTML=(citations||[]).map(c=>{const label='['+escAnswer(c.ref||'')+'] '+escAnswer(c.document||'');let link='';try{const u=new URL(String(c.source_url||''));if(u.protocol==='https:')link=' · <a href="'+escAnswer(u.href)+'" target="_blank" rel="noopener noreferrer">Fonte</a>'}catch{}return '<span>'+label+link+'</span>'}).join(' &nbsp;•&nbsp; ')+(source==='deterministic_no_evidence'?[]:selected.slice(0,6)).map(x=>{const e=x.e||x.publicEvidence||x;const m=window.PULSE_EVIDENCE_MODEL?.assess?window.PULSE_EVIDENCE_MODEL.assess(e,query):{natureza:'[A DEFINIR]',fato_verificado_na_fonte:'[A DEFINIR]',alcance_para_pergunta:'[A DEFINIR]'};return '<div class="evidenceScope" style="margin-top:8px"><strong>'+escAnswer(e.fonte||e.id||'Evidência')+'</strong> · Natureza: '+escAnswer(m.natureza)+' · Fato na fonte: '+escAnswer(m.fato_verificado_na_fonte)+' · Alcance: '+escAnswer(m.alcance_para_pergunta)+'</div>'}).join('');
       document.getElementById('saveAnalysis').disabled=true;
       setProgress('write');
-      show(fallback?'Leitura baseada nas evidências selecionadas.':'Resposta gerada a partir das evidências selecionadas.','ok')
+      const providerNote=source==='deterministic_fallback'&&providerMessage?' Motivo informado pelo provedor: '+String(providerMessage).slice(0,300):'';
+      const statusMessage=source==='deterministic_no_evidence'
+        ?'Nenhuma evidência relevante foi encontrada no escopo selecionado; a IA não foi acionada.'
+        :source==='deterministic_local'
+          ?'Leitura determinística inicial baseada nas evidências selecionadas. Nenhuma resposta foi gerada por IA.'
+          :source==='deterministic_fallback'
+            ?'Resposta determinística baseada nas evidências selecionadas. A IA não ficou disponível nesta tentativa.'
+            :'Resposta gerada pela IA a partir das evidências selecionadas.';
+      show(statusMessage+providerNote,'ok')
     };
     const lead=selected[0].e;
     const localAnswer='LEITURA: '+String(lead.fato||lead.contexto||'As evidências selecionadas trazem sinais relacionados à pergunta.')+' [E1]\\n\\nHIPÓTESE: As evidências selecionadas não permitem, sozinhas, atribuir um mecanismo específico de comportamento do shopper.\\n\\nRECOMENDAÇÃO: Cruzar os sinais selecionados com evidências diretamente relacionadas a preço, volume, quantidade, categoria ou canal antes de concluir.\\n\\nDESCONHECIDOS: O conjunto selecionado não permite afirmar causalidade ou uma mudança específica de frequência, canal, marca, quantidade ou missão.\\n\\nATUALIZAÇÃO: INSUFFICIENT — leitura baseada nas evidências públicas selecionadas.';
-    renderAnswer(localAnswer,selected.slice(0,4).map((x,i)=>({ref:'E'+(i+1),document:'Mercado publicado · '+String(x.e.id||x.e.fonte||'evidência')})),true);
-    show('Leitura inicial pronta. Refinando com o provedor de IA…','ok');
+    renderAnswer(localAnswer,selected.slice(0,4).map((x,i)=>({ref:'E'+(i+1),document:'Mercado publicado · '+String(x.e.id||x.e.fonte||'evidência')})),true,'','deterministic_local');
+    const accessToken=String(window.__PULSE_ASK_ACCESS_TOKEN||'');
+    if(!accessToken){
+      show('Leitura determinística pública inicial pronta; nenhuma resposta foi gerada por IA. Para gerar uma resposta com IA, entre com uma conta vinculada a uma indústria ativa.','ok');
+      return;
+    }
+    show('Leitura inicial pronta. Refinando com a IA…','ok');
     try{
-      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,public_evidence:selected.map(x=>x.e),retrieved_evidence:selected.map(x=>({document_id:null,chunk_index:0,quote:[x.e.fato,x.e.contexto,x.e.interpretacao,x.e.hipotese,x.e.acao].filter(Boolean).join(' '),source_type:'public',score:x.score,public_evidence:x.e})),prior_knowledge:[]}),cache:'no-store'});
+      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,selected_public_evidence_ids:selected.map(x=>String(x.e.id||'')).filter(Boolean)}),cache:'no-store'});
       const data=await r.json().catch(()=>null);
-      if(r.ok&&data&&!data.error&&data.answer)renderAnswer(data.answer,data.citations||[],Boolean(data.fallback));
-    }catch{}
+      if(r.ok&&data&&!data.error&&data.answer){renderAnswer(data.answer,data.citations||[],Boolean(data.fallback),data.provider_message||'',data.answer_source||'');return}
+      const diagnostic=String(data?.message||'').trim();show(diagnostic?'A IA não ficou disponível. '+diagnostic+' A leitura determinística inicial baseada nas evidências permanece disponível.':'A IA não concluiu a resposta. A leitura determinística inicial baseada nas evidências permanece disponível.','error');
+    }catch{
+      show('Não foi possível conectar à IA. A leitura determinística inicial baseada nas evidências permanece disponível; nenhuma resposta gerada por IA foi recebida.','error');
+    }
   };
 const waitForAskReady=async()=>{if(askInitError)return false;let timer;const timeout=new Promise(resolve=>{timer=setTimeout(()=>{askInitError='A investigação não conseguiu concluir a inicialização. O acesso ao serviço de dados não respondeu a tempo. Recarregue esta página e tente novamente.';resolve(false)},10000)});const ready=await Promise.race([askReady.then(()=>true),timeout]);clearTimeout(timer);return ready};
   const bindActionButtons=()=>{const s=document.getElementById('search'),g=document.getElementById('generate');if(s)s.onclick=async()=>{if(s.disabled)return;const currentScope=syncEffectiveScope();if(currentScope==='universe'||currentScope==='both'){runPublicSearchImmediately();s.disabled=false;return} s.disabled=true;show('Iniciando busca…','ok');const ready=await waitForAskReady();if(!ready||askInitError){show(askInitError||'A busca não foi inicializada.','error');s.disabled=false;return}try{await searchEvidence()}catch(e){show(e?.message||'Falha na busca.','error')}finally{s.disabled=false}};if(g)g.onclick=async()=>{const currentScope=syncEffectiveScope();if(currentScope==='universe'){g.disabled=true;try{await generatePublicAnswer()}finally{g.disabled=false}return}g.disabled=true;show('Iniciando geração…','ok');const ready=await waitForAskReady();if(!ready||askInitError){show(askInitError||'A geração não foi inicializada.','error');g.disabled=false;return}try{await generateAnswer()}catch(e){show(e?.message||'Falha na geração.','error')}finally{g.disabled=false}}};
@@ -180,6 +202,7 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
     context=Array.isArray(body)?body[0]:body;
   }catch(e){failInit('Não foi possível validar a indústria agora. A busca não foi inicializada. Tente recarregar a página.');return}
   if(!context?.industry_id||context.industry_status!=='active'){failInit('A conta não possui uma indústria ativa. A busca e a geração de respostas permanecem bloqueadas.');return}
+  window.__PULSE_ASK_ACCESS_TOKEN=session.access_token;
   const profile={industry_id:context.industry_id,role:context.role};
   const industry={id:context.industry_id,name:context.industry_name,status:context.industry_status};
   document.getElementById('industryName').textContent=industry.name;
@@ -187,10 +210,8 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
-  const selectedEvidenceIds=new Set();
-  window.__pulseSelectedEvidenceIds=selectedEvidenceIds;
   const evidenceKey=r=>String(r?.id||r?.publicEvidence?.id||((r?.document_id||'')+':'+(r?.chunk_index??'')));
-  const syncSelectionUI=()=>{
+  function syncSelectionUI(){
     const el=document.getElementById('selectionCount');
     if(el)el.textContent=selectedEvidenceIds.size+' evidência(s) selecionada(s)';
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>{
@@ -198,14 +219,14 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
       input.checked=checked;
       input.closest('.result')?.classList.toggle('selected',checked);
     });
-  };
-  const bindEvidenceSelection=()=>{
+  }
+  function bindEvidenceSelection(){
     document.querySelectorAll('#results input[data-evidence-key]').forEach(input=>input.addEventListener('change',()=>{
       if(input.checked)selectedEvidenceIds.add(input.dataset.evidenceKey);else selectedEvidenceIds.delete(input.dataset.evidenceKey);
       syncSelectionUI();
     }));
     syncSelectionUI();
-  };
+  }
   const score=(content,terms)=>{const text=normalize(content);return terms.reduce((n,t)=>n+(text.split(t).length-1),0)};
   async function loadPublicEvidence(){return Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[]}
   async function retrieve(raw){
@@ -233,6 +254,8 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
     function render(rows,byId){
     const title=document.getElementById('resultTitle');
     const results=document.getElementById('results');
+    const question=document.getElementById('query')?.value||'';
+    window.__PULSE_CURRENT_QUESTION=question;
     title.textContent=rows.length?rows.length+' evidência(s) encontrada(s)':'Nenhuma evidência encontrada';
     const fixedId=new URLSearchParams(location.search).get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
     results.innerHTML=rows.length?
@@ -311,16 +334,17 @@ async function loadPriorKnowledge(scope,query){
       const selected=found.rows.filter(r=>selectedEvidenceIds.has(evidenceKey(r)));
       if(!selected.length){show('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.','error');return}
       const priorKnowledge=await loadPriorKnowledge(scope,query);
-      const retrieved=selected.slice(0,12).map(r=>({document_id:r.document_id,chunk:r.chunk_index,quote:r.content,source_type:r.source_type,score:r.score,public_evidence:r.publicEvidence||null}));
-      const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query,scope,originating_evidence_id:fixedEvidenceId||null,public_evidence:selected.map(r=>r.publicEvidence).filter(Boolean),retrieved_evidence:retrieved,prior_knowledge:priorKnowledge.map(k=>({id:k.id,claim:k.claim,status:k.status,scope:k.scope,investigation_id:k.investigation_id}))}});
+      const retrieved=selected.slice(0,12).map(r=>({document_id:r.document_id,chunk:r.chunk_index,quote:r.content,source_type:r.source_type,score:r.score}));
+      const selectedPublicEvidenceIds=selected.filter(r=>r.publicEvidence?.id).map(r=>String(r.publicEvidence.id)).slice(0,12);
+      const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query,scope,originating_evidence_id:fixedEvidenceId||null,selected_public_evidence_ids:selectedPublicEvidenceIds,retrieved_evidence:retrieved,prior_knowledge:priorKnowledge.map(k=>({id:k.id,claim:k.claim,status:k.status,scope:k.scope,investigation_id:k.investigation_id}))}});
       if(error){let detail=null;try{detail=await error.context?.json()}catch{}throw new Error(detail?.message||error.message||'Não foi possível gerar a resposta.')}
       if(data?.error)throw new Error(data.message||'O servidor de IA retornou um erro.');
       setProgress('write');
       document.getElementById('answerPanel').classList.remove('hidden');
       document.getElementById('answer').textContent=data.answer||'Resposta vazia.';
-      window.__pulseLastAnswer={query,scope,originating_evidence_id:fixedEvidenceId||null,answer:data.answer||'',structured:data.structured||{},knowledge_update:data.knowledge_update||{classification:'insufficient',reason:''},citations:data.citations||[],evidence:retrieved,industry_id:profile.industry_id,priorKnowledge};
-      document.getElementById('citations').innerHTML=(data.citations||[]).map(c=>{const label='['+esc(c.ref)+'] '+esc(c.document)+' — bloco '+esc(c.chunk);return c.document_id?'<a class="citationLink" href="./documento.html?v=20260922.17&id='+esc(c.document_id)+'&chunk='+esc(c.chunk)+'">'+label+'</a>':'<span>'+label+'</span>'}).join(' &nbsp;•&nbsp; ');
-      const ku=data.knowledge_update||{};show((data?.fallback?'Resposta baseada nas evidências recuperadas. A IA não ficou disponível nesta tentativa. ':'Resposta gerada. ')+'Atualização do conhecimento: '+String(ku.classification||'insufficient').replace('_',' ')+'.','ok');
+      window.__pulseLastAnswer={query,scope,originating_evidence_id:fixedEvidenceId||null,answer:data.answer||'',answer_source:data.answer_source||(data.fallback?'deterministic_fallback':'llm'),fallback:Boolean(data.fallback),structured:data.structured||{},knowledge_update:data.knowledge_update||{classification:'insufficient',reason:''},citations:data.citations||[],evidence:retrieved,industry_id:profile.industry_id,priorKnowledge};
+      document.getElementById('citations').innerHTML=(data.citations||[]).map(c=>{const label='['+esc(c.ref)+'] '+esc(c.document)+' — bloco '+esc(c.chunk);if(c.document_id)return '<a class="citationLink" href="./documento.html?v=20260922.17&id='+esc(c.document_id)+'&chunk='+esc(c.chunk)+'">'+label+'</a>';let sourceLink='';try{const u=new URL(String(c.source_url||''));if(u.protocol==='https:')sourceLink=' <a class="citationLink" href="'+esc(u.href)+'" target="_blank" rel="noopener noreferrer">Fonte</a>'}catch{}return sourceLink?'<span>'+label+sourceLink+'</span>':'<span>'+label+'</span>'}).join(' &nbsp;•&nbsp; ');
+      const ku=data.knowledge_update||{};const answerSource=data.answer_source||(data.fallback?'deterministic_fallback':'llm');const providerNote=answerSource==='deterministic_fallback'&&data?.provider_message?' Motivo informado pelo provedor: '+String(data.provider_message).slice(0,300):'';const baseMessage=answerSource==='deterministic_no_evidence'?'Nenhuma evidência relevante foi encontrada no escopo selecionado; a IA não foi acionada.':answerSource==='deterministic_fallback'?'Resposta determinística baseada nas evidências recuperadas. A IA não ficou disponível nesta tentativa. ':'Resposta gerada pela IA a partir das evidências recuperadas. ';show(baseMessage+providerNote+(answerSource==='deterministic_no_evidence'?'':' Atualização do conhecimento: '+String(ku.classification||'insufficient').replace('_',' ')+'.'),'ok');
     }catch(e){
       const selectedPublic=(Array.isArray(window.__pulsePublicMatches)?window.__pulsePublicMatches:[]).filter(x=>selectedEvidenceIds.has(String(x.e.id)));
       if(selectedPublic.length){
@@ -328,12 +352,12 @@ async function loadPriorKnowledge(scope,query){
         const fallback='LEITURA: '+String(lead.fato||lead.contexto||'As evidências selecionadas trazem sinais relacionados à pergunta.')+' [E1]\\n\\nHIPÓTESE: As evidências selecionadas não permitem, sozinhas, atribuir um mecanismo específico de comportamento do shopper.\\n\\nRECOMENDAÇÃO: Cruzar as evidências selecionadas com preço, volume, quantidade, categoria ou canal antes de concluir.\\n\\nDESCONHECIDOS: Ainda não é possível afirmar causalidade ou uma mudança específica de frequência, canal, marca, quantidade ou missão de compra.\\n\\nATUALIZAÇÃO: INSUFFICIENT — leitura determinística baseada nas evidências selecionadas; a geração por IA não ficou disponível nesta tentativa.';
         document.getElementById('answerPanel').classList.remove('hidden');
         const answerEl=document.getElementById('answer');answerEl.innerHTML=fallback.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])).replace(/\\n\\n/g,'<br><br>').replace(/\\n/g,'<br>');
-        window.__pulseLastAnswer={query,scope,originating_evidence_id:fixedEvidenceId||null,answer:fallback,structured:{},knowledge_update:{classification:'insufficient',reason:'fallback determinístico por indisponibilidade da geração'},citations:selectedPublic.map((x,i)=>({ref:'E'+(i+1),document:'Mercado publicado · '+String(x.e.id||x.e.fonte||'evidência')})),evidence:selectedPublic.map(x=>x.e),industry_id:profile.industry_id,priorKnowledge:[]};
-        document.getElementById('citations').textContent=window.__pulseLastAnswer.citations.map(x=>'['+x.ref+'] '+x.document).join(' • ');setProgress('write');show('Leitura produzida com as evidências selecionadas. A IA não ficou disponível nesta tentativa.','ok');
+        window.__pulseLastAnswer={query,scope,originating_evidence_id:fixedEvidenceId||null,answer:fallback,answer_source:'deterministic_fallback',fallback:true,structured:{},knowledge_update:{classification:'insufficient',reason:'fallback determinístico por indisponibilidade da geração'},citations:selectedPublic.map((x,i)=>({ref:'E'+(i+1),document:'Mercado publicado · '+String(x.e.id||x.e.fonte||'evidência')})),evidence:selectedPublic.map(x=>x.e),industry_id:profile.industry_id,priorKnowledge:[]};
+        document.getElementById('citations').textContent=window.__pulseLastAnswer.citations.map(x=>'['+x.ref+'] '+x.document).join(' • ');setProgress('write');show('Resposta determinística baseada nas evidências selecionadas. A IA não ficou disponível nesta tentativa.','ok');
       }else show(e.message||'Falha na geração.','error')
     }finally{document.getElementById('generate').disabled=false}
   }
-  document.getElementById('saveAnalysis').addEventListener('click',async()=>{const a=window.__pulseLastAnswer;if(!a){show('Gere uma resposta antes de salvar.','error');return}const btn=document.getElementById('saveAnalysis');btn.disabled=true;show('Salvando investigação, conhecimento e histórico de mudança…','ok');try{const title=(a.query||'Investigação Pulse').slice(0,120),now=new Date().toISOString();const investigationPayload={version:2,type:'investigation',question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',evidence:a.evidence,citations:a.citations,answer:a.answer,structured:a.structured||{},knowledge_update:a.knowledge_update||{},interpretation:a.structured?.leitura||a.answer,hypotheses:a.structured?.hipotese?[a.structured.hipotese]:[],counter_evidence:[],unknowns:a.structured?.desconhecidos?[a.structured.desconhecidos] : ['Validar a leitura com evidência adicional quando necessário.'],suggested_tests:['Recuperar evidências adicionais específicas para a pergunta.'],recommended_next_steps:['Revisar a evidência no Inspector e atualizar a investigação quando novos sinais surgirem.'],updated_at:now};let invId=window.__pulseInvestigation?.id||new URLSearchParams(location.search).get('investigation');let inv=null;if(invId){const {data,error}=await client.from('investigations').update({title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).eq('id',invId).select('id').single();if(error||!data?.id)throw error||new Error('investigation_update_failed');inv=data}else{const {data,error}=await client.from('investigations').insert({industry_id:profile.industry_id,created_by:user.id,title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).select('id').single();if(error||!data?.id)throw error||new Error('investigation_save_failed');inv=data}
+  document.getElementById('saveAnalysis').addEventListener('click',async()=>{const a=window.__pulseLastAnswer;if(!a){show('Gere uma resposta antes de salvar.','error');return}const btn=document.getElementById('saveAnalysis');btn.disabled=true;show('Salvando investigação, conhecimento e histórico de mudança…','ok');try{const title=(a.query||'Investigação Pulse').slice(0,120),now=new Date().toISOString();const investigationPayload={version:2,type:'investigation',question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',evidence:a.evidence,citations:a.citations,answer:a.answer,answer_source:a.answer_source||'unknown',fallback:Boolean(a.fallback),structured:a.structured||{},knowledge_update:a.knowledge_update||{},interpretation:a.structured?.leitura||a.answer,hypotheses:a.structured?.hipotese?[a.structured.hipotese]:[],counter_evidence:[],unknowns:a.structured?.desconhecidos?[a.structured.desconhecidos] : ['Validar a leitura com evidência adicional quando necessário.'],suggested_tests:['Recuperar evidências adicionais específicas para a pergunta.'],recommended_next_steps:['Revisar a evidência no Inspector e atualizar a investigação quando novos sinais surgirem.'],updated_at:now};let invId=window.__pulseInvestigation?.id||new URLSearchParams(location.search).get('investigation');let inv=null;if(invId){const {data,error}=await client.from('investigations').update({title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).eq('id',invId).select('id').single();if(error||!data?.id)throw error||new Error('investigation_update_failed');inv=data}else{const {data,error}=await client.from('investigations').insert({industry_id:profile.industry_id,created_by:user.id,title,question:a.query,scope:a.scope,originating_evidence_id:a.originating_evidence_id,status:'open',payload:investigationPayload,last_updated_at:now}).select('id').single();if(error||!data?.id)throw error||new Error('investigation_save_failed');inv=data}
       const knowledgeClaim=a.structured?.leitura||a.answer||a.query,knowledgeEvidence=a.evidence||[],prior=a.priorKnowledge?.[0]||null,ku=a.knowledge_update||{classification:'insufficient',reason:''};
       let knowledgeRow=null;
       if(invId){const {data,error}=await client.from('shopper_knowledge').select('id,claim,status,scope,evidence').eq('investigation_id',inv.id).maybeSingle();if(error)throw error;knowledgeRow=data}
@@ -353,5 +377,6 @@ async function loadPriorKnowledge(scope,query){
 </script>
 <script src="./pulse-public-evidence.js?v=20260922.17"></script>
 <script src="./pulse-workspace-v3.js?v=20260922.17"></script>
-</body>
+<script src="./scripts/pulse-aprofundamento-escopo.js?v=20260925.aprofundamento"></script>
+<script src="./scripts/pulse-aprofundamento-ui.js?v=20260925.aprofundamento"></script></body>
 </html>
