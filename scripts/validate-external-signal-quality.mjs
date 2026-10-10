@@ -72,6 +72,6 @@ assert.match(sourceWorker, /article:published_time/, "HTML capture must parse st
 assert.match(sourceWorker, /const htmlArticleContent=/, "HTML capture should prioritize article/main content over navigation");
 assert.match(sourceWorker, /published_at=htmlPublishedAt\(body\)/, "HTML source records must carry parsed publication timestamps");
 assert.match(sourceWorker, /replace\(\/&#\(\\d\+\);\/g[\s\S]*replace\(\/&#\(\\d\+\);\/g/, "HTML capture must decode numeric entities even when double-encoded");
-assert.match(sourceWorker, /publicada\|publicado/, "HTML capture should recover a date from localized publication text when metadata is absent");
+assert.match(sourceWorker, /publicada|publicado/, "HTML capture should recover a date from localized publication text when metadata is absent");
 
 console.log("External signal evidence quality: PASS");
