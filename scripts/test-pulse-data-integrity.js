@@ -130,6 +130,24 @@ if (Array.isArray(evidence) && Array.isArray(runtimeEvidence) &&
     JSON.stringify(evidence) !== JSON.stringify(runtimeEvidence)) {
   failures.push('runtime window.PULSE_EVIDENCE and embedded index.html evidence are out of sync');
 }
+
+let serverEvidence;
+try {
+  const source = fs.readFileSync('supabase/functions/pulse-ask-ai/public-evidence.ts', 'utf8');
+  const marker = 'export const PULSE_PUBLIC_EVIDENCE =';
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) throw new Error('PULSE_PUBLIC_EVIDENCE export not found');
+  const start = source.indexOf('[', markerIndex);
+  if (start < 0) throw new Error('PULSE_PUBLIC_EVIDENCE array not found');
+  const [a, b] = balancedSpan(source, start, '[', ']');
+  serverEvidence = vm.runInNewContext(source.slice(a, b));
+} catch (err) {
+  failures.push(`server public evidence failed to load: ${err.message}`);
+}
+if (Array.isArray(evidence) && Array.isArray(serverEvidence) &&
+    JSON.stringify(evidence) !== JSON.stringify(serverEvidence)) {
+  failures.push('server public evidence and client public evidence are out of sync');
+}
 if (Array.isArray(evidence) && evidence.length < 34) failures.push(`expected at least 34 public evidence records, found ${evidence.length}`);
 for (const id of [
   'kantar-chocolate-brasil-volume-q1-2025',
