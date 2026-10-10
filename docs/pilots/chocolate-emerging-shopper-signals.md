@@ -3,7 +3,7 @@
 **Status:** proposta operacional para validação; não representa cliente contratado, dado proprietário de marca nem conclusão comprovada sobre o shopper.  
 **Categoria piloto:** chocolate no Brasil.  
 **Potencial parceiro de desenho:** Lindt, como prospect; nenhuma parceria ou acesso a dados foi presumido.  
-**Versão:** 1.0 — 10/10/2026.
+**Versão:** 1.1 — 10/10/2026.
 
 ## 1. Objetivo
 
@@ -163,4 +163,68 @@ A leitura prioritária é uma hipótese: o número de lançamentos cresceu muito
 
 ## 13. Gate para a próxima rodada
 
-Antes de chamar qualquer resultado de “mudança emergente no shopper”, adicionar pelo menos uma fonte independente de consumidor/mercado e uma fonte de varejo que possa ser acompanhada no tempo; executar a captura recorrente por quatro semanas; e registrar para cada sinal se a evidência é primária, secundária ou derivada. Enquanto isso, a classificação correta dos quatro resultados é **mudança quantitativa setorial/operacional, com hipótese de shopper ainda não validada**.
+O gate de diversidade de fontes foi parcialmente atingido: há páginas públicas independentes de indústria (Abicab), pesquisa de shopper (Agência Brasil/Instituto Locomotiva), painel de consumo (Kantar/Worldpanel), pesquisa de preços em Belo Horizonte (IPEAD/UFMG) e comparação de preços em Joinville (Procon). Isso ainda **não** constitui uma série contínua nem prova uma tendência emergente em outubro de 2026.
+
+Próximos gates obrigatórios:
+1. Executar captura recorrente por pelo menos quatro semanas, registrando publicações novas, timestamps, rejeições e duplicatas.
+2. Construir uma série temporal de preço por 100 g, gramatura, promoção e sortimento com fontes de varejo permitidas ou dados autorizados.
+3. Confrontar a hipótese com sell-out, painel ou pesquisa de shopper independente, se autorizados; não estimar valores ausentes.
+4. Manter sinais de indústria, comportamento do shopper e contexto de preço em grupos distintos. Diferença de preço entre lojas não é alta ao longo do tempo.
+
+Até cumprir esses gates, classificar a leitura integrada como **hipótese preliminar de pressão de preço e adaptação de formato**, não como conclusão causal ou previsão de comportamento atual.
+
+
+## 14. Segunda execução operacional — fontes independentes e revisão de qualidade (10/10/2026)
+
+Snapshot público atualizado: https://paulorafaeldemourapaes.github.io/shopplosion-pulse/pilot-chocolate.html
+
+### Fontes primárias ativas
+
+| Fonte | Data publicada identificada | Evidência útil | Limite |
+|---|---|---|---|
+| Abicab | 31/03/2026 | Produção, ovos, lançamentos e empregos sazonais | Fonte setorial interessada; não é comportamento individual |
+| Agência Brasil / Instituto Locomotiva | 31/03/2026 | Intenção de compra e critérios de escolha da Páscoa; n=1.557 adultos | Intenção declarada, não compra observada |
+| Kantar / Worldpanel by Numerator | 17/07/2025 | Volume de consumo, preço por kg e mudança de formatos no 1º tri. de 2025 | Evidência histórica, não retrato atual de outubro de 2026 |
+| IPEAD/UFMG | 30/03/2026 | Preços de ovos e barras de chocolate em Belo Horizonte, coletados de 2 a 24/03/2026 | Recorte regional e sazonal |
+| Procon Joinville | 26/03/2026 | Dispersão de preços entre estabelecimentos, coletada de 23 a 25/03/2026 | Snapshot local; não equivale a mudança temporal |
+
+Dois feeds RSS oficiais da Agência Brasil estão ativos para descoberta, com filtro de relevância para chocolate/cacau/Páscoa/doces/confeitaria. Na captura de 10/10/2026, **nenhum item recente passou pelo filtro**; os itens de notícias gerais foram rejeitados e não são usados como evidência do piloto. O feed não deve ser contado como uma fonte corroborante até que publique um item pertinente.
+
+### Resultados observados
+
+**Oferta/setor — Abicab**
+- Produção: 806 mil toneladas (2024) → 814 mil toneladas (2025), aproximadamente +1,0%.
+- Ovos de Páscoa: 45 milhões → 46 milhões em 2026, aproximadamente +2,2%.
+- Lançamentos: 94 (2025) → 134 (2026), aproximadamente +42,6%.
+- Empregos temporários: 9.946 → 14.558, aproximadamente +46,4%.
+
+**Shopper — Agência Brasil / Instituto Locomotiva**
+- 90% declararam intenção de comprar produtos relacionados à Páscoa em 2026, ante 86% em 2025 (+4 pontos percentuais).
+- 69% consideraram injusto o preço dos ovos de Páscoa em comparação com barras de chocolate do mesmo peso.
+- 61% apontaram o preço como principal fator de escolha.
+- A pesquisa entrevistou 1.557 brasileiros com 18 anos ou mais, de 25/02 a 13/03/2026. Intenção declarada não equivale a sell-out.
+
+**Consumo/formatos — Kantar / Worldpanel by Numerator**
+- Consumo domiciliar de chocolate caiu 19% em volume no 1º trimestre de 2025; consumo fora do lar caiu 15%.
+- Preço médio por kg subiu 17%; a queda em unidades foi de 10%.
+- Produtos de até 60 g cresceram 2%, enquanto tamanhos maiores recuaram 4,8%.
+- O conjunto é compatível com hipótese de adaptação para embalagens menores sob pressão de preço, mas não prova causalidade.
+
+**Preço de varejo — IPEAD/UFMG e Procon Joinville**
+- Em Belo Horizonte, o preço médio dos ovos de Páscoa subiu 14,60% em 2026 versus 2025 e o chocolate em barra apresentou variação de 17,82%; o IPCA informado no estudo para o período foi de 3,40%.
+- Em Joinville, uma barra de chocolate de 80 g variou de R$ 5,49 a R$ 15,99 entre estabelecimentos (dispersão reportada de 191,26%); a variação de preço de um mesmo produto entre estabelecimentos para ovos chegou a 31,91%.
+- A diferença entre lojas é evidência contextual de dispersão de preço, não uma alta temporal de 191,26% nem um índice nacional.
+
+### Estado operacional e qualidade
+
+- Cinco páginas-fonte primárias foram capturadas com URLs, conteúdo, citação e data de publicação. A data do Kantar foi recuperada do texto publicado; o parser agora aceita datas portuguesas com e sem a preposição “de”.
+- A captura HTML decodifica entidades numéricas/nomeadas, extrai conteúdo de artigo quando disponível e prioriza a data visível quando ela diverge do timestamp de metadados.
+- Os feeds RSS de descoberta são filtrados por relevância antes da persistência; artigos sem relação com chocolate não entram no piloto.
+- Os workers de sinal e backstop compartilham as mesmas regras de qualidade. A validação rejeita divisões estáticas por segmento sem comparação temporal e deduplica citações sobrepostas, preservando a evidência mais completa.
+- Após revisão, há 14 registros de sinal ativos agrupados em cinco páginas-fonte. Esse número **não** significa 14 tendências independentes: vários registros são métricas distintas do mesmo estudo, e os sinais de dispersão de preços são contexto de varejo.
+- Os contratos de evidência, regressão, auditoria multi-tenant, auditoria de IA privada e browser smoke passaram nas verificações exigidas para as mudanças de captura e qualidade. O manifesto de deploy foi atualizado para as versões ativas dos workers.
+- A fonte do IBGE continua desativada após HTTP 403; nenhum bloqueio foi contornado. Uma notícia que repetia métricas atribuídas à Abicab permanece em quarentena para evitar falsa independência.
+
+### Interpretação provisória
+
+A hipótese mais útil para testar é que **a intenção de compra pode permanecer alta enquanto parte dos shoppers ajusta formato, porção ou canal diante da pressão de preço**. A hipótese conecta sinais de períodos e universos diferentes; ainda precisa de quatro semanas de observação recorrente e de uma série de preço/sortimento ou sell-out autorizada. Não afirmar que essa mudança está acontecendo agora, em todo o Brasil ou em uma marca específica.
