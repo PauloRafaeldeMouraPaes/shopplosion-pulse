@@ -8,6 +8,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 ASK = ROOT / "ask.html"
 FN = ROOT / "supabase" / "functions" / "pulse-ask-ai" / "index.ts"
+PUBLIC_EVIDENCE_SOURCE = ROOT / "supabase" / "functions" / "pulse-ask-ai" / "public-evidence.ts"
 CFG = ROOT / "supabase" / "config.toml"
 MANIFEST = ROOT / "supabase" / "functions" / "DEPLOYMENT_MANIFEST.json"
 DEPLOY = ROOT / ".github" / "workflows" / "pulse-supabase-ask-ai-deploy.yml"
@@ -31,6 +32,10 @@ except (json.JSONDecodeError, OSError):
 
 require(ASK.exists(), "ask.html missing")
 require(FN.exists(), "private Ask AI Edge Function missing")
+require(PUBLIC_EVIDENCE_SOURCE.exists(), "canonical server-side public evidence dataset missing")
+require("from './public-evidence.ts'" in fn and "PULSE_PUBLIC_EVIDENCE.map" in fn, "public evidence must be retrieved from the server-side canonical dataset")
+require("publicEvidence.map" not in fn and "Array.isArray(body.public_evidence)" not in fn, "Ask AI must not trust client-supplied public evidence records")
+require("source_url: item.source_url || null" in fn, "public evidence citations must carry canonical source URLs")
 require(CFG.exists(), "supabase/config.toml missing")
 require(MANIFEST.exists(), "Supabase deployment manifest missing")
 require(bool(manifest_entry), "pulse-ask-ai is missing from the deployment manifest")
