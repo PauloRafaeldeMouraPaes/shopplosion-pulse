@@ -21,7 +21,10 @@ if (!index.includes('20260922.08')) failures.push('Public workspace cache versio
 if (!workspace.includes('MOVIMENTO OBSERVÁVEL')) failures.push('Today narrative still uses static movement claim');
 if (!workspace.includes('ev.slice(0,2).map')) failures.push('Today Opportunity Canvas is not evidence-derived');
 if (!workspace.includes("routes.investigacao+'?saveEvidence='")) failures.push('Inspector persistent save action missing');
-if (!ask.includes('selected.map(r=>r.publicEvidence)') && !ask.includes('public_evidence:selected.map')) failures.push('Selected public evidence context missing from Ask AI request');
+if (!ask.includes('selected_public_evidence_ids:selectedPublicEvidenceIds')) failures.push('Selected public evidence IDs missing from Ask AI request');
+const canonicalEdge = fs.existsSync('supabase/functions/pulse-ask-ai/index.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8') : '';
+if (!canonicalEdge.includes('selected_public_evidence_ids?: string[]') || !canonicalEdge.includes('requestedPublicEvidenceIds.has(String(item.id))') || !canonicalEdge.includes('PULSE_PUBLIC_EVIDENCE.map')) failures.push('Selected public evidence must be resolved from canonical server-side records');
+if (ask.includes('public_evidence:') || ask.includes('public_evidence:selected')) failures.push('Client must not send mutable public evidence payloads to Ask AI');
 if (!ask.includes('id="questionBuilder"') || !ask.includes('questionExample')) failures.push('Guided question builder missing');
 if (!ask.includes('data-evidence-key') || !ask.includes('selectedEvidenceIds')) failures.push('Explicit evidence selection contract missing');
 if (!ask.includes('O Pulse não escolhe automaticamente o primeiro resultado.')) failures.push('Evidence auto-selection guard missing');
