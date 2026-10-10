@@ -334,7 +334,7 @@ async function loadPriorKnowledge(scope,query){
       document.getElementById('answer').textContent=data.answer||'Resposta vazia.';
       window.__pulseLastAnswer={query,scope,originating_evidence_id:fixedEvidenceId||null,answer:data.answer||'',structured:data.structured||{},knowledge_update:data.knowledge_update||{classification:'insufficient',reason:''},citations:data.citations||[],evidence:retrieved,industry_id:profile.industry_id,priorKnowledge};
       document.getElementById('citations').innerHTML=(data.citations||[]).map(c=>{const label='['+esc(c.ref)+'] '+esc(c.document)+' — bloco '+esc(c.chunk);return c.document_id?'<a class="citationLink" href="./documento.html?v=20260922.17&id='+esc(c.document_id)+'&chunk='+esc(c.chunk)+'">'+label+'</a>':'<span>'+label+'</span>'}).join(' &nbsp;•&nbsp; ');
-      const ku=data.knowledge_update||{};show((data?.fallback?'Resposta baseada nas evidências recuperadas. A IA não ficou disponível nesta tentativa. ':'Resposta gerada. ')+'Atualização do conhecimento: '+String(ku.classification||'insufficient').replace('_',' ')+'.','ok');
+      const ku=data.knowledge_update||{};const providerNote=data?.fallback&&data?.provider_message?' Motivo informado pelo provedor: '+String(data.provider_message).slice(0,300):'';show((data?.fallback?'Resposta baseada nas evidências recuperadas. A IA não ficou disponível nesta tentativa. ':'Resposta gerada. ')+providerNote+' Atualização do conhecimento: '+String(ku.classification||'insufficient').replace('_',' ')+'.','ok');
     }catch(e){
       const selectedPublic=(Array.isArray(window.__pulsePublicMatches)?window.__pulsePublicMatches:[]).filter(x=>selectedEvidenceIds.has(String(x.e.id)));
       if(selectedPublic.length){
