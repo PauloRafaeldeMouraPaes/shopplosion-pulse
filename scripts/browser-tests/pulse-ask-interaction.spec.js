@@ -40,4 +40,27 @@ test.describe('Ask AI interaction contract', () => {
     await expect(page.locator('#pv4-response')).not.toHaveText('Aguardando uma pergunta.');
     await expect(page.locator('#pv4-shell-status')).not.toHaveText('');
   });
+
+  test('Busca de chocolate recupera evidências específicas com alcance e natureza declarados', async ({ page }) => {
+    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.selectOption('#pv3-scope-select', 'public');
+    const input=page.locator('.pv4-real-input');
+    await input.fill('mudanças emergentes no shopper de chocolate');
+    await page.locator('.pv4-real-actions button').nth(0).click();
+    await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
+    await expect(page.locator('#results')).toContainText('Kantar');
+    const audit=await page.evaluate(()=>({
+      ids:(window.__pulsePublicMatches||[]).map(x=>x.e?.id),
+      count:(window.__pulsePublicMatches||[]).length,
+      metadata:(window.__pulsePublicMatches||[]).filter(x=>String(x.e?.id||'').includes('chocolate')).map(x=>({
+        natureza:x.e?.natureza,
+        alcance:x.e?.alcance_para_pergunta,
+        fonte:x.e?.fonte,
+        periodo:x.e?.periodo
+      }))
+    }));
+    expect(audit.ids.some(id=>id==='kantar-chocolate-brasil-volume-q1-2025')).toBeTruthy();
+    expect(audit.metadata.some(x=>x.natureza && x.natureza!=='[A DEFINIR]' && x.alcance && x.alcance!=='[A DEFINIR]')).toBeTruthy();
+  });
+
 });
