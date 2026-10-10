@@ -12,7 +12,7 @@ export function deterministicCandidates(item) {
   const seen = new Set();
   for (let i = 0; i < sentences.length && candidates.length < 5; i++) {
     const sentence = sentences[i];
-    if (!isGoodEvidenceQuote(sentence, text) || !/(de .{1,60} para |subiu|cresceu|avançou|passou|aument|queda|redu[cç][aã]o|contra |comparad|atingiu|somou|registrou|totalizou|alcançou|foi de |chegou a )/i.test(sentence)) continue;
+    if (!isGoodEvidenceQuote(sentence, text) || !/(de .{1,60} para |subiu|subiram|cresceu|cresceram|crescimento|avançou|passou|aument|queda|caiu|caíram|recuou|redu[cç][aã]o|reduziu|contra |comparad|declinou|diminuiu|mais do que|menos do que|dobrou|triplicou)/i.test(sentence)) continue;
     let quote = sentence;
     const explicitTopic = /(chocolate|cacau|produ[cç][aã]o|consumo|p[aá]scoa|ovos|lan[cç]amentos?|exporta[cç][aã]o|importa[cç][aã]o|empregos?)/i.test(quote);
     if (!explicitTopic && i > 0) quote = sentences[i - 1] + " " + quote;
