@@ -335,7 +335,8 @@ async function loadPriorKnowledge(scope,query){
       if(!selected.length){show('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.','error');return}
       const priorKnowledge=await loadPriorKnowledge(scope,query);
       const retrieved=selected.slice(0,12).map(r=>({document_id:r.document_id,chunk:r.chunk_index,quote:r.content,source_type:r.source_type,score:r.score}));
-      const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query,scope,originating_evidence_id:fixedEvidenceId||null,retrieved_evidence:retrieved,prior_knowledge:priorKnowledge.map(k=>({id:k.id,claim:k.claim,status:k.status,scope:k.scope,investigation_id:k.investigation_id}))}});
+      const selectedPublicEvidenceIds=selected.filter(r=>r.publicEvidence?.id).map(r=>String(r.publicEvidence.id)).slice(0,12);
+      const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query,scope,originating_evidence_id:fixedEvidenceId||null,selected_public_evidence_ids:selectedPublicEvidenceIds,retrieved_evidence:retrieved,prior_knowledge:priorKnowledge.map(k=>({id:k.id,claim:k.claim,status:k.status,scope:k.scope,investigation_id:k.investigation_id}))}});
       if(error){let detail=null;try{detail=await error.context?.json()}catch{}throw new Error(detail?.message||error.message||'Não foi possível gerar a resposta.')}
       if(data?.error)throw new Error(data.message||'O servidor de IA retornou um erro.');
       setProgress('write');
