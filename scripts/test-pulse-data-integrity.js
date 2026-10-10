@@ -103,6 +103,29 @@ if (Array.isArray(evidence) && Array.isArray(standaloneEvidence) &&
     JSON.stringify(evidence) !== JSON.stringify(standaloneEvidence)) {
   failures.push('embedded index.html evidence and pulse-public-evidence.js are out of sync');
 }
+let serverEvidence;
+try {
+  const serverSource = fs.readFileSync('supabase/functions/pulse-ask-ai/public-evidence.ts', 'utf8');
+  const serverMarker = 'export const PULSE_PUBLIC_EVIDENCE =';
+  const serverMarkerIndex = serverSource.indexOf(serverMarker);
+  if (serverMarkerIndex < 0) throw new Error('PULSE_PUBLIC_EVIDENCE export not found');
+  const serverStart = serverSource.indexOf('[', serverMarkerIndex);
+  if (serverStart < 0) throw new Error('PULSE_PUBLIC_EVIDENCE array not found');
+  const [serverA, serverB] = balancedSpan(serverSource, serverStart, '[', ']');
+  serverEvidence = vm.runInNewContext(serverSource.slice(serverA, serverB));
+} catch (err) {
+  failures.push(`server-side public evidence failed to load: ${err.message}`);
+}
+if (Array.isArray(standaloneEvidence) && Array.isArray(serverEvidence) &&
+    JSON.stringify(standaloneEvidence) !== JSON.stringify(serverEvidence)) {
+  failures.push('server-side public evidence and pulse-public-evidence.js are out of sync');
+}
+const edgeSource = fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8');
+if (!edgeSource.includes('PULSE_PUBLIC_EVIDENCE.map') ||
+    edgeSource.includes('publicEvidence.map') ||
+    edgeSource.includes('Array.isArray(body.public_evidence)')) {
+  failures.push('Ask AI must retrieve public evidence from the canonical server-side dataset');
+}
 if (Array.isArray(evidence) && Array.isArray(runtimeEvidence) &&
     JSON.stringify(evidence) !== JSON.stringify(runtimeEvidence)) {
   failures.push('runtime window.PULSE_EVIDENCE and embedded index.html evidence are out of sync');
