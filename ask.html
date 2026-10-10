@@ -124,6 +124,7 @@
     runPublicSearchImmediately();
     const matches=Array.isArray(window.__pulsePublicMatches)?window.__pulsePublicMatches:[];
     const selected=matches.filter(x=>selectedEvidenceIds.has(String(x.e.id)));
+    const escAnswer=value=>String(value??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
     if(!selected.length){show('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.','error');setProgress('retrieve',matches.length);return}
     const renderAnswer=(answer,citations=[],fallback=false)=>{
       document.getElementById('answerPanel').classList.remove('hidden');
@@ -131,7 +132,7 @@
       const safe=String(answer||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
       answerEl.innerHTML=safe.replace(/\\*\\*([^*]+)\\*\\*/g,'<strong>$1</strong>').replace(/\\n\\n/g,'<br><br>').replace(/\\n/g,'<br>');
       window.__pulseLastAnswer={query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,answer,structured:{},knowledge_update:{classification:'insufficient',reason:fallback?'leitura pública determinística':'resposta pública'},citations,evidence:selected.map(x=>x.e),priorKnowledge:[]};
-      document.getElementById('citations').innerHTML=(citations||[]).map(c=>'<span>['+String(c.ref||'')+'] '+String(c.document||'')+'</span>').join(' &nbsp;•&nbsp; ')+selected.slice(0,6).map(x=>{const e=x.e||x.publicEvidence||x;const m=window.PULSE_EVIDENCE_MODEL?.assess?window.PULSE_EVIDENCE_MODEL.assess(e,query):{natureza:'[A DEFINIR]',fato_verificado_na_fonte:'[A DEFINIR]',alcance_para_pergunta:'[A DEFINIR]'};return '<div class="evidenceScope" style="margin-top:8px"><strong>'+esc(e.fonte||e.id||'Evidência')+'</strong> · Natureza: '+esc(m.natureza)+' · Fato na fonte: '+esc(m.fato_verificado_na_fonte)+' · Alcance: '+esc(m.alcance_para_pergunta)+'</div>'}).join('');
+      document.getElementById('citations').innerHTML=(citations||[]).map(c=>'<span>['+String(c.ref||'')+'] '+String(c.document||'')+'</span>').join(' &nbsp;•&nbsp; ')+selected.slice(0,6).map(x=>{const e=x.e||x.publicEvidence||x;const m=window.PULSE_EVIDENCE_MODEL?.assess?window.PULSE_EVIDENCE_MODEL.assess(e,query):{natureza:'[A DEFINIR]',fato_verificado_na_fonte:'[A DEFINIR]',alcance_para_pergunta:'[A DEFINIR]'};return '<div class="evidenceScope" style="margin-top:8px"><strong>'+escAnswer(e.fonte||e.id||'Evidência')+'</strong> · Natureza: '+escAnswer(m.natureza)+' · Fato na fonte: '+escAnswer(m.fato_verificado_na_fonte)+' · Alcance: '+escAnswer(m.alcance_para_pergunta)+'</div>'}).join('');
       document.getElementById('saveAnalysis').disabled=true;
       setProgress('write');
       show(fallback?'Leitura baseada nas evidências selecionadas.':'Resposta gerada a partir das evidências selecionadas.','ok')
