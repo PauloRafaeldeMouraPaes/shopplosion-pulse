@@ -63,7 +63,7 @@ const signalWorker = readFileSync(resolve(root, "supabase/functions/pulse-extern
 const backstopWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/index.ts"), "utf8");
 assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,signal_key'\}\)/, "partial unique index must not be targeted by an invalid PostgREST upsert");
 assert.match(signalWorker, /isGoodEvidenceQuote/);
-assert.match(signalWorker, /const duplicate=candidates\.some/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
+assert.match(signalWorker, /const duplicateIndex=candidates\.findIndex/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
 assert.doesNotMatch(signalWorker, /validatedItemIds/, "one valid quote must not suppress distinct deterministic evidence from the same source item");
 assert.match(signalWorker, /duplicateIndex.*existing\.includes\(quoteNorm\).*quoteNorm\.includes\(existing\)/, "overlapping evidence quotes should collapse to the longest supported quote");
 assert.match(backstopWorker, /isGoodEvidenceQuote/);
