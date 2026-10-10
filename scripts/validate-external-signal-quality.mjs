@@ -44,6 +44,14 @@ assert.equal(deterministicCandidate({ id: "static-market-gap", content: "Quando 
 assert.equal(deterministicCandidate({ id: "employment-context", content: "A Páscoa funciona sempre como porta de entrada dos trabalhadores para o setor, com taxa de empregabilidade de 30%, informou o presidente da entidade." }), null, "a numeric fact plus unrelated 'de ... para' wording is not a change");
 assert.equal(deterministicCandidate({ id: "program-duration", content: "O programa existe há mais de 20 anos com a finalidade de abrir mercado para pequenos fabricantes." }), null, "program duration is not a change");
 
+const retailPrice = deterministicCandidate({ id: "procon-retail", content: "Entre os ovos de Páscoa, a variação de preço de um mesmo produto entre os estabelecimentos chegou a 31,91%." });
+assert.ok(retailPrice, "retail price dispersion should be detected as a quantified change");
+assert.match(retailPrice.evidence[0].quote, /variação de preço.*31,91%/);
+
+const shopperSurvey = deterministicCandidate({ id: "shopper-survey", content: "Pesquisa aponta que 90% dos consumidores comprarão chocolate na Páscoa. Índice é 4 pontos percentuais maior do que o declarado em 2025." });
+assert.ok(shopperSurvey, "a year-over-year shopper-intent shift in percentage points should be detected");
+assert.match(shopperSurvey.evidence[0].quote, /90% dos consumidores.*4 pontos percentuais maior/);
+
 
 assert.equal(isGoodEvidenceQuote("Pular para o conteúdo principal Menu Últimas Notícias 2026", "Pular para o conteúdo principal Menu Últimas Notícias 2026"), false);
 assert.equal(isGenericSummary("A captured external source reports a quantified change that may be relevant to the industry."), true);
@@ -57,5 +65,11 @@ assert.match(backstopWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /deterministicCandidate/);
 assert.match(backstopWorker, /normalize\("NFD"\).*replace\(\/\[\\u0300-\\u036f\]\/g/);
 assert.match(backstopWorker, /norm\(String\(candidate\.title\)\)/, "both workers must normalize signal identity consistently");
+const sourceWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-source-worker/index.ts"), "utf8");
+assert.match(sourceWorker, /const decodeEntities=/, "HTML capture must decode numeric and named entities");
+assert.match(sourceWorker, /const htmlPublishedAt=/, "HTML capture must preserve publication dates when available");
+assert.match(sourceWorker, /article:published_time/, "HTML capture must parse standard publication metadata");
+assert.match(sourceWorker, /const htmlArticleContent=/, "HTML capture should prioritize article/main content over navigation");
+assert.match(sourceWorker, /published_at=htmlPublishedAt\(body\)/, "HTML source records must carry parsed publication timestamps");
 
 console.log("External signal evidence quality: PASS");
