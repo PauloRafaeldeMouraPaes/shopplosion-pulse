@@ -54,15 +54,13 @@ function extractRuntimeEvidence() {
   const jsonMarker = '<script type="application/json" id="pulse-public-evidence-json">';
   const markerIndex = html.indexOf(jsonMarker);
   if (markerIndex < 0) throw new Error('pulse-public-evidence-json not found');
-  const jsonEnd = html.indexOf('</script>', markerIndex);
+  const dataStart = markerIndex + jsonMarker.length;
+  const jsonEnd = html.indexOf('</script>', dataStart);
   if (jsonEnd < 0) throw new Error('pulse-public-evidence-json has no closing script');
-  const marker = 'window.PULSE_EVIDENCE=[';
-  const markerIndex2 = html.indexOf(marker, jsonEnd + 9);
-  if (markerIndex2 < 0) throw new Error('runtime window.PULSE_EVIDENCE assignment not found after embedded data');
-  const start = html.indexOf('[', markerIndex2);
-  if (start < 0) throw new Error('runtime PULSE_EVIDENCE array not found');
-  const [a, b] = balancedSpan(html, start, '[', ']');
-  return vm.runInNewContext(html.slice(a, b));
+  const assignment = '<script>try{window.PULSE_EVIDENCE=JSON.parse(document.getElementById("pulse-public-evidence-json")?.textContent||"[]")}catch(e){window.PULSE_EVIDENCE=[]}</script>';
+  const assignmentIndex = html.indexOf(assignment, jsonEnd + 9);
+  if (assignmentIndex < 0) throw new Error('runtime evidence assignment must parse pulse-public-evidence-json after the data block');
+  return JSON.parse(html.slice(dataStart, jsonEnd));
 }
 
 function extractAssignedArray(marker) {
