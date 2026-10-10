@@ -85,10 +85,10 @@
     },
     {
       "slug": "pulse-external-signal-worker",
-      "version": 10,
+      "version": 11,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "1e542ad9538a1008c1037e4e1bb6ebdc4191246e4e92f90095793785f1771286",
+      "deployed_sha256": "5962c426587309d23e1644d1fc8b5774bd3a41563a202656a04c8169e7d3de49",
       "source_path": "supabase/functions/pulse-external-signal-worker/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
