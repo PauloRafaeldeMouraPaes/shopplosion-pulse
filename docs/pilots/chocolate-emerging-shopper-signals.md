@@ -137,3 +137,30 @@ A leitura somente de consulta do Supabase encontrou:
 Implicação: o mecanismo de captura ainda não tem fontes cadastradas no ambiente consultado e não existe baseline operacional de sinais nessa camada. A base de evidência pública precisa de uma auditoria por registro antes de ser usada para produzir conclusões. Os números acima são uma fotografia do ambiente no momento da consulta, não uma afirmação de que o produto inteiro não tenha outros dados fora dessas tabelas.
 
 **Gate obrigatório antes do primeiro sinal de produção:** auditar os registros públicos, cadastrar fontes permitidas no escopo correto, executar captura real, confirmar citações contra a fonte original e revisar o primeiro lote de sinais. Não cadastrar a categoria Chocolate em uma das indústrias de teste nem misturar dados de teste com uma futura indústria real.
+
+## 12. Primeira execução real (10/10/2026)
+
+Snapshot de leitura: https://paulorafaeldemourapaes.github.io/shopplosion-pulse/pilot-chocolate.html
+
+A captura da Abicab gerou quatro sinais quantitativos com citação literal:
+- Produção: 806 mil toneladas (2024) → 814 mil toneladas (2025), aproximadamente +1,0%.
+- Ovos de Páscoa: 45 milhões → 46 milhões, aproximadamente +2,2%.
+- Lançamentos: 94 (2025) → 134 (2026), aproximadamente +42,6%.
+- Empregos temporários: 9.946 → 14.558, aproximadamente +46,4%.
+
+As variações percentuais são cálculos sobre os valores citados, arredondados a uma casa decimal. Todos os quatro sinais vêm de uma única fonte primária (Abicab), com confiança inicial 0,65; portanto, são **sinais setoriais preliminares**, não quatro confirmações independentes nem evidência direta de comportamento do shopper.
+
+A leitura prioritária é uma hipótese: o número de lançamentos cresceu muito mais que a produção total e o volume de ovos. Isso pode indicar maior intensidade de inovação e competição por atenção na Páscoa, mas só poderá ser testado com dados de sortimento, preço, disponibilidade, sell-out, busca ou resposta do consumidor.
+
+### Ajustes operacionais e decisões de qualidade
+
+- A captura HTML da Abicab e da Agência Brasil funcionou; a notícia da Agência Brasil repetia números associados à Abicab e foi colocada em quarentena para não contar a mesma alegação como evidência independente.
+- Duas URLs do IBGE testadas responderam HTTP 403. A fonte foi desativada; nenhum bloqueio foi contornado.
+- A primeira geração de sinais foi rejeitada por citar cabeçalho/navegação e produzir resumos genéricos. O worker foi corrigido para exigir citações quantitativas curtas e literais, rejeitar números estáticos como “mudanças”, extrair vários fatos por artigo e evitar duplicatas entre workers.
+- A persistência foi corrigida para respeitar o índice único parcial do banco; os workers foram redeployados e o manifesto de produção atualizado.
+- A execução final gerou quatro sinais ativos e citações verificáveis. A auditoria multi-tenant e os contratos de evidência/regressão passaram na CI para as mudanças relevantes.
+- O ambiente dedicado de pesquisa está separado das duas indústrias de teste. A página pública é um snapshot estático dos resultados de 10/10/2026, não um dashboard ao vivo.
+
+## 13. Gate para a próxima rodada
+
+Antes de chamar qualquer resultado de “mudança emergente no shopper”, adicionar pelo menos uma fonte independente de consumidor/mercado e uma fonte de varejo que possa ser acompanhada no tempo; executar a captura recorrente por quatro semanas; e registrar para cada sinal se a evidência é primária, secundária ou derivada. Enquanto isso, a classificação correta dos quatro resultados é **mudança quantitativa setorial/operacional, com hipótese de shopper ainda não validada**.
