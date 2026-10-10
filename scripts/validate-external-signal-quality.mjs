@@ -47,6 +47,7 @@ assert.equal(deterministicCandidate({ id: "program-duration", content: "O progra
 const retailPrice = deterministicCandidate({ id: "procon-retail", content: "Entre os ovos de Páscoa, a variação de preço de um mesmo produto entre os estabelecimentos chegou a 31,91%." });
 assert.ok(retailPrice, "retail price dispersion should be detected as a quantified change");
 assert.match(retailPrice.evidence[0].quote, /variação de preço.*31,91%/);
+assert.equal(deterministicCandidate({ id: "retail-incomplete", content: "A maior variação percentual de preço, contudo, foi encontrada no valor de uma barra de chocolate de 80 gramas." }), null, "product weight alone must not be mistaken for a quantified price change");
 
 const shopperSurvey = deterministicCandidate({ id: "shopper-survey", content: "Pesquisa aponta que 90% dos consumidores comprarão chocolate na Páscoa. Índice é 4 pontos percentuais maior do que o declarado em 2025." });
 assert.ok(shopperSurvey, "a year-over-year shopper-intent shift in percentage points should be detected");
@@ -61,6 +62,8 @@ const signalWorker = readFileSync(resolve(root, "supabase/functions/pulse-extern
 const backstopWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/index.ts"), "utf8");
 assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,signal_key'\}\)/, "partial unique index must not be targeted by an invalid PostgREST upsert");
 assert.match(signalWorker, /isGoodEvidenceQuote/);
+assert.match(signalWorker, /const duplicate=candidates\.some/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
+assert.doesNotMatch(signalWorker, /validatedItemIds/, "one valid quote must not suppress distinct deterministic evidence from the same source item");
 assert.match(backstopWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /deterministicCandidate/);
 assert.match(backstopWorker, /normalize\("NFD"\).*replace\(\/\[\\u0300-\\u036f\]\/g/);
@@ -71,5 +74,7 @@ assert.match(sourceWorker, /const htmlPublishedAt=/, "HTML capture must preserve
 assert.match(sourceWorker, /article:published_time/, "HTML capture must parse standard publication metadata");
 assert.match(sourceWorker, /const htmlArticleContent=/, "HTML capture should prioritize article/main content over navigation");
 assert.match(sourceWorker, /published_at=htmlPublishedAt\(body\)/, "HTML source records must carry parsed publication timestamps");
+assert.match(sourceWorker, /replace\(\/&#\(\\d\+\);\/g[\s\S]*replace\(\/&#\(\\d\+\);\/g/, "HTML capture must decode numeric entities even when double-encoded");
+assert.match(sourceWorker, /publicada|publicado/, "HTML capture should recover a date from localized publication text when metadata is absent");
 
 console.log("External signal evidence quality: PASS");
