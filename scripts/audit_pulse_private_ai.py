@@ -36,6 +36,7 @@ require(PUBLIC_EVIDENCE_SOURCE.exists(), "canonical server-side public evidence 
 require("from './public-evidence.ts'" in fn and "PULSE_PUBLIC_EVIDENCE.map" in fn, "public evidence must be retrieved from the server-side canonical dataset")
 require("publicEvidence.map" not in fn and "Array.isArray(body.public_evidence)" not in fn, "Ask AI must not trust client-supplied public evidence records")
 require("const requestedPriorKnowledgeIds" in fn and ".from('shopper_knowledge')" in fn and ".eq('industry_id', profile.industry_id)" in fn, "prior shopper knowledge must be re-read from the authenticated industry's server-side records")
+require("if (scope !== 'universe' && requestedPriorKnowledgeIds.length)" in fn, "public-only scope must not include private tenant knowledge")
 require("const priorKnowledge = Array.isArray(body.prior_knowledge)" not in fn, "Ask AI must not trust client-supplied prior knowledge claims")
 require("scope === 'universe' ? 'mercado publicado; nenhum dado privado foi incluído'" in fn, "public-scope prompt context must not imply private industry data was included")
 require("source_url: item.source_url || null" in fn, "public evidence citations must carry canonical source URLs")
