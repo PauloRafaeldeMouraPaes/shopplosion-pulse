@@ -23,8 +23,19 @@ jobs:
           node-version: 24
       - name: Install Playwright package
         run: npm install --no-save @playwright/test@1.55.0
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium headless shell
+        run: npx playwright install --with-deps --only-shell
+      - name: Verify Chromium headless shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser_root="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+          executable="$(find "$browser_root" -type f -path '*/chrome-linux/headless_shell' -perm /111 -print -quit || true)"
+          if [ -z "$executable" ]; then
+            echo "::error::Playwright Chromium headless shell is missing after installation."
+            exit 1
+          fi
+          echo "Playwright Chromium headless shell ready."
       - name: Run shopper filter smoke tests
         run: npx playwright test scripts/browser-tests/pulse-shopper-filters.spec.js
       - name: Run next-level smoke tests
