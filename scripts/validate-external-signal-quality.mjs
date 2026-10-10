@@ -18,7 +18,7 @@ const agency = {
 };
 const agencySignal = deterministicCandidate(agency);
 assert.ok(agencySignal, "change with a pronoun should retain its prior context");
-assert.match(agencySignal.evidence[0].quote, /805 mil toneladas de chocolates no país\\. O número subiu para 814 mil toneladas/);
+assert.match(agencySignal.evidence[0].quote, /805 mil toneladas de chocolates no país\. O número subiu para 814 mil toneladas/);
 
 
 const launches = deterministicCandidate({ id: "launches", content: "Neste ano, estão sendo lançados 134 lançamentos (contra 94 em 2025)." });
