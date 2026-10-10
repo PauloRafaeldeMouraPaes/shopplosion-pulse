@@ -14,7 +14,7 @@ const providerMessage = (status: number, raw: string) => {
   let message = ''
   try { const parsed = JSON.parse(raw); message = String(parsed?.error?.message || parsed?.message || '') } catch {}
   if (status === 401 || status === 403) return 'A chave Gemini foi recusada. Verifique se ela está ativa e vinculada ao projeto correto.'
-  if (status === 429) return 'O limite gratuito do Gemini foi atingido. Aguarde a renovação da cota e tente novamente.'
+  if (status === 429) return 'A quota ou o limite de uso do Gemini foi atingido. Verifique os limites do projeto e tente novamente.'
   if (status === 400) return message ? `O Gemini recusou a solicitação: ${message}` : 'O Gemini recusou a solicitação. Verifique o projeto, a chave e o modelo configurado.'
   return message ? `O Gemini retornou um erro: ${message}` : `O Gemini retornou HTTP ${status}.`
 }
@@ -156,7 +156,7 @@ ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a gera�
   if (!providerResponse?.ok) {
     const detail = await providerResponse?.text() || ''
     const fallback = deterministicFallback(`Gemini indisponível (HTTP ${lastProviderStatus}).`)
-    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true })
+    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true, provider_message: providerMessage(lastProviderStatus, detail) })
   }
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
