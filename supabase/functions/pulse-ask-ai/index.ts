@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
   try { const parsed = JSON.parse(publishableMap); publishableKey = parsed.default || Object.values(parsed)[0] || '' } catch { return json({ error: 'invalid_supabase_key_configuration' }, 500) }
   if (!publishableKey) return json({ error: 'missing_publishable_key' }, 500)
 
-  let body: { query?: string, scope?: string, originating_evidence_id?: string | null, retrieved_evidence?: any[], prior_knowledge?: any[] }
+  let body: { query?: string, scope?: string, originating_evidence_id?: string | null, selected_public_evidence_ids?: string[], retrieved_evidence?: any[], prior_knowledge?: any[] }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
   const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
     allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
   }
   const originatingEvidenceId = String(body.originating_evidence_id || '').trim().slice(0, 180) || null
+  const requestedPublicEvidenceIds = new Set(Array.isArray(body.selected_public_evidence_ids) ? body.selected_public_evidence_ids.slice(0, 12).map((id) => String(id || '').trim().slice(0, 180)).filter(Boolean) : [])
   const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
   const requestedPriorKnowledgeIds = Array.isArray(body.prior_knowledge)
     ? Array.from(new Set(body.prior_knowledge.slice(0, 8).map((item: any) => String(item?.id || '')).filter((id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)))
@@ -125,7 +126,7 @@ Deno.serve(async (req) => {
     const publicRanked = PULSE_PUBLIC_EVIDENCE.map((item: any) => {
       const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ')
       return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null }
-    }).filter((item: any) => item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId))
+    }).filter((item: any) => requestedPublicEvidenceIds.has(String(item.id)) && (item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId)))
       .sort((a: any, b: any) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score)
       .slice(0, 8)
     ranked = scope === 'both' ? [...ranked, ...publicRanked].sort((a, b) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score).slice(0, 12) : publicRanked
