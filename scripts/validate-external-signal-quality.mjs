@@ -47,6 +47,7 @@ assert.equal(deterministicCandidate({ id: "program-duration", content: "O progra
 const retailPrice = deterministicCandidate({ id: "procon-retail", content: "Entre os ovos de Páscoa, a variação de preço de um mesmo produto entre os estabelecimentos chegou a 31,91%." });
 assert.ok(retailPrice, "retail price dispersion should be detected as a quantified change");
 assert.match(retailPrice.evidence[0].quote, /variação de preço.*31,91%/);
+assert.equal(deterministicCandidate({ id: "retail-incomplete", content: "A maior variação percentual de preço, contudo, foi encontrada no valor de uma barra de chocolate de 80 gramas." }), null, "product weight alone must not be mistaken for a quantified price change");
 
 const shopperSurvey = deterministicCandidate({ id: "shopper-survey", content: "Pesquisa aponta que 90% dos consumidores comprarão chocolate na Páscoa. Índice é 4 pontos percentuais maior do que o declarado em 2025." });
 assert.ok(shopperSurvey, "a year-over-year shopper-intent shift in percentage points should be detected");
