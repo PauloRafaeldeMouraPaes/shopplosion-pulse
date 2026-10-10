@@ -85,12 +85,16 @@
     },
     {
       "slug": "pulse-external-signal-worker",
-      "version": 4,
+      "version": 5,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "00471ece3767ca7158222d810712a899af152e9f553f77a09dfb5103e87774d7",
+      "deployed_sha256": "a07bb795c0f7671eb4c9aed5d68c1688ba40456c6187bacac13ce8adb213f4c6",
       "source_path": "supabase/functions/pulse-external-signal-worker/index.ts",
-      "auth": "internal_worker_token"
+      "auth": "internal_worker_token",
+      "source_files": [
+        "supabase/functions/pulse-external-signal-worker/index.ts",
+        "supabase/functions/pulse-external-signal-worker/quality.mjs"
+      ]
     },
     {
       "slug": "pulse-external-deterministic-backstop",
