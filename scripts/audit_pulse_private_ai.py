@@ -59,6 +59,7 @@ require("Authorization" in fn and "Bearer " in fn, "Edge Function does not requi
 require("const publicMode = false" in fn, "Edge Function must not allow unauthenticated public-mode generation")
 require("answer_source: 'deterministic_no_evidence'" in fn, "no-evidence responses must be explicitly labeled as deterministic")
 require("answer_source: 'deterministic_fallback'" in fn, "provider fallback responses must be explicitly labeled as deterministic")
+require("function deterministicFallback(reason: string)" in fn, "deterministic fallback must be a hoisted function declaration before the missing-key branch can call it")
 require(bool(re.search(r"if\s*\(!geminiKey\)\s*\{[\s\S]*?answer_source:\s*['\"]deterministic_fallback", fn)), "missing Gemini key must return a deterministic evidence fallback")
 require("answer_source: 'llm'" in fn, "model-generated responses must be explicitly labeled")
 require("parsed?.error?.message" not in fn and "parsed?.message" not in fn, "raw Gemini provider error details must not be returned to the client")
