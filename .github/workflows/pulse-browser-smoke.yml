@@ -41,29 +41,29 @@ jobs:
       - name: Run next-level smoke tests
         run: npx playwright test scripts/browser-tests/pulse-next-level.spec.js
       - name: Run condução smoke tests
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-conducao.spec.js
       - name: Run Universo reprojection smoke tests
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-universo-v3.spec.js
       - name: Run Base reprojection smoke tests
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-base-v3.spec.js
       - name: Run command palette smoke tests
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-command-palette-v3.spec.js
       - name: Run mobile reprojection smoke tests
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-mobile-v3.spec.js
       - name: Run proposal fidelity smoke tests
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-proposal-fidelity.spec.js
       - name: Run canonical route shell regression
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-route-consistency.spec.js
       - name: Run Ask AI interaction smoke tests
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-ask-interaction.spec.js
       - name: Run chocolate evidence retrieval regression
-        if: always()
+        if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-ask-interaction.spec.js --grep "Busca de chocolate"
