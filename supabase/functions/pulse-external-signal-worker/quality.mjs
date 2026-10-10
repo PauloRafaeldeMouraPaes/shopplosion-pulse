@@ -5,25 +5,35 @@ export function isGoodEvidenceQuote(quote, content) {
   return /\d/.test(q) && /(chocolate|cacau|produ[cç][aã]o|consumo|p[aá]scoa|ovos|lan[cç]amentos?|exporta[cç][aã]o|importa[cç][aã]o|empregos?|toneladas|R\$|bilh[oõ]es|milh[oõ]es|quilos|\bkg\b)/i.test(q);
 }
 
-export function deterministicCandidate(item) {
+export function deterministicCandidates(item) {
   const text = String(item.content || "");
   const sentences = text.split(/(?<=[.!?])\s+/).map((s) => s.replace(/\s+/g, " ").trim()).filter((s) => s.length >= 35 && s.length <= 500);
-  const changeIndex = sentences.findIndex((s) => isGoodEvidenceQuote(s, text) && /(de .{1,60} para |subiu|cresceu|avançou|passou|aument|queda|redu[cç][aã]o|contra |comparad|atingiu|somou|registrou|totalizou|alcançou|foi de |chegou a )/i.test(s));
-  if (changeIndex < 0) return null;
-  let quote = sentences[changeIndex];
-  const explicitTopic = /(chocolate|cacau|produ[cç][aã]o|consumo|p[aá]scoa|ovos|lan[cç]amentos?|exporta[cç][aã]o|importa[cç][aã]o|empregos?)/i.test(quote);
-  if (!explicitTopic && changeIndex > 0) quote = sentences[changeIndex - 1] + " " + quote;
-  if (!isGoodEvidenceQuote(quote, text)) return null;
-  const title = quote.length <= 180 ? quote : quote.slice(0, 177) + "...";
-  return {
-    signal_type: "change",
-    title,
-    summary: "A fonte registra o seguinte dado quantitativo: " + quote + " O dado descreve o que a fonte reporta; isoladamente, não comprova mudança de compra, preferência ou comportamento individual do shopper. Tratar como sinal contextual a validar com evidências independentes.",
-    confidence: 0.65,
-    direction: "new",
-    change_score: 0.25,
-    evidence: [{ source_item_id: item.id, quote }],
-  };
+  const candidates = [];
+  const seen = new Set();
+  for (let i = 0; i < sentences.length && candidates.length < 5; i++) {
+    const sentence = sentences[i];
+    if (!isGoodEvidenceQuote(sentence, text) || !/(de .{1,60} para |subiu|cresceu|avançou|passou|aument|queda|redu[cç][aã]o|contra |comparad|atingiu|somou|registrou|totalizou|alcançou|foi de |chegou a )/i.test(sentence)) continue;
+    let quote = sentence;
+    const explicitTopic = /(chocolate|cacau|produ[cç][aã]o|consumo|p[aá]scoa|ovos|lan[cç]amentos?|exporta[cç][aã]o|importa[cç][aã]o|empregos?)/i.test(quote);
+    if (!explicitTopic && i > 0) quote = sentences[i - 1] + " " + quote;
+    if (!isGoodEvidenceQuote(quote, text) || seen.has(quote)) continue;
+    seen.add(quote);
+    const title = quote.length <= 180 ? quote : quote.slice(0, 177) + "...";
+    candidates.push({
+      signal_type: "change",
+      title,
+      summary: "A fonte registra o seguinte dado quantitativo: " + quote + " O dado descreve o que a fonte reporta; isoladamente, não comprova mudança de compra, preferência ou comportamento individual do shopper. Tratar como sinal contextual a validar com evidências independentes.",
+      confidence: 0.65,
+      direction: "new",
+      change_score: 0.25,
+      evidence: [{ source_item_id: item.id, quote }],
+    });
+  }
+  return candidates;
+}
+
+export function deterministicCandidate(item) {
+  return deterministicCandidates(item)[0] || null;
 }
 
 export function isGenericSummary(summary) {

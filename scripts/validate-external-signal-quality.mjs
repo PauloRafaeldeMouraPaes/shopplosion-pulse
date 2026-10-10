@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { deterministicCandidate, isGoodEvidenceQuote, isGenericSummary } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
+import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
 
 const abicab = {
   id: "abicab-item",
-  content: "Cabeçalho. A produção de chocolates avançou de 806 mil toneladas em 2024 para 814 mil toneladas em 2025. A diversidade de produtos também se ampliou. Neste ano, estão sendo lançados 134 lançamentos (contra 94 em 2025).",
+  content: "Cabeçalho. A produção de chocolates avançou de 806 mil toneladas em 2024 para 814 mil toneladas em 2025. Já o volume de ovos de Páscoa passou de 45 milhões no ano passado para 46 milhões neste ano. Outro destaque foi a geração de empregos temporários, que cresceu no período: de 9.946 vagas na Páscoa anterior para 14.558 em 2026. A diversidade de produtos também se ampliou. Neste ano, estão sendo lançados 134 lançamentos (contra 94 em 2025).",
 };
 const production = deterministicCandidate(abicab);
 assert.ok(production, "quantified production change should be detected");
@@ -14,6 +14,13 @@ assert.match(production.title, /806 mil toneladas em 2024 para 814 mil toneladas
 assert.equal(production.evidence[0].quote, "A produção de chocolates avançou de 806 mil toneladas em 2024 para 814 mil toneladas em 2025.");
 assert.match(production.summary, /não comprova mudança de compra/);
 assert.ok(isGoodEvidenceQuote(production.evidence[0].quote, abicab.content));
+
+const abicabSignals = deterministicCandidates(abicab);
+assert.ok(abicabSignals.length >= 3, "one source page should yield multiple distinct quantified facts");
+assert.ok(abicabSignals.some((s) => /ovos de Páscoa/.test(s.title)), "Easter volume change should be extracted");
+assert.ok(abicabSignals.some((s) => /empregos temporários/.test(s.title)), "temporary jobs change should be extracted");
+assert.ok(abicabSignals.some((s) => /134 lançamentos/.test(s.title)), "product launch change should be extracted");
+
 
 const agency = {
   id: "agency-item",
