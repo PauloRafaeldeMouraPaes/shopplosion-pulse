@@ -6,7 +6,7 @@ import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, i
 
 const abicab = {
   id: "abicab-item",
-  content: "Cabeçalho. A produção de chocolates avançou de 806 mil toneladas em 2024 para 814 mil toneladas em 2025. A diversidade de produtos também se ampliou. Neste ano, estão sendo lançados 134 lançamentos (contra 94 em 2025).",
+  content: "Cabeçalho. A produção de chocolates avançou de 806 mil toneladas em 2024 para 814 mil toneladas em 2025. Já o volume de ovos de Páscoa passou de 45 milhões no ano passado para 46 milhões neste ano. Outro destaque foi a geração de empregos temporários, que cresceu no período: de 9.946 vagas na Páscoa anterior para 14.558 em 2026. A diversidade de produtos também se ampliou. Neste ano, estão sendo lançados 134 lançamentos (contra 94 em 2025).",
 };
 const production = deterministicCandidate(abicab);
 assert.ok(production, "quantified production change should be detected");
