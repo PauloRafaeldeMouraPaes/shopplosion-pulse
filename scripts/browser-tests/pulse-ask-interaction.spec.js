@@ -15,20 +15,12 @@ test.describe('Ask AI interaction contract', () => {
     await expect(page.locator('#pv4-shell-status')).toContainText('Evidências públicas recuperadas');
   });
 
-  test('Gerar resposta pública funciona sem sessão privada', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
-    await page.route('**/functions/v1/pulse-ask-ai', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          answer: 'LEITURA: Os sinais públicos recuperados permitem descrever o movimento observado. [E1]',
-          structured: { leitura: 'Os sinais públicos recuperados permitem descrever o movimento observado.', hipotese: 'Hipótese a validar com evidência adicional.', recomendacao: 'Cruzar com outra evidência pública.', desconhecidos: 'O mecanismo comportamental ainda não pode ser afirmado.' },
-          knowledge_update: { classification: 'insufficient', reason: 'Não havia conhecimento anterior.' },
-          citations: [{ ref: 'E1', document: 'Mercado publicado · idv-julho-2026', chunk: 1 }]
-        })
-      });
+  test('Sem sessão de indústria, mantém leitura baseada em evidências e não simula resposta de IA', async ({ page }) => {
+    let aiRequests=0;
+    page.on('request',request=>{
+      if(request.url().includes('/functions/v1/pulse-ask-ai')) aiRequests++;
     });
+    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('O que os sinais recentes de Alimentação e Bebidas indicam sobre preço e vendas?');
     const actions=page.locator('.pv4-real-actions button');
@@ -37,8 +29,9 @@ test.describe('Ask AI interaction contract', () => {
     await page.locator('#results input[data-evidence-key]').first().evaluate(el=>el.click());
     await actions.nth(1).click();
     await expect(page.locator('#pv4-response')).toBeVisible();
-    await expect(page.locator('#pv4-response')).not.toHaveText('Aguardando uma pergunta.');
-    await expect(page.locator('#pv4-shell-status')).not.toHaveText('');
+    await expect(page.locator('#pv4-response')).toContainText('LEITURA:');
+    await expect(page.locator('#pv4-shell-status')).toContainText('conta vinculada a uma indústria ativa');
+    expect(aiRequests).toBe(0);
   });
 
   test('Busca de chocolate recupera evidências específicas com alcance e natureza declarados', async ({ page }) => {
