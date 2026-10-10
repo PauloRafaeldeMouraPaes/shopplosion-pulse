@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { deterministicCandidate, isGoodEvidenceQuote, isGenericSummary } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
 
 const abicab = {
@@ -12,6 +15,15 @@ assert.equal(production.evidence[0].quote, "A produção de chocolates avançou 
 assert.match(production.summary, /não comprova mudança de compra/);
 assert.ok(isGoodEvidenceQuote(production.evidence[0].quote, abicab.content));
 
+const agency = {
+  id: "agency-item",
+  content: "Em 2024, foram produzidas 805 mil toneladas de chocolates no país. O número subiu para 814 mil toneladas no ano passado.",
+};
+const agencySignal = deterministicCandidate(agency);
+assert.ok(agencySignal, "change with a pronoun should retain its prior context");
+assert.match(agencySignal.evidence[0].quote, /805 mil toneladas de chocolates no país\. O número subiu para 814 mil toneladas/);
+
+
 const launches = deterministicCandidate({ id: "launches", content: "Neste ano, estão sendo lançados 134 lançamentos (contra 94 em 2025)." });
 assert.ok(launches, "launch count change should be detected");
 assert.match(launches.title, /134 lançamentos/);
@@ -20,4 +32,12 @@ assert.equal(deterministicCandidate({ id: "nav", content: "Menu. Últimas notíc
 assert.equal(isGoodEvidenceQuote("Pular para o conteúdo principal Menu Últimas Notícias 2026", "Pular para o conteúdo principal Menu Últimas Notícias 2026"), false);
 assert.equal(isGenericSummary("A captured external source reports a quantified change that may be relevant to the industry."), true);
 assert.equal(isGenericSummary(production.summary), false);
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const signalWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-signal-worker/index.ts"), "utf8");
+const backstopWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/index.ts"), "utf8");
+assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,signal_key'\}\)/, "partial unique index must not be targeted by an invalid PostgREST upsert");
+assert.match(signalWorker, /isGoodEvidenceQuote/);
+assert.match(backstopWorker, /isGoodEvidenceQuote/);
+assert.match(backstopWorker, /deterministicCandidate/);
+
 console.log("External signal evidence quality: PASS");
