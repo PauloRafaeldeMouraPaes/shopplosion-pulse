@@ -76,10 +76,10 @@
     },
     {
       "slug": "pulse-external-source-worker",
-      "version": 5,
+      "version": 6,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "da1139a8ea964db26f79889411052add9a312a47c20e2f83d7baafa977f3f94b",
+      "deployed_sha256": "efc91128ea25319e7d7c883a2573526a502c2ab9324b1e4778e4f70a323d735e",
       "source_path": "supabase/functions/pulse-external-source-worker/index.ts",
       "auth": "internal_worker_token"
     },
