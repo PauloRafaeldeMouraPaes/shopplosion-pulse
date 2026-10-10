@@ -39,5 +39,7 @@ assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,s
 assert.match(signalWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /deterministicCandidate/);
+assert.match(backstopWorker, /normalize\("NFD"\).*replace\(\/\[\\u0300-\\u036f\]\/g/);
+assert.match(backstopWorker, /norm\(String\(candidate\.title\)\)/, "both workers must normalize signal identity consistently");
 
 console.log("External signal evidence quality: PASS");
