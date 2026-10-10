@@ -125,3 +125,15 @@ Metas de volume de sinais serão definidas após a primeira semana de baseline, 
 **Interromper** se a maioria dos sinais depende de inferência não verificável, fontes não autorizadas ou dados não representativos.
 
 Este documento é o protocolo de trabalho do piloto, não um resultado de pesquisa nem uma afirmação de que a captura de fontes já esteja configurada.
+
+## 11. Diagnóstico inicial do ambiente (10/10/2026)
+
+A leitura somente de consulta do Supabase encontrou:
+- 2 registros de indústria, ambos com nomes de teste;
+- 0 fontes cadastradas, 0 itens de fonte capturados, 0 sinais de inteligência e 0 eventos de sinal;
+- 0 execuções registradas de captura de fontes;
+- 202 ocorrências do marcador `[A DEFINIR]` no arquivo `supabase/functions/pulse-ask-ai/public-evidence.ts`.
+
+Implicação: o mecanismo de captura ainda não tem fontes cadastradas no ambiente consultado e não existe baseline operacional de sinais nessa camada. A base de evidência pública precisa de uma auditoria por registro antes de ser usada para produzir conclusões. Os números acima são uma fotografia do ambiente no momento da consulta, não uma afirmação de que o produto inteiro não tenha outros dados fora dessas tabelas.
+
+**Gate obrigatório antes do primeiro sinal de produção:** auditar os registros públicos, cadastrar fontes permitidas no escopo correto, executar captura real, confirmar citações contra a fonte original e revisar o primeiro lote de sinais. Não cadastrar a categoria Chocolate em uma das indústrias de teste nem misturar dados de teste com uma futura indústria real.
