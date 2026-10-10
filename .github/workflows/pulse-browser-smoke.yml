@@ -24,7 +24,7 @@ jobs:
       - name: Install Playwright package
         run: npm install --no-save @playwright/test@1.55.0
       - name: Install Chromium headless shell
-        run: npx playwright install --with-deps --only-shell
+        run: npx playwright install --only-shell chromium
       - name: Verify Chromium headless shell
         shell: bash
         run: |
