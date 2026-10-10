@@ -70,6 +70,34 @@ try {
 }
 
 if (!Array.isArray(evidence) || evidence.length === 0) failures.push('PULSE_EVIDENCE must be a non-empty array');
+
+let standaloneEvidence;
+try {
+  const source = fs.readFileSync('pulse-public-evidence.js', 'utf8');
+  const marker = 'window.PULSE_EVIDENCE=';
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) throw new Error('window.PULSE_EVIDENCE not found in pulse-public-evidence.js');
+  const start = source.indexOf('[', markerIndex);
+  if (start < 0) throw new Error('PULSE_EVIDENCE array not found in pulse-public-evidence.js');
+  const [a, b] = balancedSpan(source, start, '[', ']');
+  standaloneEvidence = vm.runInNewContext(source.slice(a, b));
+} catch (err) {
+  failures.push(`standalone public evidence failed to load: ${err.message}`);
+}
+if (Array.isArray(evidence) && Array.isArray(standaloneEvidence) &&
+    JSON.stringify(evidence) !== JSON.stringify(standaloneEvidence)) {
+  failures.push('embedded index.html evidence and pulse-public-evidence.js are out of sync');
+}
+if (Array.isArray(evidence) && evidence.length < 34) failures.push(`expected at least 34 public evidence records, found ${evidence.length}`);
+for (const id of [
+  'kantar-chocolate-brasil-volume-q1-2025',
+  'kantar-chocolate-brasil-compras-pascoa-2024',
+  'abicab-chocolate-producao-brasil-2025-pascoa-2026',
+  'locomotiva-pascoa-2026-intencao-drivers',
+  'rico-preco-chocolate-barra-bombom-out-2026'
+]) {
+  if (!Array.isArray(evidence) || !evidence.some(item => item.id === id)) failures.push(`required chocolate evidence missing: ${id}`);
+}
 if (!Array.isArray(sources) || sources.length === 0) failures.push('PULSE_SOURCES must be a non-empty array');
 
 const allowedCategories = null;
@@ -81,10 +109,11 @@ for (const item of evidence || []) {
   else if (evidenceIds.has(item.id)) failures.push(`duplicate evidence id: ${item.id}`);
   else evidenceIds.add(item.id);
 
-  for (const field of ['categoria', 'fato', 'contexto', 'interpretacao', 'hipotese', 'acao', 'fonte', 'periodo', 'confianca']) {
+  for (const field of ['categoria', 'fato', 'contexto', 'interpretacao', 'hipotese', 'acao', 'fonte', 'periodo', 'natureza', 'universo_observado', 'representa', 'nao_representa', 'fonte_primaria', 'fato_verificado_na_fonte', 'alcance_para_pergunta']) {
     if (item[field] === undefined || item[field] === null || item[field] === '') failures.push(`${item.id || '<unknown>'}: missing ${field}`);
   }
   if (!item.categoria || typeof item.categoria !== 'string') failures.push(`${item.id}: invalid categoria`);
+  if (Object.prototype.hasOwnProperty.call(item, 'confianca')) failures.push(`${item.id}: deprecated confidence score must not be used`);
   if (item.url && !/^https?:\/\//i.test(item.url)) failures.push(`${item.id}: invalid evidence URL`);
 }
 
