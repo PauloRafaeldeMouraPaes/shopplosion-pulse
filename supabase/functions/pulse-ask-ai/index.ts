@@ -74,10 +74,27 @@ Deno.serve(async (req) => {
   }
   const originatingEvidenceId = String(body.originating_evidence_id || '').trim().slice(0, 180) || null
   const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
-  const priorKnowledge = Array.isArray(body.prior_knowledge) ? body.prior_knowledge.slice(0, 8) : []
+  const requestedPriorKnowledgeIds = Array.isArray(body.prior_knowledge)
+    ? Array.from(new Set(body.prior_knowledge.slice(0, 8).map((item: any) => String(item?.id || '')).filter((id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)))
+    : []
+  let priorKnowledge: any[] = []
   const terms = termsFor(query)
   const clientPrivateKeys = new Set(clientRetrievedEvidence.filter((item: any) => item?.document_id && Number.isInteger(item?.chunk)).map((item: any) => `${item.document_id}:${item.chunk}`))
   if (!query || !terms.length) return json({ error: 'invalid_query', message: 'Digite uma pergunta válida.' }, 400)
+  if (requestedPriorKnowledgeIds.length) {
+    const allowedKnowledgeScopes = scope === 'universe' ? ['universe'] : scope === 'industry' ? ['industry'] : ['industry', 'universe', 'both']
+    const { data: knowledgeRows, error: knowledgeError } = await supabase
+      .from('shopper_knowledge')
+      .select('id,claim,status,scope,investigation_id')
+      .eq('industry_id', profile.industry_id)
+      .in('id', requestedPriorKnowledgeIds)
+      .in('scope', allowedKnowledgeScopes)
+      .limit(8)
+    if (knowledgeError) return json({ error: 'prior_knowledge_retrieval_failed', message: 'O conhecimento anterior não pôde ser validado no escopo autenticado. Tente novamente.' }, 500)
+    priorKnowledge = (knowledgeRows || []).map((item: any) => ({
+      id: item.id, claim: item.claim, status: item.status, scope: item.scope, investigation_id: item.investigation_id,
+    }))
+  }
 
   const filters = terms.map((term) => `content.ilike.%${term}%`).join(',')
   let ranked: any[] = []
@@ -127,7 +144,7 @@ Deno.serve(async (req) => {
 
   const system = 'Você é o analista do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Em escopo privado, nunca revele dados fora da indústria autenticada. Em escopo público, trate as evidências como mercado publicado. Em escopo combinado, diferencie claramente o que vem do mercado publicado e o que vem da indústria autenticada.'
   const priorKnowledgeText = priorKnowledge.length ? priorKnowledge.map((item: any, index: number) => `<knowledge ref="K${index + 1}" status="${String(item.status || 'proposed')}">${String(item.claim || '').slice(0, 4000)}</knowledge>`).join('\\n') : 'Nenhum conhecimento anterior vinculado.'
-  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nContexto: ${publicMode ? 'mercado publicado; nenhum dado privado foi autorizado' : 'indústria autenticada: ' + industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
+  const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nContexto: ${scope === 'universe' ? 'mercado publicado; nenhum dado privado foi incluído' : scope === 'both' ? 'mercado publicado combinado apenas com evidências recuperadas da indústria autenticada: ' + industry.name : 'indústria autenticada: ' + industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
   if (!geminiKey) {
     const fallback = deterministicFallback('A chave do provedor Gemini não está configurada.')
     return json({
