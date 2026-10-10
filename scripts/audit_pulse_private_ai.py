@@ -49,6 +49,8 @@ require("supabase functions deploy pulse-ask-ai --project-ref" in deploy,
         "Deployment workflow must deploy only pulse-ask-ai")
 require("invalid.invalid.invalid" in deploy and "SUPABASE ASK AI JWT GATEWAY CHECK: PASS" in deploy,
         "Deployment workflow must verify that invalid JWTs are blocked at the gateway")
+require("api.supabase.com/v1/projects/" in deploy and "DEPLOYED_FUNCTION_JWT_VERIFICATION_NOT_ENABLED" in deploy,
+        "Deployment workflow must verify live Supabase function metadata and verify_jwt")
 require("PULSE_LLM_MODEL" in fn, "LLM model is not configurable")
 require("citations" in fn and "ref:" in fn, "Evidence citations are not returned")
 require("service_role" not in fn.lower() and "supabase_secret_key" not in fn.lower(),
