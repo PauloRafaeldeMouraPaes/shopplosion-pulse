@@ -1,14 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { deterministicCandidate, isGoodEvidenceQuote, isGenericSummary } from "./quality.mjs";
 
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"content-type,x-pulse-cron","Access-Control-Allow-Methods":"POST,OPTIONS"};
 const json=(b:unknown,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json"}});
 const norm=(s:string)=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/\s+/g," ");
 async function sha(s:string){const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,"0")).join("")}
 const clamp=(n:number)=>Math.max(0,Math.min(1,Number.isFinite(n)?n:0));const sleep=(ms:number)=>new Promise(r=>setTimeout(r,ms));
-function isGoodEvidenceQuote(quote:string,content:string){const q=String(quote||"").trim();if(q.length<35||q.length>500||!String(content||"").includes(q))return false;if(/pular para o conte[uú]do|ir para o conte[uú]do|[uú]ltimas not[ií]cias|feed rss|menu|carta de servi[cç]os|transpar[eê]ncia|in[ií]cio\s+[uú]ltimas/i.test(q))return false;return /\d/.test(q)&&/(chocolate|cacau|produ[cç][aã]o|consumo|p[aá]scoa|ovos|lan[cç]amentos?|exporta[cç][aã]o|importa[cç][aã]o|empregos?|toneladas|R\$|bilh[oõ]es|milh[oõ]es|quilos|\bkg\b)/i.test(q)}
-function deterministicCandidate(item:any){const text=String(item.content||"");const sentences=text.split(/(?<=[.!?])\s+/).map((s:string)=>s.replace(/\s+/g," ").trim()).filter((s:string)=>s.length>=35&&s.length<=500);const quote=sentences.find((s:string)=>isGoodEvidenceQuote(s,text)&&/(de .{1,60} para |subiu|cresceu|avançou|passou|aument|queda|redu[cç][aã]o|contra |comparad|atingiu|somou|registrou|totalizou|alcançou|foi de |chegou a )/i.test(s));if(!quote)return null;const title=quote.length<=180?quote:quote.slice(0,177)+"...";return {signal_type:"change",title,summary:"A fonte registra o seguinte dado quantitativo: "+quote+" O dado descreve o que a fonte reporta; isoladamente, não comprova mudança de compra, preferência ou comportamento individual do shopper. Tratar como sinal contextual a validar com evidências independentes.",confidence:0.65,direction:"new",change_score:0.25,evidence:[{source_item_id:item.id,quote}]}}
-function isGenericSummary(summary:string){return /captured external source reports a quantified change|may be relevant to the industry|fonte externa reporta uma mudança quantitativa gen[eé]rica/i.test(String(summary||""))}
+
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:cors});if(req.method!=='POST')return json({error:'method_not_allowed'},405);
  const url=Deno.env.get('SUPABASE_URL'),sr=Deno.env.get('SUPABASE_SECRET_KEYS'),gemini=Deno.env.get('GEMINI_API_KEY'),model=Deno.env.get('PULSE_LLM_MODEL')||'gemini-2.5-flash-lite';if(!url||!sr||!gemini)return json({error:'runtime_not_configured'},500);
