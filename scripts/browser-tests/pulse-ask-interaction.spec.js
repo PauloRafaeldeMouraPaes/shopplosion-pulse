@@ -34,6 +34,32 @@ test.describe('Ask AI interaction contract', () => {
     expect(aiRequests).toBe(0);
   });
 
+  test('Sessão de indústria envia bearer ao provedor e renderiza a resposta recebida', async ({ page }) => {
+    let authorization='';
+    await page.route('**/functions/v1/pulse-ask-ai', async route => {
+      authorization=route.request().headers()['authorization']||'';
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          answer: 'RESPOSTA DE IA AUTENTICADA: leitura refinada com as evidências selecionadas. [E1]',
+          citations: [{ ref: 'E1', document: 'Kantar · chocolate · 2025-T1' }]
+        })
+      });
+    });
+    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
+    await page.selectOption('#pv3-scope-select', 'public');
+    await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
+    const actions=page.locator('.pv4-real-actions button');
+    await actions.nth(0).click();
+    await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
+    await page.locator('#results input[data-evidence-key]').first().evaluate(el=>el.click());
+    await actions.nth(1).click();
+    await expect(page.locator('#pv4-response')).toContainText('RESPOSTA DE IA AUTENTICADA');
+    expect(authorization).toBe('Bearer test-industry-token');
+  });
+
   test('Busca de chocolate recupera evidências específicas com alcance e natureza declarados', async ({ page }) => {
     await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
