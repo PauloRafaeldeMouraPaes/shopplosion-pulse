@@ -162,12 +162,20 @@ Deno.serve(async (req) => {
   let providerResponse: Response | null = null
   let lastProviderStatus = 0
   for (let attempt = 0; attempt < 3; attempt++) {
-    providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': geminiKey },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } })
-    })
-    lastProviderStatus = providerResponse.status
+    try {
+      providerResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': geminiKey },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 700 } })
+      })
+      lastProviderStatus = providerResponse.status
+    } catch {
+      providerResponse = null
+      lastProviderStatus = 0
+      if (attempt === 2) break
+      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
+      continue
+    }
     if (providerResponse.ok) break
     if (![429, 500, 502, 503, 504].includes(providerResponse.status) || attempt === 2) break
     await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
