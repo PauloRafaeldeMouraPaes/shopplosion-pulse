@@ -91,6 +91,23 @@ test.describe('Ask AI interaction contract', () => {
     expect(authorization).toBe('Bearer test-industry-token');
   });
 
+  test('Chocolate recupera sinais de 2026 com natureza e limites distintos', async ({ page }) => {
+    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.selectOption('#pv3-scope-select', 'public');
+    await page.locator('.pv4-real-input').fill('intenção de compra chocolate Páscoa 2026 preço ovos barra Locomotiva');
+    await page.locator('.pv4-real-actions button').nth(0).click();
+    await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
+    const audit=await page.evaluate(()=>({
+      ids:(window.__pulsePublicMatches||[]).map(x=>x.e?.id),
+      text:document.getElementById('results')?.textContent||''
+    }));
+    expect(audit.ids).toContain('locomotiva-pascoa-2026-intencao-drivers');
+    expect(audit.ids).toContain('rico-preco-chocolate-barra-bombom-out-2026');
+    expect(audit.text).toContain('INDIRETO para Lindt Brasil');
+    expect(audit.text).toContain('CONTEXTUAL para comportamento do shopper');
+    expect(audit.text).toContain('não mede comportamento de compra');
+  });
+
   test('Busca de chocolate recupera evidências específicas com alcance e natureza declarados', async ({ page }) => {
     await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
