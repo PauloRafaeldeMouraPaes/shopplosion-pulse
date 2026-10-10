@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { PULSE_PUBLIC_EVIDENCE } from './public-evidence.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
   try { const parsed = JSON.parse(publishableMap); publishableKey = parsed.default || Object.values(parsed)[0] || '' } catch { return json({ error: 'invalid_supabase_key_configuration' }, 500) }
   if (!publishableKey) return json({ error: 'missing_publishable_key' }, 500)
 
-  let body: { query?: string, scope?: string, public_evidence?: any[], originating_evidence_id?: string | null, retrieved_evidence?: any[], prior_knowledge?: any[] }
+  let body: { query?: string, scope?: string, originating_evidence_id?: string | null, retrieved_evidence?: any[], prior_knowledge?: any[] }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
   const query = String(body.query || '').trim().slice(0, 500)
   const scope = ['industry','universe','both'].includes(String(body.scope || 'industry')) ? String(body.scope || 'industry') : 'industry'
@@ -72,7 +73,6 @@ Deno.serve(async (req) => {
     if (industriesError) return json({ error: 'industry_scope_lookup_failed' }, 500)
     allIndustryNames = (industries || []).map((item) => String(item.name || '')).filter(Boolean)
   }
-  const publicEvidence = Array.isArray(body.public_evidence) ? body.public_evidence.slice(0, 20) : []
   const originatingEvidenceId = String(body.originating_evidence_id || '').trim().slice(0, 180) || null
   const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
   const priorKnowledge = Array.isArray(body.prior_knowledge) ? body.prior_knowledge.slice(0, 8) : []
@@ -106,9 +106,9 @@ Deno.serve(async (req) => {
   }
   if (scope !== 'industry') {
     const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
-    const publicRanked = publicEvidence.map((item: any) => {
+    const publicRanked = PULSE_PUBLIC_EVIDENCE.map((item: any) => {
       const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ')
-      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado' }
+      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null }
     }).filter((item: any) => item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId))
       .sort((a: any, b: any) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score)
       .slice(0, 8)
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     return json({ answer, citations: [], scope, fallback: true, answer_source: 'deterministic_no_evidence', fallback_reason: 'no_relevant_evidence' })
   }
   const evidence = ranked.map((item, index) => {
-    if (item.scope_source === 'public') return { ref: `E${index + 1}`, document: `Mercado publicado · ${item.public_evidence_id || 'evidência'}`, document_id: null, document_chunk_id: null, chunk: 1, source_type: 'public', public_evidence_id: item.public_evidence_id, content: String(item.content || '').slice(0, 5000) }
+    if (item.scope_source === 'public') return { ref: `E${index + 1}`, document: String(item.public_source || `Mercado publicado · ${item.public_evidence_id || 'evidência'}`), document_id: null, document_chunk_id: null, chunk: 1, source_type: 'public', public_evidence_id: item.public_evidence_id, source_url: item.public_source_url || null, content: String(item.content || '').slice(0, 5000) }
     return { ref: `E${index + 1}`, document: documentMap[item.document_id] || 'Documento privado', document_id: item.document_id, document_chunk_id: item.id, chunk: Number(item.chunk_index) + 1, source_type: item.source_type || 'text', content: String(item.content || '').slice(0, 5000) }
   })
   const evidenceText = evidence.map((item) => `<evidence ref="${item.ref}" document="${item.document}" chunk="${item.chunk}" source="${item.source_type}">${item.content}</evidence>`).join('\n')
@@ -180,5 +180,5 @@ ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a gera�
       scope_rejected: true,
     }, 200)
   }
-  return json({ answer, answer_source: 'llm', fallback: false, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, knowledge_update, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
+  return json({ answer, answer_source: 'llm', fallback: false, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, knowledge_update, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null, source_url: item.source_url || null })) })
 })
