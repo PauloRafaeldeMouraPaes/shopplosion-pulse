@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
   const requestedPublicEvidenceIds = new Set(Array.isArray(body.selected_public_evidence_ids) ? body.selected_public_evidence_ids.slice(0, 12).map((id) => String(id || '').trim().slice(0, 180)).filter(Boolean) : [])
   const clientRetrievedEvidence = Array.isArray(body.retrieved_evidence) ? body.retrieved_evidence.slice(0, 20) : []
   const requestedPriorKnowledgeIds = Array.isArray(body.prior_knowledge)
-    ? Array.from(new Set(body.prior_knowledge.slice(0, 8).map((item: any) => String(item?.id || '')).filter((id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)))
+    ? Array.from(new Set(body.prior_knowledge.slice(0, 8).map((item: any) => String(item?.id || '')).filter((id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))))
     : []
   let priorKnowledge: any[] = []
   const terms = termsFor(query)
