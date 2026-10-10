@@ -156,7 +156,7 @@
     }
     show('Leitura inicial pronta. Refinando com a IA…','ok');
     try{
-      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,retrieved_evidence:selected.map(x=>({document_id:null,chunk_index:0,quote:[x.e.fato,x.e.contexto,x.e.interpretacao,x.e.hipotese,x.e.acao].filter(Boolean).join(' '),source_type:'public',score:x.score})),prior_knowledge:[]}),cache:'no-store'});
+      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,selected_public_evidence_ids:selected.map(x=>String(x.e.id||'')).filter(Boolean)}),cache:'no-store'});
       const data=await r.json().catch(()=>null);
       if(r.ok&&data&&!data.error&&data.answer){renderAnswer(data.answer,data.citations||[],Boolean(data.fallback),data.provider_message||'',data.answer_source||'');return}
       const diagnostic=String(data?.message||'').trim();show(diagnostic?'A IA não ficou disponível. '+diagnostic+' A leitura determinística inicial baseada nas evidências permanece disponível.':'A IA não concluiu a resposta. A leitura determinística inicial baseada nas evidências permanece disponível.','error');
