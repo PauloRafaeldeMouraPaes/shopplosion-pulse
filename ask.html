@@ -139,12 +139,20 @@
     const lead=selected[0].e;
     const localAnswer='LEITURA: '+String(lead.fato||lead.contexto||'As evidências selecionadas trazem sinais relacionados à pergunta.')+' [E1]\\n\\nHIPÓTESE: As evidências selecionadas não permitem, sozinhas, atribuir um mecanismo específico de comportamento do shopper.\\n\\nRECOMENDAÇÃO: Cruzar os sinais selecionados com evidências diretamente relacionadas a preço, volume, quantidade, categoria ou canal antes de concluir.\\n\\nDESCONHECIDOS: O conjunto selecionado não permite afirmar causalidade ou uma mudança específica de frequência, canal, marca, quantidade ou missão.\\n\\nATUALIZAÇÃO: INSUFFICIENT — leitura baseada nas evidências públicas selecionadas.';
     renderAnswer(localAnswer,selected.slice(0,4).map((x,i)=>({ref:'E'+(i+1),document:'Mercado publicado · '+String(x.e.id||x.e.fonte||'evidência')})),true);
-    show('Leitura inicial pronta. Refinando com o provedor de IA…','ok');
+    const accessToken=String(window.__PULSE_ASK_ACCESS_TOKEN||'');
+    if(!accessToken){
+      show('Leitura pública inicial pronta. Para gerar uma resposta com IA, entre com uma conta vinculada a uma indústria ativa.','ok');
+      return;
+    }
+    show('Leitura inicial pronta. Refinando com a IA…','ok');
     try{
-      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,public_evidence:selected.map(x=>x.e),retrieved_evidence:selected.map(x=>({document_id:null,chunk_index:0,quote:[x.e.fato,x.e.contexto,x.e.interpretacao,x.e.hipotese,x.e.acao].filter(Boolean).join(' '),source_type:'public',score:x.score,public_evidence:x.e})),prior_knowledge:[]}),cache:'no-store'});
+      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,public_evidence:selected.map(x=>x.e),retrieved_evidence:selected.map(x=>({document_id:null,chunk_index:0,quote:[x.e.fato,x.e.contexto,x.e.interpretacao,x.e.hipotese,x.e.acao].filter(Boolean).join(' '),source_type:'public',score:x.score,public_evidence:x.e})),prior_knowledge:[]}),cache:'no-store'});
       const data=await r.json().catch(()=>null);
-      if(r.ok&&data&&!data.error&&data.answer)renderAnswer(data.answer,data.citations||[],Boolean(data.fallback));
-    }catch{}
+      if(r.ok&&data&&!data.error&&data.answer){renderAnswer(data.answer,data.citations||[],Boolean(data.fallback));return}
+      show('A IA não concluiu a resposta. A leitura inicial baseada nas evidências permanece disponível.','error');
+    }catch{
+      show('Não foi possível conectar à IA. A leitura inicial baseada nas evidências permanece disponível.','error');
+    }
   };
 const waitForAskReady=async()=>{if(askInitError)return false;let timer;const timeout=new Promise(resolve=>{timer=setTimeout(()=>{askInitError='A investigação não conseguiu concluir a inicialização. O acesso ao serviço de dados não respondeu a tempo. Recarregue esta página e tente novamente.';resolve(false)},10000)});const ready=await Promise.race([askReady.then(()=>true),timeout]);clearTimeout(timer);return ready};
   const bindActionButtons=()=>{const s=document.getElementById('search'),g=document.getElementById('generate');if(s)s.onclick=async()=>{if(s.disabled)return;const currentScope=syncEffectiveScope();if(currentScope==='universe'||currentScope==='both'){runPublicSearchImmediately();s.disabled=false;return} s.disabled=true;show('Iniciando busca…','ok');const ready=await waitForAskReady();if(!ready||askInitError){show(askInitError||'A busca não foi inicializada.','error');s.disabled=false;return}try{await searchEvidence()}catch(e){show(e?.message||'Falha na busca.','error')}finally{s.disabled=false}};if(g)g.onclick=async()=>{const currentScope=syncEffectiveScope();if(currentScope==='universe'){g.disabled=true;try{await generatePublicAnswer()}finally{g.disabled=false}return}g.disabled=true;show('Iniciando geração…','ok');const ready=await waitForAskReady();if(!ready||askInitError){show(askInitError||'A geração não foi inicializada.','error');g.disabled=false;return}try{await generateAnswer()}catch(e){show(e?.message||'Falha na geração.','error')}finally{g.disabled=false}}};
@@ -184,6 +192,7 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
     context=Array.isArray(body)?body[0]:body;
   }catch(e){failInit('Não foi possível validar a indústria agora. A busca não foi inicializada. Tente recarregar a página.');return}
   if(!context?.industry_id||context.industry_status!=='active'){failInit('A conta não possui uma indústria ativa. A busca e a geração de respostas permanecem bloqueadas.');return}
+  window.__PULSE_ASK_ACCESS_TOKEN=session.access_token;
   const profile={industry_id:context.industry_id,role:context.role};
   const industry={id:context.industry_id,name:context.industry_name,status:context.industry_status};
   document.getElementById('industryName').textContent=industry.name;
