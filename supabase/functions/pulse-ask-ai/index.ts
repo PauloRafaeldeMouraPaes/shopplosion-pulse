@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
     if (![429, 500, 502, 503, 504].includes(providerResponse.status) || attempt === 2) break
     await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
   }
-  const deterministicFallback = (reason: string) => {
+  function deterministicFallback(reason: string) {
     const lead = evidence[0]
     const fact = lead?.content ? String(lead.content).split(/[\n.]/).map((x) => x.trim()).find(Boolean) || String(lead.content).slice(0, 500) : 'As evidências recuperadas não trazem informação suficiente.'
     const refs = evidence.slice(0, 4).map((item) => `[${item.ref}]`).join(' ')
