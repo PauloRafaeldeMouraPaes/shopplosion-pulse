@@ -100,10 +100,10 @@
     },
     {
       "slug": "pulse-external-deterministic-backstop",
-      "version": 3,
+      "version": 4,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "f1d046acbfb98cd1c6f935024ad993a969350eb0296ee837919c0b35257e8244",
+      "deployed_sha256": "26a8df571d332caaaa7030b12151e414d7b44574ada668818719069266b2322b",
       "source_path": "supabase/functions/pulse-external-deterministic-backstop/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
