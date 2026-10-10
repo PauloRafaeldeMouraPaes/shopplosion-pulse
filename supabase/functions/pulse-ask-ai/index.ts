@@ -44,7 +44,6 @@ Deno.serve(async (req) => {
   const geminiKey = Deno.env.get('GEMINI_API_KEY')
   const model = Deno.env.get('PULSE_LLM_MODEL') || 'gemini-3.5-flash-lite'
   if (!supabaseUrl || !publishableMap) return json({ error: 'supabase_runtime_not_configured' }, 500)
-  if (!geminiKey) return json({ error: 'llm_provider_not_configured', message: 'A geração por IA não está configurada no servidor. A resposta não foi gerada por IA; consulte as evidências recuperadas enquanto o provedor é configurado.' }, 503)
 
   let publishableKey = ''
   try { const parsed = JSON.parse(publishableMap); publishableKey = parsed.default || Object.values(parsed)[0] || '' } catch { return json({ error: 'invalid_supabase_key_configuration' }, 500) }
@@ -129,6 +128,19 @@ Deno.serve(async (req) => {
   const system = 'Você é o analista do Shopplosion Pulse. Responda em português do Brasil, de forma objetiva e analítica. Use SOMENTE as evidências fornecidas. Não invente números, fatos, fontes ou conclusões. Diferencie claramente FACT e INFERENCE quando houver inferência. Se as evidências não sustentarem a resposta, diga isso. Sempre cite as evidências usadas no formato [E1], [E2]. Em escopo privado, nunca revele dados fora da indústria autenticada. Em escopo público, trate as evidências como mercado publicado. Em escopo combinado, diferencie claramente o que vem do mercado publicado e o que vem da indústria autenticada.'
   const priorKnowledgeText = priorKnowledge.length ? priorKnowledge.map((item: any, index: number) => `<knowledge ref="K${index + 1}" status="${String(item.status || 'proposed')}">${String(item.claim || '').slice(0, 4000)}</knowledge>`).join('\\n') : 'Nenhum conhecimento anterior vinculado.'
   const prompt = `Pergunta do usuário: ${query}\n\nEscopo selecionado: ${scope}\n\nContexto: ${publicMode ? 'mercado publicado; nenhum dado privado foi autorizado' : 'indústria autenticada: ' + industry.name}\n\nEvidência de origem fixada: ${originatingEvidenceId || 'nenhuma'}\n\nO navegador enviou ${clientRetrievedEvidence.length} referência(s) recuperada(s); o servidor revalidou o escopo e usa somente a recuperação autorizada abaixo.\n\nEvidências recuperadas conforme o escopo:\n${evidenceText}\n\nConhecimento de Shopper anterior (não trate como fato sem revalidar):\n${priorKnowledgeText}\n\nProduza uma resposta curta, útil e verificável, citando cada afirmação relevante com [Ex]. Use exatamente estes blocos: LEITURA: uma síntese factual; HIPÓTESE: uma hipótese explicitamente não factual quando houver; RECOMENDAÇÃO: um próximo passo condicionado à evidência; DESCONHECIDOS: o que as evidências ainda não permitem afirmar; ATUALIZAÇÃO: classifique o conhecimento anterior como exatamente uma de CONSISTENT, POTENTIAL_CHANGE, CONTRADICTION, INSUFFICIENT ou OUTDATED e explique em uma frase por quê. Se não houver conhecimento anterior, use INSUFFICIENT.`
+  if (!geminiKey) {
+    const fallback = deterministicFallback('A chave do provedor Gemini não está configurada.')
+    return json({
+      ...fallback,
+      model,
+      scope,
+      originating_evidence_id: originatingEvidenceId,
+      fallback: true,
+      answer_source: 'deterministic_fallback',
+      provider_message: 'A geração por IA não está configurada no servidor. A leitura determinística baseada nas evidências foi mantida.'
+    })
+  }
+
   let providerResponse: Response | null = null
   let lastProviderStatus = 0
   for (let attempt = 0; attempt < 3; attempt++) {
