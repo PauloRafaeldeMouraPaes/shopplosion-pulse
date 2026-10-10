@@ -48,6 +48,7 @@ const retailPrice = deterministicCandidate({ id: "procon-retail", content: "Entr
 assert.ok(retailPrice, "retail price dispersion should be detected as a quantified change");
 assert.match(retailPrice.evidence[0].quote, /variação de preço.*31,91%/);
 assert.equal(deterministicCandidate({ id: "retail-incomplete", content: "A maior variação percentual de preço, contudo, foi encontrada no valor de uma barra de chocolate de 80 gramas." }), null, "product weight alone must not be mistaken for a quantified price change");
+assert.equal(isGoodEvidenceQuote("O levantamento indicou que 22% dos brasileiros pretendem produzir ou vender chocolates na data. Entre jovens de 18 a 29 anos, esse percentual sobe para 29%, e nas classes DE chega a 33%.", "O levantamento indicou que 22% dos brasileiros pretendem produzir ou vender chocolates na data. Entre jovens de 18 a 29 anos, esse percentual sobe para 29%, e nas classes DE chega a 33%."), false, "cross-sectional segment shares without a temporal comparison are not emerging changes");
 
 const shopperSurvey = deterministicCandidate({ id: "shopper-survey", content: "Pesquisa aponta que 90% dos consumidores comprarão chocolate na Páscoa. Índice é 4 pontos percentuais maior do que o declarado em 2025." });
 assert.ok(shopperSurvey, "a year-over-year shopper-intent shift in percentage points should be detected");
@@ -62,12 +63,16 @@ const signalWorker = readFileSync(resolve(root, "supabase/functions/pulse-extern
 const backstopWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/index.ts"), "utf8");
 assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,signal_key'\}\)/, "partial unique index must not be targeted by an invalid PostgREST upsert");
 assert.match(signalWorker, /isGoodEvidenceQuote/);
-assert.match(signalWorker, /const duplicate=candidates\.some/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
+assert.match(signalWorker, /const duplicateIndex=candidates\.findIndex/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
 assert.doesNotMatch(signalWorker, /validatedItemIds/, "one valid quote must not suppress distinct deterministic evidence from the same source item");
+assert.match(signalWorker, /duplicateIndex.*existing\.includes\(quoteNorm\).*quoteNorm\.includes\(existing\)/, "overlapping evidence quotes should collapse to the longest supported quote");
 assert.match(backstopWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /deterministicCandidate/);
 assert.match(backstopWorker, /normalize\("NFD"\).*replace\(\/\[\\u0300-\\u036f\]\/g/);
 assert.match(backstopWorker, /norm\(String\(candidate\.title\)\)/, "both workers must normalize signal identity consistently");
+const primaryQuality = readFileSync(resolve(root, "supabase/functions/pulse-external-signal-worker/quality.mjs"), "utf8");
+const backstopQuality = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/quality.mjs"), "utf8");
+assert.equal(backstopQuality, primaryQuality, "signal worker and deterministic backstop must share identical evidence quality rules");
 const sourceWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-source-worker/index.ts"), "utf8");
 assert.match(sourceWorker, /const decodeEntities=/, "HTML capture must decode numeric and named entities");
 assert.match(sourceWorker, /const htmlPublishedAt=/, "HTML capture must preserve publication dates when available");
