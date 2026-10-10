@@ -76,19 +76,19 @@
     },
     {
       "slug": "pulse-external-source-worker",
-      "version": 3,
+      "version": 4,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "5ca570698c87473c223248a917471864941e4260976b40a265fe9d6381d9a669",
+      "deployed_sha256": "a3edace4e7c2bf135ace6d6e90723348ae7f8b78e1c61770614cefe7d6ce1ddc",
       "source_path": "supabase/functions/pulse-external-source-worker/index.ts",
       "auth": "internal_worker_token"
     },
     {
       "slug": "pulse-external-signal-worker",
-      "version": 11,
+      "version": 12,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "5962c426587309d23e1644d1fc8b5774bd3a41563a202656a04c8169e7d3de49",
+      "deployed_sha256": "5deb5946264513b5894344f63105295156c79820e8477e4efb0d4c5e0f0aaea0",
       "source_path": "supabase/functions/pulse-external-signal-worker/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
@@ -100,7 +100,7 @@
     },
     {
       "slug": "pulse-external-deterministic-backstop",
-      "version": 7,
+      "version": 8,
       "status": "ACTIVE",
       "verify_jwt": false,
       "deployed_sha256": "0ab2f9d926361a212efc9e370270b13cffaa5ee8c48b86c98340562ccb73141f",
