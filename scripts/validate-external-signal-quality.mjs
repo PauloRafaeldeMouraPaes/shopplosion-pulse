@@ -76,5 +76,7 @@ assert.match(sourceWorker, /const htmlArticleContent=/, "HTML capture should pri
 assert.match(sourceWorker, /published_at=htmlPublishedAt\(body\)/, "HTML source records must carry parsed publication timestamps");
 assert.match(sourceWorker, /replace\(\/&#\(\\d\+\);\/g[\s\S]*replace\(\/&#\(\\d\+\);\/g/, "HTML capture must decode numeric entities even when double-encoded");
 assert.match(sourceWorker, /publicada|publicado/, "HTML capture should recover a date from localized publication text when metadata is absent");
+assert.match(sourceWorker, /descoberta.*items=items\.filter/, "discovery feeds must filter out articles unrelated to the pilot category");
+assert.match(sourceWorker, /chocolate\|cacau\|p\[aá\]scoa\|doces\|confeitaria\|achocolatado/, "discovery feeds should retain category-relevant articles only");
 
 console.log("External signal evidence quality: PASS");
