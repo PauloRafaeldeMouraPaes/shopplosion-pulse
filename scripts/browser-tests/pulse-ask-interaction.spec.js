@@ -47,7 +47,7 @@ test.describe('Ask AI interaction contract', () => {
         })
       });
     });
-    await page.addInitScript(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
+    await page.addInitScript(()=>{Object.defineProperty(window,'__PULSE_ASK_ACCESS_TOKEN',{configurable:true,get:()=> 'test-industry-token',set:()=>{}})});
     await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
