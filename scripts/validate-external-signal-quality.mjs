@@ -36,6 +36,11 @@ assert.ok(launches, "launch count change should be detected");
 assert.match(launches.title, /134 lançamentos/);
 
 assert.equal(deterministicCandidate({ id: "nav", content: "Menu. Últimas notícias. Feed RSS. Início." }), null);
+
+assert.equal(deterministicCandidate({ id: "static-export", content: "No primeiro trimestre de 2026, o total exportado de chocolates atingiu 7,7 mil toneladas, o que correspondeu a US$ 47 milhões." }), null, "a standalone total is context, not a detected change");
+assert.equal(deterministicCandidate({ id: "static-import", content: "A importação somou US$ 57 milhões, correspondendo a 4,7 mil toneladas." }), null, "a standalone import total is not a change");
+assert.equal(deterministicCandidate({ id: "static-market-gap", content: "Quando comparado com outros mercados, o consumo per capita é de 9 kg a 10 kg por ano." }), null, "a static cross-market benchmark is context, not an emerging change");
+
 assert.equal(isGoodEvidenceQuote("Pular para o conteúdo principal Menu Últimas Notícias 2026", "Pular para o conteúdo principal Menu Últimas Notícias 2026"), false);
 assert.equal(isGenericSummary("A captured external source reports a quantified change that may be relevant to the industry."), true);
 assert.equal(isGenericSummary(production.summary), false);
