@@ -60,6 +60,37 @@ test.describe('Ask AI interaction contract', () => {
     expect(authorization).toBe('Bearer test-industry-token');
   });
 
+  test('Falha do provedor explica o motivo e mantém resposta de contingência', async ({ page }) => {
+    let authorization='';
+    await page.route('**/functions/v1/pulse-ask-ai', async route => {
+      authorization=route.request().headers()['authorization']||'';
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          answer: 'LEITURA: fallback baseado nas evidências recuperadas. [E1]',
+          fallback: true,
+          provider_message: 'A quota ou o limite de uso do Gemini foi atingido.',
+          knowledge_update: { classification: 'insufficient', reason: 'fallback determinístico' },
+          citations: [{ ref: 'E1', document: 'Kantar · chocolate · 2025-T1' }]
+        })
+      });
+    });
+    await page.addInitScript(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
+    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.selectOption('#pv3-scope-select', 'public');
+    await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
+    const actions=page.locator('.pv4-real-actions button');
+    await actions.nth(0).click();
+    await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
+    await page.locator('#results input[data-evidence-key]').first().evaluate(el=>el.click());
+    await actions.nth(1).click();
+    await expect(page.locator('#pv4-response')).toContainText('LEITURA: fallback baseado nas evidências recuperadas');
+    await expect(page.locator('#pv4-shell-status')).toContainText('Motivo informado pelo provedor');
+    await expect(page.locator('#pv4-shell-status')).toContainText('quota ou o limite de uso do Gemini');
+    expect(authorization).toBe('Bearer test-industry-token');
+  });
+
   test('Busca de chocolate recupera evidências específicas com alcance e natureza declarados', async ({ page }) => {
     await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
