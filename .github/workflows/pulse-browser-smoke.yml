@@ -8,12 +8,13 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: pulse-${{ github.workflow }}-${{ github.ref }}
+  group: pulse-${{ github.workflow }}-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +25,7 @@ jobs:
       - name: Install Playwright package
         run: npm install --no-save @playwright/test@1.55.0
       - name: Install Chromium headless shell
-        run: npx playwright install --only-shell chromium
+        run: timeout 300s npx playwright install --only-shell chromium
       - name: Verify Chromium headless shell
         shell: bash
         run: |
