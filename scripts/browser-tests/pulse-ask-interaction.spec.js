@@ -70,6 +70,7 @@ test.describe('Ask AI interaction contract', () => {
         body: JSON.stringify({
           answer: 'LEITURA: fallback baseado nas evidências recuperadas. [E1]',
           fallback: true,
+          answer_source: 'deterministic_fallback',
           provider_message: 'A quota ou o limite de uso do Gemini foi atingido.',
           knowledge_update: { classification: 'insufficient', reason: 'fallback determinístico' },
           citations: [{ ref: 'E1', document: 'Kantar · chocolate · 2025-T1' }]
@@ -89,6 +90,36 @@ test.describe('Ask AI interaction contract', () => {
     await expect(page.locator('#pv4-shell-status')).toContainText('Motivo informado pelo provedor');
     await expect(page.locator('#pv4-shell-status')).toContainText('quota ou o limite de uso do Gemini');
     expect(authorization).toBe('Bearer test-industry-token');
+  });
+
+  test('Sem evidência relevante, identifica a resposta determinística e não simula geração por IA', async ({ page }) => {
+    await page.route('**/functions/v1/pulse-ask-ai', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          answer: 'Não encontrei evidências relevantes no mercado publicado para esta pergunta.',
+          citations: [],
+          scope: 'universe',
+          fallback: true,
+          answer_source: 'deterministic_no_evidence',
+          fallback_reason: 'no_relevant_evidence'
+        })
+      });
+    });
+    await page.addInitScript(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
+    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.selectOption('#pv3-scope-select', 'public');
+    await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
+    const actions=page.locator('.pv4-real-actions button');
+    await actions.nth(0).click();
+    await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
+    await page.locator('#results input[data-evidence-key]').first().evaluate(el=>el.click());
+    await actions.nth(1).click();
+    await expect(page.locator('#pv4-response')).toContainText('Não encontrei evidências relevantes');
+    await expect(page.locator('#pv4-shell-status')).toContainText('Nenhuma evidência relevante foi encontrada');
+    await expect(page.locator('#pv4-shell-status')).toContainText('IA não foi acionada');
+    await expect(page.locator('#pv4-shell-status')).not.toContainText('Resposta gerada pela IA');
   });
 
   test('Chocolate recupera sinais de 2026 com natureza e limites distintos', async ({ page }) => {

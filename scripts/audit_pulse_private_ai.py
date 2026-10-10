@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Deterministic audit for the private Ask AI server-side boundary."""
 from pathlib import Path
+import json
 import re
 import sys
 
@@ -8,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ASK = ROOT / "ask.html"
 FN = ROOT / "supabase" / "functions" / "pulse-ask-ai" / "index.ts"
 CFG = ROOT / "supabase" / "config.toml"
+MANIFEST = ROOT / "supabase" / "functions" / "DEPLOYMENT_MANIFEST.json"
 DEPLOY = ROOT / ".github" / "workflows" / "pulse-supabase-ask-ai-deploy.yml"
 
 errors = []
@@ -20,11 +22,27 @@ ask = ASK.read_text(encoding="utf-8") if ASK.exists() else ""
 fn = FN.read_text(encoding="utf-8") if FN.exists() else ""
 cfg = CFG.read_text(encoding="utf-8") if CFG.exists() else ""
 deploy = DEPLOY.read_text(encoding="utf-8") if DEPLOY.exists() else ""
+manifest_entry = {}
+try:
+    manifest_data = json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.exists() else {}
+    manifest_entry = next((item for item in manifest_data.get("functions", []) if item.get("slug") == "pulse-ask-ai"), {})
+except (json.JSONDecodeError, OSError):
+    manifest_entry = {}
 
 require(ASK.exists(), "ask.html missing")
 require(FN.exists(), "private Ask AI Edge Function missing")
 require(CFG.exists(), "supabase/config.toml missing")
+require(MANIFEST.exists(), "Supabase deployment manifest missing")
+require(bool(manifest_entry), "pulse-ask-ai is missing from the deployment manifest")
 require(DEPLOY.exists(), "guarded Supabase Ask AI deployment workflow missing")
+
+if manifest_entry:
+    desired_jwt = manifest_entry.get("desired_verify_jwt", manifest_entry.get("verify_jwt"))
+    actual_jwt = manifest_entry.get("verify_jwt")
+    deployment_drift = manifest_entry.get("deployment_drift", False)
+    require(desired_jwt is True, "deployment manifest must declare verify_jwt=true as the desired Ask AI state")
+    require(deployment_drift is (actual_jwt != desired_jwt), "deployment manifest drift flag does not match the recorded/desired JWT state")
+    require(not deployment_drift or bool(manifest_entry.get("drift_reason")), "known production drift must include a reason")
 
 require("functions.invoke('pulse-ask-ai'" in ask or 'functions.invoke("pulse-ask-ai"' in ask,
         "ask.html does not invoke pulse-ask-ai")
@@ -34,6 +52,11 @@ require("SUPABASE_SECRET_KEYS" not in ask and "SERVICE_ROLE" not in ask.upper(),
         "Supabase secret/service key appears in browser code")
 require("Authorization" in fn and "Bearer " in fn, "Edge Function does not require Authorization")
 require("const publicMode = false" in fn, "Edge Function must not allow unauthenticated public-mode generation")
+require("answer_source: 'deterministic_no_evidence'" in fn, "no-evidence responses must be explicitly labeled as deterministic")
+require("answer_source: 'deterministic_fallback'" in fn, "provider fallback responses must be explicitly labeled as deterministic")
+require("answer_source: 'llm'" in fn, "model-generated responses must be explicitly labeled")
+require("parsed?.error?.message" not in fn and "parsed?.message" not in fn, "raw Gemini provider error details must not be returned to the client")
+require("answer_source" in ask and "deterministic_no_evidence" in ask, "Ask AI UI must distinguish the no-evidence state")
 require("const publicMode = scope === 'universe' && !authorization" not in fn,
         "Unauthenticated public scope can bypass industry authentication")
 require("verify_jwt = true" in cfg, "pulse-ask-ai is not configured with verify_jwt=true")

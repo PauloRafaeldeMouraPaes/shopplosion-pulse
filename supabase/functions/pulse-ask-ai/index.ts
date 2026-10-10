@@ -10,13 +10,13 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const normalize = (value: string) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 const termsFor = (value: string) => Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter((term) => term.length >= 2))).slice(0, 8)
 
-const providerMessage = (status: number, raw: string) => {
-  let message = ''
-  try { const parsed = JSON.parse(raw); message = String(parsed?.error?.message || parsed?.message || '') } catch {}
+const providerMessage = (status: number) => {
   if (status === 401 || status === 403) return 'A chave Gemini foi recusada. Verifique se ela está ativa e vinculada ao projeto correto.'
   if (status === 429) return 'A quota ou o limite de uso do Gemini foi atingido. Verifique os limites do projeto e tente novamente.'
-  if (status === 400) return message ? `O Gemini recusou a solicitação: ${message}` : 'O Gemini recusou a solicitação. Verifique o projeto, a chave e o modelo configurado.'
-  return message ? `O Gemini retornou um erro: ${message}` : `O Gemini retornou HTTP ${status}.`
+  if (status === 400) return 'O Gemini recusou a solicitação. Verifique o modelo e os parâmetros configurados e tente novamente.'
+  if (status === 0) return 'Não foi possível conectar ao Gemini. A leitura determinística baseada nas evidências foi mantida.'
+  if (status === 408 || status >= 500) return 'O Gemini está temporariamente indisponível. A leitura determinística baseada nas evidências foi mantida; tente novamente em instantes.'
+  return `A geração por IA falhou (HTTP ${status}). A leitura determinística baseada nas evidências foi mantida.`
 }
 
 const industryNameMatches = (text: string, currentIndustry: string, allIndustryNames: string[]) => {
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
   const geminiKey = Deno.env.get('GEMINI_API_KEY')
   const model = Deno.env.get('PULSE_LLM_MODEL') || 'gemini-3.5-flash-lite'
   if (!supabaseUrl || !publishableMap) return json({ error: 'supabase_runtime_not_configured' }, 500)
-  if (!geminiKey) return json({ error: 'llm_provider_not_configured' }, 503)
+  if (!geminiKey) return json({ error: 'llm_provider_not_configured', message: 'A geração por IA não está configurada no servidor. A resposta não foi gerada por IA; consulte as evidências recuperadas enquanto o provedor é configurado.' }, 503)
 
   let publishableKey = ''
   try { const parsed = JSON.parse(publishableMap); publishableKey = parsed.default || Object.values(parsed)[0] || '' } catch { return json({ error: 'invalid_supabase_key_configuration' }, 500) }
@@ -114,7 +114,12 @@ Deno.serve(async (req) => {
       .slice(0, 8)
     ranked = scope === 'both' ? [...ranked, ...publicRanked].sort((a, b) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score).slice(0, 12) : publicRanked
   }
-  if (!ranked.length) return json({ answer: scope === 'universe' ? 'Não encontrei evidências relevantes no mercado publicado para esta pergunta.' : 'Não encontrei evidências relevantes no escopo selecionado.', citations: [], scope })
+  if (!ranked.length) {
+    const answer = scope === 'universe'
+      ? 'Não encontrei evidências relevantes no mercado publicado para esta pergunta.'
+      : 'Não encontrei evidências relevantes no escopo selecionado.'
+    return json({ answer, citations: [], scope, fallback: true, answer_source: 'deterministic_no_evidence', fallback_reason: 'no_relevant_evidence' })
+  }
   const evidence = ranked.map((item, index) => {
     if (item.scope_source === 'public') return { ref: `E${index + 1}`, document: `Mercado publicado · ${item.public_evidence_id || 'evidência'}`, document_id: null, document_chunk_id: null, chunk: 1, source_type: 'public', public_evidence_id: item.public_evidence_id, content: String(item.content || '').slice(0, 5000) }
     return { ref: `E${index + 1}`, document: documentMap[item.document_id] || 'Documento privado', document_id: item.document_id, document_chunk_id: item.id, chunk: Number(item.chunk_index) + 1, source_type: item.source_type || 'text', content: String(item.content || '').slice(0, 5000) }
@@ -154,15 +159,14 @@ ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a gera�
   }
 
   if (!providerResponse?.ok) {
-    const detail = await providerResponse?.text() || ''
     const fallback = deterministicFallback(`Gemini indisponível (HTTP ${lastProviderStatus}).`)
-    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true, provider_message: providerMessage(lastProviderStatus, detail) })
+    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true, answer_source: 'deterministic_fallback', provider_message: providerMessage(lastProviderStatus) })
   }
   const providerJson = await providerResponse.json()
   const answer = Array.isArray(providerJson?.candidates?.[0]?.content?.parts) ? providerJson.candidates[0].content.parts.filter((part: any) => typeof part?.text === 'string').map((part: any) => part.text).join('\n').trim() : ''
   if (!answer) {
     const fallback = deterministicFallback('Gemini retornou uma resposta vazia.')
-    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true })
+    return json({ ...fallback, model, scope, originating_evidence_id: originatingEvidenceId, fallback: true, answer_source: 'deterministic_fallback', provider_message: 'O Gemini retornou uma resposta vazia. A leitura determinística baseada nas evidências foi mantida.' })
   }
   const block = (name: string) => { const m = answer.match(new RegExp(`${name}:\\s*([\\s\\S]*?)(?=\\n(?:LEITURA|HIPÓTESE|RECOMENDAÇÃO|DESCONHECIDOS|ATUALIZAÇÃO):|$)`, 'i')); return m ? m[1].trim() : '' }
   const structured = { leitura: block('LEITURA'), hipotese: block('HIPÓTESE'), recomendacao: block('RECOMENDAÇÃO'), desconhecidos: block('DESCONHECIDOS') }
@@ -176,5 +180,5 @@ ATUALIZAÇÃO: INSUFFICIENT — resposta baseada no conjunto recuperado; a gera�
       scope_rejected: true,
     }, 200)
   }
-  return json({ answer, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, knowledge_update, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
+  return json({ answer, answer_source: 'llm', fallback: false, model, scope, originating_evidence_id: originatingEvidenceId, retrieved_evidence_count: evidence.length, structured, knowledge_update, citations: evidence.map((item) => ({ ref: item.ref, document: item.document, document_id: item.document_id, document_chunk_id: item.document_chunk_id, chunk: item.chunk, source_type: item.source_type, public_evidence_id: item.public_evidence_id || null })) })
 })
