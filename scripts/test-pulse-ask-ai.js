@@ -49,6 +49,15 @@ if (!ask.includes('<option value="both" selected>Ambos · público + privado</op
 const askFnText = fs.existsSync('supabase/functions/pulse-ask-ai/index.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8') : '';
 if (!askFnText.includes('deterministicFallback')) failures.push('Ask AI evidence fallback missing');
 if (!askFnText.includes('fallback: true')) failures.push('Ask AI fallback response contract missing');
+const providerRetryStart = askFnText.indexOf('for (let attempt = 0; attempt < 3; attempt++)');
+const providerFallbackStart = askFnText.indexOf('function deterministicFallback');
+if (providerRetryStart < 0 || !askFnText.slice(providerRetryStart, providerFallbackStart > providerRetryStart ? providerFallbackStart : undefined).includes('providerResponse = null') ||
+    !askFnText.slice(providerRetryStart, providerFallbackStart > providerRetryStart ? providerFallbackStart : undefined).includes('lastProviderStatus = 0')) {
+  failures.push('Gemini network exceptions must retry and reach deterministic fallback');
+}
+if (providerFallbackStart < 0 || !askFnText.slice(providerFallbackStart, providerFallbackStart + 4500).includes('source_url: item.source_url || null')) {
+  failures.push('Deterministic fallback must preserve canonical evidence source URLs');
+}
 
 if (failures.length) {
   console.error('Ask AI regression FAILED');
