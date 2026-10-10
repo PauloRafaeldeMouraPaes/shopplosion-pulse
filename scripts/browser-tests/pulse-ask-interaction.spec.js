@@ -49,6 +49,9 @@ test.describe('Ask AI interaction contract', () => {
     await page.locator('.pv4-real-actions button').nth(0).click();
     await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
     await expect(page.locator('#results')).toContainText('Kantar');
+    await expect(page.locator('#results')).toContainText('Alcance para a pergunta');
+    await expect(page.locator('#results')).toContainText('INDIRETO para Lindt Brasil');
+    await expect(page.locator('#results')).toContainText('Não comprova motivo individual');
     const audit=await page.evaluate(()=>({
       ids:(window.__pulsePublicMatches||[]).map(x=>x.e?.id),
       count:(window.__pulsePublicMatches||[]).length,
