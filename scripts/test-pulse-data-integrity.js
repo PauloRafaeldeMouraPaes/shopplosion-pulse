@@ -50,6 +50,21 @@ function extractEvidence() {
   return vm.runInNewContext(html.slice(a, b));
 }
 
+function extractRuntimeEvidence() {
+  const jsonMarker = '<script type="application/json" id="pulse-public-evidence-json">';
+  const markerIndex = html.indexOf(jsonMarker);
+  if (markerIndex < 0) throw new Error('pulse-public-evidence-json not found');
+  const jsonEnd = html.indexOf('</script>', markerIndex);
+  if (jsonEnd < 0) throw new Error('pulse-public-evidence-json has no closing script');
+  const marker = 'window.PULSE_EVIDENCE=[';
+  const markerIndex2 = html.indexOf(marker, jsonEnd + 9);
+  if (markerIndex2 < 0) throw new Error('runtime window.PULSE_EVIDENCE assignment not found after embedded data');
+  const start = html.indexOf('[', markerIndex2);
+  if (start < 0) throw new Error('runtime PULSE_EVIDENCE array not found');
+  const [a, b] = balancedSpan(html, start, '[', ']');
+  return vm.runInNewContext(html.slice(a, b));
+}
+
 function extractAssignedArray(marker) {
   const markerIndex = html.indexOf(marker);
   if (markerIndex < 0) throw new Error(`${marker} not found`);
@@ -60,9 +75,11 @@ function extractAssignedArray(marker) {
 }
 
 let evidence;
+let runtimeEvidence;
 let sources;
 try {
   evidence = extractEvidence();
+  runtimeEvidence = extractRuntimeEvidence();
   sources = extractAssignedArray('window.PULSE_SOURCES =');
 } catch (err) {
   console.error(`Pulse data integrity FAILED: ${err.message}`);
@@ -87,6 +104,10 @@ try {
 if (Array.isArray(evidence) && Array.isArray(standaloneEvidence) &&
     JSON.stringify(evidence) !== JSON.stringify(standaloneEvidence)) {
   failures.push('embedded index.html evidence and pulse-public-evidence.js are out of sync');
+}
+if (Array.isArray(evidence) && Array.isArray(runtimeEvidence) &&
+    JSON.stringify(evidence) !== JSON.stringify(runtimeEvidence)) {
+  failures.push('runtime window.PULSE_EVIDENCE and embedded index.html evidence are out of sync');
 }
 if (Array.isArray(evidence) && evidence.length < 34) failures.push(`expected at least 34 public evidence records, found ${evidence.length}`);
 for (const id of [
