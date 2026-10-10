@@ -156,7 +156,7 @@
     }
     show('Leitura inicial pronta. Refinando com a IA…','ok');
     try{
-      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,public_evidence:selected.map(x=>x.e),retrieved_evidence:selected.map(x=>({document_id:null,chunk_index:0,quote:[x.e.fato,x.e.contexto,x.e.interpretacao,x.e.hipotese,x.e.acao].filter(Boolean).join(' '),source_type:'public',score:x.score,public_evidence:x.e})),prior_knowledge:[]}),cache:'no-store'});
+      const r=await fetch(cfg.url+'/functions/v1/pulse-ask-ai',{method:'POST',headers:{apikey:cfg.anonKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','Origin':location.origin},body:JSON.stringify({query,scope:'universe',originating_evidence_id:new URLSearchParams(location.search).get('evidence')||null,retrieved_evidence:selected.map(x=>({document_id:null,chunk_index:0,quote:[x.e.fato,x.e.contexto,x.e.interpretacao,x.e.hipotese,x.e.acao].filter(Boolean).join(' '),source_type:'public',score:x.score})),prior_knowledge:[]}),cache:'no-store'});
       const data=await r.json().catch(()=>null);
       if(r.ok&&data&&!data.error&&data.answer){renderAnswer(data.answer,data.citations||[],Boolean(data.fallback),data.provider_message||'',data.answer_source||'');return}
       const diagnostic=String(data?.message||'').trim();show(diagnostic?'A IA não ficou disponível. '+diagnostic+' A leitura determinística inicial baseada nas evidências permanece disponível.':'A IA não concluiu a resposta. A leitura determinística inicial baseada nas evidências permanece disponível.','error');
@@ -334,8 +334,8 @@ async function loadPriorKnowledge(scope,query){
       const selected=found.rows.filter(r=>selectedEvidenceIds.has(evidenceKey(r)));
       if(!selected.length){show('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.','error');return}
       const priorKnowledge=await loadPriorKnowledge(scope,query);
-      const retrieved=selected.slice(0,12).map(r=>({document_id:r.document_id,chunk:r.chunk_index,quote:r.content,source_type:r.source_type,score:r.score,public_evidence:r.publicEvidence||null}));
-      const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query,scope,originating_evidence_id:fixedEvidenceId||null,public_evidence:selected.map(r=>r.publicEvidence).filter(Boolean),retrieved_evidence:retrieved,prior_knowledge:priorKnowledge.map(k=>({id:k.id,claim:k.claim,status:k.status,scope:k.scope,investigation_id:k.investigation_id}))}});
+      const retrieved=selected.slice(0,12).map(r=>({document_id:r.document_id,chunk:r.chunk_index,quote:r.content,source_type:r.source_type,score:r.score}));
+      const {data,error}=await client.functions.invoke('pulse-ask-ai',{body:{query,scope,originating_evidence_id:fixedEvidenceId||null,retrieved_evidence:retrieved,prior_knowledge:priorKnowledge.map(k=>({id:k.id,claim:k.claim,status:k.status,scope:k.scope,investigation_id:k.investigation_id}))}});
       if(error){let detail=null;try{detail=await error.context?.json()}catch{}throw new Error(detail?.message||error.message||'Não foi possível gerar a resposta.')}
       if(data?.error)throw new Error(data.message||'O servidor de IA retornou um erro.');
       setProgress('write');
