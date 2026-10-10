@@ -57,5 +57,11 @@ assert.match(backstopWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /deterministicCandidate/);
 assert.match(backstopWorker, /normalize\("NFD"\).*replace\(\/\[\\u0300-\\u036f\]\/g/);
 assert.match(backstopWorker, /norm\(String\(candidate\.title\)\)/, "both workers must normalize signal identity consistently");
+const sourceWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-source-worker/index.ts"), "utf8");
+assert.match(sourceWorker, /const decodeEntities=/, "HTML capture must decode numeric and named entities");
+assert.match(sourceWorker, /const htmlPublishedAt=/, "HTML capture must preserve publication dates when available");
+assert.match(sourceWorker, /article:published_time/, "HTML capture must parse standard publication metadata");
+assert.match(sourceWorker, /const htmlArticleContent=/, "HTML capture should prioritize article/main content over navigation");
+assert.match(sourceWorker, /published_at=htmlPublishedAt\(body\)/, "HTML source records must carry parsed publication timestamps");
 
 console.log("External signal evidence quality: PASS");
