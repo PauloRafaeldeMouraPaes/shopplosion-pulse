@@ -33,6 +33,9 @@ require("ANTHROPIC_API_KEY" not in ask and "GEMINI_API_KEY" not in ask,
 require("SUPABASE_SECRET_KEYS" not in ask and "SERVICE_ROLE" not in ask.upper(),
         "Supabase secret/service key appears in browser code")
 require("Authorization" in fn and "Bearer " in fn, "Edge Function does not require Authorization")
+require("const publicMode = false" in fn, "Edge Function must not allow unauthenticated public-mode generation")
+require("const publicMode = scope === 'universe' && !authorization" not in fn,
+        "Unauthenticated public scope can bypass industry authentication")
 require("verify_jwt = true" in cfg, "pulse-ask-ai is not configured with verify_jwt=true")
 require("global: { headers: { Authorization: authorization } }" in fn,
         "Edge Function does not propagate caller JWT to Supabase client")
