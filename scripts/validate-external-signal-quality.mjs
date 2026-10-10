@@ -41,6 +41,10 @@ assert.equal(deterministicCandidate({ id: "static-export", content: "No primeiro
 assert.equal(deterministicCandidate({ id: "static-import", content: "A importação somou US$ 57 milhões, correspondendo a 4,7 mil toneladas." }), null, "a standalone import total is not a change");
 assert.equal(deterministicCandidate({ id: "static-market-gap", content: "Quando comparado com outros mercados, o consumo per capita é de 9 kg a 10 kg por ano." }), null, "a static cross-market benchmark is context, not an emerging change");
 
+assert.equal(deterministicCandidate({ id: "employment-context", content: "A Páscoa funciona sempre como porta de entrada dos trabalhadores para o setor, com taxa de empregabilidade de 30%, informou o presidente da entidade." }), null, "a numeric fact plus unrelated 'de ... para' wording is not a change");
+assert.equal(deterministicCandidate({ id: "program-duration", content: "O programa existe há mais de 20 anos com a finalidade de abrir mercado para pequenos fabricantes." }), null, "program duration is not a change");
+
+
 assert.equal(isGoodEvidenceQuote("Pular para o conteúdo principal Menu Últimas Notícias 2026", "Pular para o conteúdo principal Menu Últimas Notícias 2026"), false);
 assert.equal(isGenericSummary("A captured external source reports a quantified change that may be relevant to the industry."), true);
 assert.equal(isGenericSummary(production.summary), false);
