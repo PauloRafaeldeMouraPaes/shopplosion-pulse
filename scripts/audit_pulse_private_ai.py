@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ASK = ROOT / "ask.html"
 FN = ROOT / "supabase" / "functions" / "pulse-ask-ai" / "index.ts"
 CFG = ROOT / "supabase" / "config.toml"
+DEPLOY = ROOT / ".github" / "workflows" / "pulse-supabase-ask-ai-deploy.yml"
 
 errors = []
 
@@ -18,10 +19,12 @@ def require(condition, message):
 ask = ASK.read_text(encoding="utf-8") if ASK.exists() else ""
 fn = FN.read_text(encoding="utf-8") if FN.exists() else ""
 cfg = CFG.read_text(encoding="utf-8") if CFG.exists() else ""
+deploy = DEPLOY.read_text(encoding="utf-8") if DEPLOY.exists() else ""
 
 require(ASK.exists(), "ask.html missing")
 require(FN.exists(), "private Ask AI Edge Function missing")
 require(CFG.exists(), "supabase/config.toml missing")
+require(DEPLOY.exists(), "guarded Supabase Ask AI deployment workflow missing")
 
 require("functions.invoke('pulse-ask-ai'" in ask or 'functions.invoke("pulse-ask-ai"' in ask,
         "ask.html does not invoke pulse-ask-ai")
@@ -36,6 +39,16 @@ require("global: { headers: { Authorization: authorization } }" in fn,
 require("from('document_chunks')" in fn, "Edge Function does not retrieve private chunks")
 require("generativelanguage.googleapis.com/v1beta/models/" in fn, "Gemini API endpoint missing")
 require("GEMINI_API_KEY" in fn, "Gemini secret is not server-side configured")
+require("workflow_dispatch:" in deploy, "Supabase Ask AI deployment must be manually triggered")
+require("github.ref == 'refs/heads/main' && inputs.confirm_deploy == 'DEPLOY_PULSE_ASK_AI'" in deploy,
+        "Supabase Ask AI deployment is not guarded by main + explicit confirmation")
+require(not re.search(r"^[ \\t]*(push|pull_request):", deploy, re.M),
+        "Supabase Ask AI deployment must not deploy automatically on push or pull_request")
+require("secrets.SUPABASE_ACCESS_TOKEN" in deploy, "Supabase deployment token is not sourced from a secret")
+require("supabase functions deploy pulse-ask-ai --project-ref" in deploy,
+        "Deployment workflow must deploy only pulse-ask-ai")
+require("invalid.invalid.invalid" in deploy and "SUPABASE ASK AI JWT GATEWAY CHECK: PASS" in deploy,
+        "Deployment workflow must verify that invalid JWTs are blocked at the gateway")
 require("PULSE_LLM_MODEL" in fn, "LLM model is not configurable")
 require("citations" in fn and "ref:" in fn, "Evidence citations are not returned")
 require("service_role" not in fn.lower() and "supabase_secret_key" not in fn.lower(),
