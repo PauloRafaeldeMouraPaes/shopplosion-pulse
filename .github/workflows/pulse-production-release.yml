@@ -57,7 +57,8 @@ jobs:
         run: echo "PULSE RELEASE GATE - PASS"
 
   deploy:
-    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    # GitHub Pages environment protection is evaluated against the event ref. PR-close events use refs/pull/* and must never deploy; the subsequent push to main is the canonical production deployment.
+    if: github.event_name != 'pull_request'
     name: Deploy to GitHub Pages
     needs: release-gate
     runs-on: ubuntu-22.04
