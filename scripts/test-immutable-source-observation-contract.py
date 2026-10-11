@@ -12,6 +12,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "docs/pilots/immutable-source-observation-history.md"
 CASES = ROOT / "docs/pilots/immutable-source-observation-tests.md"
+SQL_DRAFT = ROOT / "docs/pilots/immutable-source-observation-schema-draft.sql"
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -20,6 +21,7 @@ def require(condition: bool, message: str) -> None:
 def main() -> int:
     design = DESIGN.read_text(encoding="utf-8")
     cases = CASES.read_text(encoding="utf-8")
+    sql = SQL_DRAFT.read_text(encoding="utf-8")
 
     # The contract must stay complete and uniquely identifiable.
     ids = re.findall(r"\bH(\d{2})\s+[—-]", cases)
@@ -46,8 +48,22 @@ def main() -> int:
     require("Nunca executar fixtures destrutivas na produção" in cases,
             "Test contract must explicitly prohibit destructive production fixtures")
 
-    print("PASS: static design preflight; H01-H15 matrix and safety contract are present.")
-    print("LIMIT: this does not execute SQL, validate RLS, or prove runtime behavior.")
+    # The SQL is a review-only draft: require an explicit rollback and the
+    # core tenant-aware constraints before it can be considered for migration.
+    require("DESIGN DRAFT ONLY" in sql, "SQL draft must be marked non-migration")
+    require(re.search(r"(?im)^rollback;\\s*$", sql) is not None,
+            "SQL draft must end in ROLLBACK so accidental execution cannot persist")
+    for token in ("foreign key (fetch_run_id, source_id, industry_id)",
+                  "foreign key (version_id, source_id, industry_id)",
+                  "enable row level security",
+                  "revoke all",
+                  "on delete restrict",
+                  "unique (fetch_run_id, external_id)"):
+        require(token.lower() in sql.lower(),
+                f"SQL draft is missing required safeguard: {token}")
+
+    print("PASS: static design preflight; H01-H15, safety contract, and SQL-draft guardrails are present.")
+    print("LIMIT: this does not parse or execute SQL, validate RLS, or prove runtime behavior.")
     return 0
 
 if __name__ == "__main__":
