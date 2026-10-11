@@ -20,6 +20,23 @@ DRAFT = ROOT / "docs/pilots/immutable-source-observation-schema-draft.sql"
 FIXTURE = ROOT / "tests/fixtures/immutable-source-history-baseline.sql"
 
 ASSERTIONS = r"""
+CREATE FUNCTION public.pulse_test_fail_observation_write()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $pulse_test_fail_observation_write$
+BEGIN
+  IF NEW.external_id = 'rpc-atomic-failure' THEN
+    RAISE EXCEPTION 'injected observation persistence failure'
+      USING ERRCODE = '55000';
+  END IF;
+  RETURN NEW;
+END;
+$pulse_test_fail_observation_write$;
+
+CREATE TRIGGER pulse_test_fail_observation_write
+BEFORE INSERT ON public.intelligence_source_item_observations
+FOR EACH ROW EXECUTE FUNCTION public.pulse_test_fail_observation_write();
+
 DO $pulse_schema_contract$
 DECLARE
   v_industry_a uuid := gen_random_uuid();
@@ -33,6 +50,8 @@ DECLARE
   v_run_a4 uuid := gen_random_uuid();
   v_run_a5 uuid := gen_random_uuid();
   v_run_a6 uuid := gen_random_uuid();
+  v_run_a7 uuid := gen_random_uuid();
+  v_atomic_failure boolean := false;
   v_item_a uuid := gen_random_uuid();
   v_item_b uuid := gen_random_uuid();
   v_version_a uuid := gen_random_uuid();
@@ -135,7 +154,8 @@ BEGIN
            (v_run_a3, v_source_a, v_industry_a, 'running'),
            (v_run_a4, v_source_a, v_industry_a, 'running'),
            (v_run_a5, v_source_a, v_industry_a, 'running'),
-           (v_run_a6, v_source_a, v_industry_a, 'running');
+           (v_run_a6, v_source_a, v_industry_a, 'running'),
+           (v_run_a7, v_source_a, v_industry_a, 'running');
   INSERT INTO public.intelligence_source_items
     (id, source_id, industry_id, external_id, title, content, content_fingerprint)
     VALUES
@@ -351,6 +371,31 @@ BEGIN
     RAISE EXCEPTION 'conflicting same-run retry was accepted';
   EXCEPTION WHEN unique_violation THEN NULL;
   END;
+
+  -- H09: inject an error after the version and current projection writes
+  -- but before the observation can be inserted. The RPC statement must roll
+  -- back every write for this item.
+  BEGIN
+    PERFORM * FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a7, 'rpc-atomic-failure', 'Atomic failure test',
+      'https://example.test/atomic-failure', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload that must roll back', repeat('8', 64),
+      jsonb_build_object('parser_version', 'test-1'));
+  EXCEPTION WHEN SQLSTATE '55000' THEN
+    v_atomic_failure := true;
+  END;
+
+  IF NOT v_atomic_failure THEN
+    RAISE EXCEPTION 'H09 injected observation persistence error did not reach caller';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.intelligence_source_item_versions
+             WHERE source_id = v_source_a AND external_id = 'rpc-atomic-failure')
+     OR EXISTS (SELECT 1 FROM public.intelligence_source_items
+                WHERE source_id = v_source_a AND external_id = 'rpc-atomic-failure')
+     OR EXISTS (SELECT 1 FROM public.intelligence_source_item_observations
+                WHERE source_id = v_source_a AND external_id = 'rpc-atomic-failure') THEN
+    RAISE EXCEPTION 'H09 failed RPC left partial version, projection, or observation writes';
+  END IF;
 
   -- H12: reject malformed hashes and reject a valid hash reused for
   -- a different payload. Neither error may leave a partial version/observation
