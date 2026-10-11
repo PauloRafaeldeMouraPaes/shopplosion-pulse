@@ -84,6 +84,33 @@ Priorizar fontes com acesso estável, método reproduzível, datas, cobertura id
 - Conteúdo editorial, fóruns e comunidades públicas, sem contornar autenticação, bloqueios ou limites técnicos.
 - Catálogos públicos de varejistas para preço anunciado, gramatura, promoção e disponibilidade observável.
 - Painéis de consumo, sell-out ou dados de varejo mediante autorização/licença.
+- **Scanntech:** avaliar disponibilidade de indicadores de varejo e consumo, evolução de vendas e preços, promoções, categorias, canais e recortes regionais, conforme o produto contratado e os direitos de uso.
+- **NielsenIQ (Nielsen):** avaliar dados de painel de varejo, desempenho de categorias e marcas, distribuição, participação, preço, promoção e comportamento de compra, conforme cobertura e licença disponíveis.
+- **Kantar:** avaliar dados de painéis de consumo domiciliar e/ou shopper, penetração, frequência, ocasiões, volume, gasto e mudanças no comportamento de compra, conforme o estudo ou produto contratado.
+- **Outros institutos e fontes de referência:** considerar estudos reconhecidos relevantes para chocolate e confectionery, documentando universo, amostra, período, metodologia e se a evidência é primária ou reproduzida.
+
+### 5.1 Institutos de mercado prioritários: Scanntech, NielsenIQ e Kantar
+
+Esses três provedores passam a integrar explicitamente o **mapa prioritário de fontes para o piloto Chocolate**. Devem ser investigados em paralelo às fontes públicas e comportamentais, não tratados como fontes intercambiáveis: cada provedor, produto e estudo pode medir universos, canais, períodos e variáveis diferentes.
+
+Para cada provedor, registrar:
+- produto, relatório, painel ou conjunto de dados específico considerado;
+- disponibilidade real para o projeto (acesso público, demonstração, contrato, licença, parceiro ou ausência de acesso);
+- granularidade temporal, geográfica, de canal, categoria, marca e formato;
+- métricas disponíveis e definições oficiais (por exemplo, valor, unidades, volume, preço, distribuição, penetração ou frequência);
+- período histórico e cadência de atualização;
+- cobertura e limitações metodológicas;
+- custo, condições contratuais, permissões de armazenamento, transformação, exibição e redistribuição;
+- responsável pela fonte, data de verificação e próximo passo de acesso.
+
+**Uso esperado no piloto**
+- **Scanntech:** investigar como fonte potencial de sinais de varejo e evolução de mercado, sem presumir quais métricas ou níveis de detalhe estão incluídos em qualquer plano.
+- **NielsenIQ:** investigar como fonte potencial de mensuração de varejo, categorias e marcas, observando rigorosamente a definição de mercado e a cobertura do painel.
+- **Kantar:** investigar como fonte potencial de evidência de consumo e shopper, distinguindo compras domiciliares, ocasiões, declarações e outras medidas conforme o produto utilizado.
+
+**Regra de validação:** nenhuma dessas fontes será marcada como integrada, acessível ou usada em uma conclusão até haver evidência verificável de acesso e de um conjunto de dados específico. A menção do instituto, por si só, não constitui evidência. Se não houver licença ou acesso autorizado, registrar a lacuna e utilizar somente materiais públicos autorizados como contexto, sem simular dados proprietários.
+
+Quando disponíveis, esses dados poderão atuar como evidência independente para confirmar, contradizer ou contextualizar sinais humanos. Antes de cruzar séries, verificar se período, geografia, canal, categoria, população e unidade de medida são compatíveis.
 
 Cada conector deve registrar cobertura, frequência, região/idioma, limites, data de captura, falhas, método de deduplicação e vieses conhecidos. A indisponibilidade de uma API ou de uma fonte não autoriza scraping proibido, contorno de bloqueios ou fabricação de dados.
 
