@@ -53,6 +53,29 @@ Restrições: uma única observação por `(fetch_run_id, external_id)` (a execu
 
 > A semântica de `observed_at` é “o coletor observou este conteúdo nesta execução”, não “o consumidor mudou de preferência nesta data”.
 
+### Contrato de completude antes de inferir desaparecimento (H13)
+
+A ausência de um item em uma coleta **não** significa que ele desapareceu. A implementação futura só pode registrar ausência quando uma execução tiver evidência explícita de cobertura completa, para o mesmo escopo comparável.
+
+Cada adaptador deverá declarar um resultado de cobertura com, no mínimo:
+- `coverage_status`: `complete`, `incomplete` ou `unknown`;
+- `coverage_reason`: código não sensível explicando o estado;
+- `scope_fingerprint`: hash do escopo comparável (consulta, região, categoria, janela temporal e filtros);
+- `pages_exhausted`: se todas as páginas/cursors foram consumidas;
+- `item_limit_hit`: se um limite de itens foi atingido;
+- `parser_valid`: se a resposta foi interpretada sem erro ou truncamento;
+- `http_status` e versão do adaptador/parser.
+
+A cobertura só poderá ser `complete` quando a resposta for bem-sucedida, o parser validar a estrutura, a paginação estiver esgotada, nenhum limite tiver truncado o conjunto e o escopo corresponder ao baseline. Resposta parcial, timeout, 403, parser incerto, filtro de relevância, limite de 50 itens ou paginação desconhecida implica `incomplete`/ `unknown`.
+
+Regras iniciais por tipo:
+- RSS/Atom: não inferir desaparecimento do catálogo; feeds são janelas móveis e podem remover itens antigos por desenho.
+- JSON: não inferir ausência se houver paginação desconhecida ou se o limite de 50 itens for atingido.
+- HTML de página única: a URL é a entidade observada; uma alteração no conteúdo não significa que itens internos tenham desaparecido.
+- Qualquer fonte: só comparar snapshots com o mesmo `scope_fingerprint`; exigir pelo menos duas execuções completas consecutivas antes de emitir evento de ausência. Nunca apagar versões ou observações históricas.
+
+Até existir cobertura real emitida e testada por cada adaptador, H13 permanece bloqueado e nenhum item será expirado por ausência.
+
 ## 3. Fluxo de coleta
 
 1. Criar `intelligence_source_fetch_runs` e validar que a execução foi persistida.
