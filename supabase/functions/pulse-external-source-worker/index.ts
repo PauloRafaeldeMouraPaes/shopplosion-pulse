@@ -22,7 +22,7 @@ const url=item.url?String(item.url).slice(0,2000):null;
 const content=String(item.content).slice(0,12000);
 const d=item.published_at?new Date(item.published_at):null;
 const publishedAt=d&&!Number.isNaN(d.getTime())?d.toISOString():null;
-const fp=await sha(`${title}|${url||''}|${content}`);
+const fp=await sha(JSON.stringify([title,url||'',content]));
 const {data:recorded,error:recordError}=await admin.rpc('pulse_record_source_item_observation',{
 p_industry_id:s.industry_id,
 p_source_id:s.id,
