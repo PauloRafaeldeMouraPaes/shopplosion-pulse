@@ -1,7 +1,10 @@
 # Contrato de testes — histórico imutável de fontes
 
-**Status:** casos de teste definidos; não executados. Dependem da migração e do worker implementados.  
-**Ambiente:** banco local/branch de desenvolvimento, com dados sintéticos. Nunca executar fixtures destrutivas na produção.
+**Status:** a matriz formal H01–H15 ainda não foi executada integralmente. Uma parte dos comportamentos do schema/RPC foi verificada por integração PostgreSQL em CI.  
+**Execução parcial:** [Pulse Regression #2231](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38161126017) validou a migration criada pela Supabase CLI contra PostgreSQL 17 efêmero e fixture sintética. A transação de teste terminou em `ROLLBACK`; nenhum banco Supabase foi conectado.  
+**Cobertura parcial demonstrada:** o SQL é aceito pelo PostgreSQL; chaves compostas rejeitam combinações de tenant/source/run/item/version inconsistentes; RLS está habilitado; `anon`/`authenticated` não possuem privilégios diretos na tabela de histórico nem EXECUTE da RPC; triggers rejeitam UPDATE/DELETE; a RPC testou captura inicial, repetição idêntica, mudança, reversão, retry idempotente e retry conflitante.  
+**Ainda pendente:** H05 completo, leitura cruzada com RLS avaliada como role cliente, falha real de persistência propagada pelo worker, normalização temporal e hash, ausência de snapshot, mudança de parser e HTTP 403 através do worker. A suíte completa ainda depende da integração end-to-end e de testes dedicados para estes casos.  
+**Ambiente:** PostgreSQL isolado com dados sintéticos. Nunca executar fixtures destrutivas na produção.
 
 ## Pré-condições
 
