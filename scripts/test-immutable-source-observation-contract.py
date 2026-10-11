@@ -129,9 +129,9 @@ def main() -> int:
 
     require("admin.from('intelligence_source_items').upsert" not in worker,
             "Worker still writes the current projection via the old upsert-only path")
-    require("String(x.id||x.guid||x.url||x.link||'')" in worker,
-            "JSON collector lacks stable identity fields")
-    require("x.external_id.trim().length>0" in worker,
+    require("stableSourceExternalId(x)" in worker,
+            "JSON collector must use the tested stable identity helper")
+    require("x.external_id.length>0" in worker,
             "JSON collector must reject records without stable external identity")
     require("x.id||x.guid||x.url||i" not in worker,
             "JSON collector must not use mutable array position as identity")
