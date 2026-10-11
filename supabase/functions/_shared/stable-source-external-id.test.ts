@@ -1,4 +1,4 @@
-import { stableSourceExternalId } from "./stable-source-external-id.ts";
+import { stableFeedExternalId, stableSourceExternalId } from "./stable-source-external-id.ts";
 
 Deno.test("uses stable source identifiers before URL fallbacks", () => {
   const id = stableSourceExternalId({ id: "item-7", guid: "guid-7", url: "https://example.test/7" });
@@ -28,5 +28,17 @@ Deno.test("reordering JSON items does not change their identity", () => {
   const after = [b, a].map(stableSourceExternalId);
   if (before[0] !== after[1] || before[1] !== after[0]) {
     throw new Error("Reordering must not change item identity");
+  }
+});
+
+Deno.test("RSS and Atom entries require publisher ID or stable link", () => {
+  if (stableFeedExternalId(" feed-guid ", "https://example.test/feed/1") !== "feed-guid") {
+    throw new Error("Feed ID must take precedence over link");
+  }
+  if (stableFeedExternalId("", "https://example.test/feed/2") !== "https://example.test/feed/2") {
+    throw new Error("Stable link must be used when feed ID is absent");
+  }
+  if (stableFeedExternalId("", "  ") !== null) {
+    throw new Error("Feed entries without publisher ID or link must be rejected");
   }
 });
