@@ -83,6 +83,8 @@ def main() -> int:
         "const fp=await sha(JSON.stringify([title,url||'',content]));",
         "fetch_run_create_failed:",
         "fetch_run_finish_failed:",
+        "response.ok||response.status===403",
+        "if(!response?.ok)throw new Error(`http_${response?.status||0}`)",
     ):
         require(token in worker, f"Worker is missing required history guard: {token}")
     require("admin.from('intelligence_source_items').upsert" not in worker,
