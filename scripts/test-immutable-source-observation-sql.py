@@ -32,6 +32,7 @@ DECLARE
   v_run_a3 uuid := gen_random_uuid();
   v_run_a4 uuid := gen_random_uuid();
   v_run_a5 uuid := gen_random_uuid();
+  v_run_a6 uuid := gen_random_uuid();
   v_item_a uuid := gen_random_uuid();
   v_item_b uuid := gen_random_uuid();
   v_version_a uuid := gen_random_uuid();
@@ -133,7 +134,8 @@ BEGIN
            (v_run_a2, v_source_a, v_industry_a, 'running'),
            (v_run_a3, v_source_a, v_industry_a, 'running'),
            (v_run_a4, v_source_a, v_industry_a, 'running'),
-           (v_run_a5, v_source_a, v_industry_a, 'running');
+           (v_run_a5, v_source_a, v_industry_a, 'running'),
+           (v_run_a6, v_source_a, v_industry_a, 'running');
   INSERT INTO public.intelligence_source_items
     (id, source_id, industry_id, external_id, title, content, content_fingerprint)
     VALUES
@@ -349,6 +351,41 @@ BEGIN
     RAISE EXCEPTION 'conflicting same-run retry was accepted';
   EXCEPTION WHEN unique_violation THEN NULL;
   END;
+
+  -- H12: reject malformed hashes and reject a valid hash reused for
+  -- a different payload. Neither error may leave a partial version/observation
+  -- or overwrite the current projection.
+  BEGIN
+    PERFORM * FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a6, 'rpc-invalid-hash', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload invalid hash', repeat('g', 64), jsonb_build_object('parser_version', 'test-1'));
+    RAISE EXCEPTION 'malformed content fingerprint was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+
+  BEGIN
+    PERFORM * FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a6, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'different payload with reused fingerprint', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+    RAISE EXCEPTION 'fingerprint collision with a different payload was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+
+  IF EXISTS (
+    SELECT 1 FROM public.intelligence_source_item_observations
+     WHERE fetch_run_id = v_run_a6 AND external_id IN ('rpc-item', 'rpc-invalid-hash')
+  ) OR EXISTS (
+    SELECT 1 FROM public.intelligence_source_item_versions
+     WHERE external_id = 'rpc-invalid-hash'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM public.intelligence_source_items
+     WHERE source_id = v_source_a AND external_id = 'rpc-item'
+       AND content_fingerprint = repeat('f', 64) AND content = 'payload one'
+  ) THEN
+    RAISE EXCEPTION 'H12 invalid/colliding fingerprint left partial writes or changed projection';
+  END IF;
 
   BEGIN
     PERFORM * FROM public.pulse_record_source_item_observation(
