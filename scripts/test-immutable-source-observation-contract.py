@@ -135,6 +135,12 @@ def main() -> int:
             "JSON collector must reject records without stable external identity")
     require("x.id||x.guid||x.url||i" not in worker,
             "JSON collector must not use mutable array position as identity")
+    require("stableFeedExternalId(tag(b,\"guid\"),link)||\"\"" in worker,
+            "RSS parser must not use position/title as an identity fallback")
+    require("stableFeedExternalId(tag(b,\"id\"),link)||\"\"" in worker,
+            "Atom parser must not use position/title as an identity fallback")
+    require("x.external_id.length>0&&x.content.length>=30" in worker,
+            "Feed parsers must reject entries without stable identity")
     require("coverage_status" in design and "scope_fingerprint" in design,
             "H13 source completeness contract is missing")
     require("duas execuções completas consecutivas" in cases,
