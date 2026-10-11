@@ -58,12 +58,15 @@ def main() -> int:
                   "enable row level security",
                   "revoke all",
                   "on delete restrict",
-                  "unique (fetch_run_id, external_id)"):
+                  "unique (fetch_run_id, external_id)",
+                  "reject_intelligence_source_history_mutation",
+                  "versions_append_only",
+                  "observations_append_only"):
         require(token.lower() in sql.lower(),
                 f"SQL draft is missing required safeguard: {token}")
 
     print("PASS: static design preflight; H01-H15, safety contract, and SQL-draft guardrails are present.")
-    print("LIMIT: this does not parse or execute SQL, validate RLS, or prove runtime behavior.")
+    print("LIMIT: static checks are not runtime validation; PostgreSQL contract tests run separately in CI.")
     return 0
 
 if __name__ == "__main__":
