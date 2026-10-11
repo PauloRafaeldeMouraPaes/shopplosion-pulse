@@ -133,6 +133,19 @@ Esta lista é ilustrativa, não exaustiva. Cada item começa como **candidato**,
 - Avaliações de produtos, perguntas e reclamações públicas
 - Pesquisas de opinião, hábitos e ocasiões com metodologia identificável
 
+## Estado inicial observado no repositório
+
+Inspeção do código versionado em `main` identificou um worker genérico em `supabase/functions/pulse-external-source-worker/index.ts` que lê fontes ativas da tabela `intelligence_sources` e trata fontes dos tipos RSS/Atom, JSON e HTML. Isso fornece uma base de ingestão genérica, mas **não comprova integração direta com APIs proprietárias ou produtos licenciados de Scanntech, NielsenIQ, Kantar ou qualquer outro instituto**.
+
+Implicações para o trabalho:
+- Reaproveitar o worker genérico quando a fonte e o formato forem compatíveis, após validar acesso, termos e qualidade.
+- Para APIs autenticadas, arquivos licenciados ou esquemas específicos, avaliar adaptador próprio, armazenamento e regras de segurança antes de implementar.
+- Não presumir quais fontes estão ativas em produção apenas a partir do código. O inventário de execução exige verificar a configuração real da tabela `intelligence_sources` e as últimas capturas, usando acesso autorizado.
+- Registrar separadamente “o código aceita este formato”, “a fonte foi configurada”, “a captura teve sucesso” e “o dado foi validado e usado numa conclusão”.
+- Não colocar credenciais, chaves ou conteúdo licenciado no inventário público do repositório.
+
+Referência do worker: https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/blob/main/supabase/functions/pulse-external-source-worker/index.ts
+
 ## Processo de descoberta contínua
 
 Para cada oportunidade de pesquisa ou sinal prioritário:
