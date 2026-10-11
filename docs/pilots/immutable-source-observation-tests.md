@@ -1,10 +1,14 @@
 # Contrato de testes — histórico imutável de fontes
 
-**Status:** a matriz formal H01–H15 ainda não foi executada integralmente; os casos H01–H15 permanecem não executados integralmente como suíte formal. Uma parte dos comportamentos do schema/RPC foi verificada por integração PostgreSQL em CI.  
-**Execução parcial:** [Pulse Regression #2231](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38161126017) validou a migration criada pela Supabase CLI contra PostgreSQL 17 efêmero e fixture sintética. A transação de teste terminou em `ROLLBACK`; nenhum banco Supabase foi conectado.  
-**Cobertura parcial demonstrada:** o SQL é aceito pelo PostgreSQL; chaves compostas rejeitam combinações de tenant/source/run/item/version inconsistentes; RLS está habilitado; `anon`/`authenticated` não possuem privilégios diretos na tabela de histórico nem EXECUTE da RPC; triggers rejeitam UPDATE/DELETE; a RPC testou captura inicial, repetição idêntica, mudança, reversão, retry idempotente e retry conflitante.  
-**Ainda pendente:** H05 completo, leitura cruzada com RLS avaliada como role cliente, falha real de persistência propagada pelo worker, normalização temporal e hash, ausência de snapshot, mudança de parser e HTTP 403 através do worker. A suíte completa ainda depende da integração end-to-end e de testes dedicados para estes casos.  
-**Ambiente:** PostgreSQL isolado com dados sintéticos. Nunca executar fixtures destrutivas na produção.
+**Status:** a matriz formal H01–H15 ainda não foi executada integralmente; o aceite completo continua pendente.
+
+**Execução parcial:** [Pulse Regression #2289](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38162099391) passou no commit `a2ad57b35dcd6954e0995c59434f1c9e10475dfe`. O CI verificou a migration criada pela Supabase CLI contra PostgreSQL 17 efêmero e fixture sintética; executou `deno check` no worker e dois testes unitários do retry HTTP. Os cinco workflows do PR concluíram com sucesso nesse commit.
+
+**Cobertura demonstrada em ambiente sintético:** primeira captura, repetição idêntica, alteração e reversão; IDs externos iguais em fontes diferentes; rejeição de referências cross-tenant por FKs compostas; RLS habilitado e ausência de privilégios diretos de cliente; triggers append-only; retry idempotente e proteção contra retry antigo que regrediria a projeção; publicação versus observação; metadados de parser sem duplicar versão; fingerprint malformado ou reutilizado para payload diferente; migration e rollback.
+
+**Cobertura ainda incompleta:** H07 não foi exercitado como consulta real de role autenticada (o acesso direto está revogado); H09 precisa demonstrar falha de persistência e reconciliação no worker end-to-end; H13 ainda requer contrato por fonte para inferir ausência sem gerar falso desaparecimento; H15 foi testado no helper HTTP (403 falha sem retry), mas ainda falta provar o registro da falha no worker e a atualização da execução. A suíte H01–H15 completa não passou e não deve ser declarada concluída.
+
+**Ambiente:** PostgreSQL isolado com dados sintéticos e testes unitários sem chamadas à fonte real. Nenhum banco Supabase foi conectado pelo CI. Nunca executar fixtures destrutivas na produção.
 
 ## Pré-condições
 
