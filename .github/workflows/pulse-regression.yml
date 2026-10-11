@@ -27,3 +27,5 @@ jobs:
         run: python3 scripts/audit_pulse_single_file.py
       - name: Run accessibility and UX audit
         run: python3 scripts/audit_pulse_accessibility.py
+      - name: Run immutable source-history design preflight
+        run: python3 scripts/test-immutable-source-observation-contract.py
