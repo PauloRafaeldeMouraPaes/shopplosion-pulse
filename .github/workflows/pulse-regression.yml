@@ -43,6 +43,12 @@ jobs:
         run: python3 scripts/audit_pulse_accessibility.py
       - name: Run immutable source-history design preflight
         run: python3 scripts/test-immutable-source-observation-contract.py
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check external source history worker
+        run: deno check supabase/functions/pulse-external-source-worker/index.ts
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v3
         with:
