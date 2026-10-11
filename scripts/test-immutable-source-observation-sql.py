@@ -31,12 +31,14 @@ DECLARE
   v_run_a2 uuid := gen_random_uuid();
   v_run_a3 uuid := gen_random_uuid();
   v_run_a4 uuid := gen_random_uuid();
+  v_run_a5 uuid := gen_random_uuid();
   v_item_a uuid := gen_random_uuid();
   v_item_b uuid := gen_random_uuid();
   v_version_a uuid := gen_random_uuid();
   v_version_b uuid := gen_random_uuid();
   v_rpc_first record;
   v_rpc_same record;
+  v_rpc_parser record;
   v_rpc_changed record;
   v_rpc_reverted record;
   v_rpc_stale record;
@@ -130,7 +132,8 @@ BEGIN
            (v_run_b, v_source_b, v_industry_b, 'running'),
            (v_run_a2, v_source_a, v_industry_a, 'running'),
            (v_run_a3, v_source_a, v_industry_a, 'running'),
-           (v_run_a4, v_source_a, v_industry_a, 'running');
+           (v_run_a4, v_source_a, v_industry_a, 'running'),
+           (v_run_a5, v_source_a, v_industry_a, 'running');
   INSERT INTO public.intelligence_source_items
     (id, source_id, industry_id, external_id, title, content, content_fingerprint)
     VALUES
@@ -141,6 +144,17 @@ BEGIN
     VALUES
       (v_version_a, v_industry_a, v_source_a, 'item-a', repeat('a', 64), 'A', 'https://example.test/a', 'content A'),
       (v_version_b, v_industry_b, v_source_b, 'item-b', repeat('b', 64), 'B', 'https://example.test/b', 'content B');
+
+  -- H05: equal external IDs under different sources remain independent.
+  INSERT INTO public.intelligence_source_item_versions
+    (industry_id, source_id, external_id, content_fingerprint, title, content)
+    VALUES
+      (v_industry_a, v_source_a, 'shared-external', repeat('1', 64), 'Shared A', 'A'),
+      (v_industry_b, v_source_b, 'shared-external', repeat('2', 64), 'Shared B', 'B');
+  IF (SELECT count(*) FROM public.intelligence_source_item_versions
+       WHERE external_id = 'shared-external') <> 2 THEN
+    RAISE EXCEPTION 'H05 identical external IDs from distinct sources collided';
+  END IF;
 
   -- A correctly scoped observation must be accepted.
   INSERT INTO public.intelligence_source_item_observations
@@ -226,6 +240,18 @@ BEGIN
      OR NOT v_rpc_first.current_item_changed THEN
     RAISE EXCEPTION 'H01 first capture returned unexpected result: %', row_to_json(v_rpc_first);
   END IF;
+  -- H11: the source publication date is retained separately from collection time.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.intelligence_source_item_versions v
+     WHERE v.id = v_rpc_first.version_id
+       AND v.published_at = '2026-01-01T00:00:00Z'::timestamptz
+  ) OR NOT EXISTS (
+    SELECT 1 FROM public.intelligence_source_item_observations o
+     WHERE o.id = v_rpc_first.observation_id
+       AND o.observed_at > '2026-01-01T00:00:00Z'::timestamptz
+  ) THEN
+    RAISE EXCEPTION 'H11 publication time and observation time were conflated';
+  END IF;
 
   SELECT * INTO v_rpc_same
     FROM public.pulse_record_source_item_observation(
@@ -238,6 +264,23 @@ BEGIN
      OR v_rpc_same.version_id IS DISTINCT FROM v_rpc_first.version_id
      OR v_rpc_same.observation_id IS NOT DISTINCT FROM v_rpc_first.observation_id THEN
     RAISE EXCEPTION 'H02 identical repeat did not reuse version and create new observation';
+  END IF;
+
+  -- H14: parser metadata can change without duplicating an identical content version.
+  SELECT * INTO v_rpc_parser
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a5, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-2'));
+  IF v_rpc_parser.version_created
+     OR v_rpc_parser.current_item_changed
+     OR v_rpc_parser.version_id IS DISTINCT FROM v_rpc_first.version_id
+     OR NOT EXISTS (
+       SELECT 1 FROM public.intelligence_source_item_observations o
+        WHERE o.id = v_rpc_parser.observation_id
+          AND o.metadata->>'parser_version' = 'test-2'
+     ) THEN
+    RAISE EXCEPTION 'H14 parser metadata change was not separated from content versioning';
   END IF;
 
   SELECT * INTO v_rpc_changed
@@ -319,15 +362,15 @@ BEGIN
   IF (SELECT count(*) FROM public.intelligence_source_item_versions
        WHERE external_id = 'rpc-item') <> 2
      OR (SELECT count(*) FROM public.intelligence_source_item_observations
-       WHERE external_id = 'rpc-item') <> 4
+       WHERE external_id = 'rpc-item') <> 5
      OR NOT EXISTS (
        SELECT 1 FROM public.intelligence_source_items
        WHERE source_id = v_source_a AND external_id = 'rpc-item'
          AND content_fingerprint = repeat('f', 64) AND content = 'payload one'
          AND published_at = '2026-01-01T00:00:00Z'::timestamptz
      )
-     OR (SELECT count(*) FROM public.intelligence_source_item_versions) <> 4
-     OR (SELECT count(*) FROM public.intelligence_source_item_observations) <> 5 THEN
+     OR (SELECT count(*) FROM public.intelligence_source_item_versions) <> 6
+     OR (SELECT count(*) FROM public.intelligence_source_item_observations) <> 6 THEN
     RAISE EXCEPTION 'RPC persistence/idempotency/reversion assertions failed';
   END IF;
 END;
