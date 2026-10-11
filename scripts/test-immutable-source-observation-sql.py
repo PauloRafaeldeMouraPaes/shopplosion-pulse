@@ -336,9 +336,32 @@ def main() -> int:
     if not DRAFT.exists() or not FIXTURE.exists():
         return fail("schema draft or synthetic fixture is missing")
     draft = DRAFT.read_text(encoding="utf-8")
-    matches = list(re.finditer(r"(?im)^rollback;\s*$", draft))
-    if len(matches) != 1 or draft[matches[0].start():].strip().lower() != "rollback;":
-        return fail("draft must contain exactly one final ROLLBACK statement")
+    migration_file = os.environ.get("MIGRATION_SQL_FILE", "").strip()
+    if migration_file:
+        migration_path = Path(migration_file).resolve()
+        migrations_root = (ROOT / "supabase/migrations").resolve()
+        if migration_path.parent != migrations_root:
+            return fail("safety stop: MIGRATION_SQL_FILE must be inside supabase/migrations")
+        if not re.fullmatch(r"\d{14}_immutable_source_observation_history\.sql", migration_path.name):
+            return fail("safety stop: migration filename must match Supabase CLI timestamp format")
+        if not migration_path.exists():
+            return fail("MIGRATION_SQL_FILE does not exist")
+        migration_sql = migration_path.read_text(encoding="utf-8")
+        if re.search(r"(?im)^(begin|rollback);[ \t]*$", migration_sql):
+            return fail("generated migration must not contain the draft's BEGIN/ROLLBACK wrapper")
+        if not migration_sql.strip():
+            return fail("generated migration is empty")
+        sql_to_test = "BEGIN;\n" + migration_sql + "\n" + ASSERTIONS + "\nROLLBACK;\n"
+        label = f"CLI-generated migration {migration_path.name}"
+    else:
+        matches = list(re.finditer(r"(?im)^rollback;[ \t]*$", draft))
+        begins = list(re.finditer(r"(?im)^begin;[ \t]*$", draft))
+        if len(matches) != 1 or draft[matches[0].start():].strip().lower() != "rollback;":
+            return fail("draft must contain exactly one final ROLLBACK statement")
+        if len(begins) != 1 or begins[0].start() >= matches[0].start():
+            return fail("draft must contain one BEGIN preceding its final ROLLBACK")
+        sql_to_test = draft[:matches[0].start()] + ASSERTIONS + "\nROLLBACK;\n"
+        label = "review-only schema draft"
 
     def run_psql(*args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
@@ -350,7 +373,7 @@ def main() -> int:
     if fixture_result.returncode:
         return fail("failed to create synthetic baseline: " + fixture_result.stderr[-3000:])
 
-    statement = draft[:matches[0].start()] + ASSERTIONS + "\nROLLBACK;\n"
+    statement = sql_to_test
     import tempfile
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".sql") as temp:
         temp.write(statement)
@@ -373,8 +396,8 @@ def main() -> int:
     if clean.returncode or clean.stdout.strip() != "clean":
         return fail("draft did not leave the synthetic database unchanged after rollback")
 
-    print("PASS: PostgreSQL parsed the draft and passed tenant-FK, RLS/privilege,")
-    print("      uniqueness, append-only, and rollback assertions on synthetic data.")
+    print(f"PASS: PostgreSQL parsed the {label} and passed tenant-FK, RLS/privilege,")
+    print("      atomic RPC, uniqueness, append-only, and rollback assertions on synthetic data.")
     print("LIMIT: synthetic schema only; no production schema, Edge Function, or H01-H15 end-to-end run.")
     return 0
 
