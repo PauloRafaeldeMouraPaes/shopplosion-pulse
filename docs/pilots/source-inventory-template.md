@@ -3,6 +3,12 @@
 **Aplicação inicial:** piloto Chocolate — Brasil  
 **Status deste documento:** estrutura operacional inicial; não é evidência de que as fontes listadas estejam integradas ou licenciadas.
 
+## Documentos operacionais relacionados
+
+- [Especificação de cruzamento entre mercado e comportamento humano](cross-signal-market-human-behavior.md)
+- [Auditoria operacional das fontes do piloto Chocolate — 11/10/2026](chocolate-source-audit-2026-10-11.md)
+- [Protocolo do piloto Chocolate](chocolate-emerging-shopper-signals.md)
+
 ## Objetivo
 
 Manter um inventário extensível das fontes que o Pulse pode consultar para responder a perguntas de inteligência. A lista nunca deve ser considerada fechada: novas fontes são pesquisadas quando uma hipótese exige evidência que ainda não existe no inventário.
