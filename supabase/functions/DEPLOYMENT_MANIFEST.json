@@ -85,7 +85,7 @@
     },
     {
       "slug": "pulse-external-signal-worker",
-      "version": 14,
+      "version": 15,
       "status": "ACTIVE",
       "verify_jwt": false,
       "deployed_sha256": "089a7e079949ac8c6e89da67669e850aed11a4b62653b6e3a5e8a1ee2e94e279",
@@ -100,7 +100,7 @@
     },
     {
       "slug": "pulse-external-deterministic-backstop",
-      "version": 10,
+      "version": 11,
       "status": "ACTIVE",
       "verify_jwt": false,
       "deployed_sha256": "f2eadabe9c245dec29a6424844a7ead57e43cf811ad94a4e34bb0e07ba705b50",
