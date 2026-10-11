@@ -74,7 +74,18 @@ A inserção da versão, observação e projeção atual deve idealmente ocorrer
 - Definir retenção e limites de conteúdo antes de produção. Respeitar termos, direitos de uso e privacidade das fontes; não capturar dados pessoais desnecessários.
 - Não contornar HTTP 403 nem controles de acesso de fontes.
 
-## 5. Compatibilidade e implantação gradual
+## 5. Estado do schema verificado em produção (somente leitura)
+
+Consulta ao catálogo do PostgreSQL em 11/10/2026 confirmou:
+
+- `intelligence_source_items` possui unicidade em `(source_id, external_id)`, FKs para `intelligence_sources` e `industries`, RLS habilitado e política de leitura para `authenticated` restrita a `industry_id = current_industry_id()`.
+- `intelligence_source_fetch_runs` possui FKs para fonte e indústria, RLS habilitado e política de leitura restrita à indústria atual.
+- `intelligence_sources` tem unicidade em `(industry_id, url)`, RLS habilitado e políticas de leitura/inserção/atualização/exclusão por indústria atual.
+- A consulta de políticas não encontrou políticas de escrita para `authenticated` em itens ou execuções; o worker usa cliente administrativo no servidor.
+
+**Implicação para o desenho:** as tabelas novas devem preservar o isolamento por `industry_id`, não receber políticas genéricas de leitura pública e não abrir escrita direta aos usuários autenticados. A política de leitura, se necessária no painel, deve usar o mesmo mecanismo `current_industry_id()` confirmado no banco. A execução do worker precisa continuar restrita ao servidor. Ainda é necessário validar privilégios efetivos, FKs/cascatas e advisors na branch de desenvolvimento antes da migração.
+
+## 6. Compatibilidade e implantação gradual
 
 1. Fazer inventário de constraints, FKs, RLS/policies e funções atuais.
 2. Criar migration numa branch de desenvolvimento do Supabase, não diretamente em produção.
@@ -85,7 +96,7 @@ A inserção da versão, observação e projeção atual deve idealmente ocorrer
 7. Liberar gradualmente e verificar métricas/consultas.
 8. Só depois criar consultas de tendência que usem observações históricas e distingam data de publicação, data de coleta e data de primeira observação.
 
-## 6. Critérios de aceite
+## 7. Critérios de aceite
 
 - Recoletar conteúdo idêntico gera uma observação nova, mas não duplica a versão.
 - Alterar conteúdo da mesma URL gera nova versão e preserva a anterior.
@@ -96,7 +107,7 @@ A inserção da versão, observação e projeção atual deve idealmente ocorrer
 - RLS/isolamento e permissões são testados antes de qualquer deploy.
 - O painel não chama “tendência” a uma simples mudança de página, repetição de coleta ou artefato do parser.
 
-## 7. Fora do escopo desta etapa
+## 8. Fora do escopo desta etapa
 
 - Não altera o banco de produção.
 - Não executa migrações.
