@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "docs/pilots/immutable-source-observation-history.md"
 CASES = ROOT / "docs/pilots/immutable-source-observation-tests.md"
 SQL_DRAFT = ROOT / "docs/pilots/immutable-source-observation-schema-draft.sql"
+WORKER = ROOT / "supabase/functions/pulse-external-source-worker/index.ts"
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -22,6 +23,7 @@ def main() -> int:
     design = DESIGN.read_text(encoding="utf-8")
     cases = CASES.read_text(encoding="utf-8")
     sql = SQL_DRAFT.read_text(encoding="utf-8")
+    worker = WORKER.read_text(encoding="utf-8")
 
     # The contract must stay complete and uniquely identifiable.
     ids = re.findall(r"\bH(\d{2})\s+[—-]", cases)
@@ -68,6 +70,21 @@ def main() -> int:
                   "pg_advisory_xact_lock"):
         require(token.lower() in sql.lower(),
                 f"SQL draft is missing required safeguard: {token}")
+
+    # Guard that the actual collector uses the new atomic write path rather
+    # than silently preserving the old overwrite-only upsert implementation.
+    for token in (
+        "admin.rpc('pulse_record_source_item_observation'",
+        "if(recordError)throw new Error('source_item_history_persist_failed:",
+        "if(!Array.isArray(recorded)||recorded.length!==1)",
+        "p_metadata:{source_type:s.source_type,parser_version:'external-source-worker-v1'}",
+        "const fp=await sha(JSON.stringify([title,url||'',content]));",
+        "fetch_run_create_failed:",
+        "fetch_run_finish_failed:",
+    ):
+        require(token in worker, f"Worker is missing required history guard: {token}")
+    require("admin.from('intelligence_source_items').upsert" not in worker,
+            "Worker still writes the current projection via the old upsert-only path")
 
     print("PASS: static design preflight; H01-H15, safety contract, and SQL-draft guardrails are present.")
     print("LIMIT: static checks are not runtime validation; PostgreSQL contract tests run separately in CI.")
