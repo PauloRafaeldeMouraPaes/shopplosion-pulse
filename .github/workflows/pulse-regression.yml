@@ -49,6 +49,8 @@ jobs:
           deno-version: v2.x
       - name: Type-check external source history worker
         run: deno check supabase/functions/pulse-external-source-worker/index.ts
+      - name: Test source HTTP retry policy
+        run: deno test supabase/functions/_shared/fetch-source.test.ts
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v3
         with:
