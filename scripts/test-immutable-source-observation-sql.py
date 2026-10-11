@@ -51,6 +51,7 @@ DECLARE
   v_run_a5 uuid := gen_random_uuid();
   v_run_a6 uuid := gen_random_uuid();
   v_run_a7 uuid := gen_random_uuid();
+  v_run_a8 uuid;
   v_atomic_failure boolean := false;
   v_item_a uuid := gen_random_uuid();
   v_item_b uuid := gen_random_uuid();
@@ -455,6 +456,30 @@ BEGIN
      OR (SELECT count(*) FROM public.intelligence_source_item_observations) <> 6 THEN
     RAISE EXCEPTION 'RPC persistence/idempotency/reversion assertions failed';
   END IF;
+
+  -- H12: persist the exact canonical fingerprint vector verified by the Deno test.
+  INSERT INTO public.intelligence_source_fetch_runs (source_id, industry_id, status)
+    VALUES (v_source_a, v_industry_a, 'running')
+    RETURNING id INTO v_run_a8;
+
+  PERFORM * FROM public.pulse_record_source_item_observation(
+    v_industry_a, v_source_a, v_run_a8, 'rpc-known-vector', 'Title',
+    'https://example.test', NULL, 'body',
+    'd7ad18a30127691a8d7589dd77fb832e6bf52834981dcea15845f175c87ad550',
+    jsonb_build_object('parser_version', 'fingerprint-vector-test'));
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.intelligence_source_item_versions v
+     WHERE v.source_id = v_source_a
+       AND v.external_id = 'rpc-known-vector'
+       AND v.title = 'Title'
+       AND v.url = 'https://example.test'
+       AND v.content = 'body'
+       AND v.content_fingerprint = 'd7ad18a30127691a8d7589dd77fb832e6bf52834981dcea15845f175c87ad550'
+  ) THEN
+    RAISE EXCEPTION 'H12 known fingerprint vector was not preserved in the version row';
+  END IF;
+
 END;
 $pulse_schema_contract$;
 """
