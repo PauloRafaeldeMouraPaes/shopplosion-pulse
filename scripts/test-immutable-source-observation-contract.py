@@ -14,6 +14,8 @@ DESIGN = ROOT / "docs/pilots/immutable-source-observation-history.md"
 CASES = ROOT / "docs/pilots/immutable-source-observation-tests.md"
 SQL_DRAFT = ROOT / "docs/pilots/immutable-source-observation-schema-draft.sql"
 WORKER = ROOT / "supabase/functions/pulse-external-source-worker/index.ts"
+FETCH_HELPER = ROOT / "supabase/functions/_shared/fetch-source.ts"
+FETCH_TEST = ROOT / "supabase/functions/_shared/fetch-source.test.ts"
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -24,6 +26,8 @@ def main() -> int:
     cases = CASES.read_text(encoding="utf-8")
     sql = SQL_DRAFT.read_text(encoding="utf-8")
     worker = WORKER.read_text(encoding="utf-8")
+    fetch_helper = FETCH_HELPER.read_text(encoding="utf-8")
+    fetch_test = FETCH_TEST.read_text(encoding="utf-8")
 
     # The contract must stay complete and uniquely identifiable.
     ids = re.findall(r"\bH(\d{2})\s+[—-]", cases)
@@ -83,10 +87,19 @@ def main() -> int:
         "const fp=await sha(JSON.stringify([title,url||'',content]));",
         "fetch_run_create_failed:",
         "fetch_run_finish_failed:",
-        "response.ok||response.status===403",
-        "if(!response?.ok)throw new Error(`http_${response?.status||0}`)",
+        "fetchSourceWithRetry(s.url,fetchWithTimeout,sleep)",
     ):
         require(token in worker, f"Worker is missing required history guard: {token}")
+    for token in (
+        "response.ok || response.status === 403",
+        "throw new Error(`http_${response?.status || 0}`)",
+    ):
+        require(token in fetch_helper, f"HTTP retry helper is missing safety behavior: {token}")
+    require("HTTP 403 is not retried" in fetch_test,
+            "HTTP 403 no-retry unit test is missing")
+    require("transient server errors can retry before success" in fetch_test,
+            "transient retry unit test is missing")
+
     require("admin.from('intelligence_source_items').upsert" not in worker,
             "Worker still writes the current projection via the old upsert-only path")
 
