@@ -72,7 +72,7 @@ create table public.intelligence_source_item_observations (
   constraint intelligence_source_item_observations_item_fk
     foreign key (source_item_id, source_id, industry_id)
     references public.intelligence_source_items (id, source_id, industry_id)
-    on delete set null (source_item_id),
+    on delete restrict,
 
   constraint intelligence_source_item_observations_version_fk
     foreign key (version_id, source_id, industry_id)
@@ -97,6 +97,30 @@ create index intelligence_source_item_observations_source_external_time_idx
   on public.intelligence_source_item_observations (source_id, external_id, observed_at desc);
 create index intelligence_source_item_observations_version_idx
   on public.intelligence_source_item_observations (version_id);
+
+
+-- Prevent accidental UPDATE/DELETE of retained evidence, including by the
+-- server worker. Corrections should be represented by a new version/observation.
+create function public.reject_intelligence_source_history_mutation()
+returns trigger
+language plpgsql
+as $immutable_history$
+begin
+  raise exception 'source history is append-only; insert a new observation/version instead'
+    using errcode = '55000';
+end;
+$immutable_history$;
+
+create trigger intelligence_source_item_versions_append_only
+  before update or delete on public.intelligence_source_item_versions
+  for each row execute function public.reject_intelligence_source_history_mutation();
+
+create trigger intelligence_source_item_observations_append_only
+  before update or delete on public.intelligence_source_item_observations
+  for each row execute function public.reject_intelligence_source_history_mutation();
+
+revoke all on function public.reject_intelligence_source_history_mutation()
+  from public, anon, authenticated;
 
 -- Default deny: these tables are not intended as direct client-write APIs.
 alter table public.intelligence_source_item_versions enable row level security;
