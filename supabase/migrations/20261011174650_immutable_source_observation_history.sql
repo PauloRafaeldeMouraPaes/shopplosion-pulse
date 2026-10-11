@@ -165,6 +165,15 @@ declare
   v_existing_version_title text;
   v_existing_version_url text;
   v_existing_version_content text;
+  v_retry_observation_id uuid;
+  v_retry_version_id uuid;
+  v_retry_outcome text;
+  v_retry_fingerprint text;
+  v_retry_title text;
+  v_retry_url text;
+  v_retry_content text;
+  v_retry_item_id uuid;
+
 begin
   if p_external_id is null or length(p_external_id) = 0 or length(p_external_id) > 1000 then
     raise exception 'external_id must contain 1-1000 characters' using errcode = '23514';
@@ -201,6 +210,41 @@ begin
   perform pg_catalog.pg_advisory_xact_lock(
     pg_catalog.hashtextextended(p_source_id::text || ':' || p_external_id, 0)
   );
+
+  -- An existing observation makes this call a retry, not a new projection update.
+  -- Resolve and compare it before touching the current projection; stale retries
+  -- must never roll a newer projection back to older content.
+  select o.id, o.version_id, o.outcome, v.content_fingerprint, v.title, v.url,
+         v.content, o.source_item_id
+    into v_retry_observation_id, v_retry_version_id, v_retry_outcome,
+         v_retry_fingerprint, v_retry_title, v_retry_url, v_retry_content,
+         v_retry_item_id
+    from public.intelligence_source_item_observations o
+    left join public.intelligence_source_item_versions v
+      on v.id = o.version_id
+     and v.source_id = o.source_id
+     and v.industry_id = o.industry_id
+   where o.fetch_run_id = p_fetch_run_id
+     and o.external_id = p_external_id;
+
+  if found then
+    if v_retry_version_id is null
+       or v_retry_outcome not in ('captured', 'unchanged') then
+      raise exception 'retry conflicts with an existing non-content observation'
+        using errcode = '23505';
+    end if;
+    if v_retry_fingerprint is distinct from p_content_fingerprint
+       or v_retry_title is distinct from p_title
+       or v_retry_url is distinct from p_url
+       or v_retry_content is distinct from p_content then
+      raise exception 'retry conflicts with the existing observation payload'
+        using errcode = '23505';
+    end if;
+    return query select
+      v_retry_item_id, v_retry_version_id, v_retry_observation_id,
+      v_retry_outcome, false, false;
+    return;
+  end if;
 
   select i.content_fingerprint
     into v_previous_fingerprint
