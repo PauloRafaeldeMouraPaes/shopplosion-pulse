@@ -1,6 +1,6 @@
 # Proposta técnica — histórico imutável de observações de fontes
 
-**Status:** desenho técnico; não implantado.  
+**Status:** implementação versionada no PR #80 e validada parcialmente em PostgreSQL efêmero; não implantada no Supabase de produção.  
 **Contrato de testes:** [matriz de aceitação do histórico imutável](immutable-source-observation-tests.md).  
 **Escopo:** piloto Chocolate e evolução compatível com o coletor existente.  
 **Objetivo:** preservar proveniência e mudanças ao longo do tempo sem confundir uma nova coleta com uma nova tendência.
