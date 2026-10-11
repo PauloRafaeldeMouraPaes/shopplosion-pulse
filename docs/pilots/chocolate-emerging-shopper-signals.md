@@ -221,7 +221,7 @@ Dois feeds RSS oficiais da Agência Brasil estão ativos para descoberta, com fi
 - A captura HTML decodifica entidades numéricas/nomeadas, extrai conteúdo de artigo quando disponível e prioriza a data visível quando ela diverge do timestamp de metadados.
 - Os feeds RSS de descoberta são filtrados por relevância antes da persistência; artigos sem relação com chocolate não entram no piloto.
 - Os workers de sinal e backstop compartilham as mesmas regras de qualidade. A validação rejeita divisões estáticas por segmento sem comparação temporal e deduplica citações sobrepostas, preservando a evidência mais completa.
-- Após revisão, há 14 registros de sinal ativos agrupados em cinco páginas-fonte. Esse número **não** significa 14 tendências independentes: vários registros são métricas distintas do mesmo estudo, e os sinais de dispersão de preços são contexto de varejo.
+- Após a revisão daquela execução, havia 14 registros ativos agrupados em cinco páginas-fonte; a revisão subsequente descrita na seção 15 reduziu a contagem atual para 13. Esse número **não** significa 14 tendências independentes: vários registros são métricas distintas do mesmo estudo, e os sinais de dispersão de preços são contexto de varejo.
 - Os contratos de evidência, regressão, auditoria multi-tenant, auditoria de IA privada e browser smoke passaram nas verificações exigidas para as mudanças de captura e qualidade. O manifesto de deploy foi atualizado para as versões ativas dos workers.
 - A fonte do IBGE continua desativada após HTTP 403; nenhum bloqueio foi contornado. Uma notícia que repetia métricas atribuídas à Abicab permanece em quarentena para evitar falsa independência.
 
@@ -232,7 +232,7 @@ A hipótese mais útil para testar é que **a intenção de compra pode permanec
 
 ## 15. Segunda execução operacional e gate de fechamento (11/10/2026)
 
-A segunda rodada ampliou o baseline inicial para cinco páginas-fonte primárias ativas e **14 sinais ativos após revisão**, distribuídos da seguinte forma: Abicab (4), Agência Brasil/Instituto Locomotiva (1), Kantar/Worldpanel (3), IPEAD/UFMG (3) e Procon Joinville (3). Os sinais não equivalem a 14 fontes independentes: vários fatos vêm da mesma página, e os períodos, universos e regiões diferem.
+A segunda rodada ampliou o baseline inicial para cinco páginas-fonte primárias ativas. Na revisão de qualidade mais recente, restam **13 sinais ativos**, distribuídos da seguinte forma: Abicab (4), Agência Brasil/Instituto Locomotiva (1), Kantar/Worldpanel (3), IPEAD/UFMG (2) e Procon Joinville (3). Um sinal do IPEAD foi retirado da contagem ativa por não atender ao critério de evidência; os registros históricos das rodadas anteriores permanecem documentados. Os sinais não equivalem a 13 fontes independentes: vários fatos vêm da mesma página, e os períodos, universos e regiões diferem.
 
 ### Evidências incluídas
 
