@@ -37,7 +37,7 @@ def main() -> int:
         require(table in design, f"Design is missing table {table}")
     for token in ("content_fingerprint", "first_observed_at", "observed_at",
                   "fetch_run_id", "industry_id", "source_id",
-                  "ON CONFLICT", "RLS", "anon", "authenticated"):
+                  "pulse_record_source_item_observation", "RLS", "anon", "authenticated"):
         require(token.lower() in design.lower(),
                 f"Design is missing required safety/identity term: {token}")
 
