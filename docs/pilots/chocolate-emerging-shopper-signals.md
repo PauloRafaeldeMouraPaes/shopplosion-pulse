@@ -228,3 +228,34 @@ Dois feeds RSS oficiais da Agência Brasil estão ativos para descoberta, com fi
 ### Interpretação provisória
 
 A hipótese mais útil para testar é que **a intenção de compra pode permanecer alta enquanto parte dos shoppers ajusta formato, porção ou canal diante da pressão de preço**. A hipótese conecta sinais de períodos e universos diferentes; ainda precisa de quatro semanas de observação recorrente e de uma série de preço/sortimento ou sell-out autorizada. Não afirmar que essa mudança está acontecendo agora, em todo o Brasil ou em uma marca específica.
+
+
+## 14. Segunda execução operacional e gate de fechamento (11/10/2026)
+
+A segunda rodada ampliou o baseline inicial para cinco páginas-fonte primárias ativas e **14 sinais ativos após revisão**, distribuídos da seguinte forma: Abicab (4), Agência Brasil/Instituto Locomotiva (1), Kantar/Worldpanel (3), IPEAD/UFMG (3) e Procon Joinville (3). Os sinais não equivalem a 14 fontes independentes: vários fatos vêm da mesma página, e os períodos, universos e regiões diferem.
+
+### Evidências incluídas
+
+- **Shopper — intenção declarada:** 90% dos entrevistados pretendiam comprar chocolate na Páscoa de 2026, +4 pontos percentuais contra 2025; pesquisa nacional com 1.557 adultos, realizada de 25/02 a 13/03/2026. Fonte: Agência Brasil / Instituto Locomotiva.
+- **Consumo observado — contexto histórico:** Kantar/Worldpanel reportou queda de 19% no volume de consumo domiciliar de chocolate no primeiro trimestre de 2025, alta de 17% no preço médio por quilo e queda de 10% em unidades. São resultados históricos, não uma medição de outubro de 2026.
+- **Preço temporal — Belo Horizonte:** IPEAD/UFMG reportou alta de 14,60% no preço médio dos ovos de Páscoa em 2026 versus 2025 e 17,82% para chocolate em barra no levantamento local.
+- **Dispersão regional — Joinville:** Procon observou diferença de até 191,26% para uma barra de 80 g entre estabelecimentos e variação de 31,91% para ovos de Páscoa. Dispersão entre lojas é uma fotografia regional, não inflação temporal.
+- **Oferta/setor — Abicab:** quatro mudanças de produção, ovos de Páscoa, lançamentos e vagas temporárias, todas derivadas da mesma fonte setorial.
+
+### Controles aplicados
+
+- Captura HTML passou a extrair datas de publicação, decodificar entidades e priorizar conteúdo de artigo em vez de navegação.
+- RSS de descoberta é filtrado por relevância à categoria antes de persistir itens; nas duas execuções mais recentes, nenhum artigo novo passou pelo filtro. As fontes permanecem ativas para descoberta, sem inserir notícias gerais como evidência de chocolate.
+- O bloqueio HTTP 403 do IBGE foi preservado e a fonte permanece inativa; não houve tentativa de contornar o bloqueio.
+- Regras de qualidade rejeitam diferenças de segmentos demográficos que não representem uma mudança temporal, impedem que uma citação válida suprima fatos distintos da mesma página e consolidam citações sobrepostas.
+- O worker de sinais e o backstop determinístico usam o mesmo módulo de qualidade. O manifesto de produção coincide com as versões ativas verificadas no Supabase: source worker v6, signal worker v14 e deterministic backstop v10, todos ACTIVE e com `verify_jwt=false` mais autenticação interna do worker.
+
+### Interpretação atual
+
+A hipótese mais útil para teste é que a intenção de compra sazonal permaneça alta ao mesmo tempo que preço e formato influenciam a escolha. Há coerência entre intenção declarada, percepção de preço, dados históricos de volume/formato e pesquisas locais de preço, mas **não há evidência suficiente para afirmar causalidade nem para concluir que esse comportamento persista fora da Páscoa**. Não há série contínua de sell-out, preço por 100 g, sortimento e promoção; os dados não autorizam recomendação específica para Lindt ou qualquer outra marca.
+
+### Decisão de saída nesta data
+
+**Avançar para validação longitudinal; não declarar o piloto de shopper concluído ainda.** A cadeia de captura e evidência passou pelo gate de regressão, contrato de evidência e auditorias multi-tenant/privacidade na execução atual. O fechamento final depende de quatro semanas de observação recorrente, comparação de snapshots em datas sucessivas, revisão de falsos positivos e, quando autorizado, corroboração com sell-out/painel ou pesquisa independente. O acompanhamento foi programado semanalmente por quatro semanas a partir de 14/10/2026; cada revisão deve atualizar este protocolo e a página pública apenas quando houver evidência material nova.
+
+**Critérios para declarar o piloto concluído:** (1) quatro semanas de capturas datadas; (2) nenhum erro de proveniência crítico sem resolução; (3) separação auditável entre mudança temporal, dispersão entre lojas, intenção declarada e comportamento observado; (4) sinais prioritários corroborados por fontes independentes ou explicitamente classificados como preliminares; (5) decisão documentada de avançar, corrigir ou interromper.
