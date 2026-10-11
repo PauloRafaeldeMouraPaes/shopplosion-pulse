@@ -3,7 +3,7 @@
 **Status:** proposta operacional para validação; não representa cliente contratado, dado proprietário de marca nem conclusão comprovada sobre o shopper.  
 **Categoria piloto:** chocolate no Brasil.  
 **Potencial parceiro de desenho:** Lindt, como prospect; nenhuma parceria ou acesso a dados foi presumido.  
-**Versão:** 1.1 — 10/10/2026.
+**Versão:** 1.2 — 11/10/2026.
 
 ## 1. Objetivo
 
@@ -230,7 +230,7 @@ Dois feeds RSS oficiais da Agência Brasil estão ativos para descoberta, com fi
 A hipótese mais útil para testar é que **a intenção de compra pode permanecer alta enquanto parte dos shoppers ajusta formato, porção ou canal diante da pressão de preço**. A hipótese conecta sinais de períodos e universos diferentes; ainda precisa de quatro semanas de observação recorrente e de uma série de preço/sortimento ou sell-out autorizada. Não afirmar que essa mudança está acontecendo agora, em todo o Brasil ou em uma marca específica.
 
 
-## 14. Segunda execução operacional e gate de fechamento (11/10/2026)
+## 15. Segunda execução operacional e gate de fechamento (11/10/2026)
 
 A segunda rodada ampliou o baseline inicial para cinco páginas-fonte primárias ativas e **14 sinais ativos após revisão**, distribuídos da seguinte forma: Abicab (4), Agência Brasil/Instituto Locomotiva (1), Kantar/Worldpanel (3), IPEAD/UFMG (3) e Procon Joinville (3). Os sinais não equivalem a 14 fontes independentes: vários fatos vêm da mesma página, e os períodos, universos e regiões diferem.
 
