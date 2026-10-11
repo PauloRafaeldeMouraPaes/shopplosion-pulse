@@ -14,6 +14,20 @@ concurrency:
 jobs:
   regression:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pulse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d pulse_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,3 +43,14 @@ jobs:
         run: python3 scripts/audit_pulse_accessibility.py
       - name: Run immutable source-history design preflight
         run: python3 scripts/test-immutable-source-observation-contract.py
+      - name: Ensure PostgreSQL client is available
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+      - name: Validate history schema in ephemeral PostgreSQL
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pulse_test
+        run: python3 scripts/test-immutable-source-observation-sql.py
