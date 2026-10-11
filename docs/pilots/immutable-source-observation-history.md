@@ -30,7 +30,7 @@ Não substituir nem reinterpretar as tabelas atuais. Acrescentar duas tabelas:
 - `metadata jsonb not null default '{}'::jsonb` — tipo de fonte, versão do parser e metadados não sensíveis.
 - Restrição única sugerida: `(source_id, external_id, content_fingerprint)`.
 
-Uma versão só é inserida quando o fingerprint ainda não existir para aquela identidade. Conteúdo idêntico repetido não cria uma versão nova. Mudanças na extração/parser devem ser registradas em `metadata` para não serem confundidas automaticamente com mudanças de comportamento. `intelligence_source_item_versions` não referencia a projeção atual: ela é mutável, enquanto a versão precisa preservar o snapshot de forma independente.
+Uma versão só é inserida quando o fingerprint ainda não existir para aquela identidade, usando `INSERT ... ON CONFLICT (source_id, external_id, content_fingerprint) DO NOTHING` e resolvendo a versão existente antes de gravar a observação. Conteúdo idêntico repetido não cria uma versão nova. Mudanças na extração/parser devem ser registradas em `metadata` para não serem confundidas automaticamente com mudanças de comportamento. `intelligence_source_item_versions` não referencia a projeção atual: ela é mutável, enquanto a versão precisa preservar o snapshot de forma independente.
 
 ### `intelligence_source_item_observations` — cada observação em uma execução
 
