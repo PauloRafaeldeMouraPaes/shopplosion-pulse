@@ -54,7 +54,7 @@ jobs:
           echo "Supabase CLI: $(supabase --version)"
           mkdir -p supabase/migrations
           existing="$(find supabase/migrations -maxdepth 1 -type f -name '*_immutable_source_observation_history.sql' -print | sort)"
-          count="$(printf '%s\\n' "$existing" | sed '/^$/d' | wc -l | tr -d ' ')"
+          count="$(printf '%s\n' "$existing" | sed '/^$/d' | wc -l | tr -d ' ')"
           if [ "$count" -eq 1 ]; then
             migration="$existing"
             python3 scripts/render-immutable-source-observation-migration.py --check "$migration"
@@ -62,8 +62,8 @@ jobs:
             before="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print | sort)"
             supabase migration new immutable_source_observation_history
             after="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print | sort)"
-            created="$(comm -13 <(printf '%s\\n' "$before") <(printf '%s\\n' "$after") | sed '/^$/d')"
-            created_count="$(printf '%s\\n' "$created" | sed '/^$/d' | wc -l | tr -d ' ')"
+            created="$(comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | sed '/^$/d')"
+            created_count="$(printf '%s\n' "$created" | sed '/^$/d' | wc -l | tr -d ' ')"
             if [ "$created_count" -ne 1 ]; then
               echo "Expected one CLI-generated migration, found $created_count" >&2
               exit 1
