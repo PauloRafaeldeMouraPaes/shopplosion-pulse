@@ -39,6 +39,7 @@ DECLARE
   v_rpc_same record;
   v_rpc_changed record;
   v_rpc_reverted record;
+  v_rpc_stale record;
   v_rpc_retry record;
   v_function_oid oid;
   v_function_is_definer boolean;
@@ -249,6 +250,26 @@ BEGIN
      OR NOT v_rpc_changed.current_item_changed
      OR v_rpc_changed.version_id IS NOT DISTINCT FROM v_rpc_first.version_id THEN
     RAISE EXCEPTION 'H03 content change did not create a distinct version';
+  END IF;
+
+  -- Retrying the original run after a later version arrived must not
+  -- regress the current projection to stale content.
+  SELECT * INTO v_rpc_stale
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+  IF v_rpc_stale.version_id IS DISTINCT FROM v_rpc_first.version_id
+     OR v_rpc_stale.observation_id IS DISTINCT FROM v_rpc_first.observation_id
+     OR v_rpc_stale.current_item_changed THEN
+    RAISE EXCEPTION 'stale retry did not return the original observation without changing projection';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.intelligence_source_items
+     WHERE source_id = v_source_a AND external_id = 'rpc-item'
+       AND content_fingerprint = repeat('e', 64) AND content = 'payload two'
+  ) THEN
+    RAISE EXCEPTION 'stale retry incorrectly regressed the current projection';
   END IF;
 
   SELECT * INTO v_rpc_reverted
