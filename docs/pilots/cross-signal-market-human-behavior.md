@@ -1,5 +1,11 @@
 # Pulse — Especificação de cruzamento entre mercado e comportamento humano
 
+## Documentos operacionais relacionados
+
+- [Inventário vivo de fontes e critérios de avaliação](source-inventory-template.md)
+- [Auditoria operacional das fontes do piloto Chocolate — 11/10/2026](chocolate-source-audit-2026-10-11.md)
+- [Protocolo do piloto Chocolate](chocolate-emerging-shopper-signals.md)
+
 **Status:** especificação de produto e pesquisa; não afirma que todos os conectores descritos já estejam implementados.  
 **Aplicação inicial:** piloto Chocolate no Brasil.  
 **Princípio:** o valor do Pulse está em relacionar mudanças observáveis no mercado com mudanças agregadas no que as pessoas buscam, dizem, avaliam e fazem — preservando a diferença entre declaração, comportamento observado e resultado comercial.
