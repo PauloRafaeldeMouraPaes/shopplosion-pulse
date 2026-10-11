@@ -1,6 +1,7 @@
 # Proposta técnica — histórico imutável de observações de fontes
 
 **Status:** desenho técnico; não implantado.  
+**Contrato de testes:** [matriz de aceitação do histórico imutável](immutable-source-observation-tests.md).  
 **Escopo:** piloto Chocolate e evolução compatível com o coletor existente.  
 **Objetivo:** preservar proveniência e mudanças ao longo do tempo sem confundir uma nova coleta com uma nova tendência.
 
@@ -45,7 +46,9 @@ Uma versão só é inserida quando o fingerprint ainda não existir para aquela 
 - `outcome text not null` — por exemplo `captured`, `unchanged`, `parse_error`; usar CHECK.
 - `metadata jsonb not null default '{}'::jsonb`.
 
-Restrições: uma única observação por `(fetch_run_id, source_id, external_id)`; índices em `(industry_id, observed_at desc)`, `(source_id, external_id, observed_at desc)` e `version_id`. A restrição única das versões evita cópias integrais desnecessárias; a tabela de observações ainda prova quando uma versão foi vista novamente.
+Restrições: uma única observação por `(fetch_run_id, external_id)` (a execução já pertence a uma fonte); índices em `(industry_id, observed_at desc)`, `(source_id, external_id, observed_at desc)` e `version_id`. A restrição única das versões evita cópias integrais desnecessárias; a tabela de observações ainda prova quando uma versão foi vista novamente.
+
+**Integridade relacional obrigatória:** as FKs devem impedir que uma linha combine `industry_id` de um tenant com `source_id`, `fetch_run_id` ou `source_item_id` de outro. Para isso, a implementação deve avaliar FKs compostas e constraints únicas auxiliares como `(id, industry_id)` / `(id, source_id, industry_id)` nas tabelas de origem e execução, ou uma função transacional equivalente com validação explícita. FKs simples independentes para `industry_id` e `source_id` não garantem essa correspondência. A migration deve ser validada contra o schema real e seus constraints antes de ser considerada pronta.
 
 > A semântica de `observed_at` é “o coletor observou este conteúdo nesta execução”, não “o consumidor mudou de preferência nesta data”.
 
