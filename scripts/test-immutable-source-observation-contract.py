@@ -129,6 +129,12 @@ def main() -> int:
 
     require("admin.from('intelligence_source_items').upsert" not in worker,
             "Worker still writes the current projection via the old upsert-only path")
+    require("String(x.id||x.guid||x.url||x.link||'')" in worker,
+            "JSON collector lacks stable identity fields")
+    require("x.external_id.trim().length>0" in worker,
+            "JSON collector must reject records without stable external identity")
+    require("x.id||x.guid||x.url||i" not in worker,
+            "JSON collector must not use mutable array position as identity")
 
     print("PASS: static design preflight; H01-H15, safety contract, and SQL-draft guardrails are present.")
     print("LIMIT: static checks are not runtime validation; PostgreSQL contract tests run separately in CI.")
