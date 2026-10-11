@@ -43,6 +43,39 @@ jobs:
         run: python3 scripts/audit_pulse_accessibility.py
       - name: Run immutable source-history design preflight
         run: python3 scripts/test-immutable-source-observation-contract.py
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - name: Generate or verify migration through Supabase CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Supabase CLI: $(supabase --version)"
+          mkdir -p supabase/migrations
+          existing="$(find supabase/migrations -maxdepth 1 -type f -name '*_immutable_source_observation_history.sql' -print | sort)"
+          count="$(printf '%s\\n' "$existing" | sed '/^$/d' | wc -l | tr -d ' ')"
+          if [ "$count" -eq 1 ]; then
+            migration="$existing"
+            python3 scripts/render-immutable-source-observation-migration.py --check "$migration"
+          elif [ "$count" -eq 0 ]; then
+            before="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print | sort)"
+            supabase migration new immutable_source_observation_history
+            after="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print | sort)"
+            created="$(comm -13 <(printf '%s\\n' "$before") <(printf '%s\\n' "$after") | sed '/^$/d')"
+            created_count="$(printf '%s\\n' "$created" | sed '/^$/d' | wc -l | tr -d ' ')"
+            if [ "$created_count" -ne 1 ]; then
+              echo "Expected one CLI-generated migration, found $created_count" >&2
+              exit 1
+            fi
+            migration="$created"
+            python3 scripts/render-immutable-source-observation-migration.py --output "$migration"
+          else
+            echo "Expected at most one source-history migration, found $count" >&2
+            exit 1
+          fi
+          echo "MIGRATION_SQL_FILE=$migration" >> "$GITHUB_ENV"
+          echo "PostgreSQL integration test target: $migration"
       - name: Ensure PostgreSQL client is available
         run: |
           if ! command -v psql >/dev/null 2>&1; then
