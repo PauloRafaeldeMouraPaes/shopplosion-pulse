@@ -507,6 +507,25 @@ BEGIN
 
 END;
 $pulse_schema_contract$;
+
+-- H07: exercise a real SET ROLE authenticated query. Direct access is denied
+-- entirely, which is stricter than returning zero rows for another tenant.
+SET LOCAL ROLE authenticated;
+DO $pulse_authenticated_access$
+DECLARE
+  v_denied boolean := false;
+BEGIN
+  BEGIN
+    PERFORM 1 FROM public.intelligence_source_item_observations LIMIT 1;
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'H07 authenticated role unexpectedly read protected history';
+  END IF;
+END;
+$pulse_authenticated_access$;
+RESET ROLE;
 """
 
 def fail(message: str) -> int:
