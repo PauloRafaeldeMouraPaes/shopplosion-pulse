@@ -1,5 +1,5 @@
 -- Generated from the reviewed Pulse source-history design draft.
--- The filename was created by the Supabase CLI in GitHub Actions; do not hand-author timestamps.
+-- The filename must be created by the Supabase CLI; do not hand-author timestamps.
 -- Deployment gate: integrate the worker and pass the complete H01-H15 review first.
 
 -- Composite unique keys let PostgreSQL enforce tenant/source/run consistency
