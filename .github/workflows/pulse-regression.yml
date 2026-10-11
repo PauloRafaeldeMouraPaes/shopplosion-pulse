@@ -55,6 +55,8 @@ jobs:
         run: deno test supabase/functions/_shared/record-source-failure.test.ts
       - name: Test canonical source content fingerprint
         run: deno test supabase/functions/_shared/source-content-fingerprint.test.ts
+      - name: Test stable JSON source identity
+        run: deno test supabase/functions/_shared/stable-source-external-id.test.ts
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v3
         with:
