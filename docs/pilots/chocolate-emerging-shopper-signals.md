@@ -1,6 +1,6 @@
 # Piloto Pulse — Chocolate | Mudanças emergentes no shopper
 
-**Status:** proposta operacional para validação; não representa cliente contratado, dado proprietário de marca nem conclusão comprovada sobre o shopper.  
+**Status:** execução operacional inicial concluída; evidência de shopper parcial e piloto ainda em validação. Não representa cliente contratado, dado proprietário de marca nem conclusão comprovada sobre mudança persistente do shopper.  
 **Categoria piloto:** chocolate no Brasil.  
 **Potencial parceiro de desenho:** Lindt, como prospect; nenhuma parceria ou acesso a dados foi presumido.  
 **Versão:** 1.2 — 11/10/2026.
@@ -259,3 +259,32 @@ A hipótese mais útil para teste é que a intenção de compra sazonal permane�
 **Avançar para validação longitudinal; não declarar o piloto de shopper concluído ainda.** A cadeia de captura e evidência passou pelo gate de regressão, contrato de evidência e auditorias multi-tenant/privacidade na execução atual. O fechamento final depende de quatro semanas de observação recorrente, comparação de snapshots em datas sucessivas, revisão de falsos positivos e, quando autorizado, corroboração com sell-out/painel ou pesquisa independente. O acompanhamento foi programado semanalmente por quatro semanas a partir de 14/10/2026; cada revisão deve atualizar este protocolo e a página pública apenas quando houver evidência material nova.
 
 **Critérios para declarar o piloto concluído:** (1) quatro semanas de capturas datadas; (2) nenhum erro de proveniência crítico sem resolução; (3) separação auditável entre mudança temporal, dispersão entre lojas, intenção declarada e comportamento observado; (4) sinais prioritários corroborados por fontes independentes ou explicitamente classificados como preliminares; (5) decisão documentada de avançar, corrigir ou interromper.
+
+## 14. Segunda rodada de evidências e conclusão provisória (11/10/2026)
+
+A captura ampliada adicionou evidências públicas de quatro fontes além da Abicab, totalizando cinco fontes de naturezas distintas. Os dados não formam uma série temporal contínua e não devem ser tratados como cinco confirmações independentes de uma única tendência.
+
+| Dimensão | Evidência capturada | Interpretação permitida | Limite |
+|---|---|---|---|
+| Intenção de compra | Agência Brasil reportou 90% de intenção de comprar chocolate na Páscoa de 2026, +4 pontos percentuais ante 86% em 2025 | A intenção declarada reportada aumentou no levantamento citado | Pesquisa pré-sazonal; não confirma compra realizada, gasto, volume ou marca |
+| Consumo domiciliar | Kantar/Worldpanel reportou queda de 19% no volume de chocolate no 1º trimestre de 2025 | Sinal histórico de pressão sobre o consumo | Período antigo para uma leitura de outubro de 2026; requer atualização para afirmar persistência |
+| Consumo fora do lar e preço | A mesma matéria da Kantar reportou queda de 15% no consumo fora do lar, alta de 17% no preço médio por quilo e queda de 10% em unidades | Evidência compatível com pressão de preço e possível ajuste de tamanho/quantidade comprada | As métricas têm universos e denominadores distintos; a hipótese de substituição precisa de validação |
+| Preço sazonal | IPEAD/UFMG reportou alta de 14,60% no preço médio dos ovos de Páscoa em 2026 versus 2025 e 17,82% para chocolate em barra | Variação anual de preços na cesta pesquisada | Não é índice universal nem medida direta de elasticidade |
+| Dispersão no varejo | Procon Joinville encontrou barra de 80 g entre R$ 5,49 e R$ 15,99 (variação publicada de 191,26%) e variação de 31,91% entre ovos de Páscoa | Diferenças de preço entre estabelecimentos podem ser materialmente grandes no recorte local | Comparação entre lojas, não aumento temporal; cobertura local e sazonal |
+| Oferta e indústria | Abicab reportou produção +1,0%, ovos +2,2%, lançamentos +42,6% e vagas temporárias +46,4% nos períodos publicados | Contexto de oferta e intensidade operacional da Páscoa | Quatro métricas de uma única fonte setorial interessada, não quatro fontes independentes nem comportamento individual |
+
+Fontes primárias/relatos originais:
+- Abicab: https://abicab.org.br/industria-brasileira-de-chocolate-reforca-dinamismo-e-inovacao-na-pascoa-2026/
+- Agência Brasil — intenção de compra: https://agenciabrasil.ebc.com.br/geral/noticia/2026-03/pesquisa-aponta-que-90-dos-consumidores-comprarao-chocolate-na-pascoa
+- Kantar/Worldpanel — consumo e preço: https://www.kantar.com/brazil/inspiration/consumo/2025/queda-consumo-chocolate-crise-cacau
+- IPEAD/UFMG — preços da Páscoa: https://www.ufmg.br/comunicacao/assessoria-de-imprensa/releases/pesquisa-e-inovacao/ipead-ufmg-produtos-da-pascoa-ficaram-mais-caros-em-2026/
+- Procon Joinville — pesquisa de preços: https://www.joinville.sc.gov.br/noticias/procon-de-joinville-divulga-pesquisa-de-precos-dos-chocolates-de-pascoa/
+
+### Conclusão do piloto até aqui
+
+**Resultado técnico:** a cadeia de captura pública, extração de datas, validação de citações, filtragem de ruído e deduplicação foi exercitada em fontes de diferentes formatos. As regras de qualidade foram reforçadas para rejeitar divisão estática por segmentos sem comparação temporal, evitar evidência duplicada e manter o worker principal e o backstop com regras idênticas. Um candidato da IPEAD que misturava dados de chocolate e azeite numa única evidência foi rejeitado na revisão; ele não deve sustentar conclusão sobre chocolate.
+
+**Resultado de pesquisa:** há sinais úteis para orientar a próxima investigação — pressão histórica de preço/volume, intenção sazonal declarada e dispersão local de preços — mas **ainda não está demonstrada uma mudança emergente, persistente e atual no comportamento do shopper em outubro de 2026**. A intenção de compra tem uma comparação anual, porém está ligada à Páscoa; a evidência da Kantar é do 1º trimestre de 2025; e os levantamentos de preço cobrem recortes sazonais/localizados.
+
+**Decisão:** concluir a primeira fase operacional e manter o piloto em estado de validação, sem transformar as evidências em recomendação comercial específica para Lindt ou qualquer outra marca. A próxima fase deve coletar pelo menos quatro semanas de observações datadas e comparáveis, atualizar os dados de consumo/preço, buscar uma segunda fonte independente para a intenção/ocasião e, quando possível, adicionar preço por 100 g, disponibilidade, busca ou sell-out autorizado. Sem essa série, não declarar tendência persistente nem precisão preditiva.
+
