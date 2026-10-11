@@ -5,6 +5,7 @@
 - [Inventário vivo de fontes e critérios de avaliação](source-inventory-template.md)
 - [Auditoria operacional das fontes do piloto Chocolate — 11/10/2026](chocolate-source-audit-2026-10-11.md)
 - [Proposta técnica para histórico imutável de observações](immutable-source-observation-history.md)
+- [Contrato de testes para histórico imutável](immutable-source-observation-tests.md)
 - [Protocolo do piloto Chocolate](chocolate-emerging-shopper-signals.md)
 
 **Status:** especificação de produto e pesquisa; não afirma que todos os conectores descritos já estejam implementados.  
