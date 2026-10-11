@@ -74,46 +74,106 @@ O Pulse deve procurar, em janelas comparáveis:
 
 **Conclusão não permitida sem evidência adicional:** “Os consumidores trocaram de marca por causa do preço” ou qualquer afirmação sobre clientes de uma marca específica.
 
-## 5. Fontes e regras de coleta
+## 5. Ecossistema amplo de fontes e regras de coleta
 
-Priorizar fontes com acesso estável, método reproduzível, datas, cobertura identificável e permissão de uso:
+**O Pulse não deve depender de uma lista fechada de institutos.** Scanntech, NielsenIQ e Kantar são exemplos importantes, não uma lista exclusiva nem um limite de cobertura. O sistema deve manter um inventário vivo de fontes, descobrir novas fontes pertinentes a cada categoria e pergunta, e avaliar cada uma por qualidade, acesso, relevância e independência.
 
-- Google Trends ou ferramenta equivalente para interesse de busca relativo.
-- APIs oficiais, feeds, licenças ou mecanismos públicos permitidos para conteúdo social.
-- Avaliações públicas de produtos e varejistas, respeitando os termos de acesso.
-- Conteúdo editorial, fóruns e comunidades públicas, sem contornar autenticação, bloqueios ou limites técnicos.
-- Catálogos públicos de varejistas para preço anunciado, gramatura, promoção e disponibilidade observável.
-- Painéis de consumo, sell-out ou dados de varejo mediante autorização/licença.
-- **Scanntech:** avaliar disponibilidade de indicadores de varejo e consumo, evolução de vendas e preços, promoções, categorias, canais e recortes regionais, conforme o produto contratado e os direitos de uso.
-- **NielsenIQ (Nielsen):** avaliar dados de painel de varejo, desempenho de categorias e marcas, distribuição, participação, preço, promoção e comportamento de compra, conforme cobertura e licença disponíveis.
-- **Kantar:** avaliar dados de painéis de consumo domiciliar e/ou shopper, penetração, frequência, ocasiões, volume, gasto e mudanças no comportamento de compra, conforme o estudo ou produto contratado.
-- **Outros institutos e fontes de referência:** considerar estudos reconhecidos relevantes para chocolate e confectionery, documentando universo, amostra, período, metodologia e se a evidência é primária ou reproduzida.
+A busca de fontes deve cobrir, conforme a pergunta de pesquisa, as seguintes famílias:
 
-### 5.1 Institutos de mercado prioritários: Scanntech, NielsenIQ e Kantar
+### 5.1 Institutos de pesquisa, painéis e inteligência comercial
 
-Esses três provedores passam a integrar explicitamente o **mapa prioritário de fontes para o piloto Chocolate**. Devem ser investigados em paralelo às fontes públicas e comportamentais, não tratados como fontes intercambiáveis: cada provedor, produto e estudo pode medir universos, canais, períodos e variáveis diferentes.
+Mapear e avaliar provedores nacionais e internacionais de dados de varejo, shopper, consumo, opinião, hábitos, categorias, preços e tendências. Exemplos a investigar conforme a relevância e a disponibilidade incluem:
 
-Para cada provedor, registrar:
-- produto, relatório, painel ou conjunto de dados específico considerado;
-- disponibilidade real para o projeto (acesso público, demonstração, contrato, licença, parceiro ou ausência de acesso);
-- granularidade temporal, geográfica, de canal, categoria, marca e formato;
-- métricas disponíveis e definições oficiais (por exemplo, valor, unidades, volume, preço, distribuição, penetração ou frequência);
-- período histórico e cadência de atualização;
-- cobertura e limitações metodológicas;
-- custo, condições contratuais, permissões de armazenamento, transformação, exibição e redistribuição;
-- responsável pela fonte, data de verificação e próximo passo de acesso.
+- Scanntech;
+- NielsenIQ (NIQ; incluindo produtos e serviços historicamente associados à GfK, conforme o caso);
+- Kantar;
+- Circana;
+- Ipsos;
+- YouGov;
+- Euromonitor International;
+- Mintel;
+- dunnhumby;
+- Worldpanel e outros painéis de consumo ou shopper;
+- institutos, consultorias e empresas de pesquisa locais, regionais ou especializados.
 
-**Uso esperado no piloto**
-- **Scanntech:** investigar como fonte potencial de sinais de varejo e evolução de mercado, sem presumir quais métricas ou níveis de detalhe estão incluídos em qualquer plano.
-- **NielsenIQ:** investigar como fonte potencial de mensuração de varejo, categorias e marcas, observando rigorosamente a definição de mercado e a cobertura do painel.
-- **Kantar:** investigar como fonte potencial de evidência de consumo e shopper, distinguindo compras domiciliares, ocasiões, declarações e outras medidas conforme o produto utilizado.
+Esta lista é **ilustrativa e não exaustiva**. O nome de uma empresa não garante que ela ofereça o indicador necessário, que o dado cubra o Brasil ou Chocolate, ou que o Pulse tenha direito de acesso.
 
-**Regra de validação:** nenhuma dessas fontes será marcada como integrada, acessível ou usada em uma conclusão até haver evidência verificável de acesso e de um conjunto de dados específico. A menção do instituto, por si só, não constitui evidência. Se não houver licença ou acesso autorizado, registrar a lacuna e utilizar somente materiais públicos autorizados como contexto, sem simular dados proprietários.
+### 5.2 Estatísticas oficiais e fontes públicas
 
-Quando disponíveis, esses dados poderão atuar como evidência independente para confirmar, contradizer ou contextualizar sinais humanos. Antes de cruzar séries, verificar se período, geografia, canal, categoria, população e unidade de medida são compatíveis.
+Pesquisar séries e publicações de instituições públicas nacionais, estaduais, municipais e internacionais, conforme a pergunta. Exemplos a avaliar:
 
-Cada conector deve registrar cobertura, frequência, região/idioma, limites, data de captura, falhas, método de deduplicação e vieses conhecidos. A indisponibilidade de uma API ou de uma fonte não autoriza scraping proibido, contorno de bloqueios ou fabricação de dados.
+- IBGE;
+- Banco Central do Brasil;
+- IPEA;
+- FGV IBRE;
+- órgãos estaduais e municipais de estatística e pesquisa econômica, como IPEAD/UFMG quando pertinente;
+- Procons, Consumidor.gov.br e outras fontes oficiais de reclamações ou proteção do consumidor;
+- órgãos e bases públicas de outros países ou organismos multilaterais, quando ajudarem a contextualizar o mercado brasileiro.
 
+Documentar a definição da métrica, universo, período, metodologia e limitações. Um índice geral de inflação, por exemplo, pode contextualizar a pressão de preços, mas não substitui uma série de preço por SKU ou por 100 g.
+
+### 5.3 Associações setoriais e dados especializados da categoria
+
+Avaliar associações, observatórios e organizações técnicas nacionais e internacionais relevantes para a categoria. Para Chocolate e confectionery, exemplos incluem ABICAB, ABRAS, ABAD, ABRE, ICCO e outras entidades pertinentes, conforme o tema e o material disponível. Expandir o mapeamento para fornecedores, ingredientes, embalagem, varejo, distribuição e canais quando isso ajudar a explicar mudanças.
+
+Relatórios setoriais, comunicados e apresentações devem ser identificados como tais; várias páginas que reproduzem o mesmo release ou estudo não constituem confirmação independente.
+
+### 5.4 Academia, especialistas e publicações técnicas
+
+Incluir artigos científicos, teses, repositórios universitários, conferências, centros de pesquisa e publicações técnicas quando trouxerem evidência metodológica ou contexto relevante. Registrar data, amostra, método e se os resultados podem ser generalizados para o Brasil atual.
+
+### 5.5 Varejo, comércio eletrônico e observação de oferta
+
+Avaliar catálogos, páginas de produto, preços anunciados, promoções, gramatura, composição, sortimento e disponibilidade observável em varejistas e marketplaces. Distinguir preço anunciado de preço pago, disponibilidade observada de estoque confirmado e presença no catálogo de vendas realizadas.
+
+Dados transacionais, sell-out, fidelidade, cesta ou desempenho de SKU só podem ser utilizados quando houver acesso autorizado e definições compreendidas.
+
+### 5.6 Busca, comportamento e conversa humana agregada
+
+- Google Trends e outras ferramentas de busca agregada, quando disponíveis;
+- APIs oficiais, licenças e mecanismos permitidos de plataformas sociais, vídeo e comunidades;
+- fóruns, comentários, avaliações, receitas, perguntas e reclamações públicas acessíveis nos termos aplicáveis;
+- pesquisas de opinião e estudos de hábitos, com identificação clara de amostra e método;
+- fontes adicionais que sejam pertinentes à pergunta, mesmo que não estejam listadas neste documento.
+
+Distinguir declaração, intenção, busca, expressão pública, comportamento observado e compra efetiva. Nenhuma dessas medidas deve ser tratada como substituta automática das demais.
+
+### 5.7 Descoberta contínua de fontes
+
+Para cada nova pergunta ou sinal relevante, o fluxo de pesquisa deve:
+1. identificar quais tipos de evidência poderiam confirmar, contradizer ou contextualizar a hipótese;
+2. procurar fontes existentes no inventário e descobrir fontes adicionais reconhecidas ou primárias;
+3. registrar a fonte candidata, o indicador exato, a URL ou referência, a data e a justificativa de relevância;
+4. avaliar acesso, licença, metodologia, cobertura, histórico, atualização, custo e independência;
+5. comparar a nova fonte com as já utilizadas e detectar dependência, duplicação ou republicação;
+6. aprovar, rejeitar ou manter como candidata, registrando o motivo;
+7. atualizar o inventário sem assumir que toda fonte encontrada deve virar integração automatizada.
+
+O inventário deve ser extensível: não pode exigir alteração de código só para registrar um novo provedor ou uma nova publicação. A automação de captura, por outro lado, exige uma avaliação técnica e jurídica separada.
+
+### 5.8 Registro mínimo por fonte
+
+Para toda fonte candidata ou ativa, registrar:
+- nome da organização e do produto, painel, relatório, série ou conjunto de dados específico;
+- categoria da fonte e papel na análise (comportamento, mercado, contexto ou validação);
+- URL canônica, responsável/editor e data de publicação, quando disponíveis;
+- status de acesso (público, autorizado, licenciado, demonstração, indisponível ou a verificar);
+- período histórico, frequência de atualização e granularidade temporal;
+- cobertura geográfica, canal, categoria, marca, produto, população ou amostra;
+- definição da métrica, unidade, metodologia e limitações;
+- custo e condições de armazenamento, transformação, exibição e redistribuição;
+- origem primária ou derivada e relações com outras fontes;
+- data da última verificação, qualidade atribuída e próximo passo.
+
+### 5.9 Provedores prioritários para investigar no piloto Chocolate
+
+Scanntech, NielsenIQ e Kantar continuam explicitamente no mapa prioritário, juntamente com todas as outras famílias e provedores relevantes acima. Para cada um, verificar o produto específico disponível, cobertura de Chocolate no Brasil, indicadores, histórico, granularidade regional e de canal, frequência, custos e permissões. Não presumir que métricas específicas estejam incluídas em qualquer contrato ou produto.
+
+**Regra universal de validação:** nenhuma organização será marcada como integrada, acessível ou usada em uma conclusão até existir evidência verificável do acesso e do conjunto de dados específico. Materiais públicos de um instituto podem ser usados dentro das permissões aplicáveis, mas não substituem nem autorizam inferir dados proprietários que não foram consultados.
+
+Nenhuma fonte deve ser aceita ou rejeitada apenas por sua marca ou reputação. A credibilidade institucional é um fator de avaliação, não substituto de metodologia, pertinência, atualidade, independência e compatibilidade entre métricas. A indisponibilidade de uma fonte não autoriza scraping proibido, contorno de bloqueios ou fabricação de dados.
+
+Cada conector deve registrar cobertura, frequência, região/idioma, limites, data de captura, falhas, método de deduplicação e vieses conhecidos.
 ## 6. Privacidade e interpretação
 
 - Analisar tendências agregadas; não criar perfis sensíveis de indivíduos nem tentar identificar autores.
