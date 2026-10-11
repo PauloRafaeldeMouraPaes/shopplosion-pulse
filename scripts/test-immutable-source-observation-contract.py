@@ -67,7 +67,9 @@ def main() -> int:
                   "pulse_record_source_item_observation",
                   "security invoker",
                   "grant execute on function",
-                  "pg_advisory_xact_lock"):
+                  "pg_advisory_xact_lock",
+                  "An existing observation makes this call a retry",
+                  "stale retries"):
         require(token.lower() in sql.lower(),
                 f"SQL draft is missing required safeguard: {token}")
 
