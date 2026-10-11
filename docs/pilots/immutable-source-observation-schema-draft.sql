@@ -182,12 +182,7 @@ begin
   if p_content is null or length(p_content) > 12000 then
     raise exception 'content is required and must not exceed 12000 characters' using errcode = '23514';
   end if;
-  if p_content_fingerprint is null or p_content_fingerprint !~ '^[0-9a-f]{64}  'Design draft: deduplicated immutable content snapshots for source items.';
-comment on table public.intelligence_source_item_observations is
-  'Design draft: per-fetch-run evidence that a source item/version was observed.';
-
-rollback;
- then
+  if p_content_fingerprint is null or p_content_fingerprint !~ '^[0-9a-f]{64}$' then
     raise exception 'content_fingerprint must be a lowercase SHA-256 hex digest' using errcode = '23514';
   end if;
   if p_metadata is null then
