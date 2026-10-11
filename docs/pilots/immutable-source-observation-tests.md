@@ -8,7 +8,7 @@
 
 ## Pré-condições
 
-- Criar as tabelas por migration gerada com Supabase CLI e aplicar localmente.
+- Usar a migration com nome gerado pela Supabase CLI. O CI a valida em PostgreSQL 17 efêmero e com rollback; a suíte completa deve continuar em ambiente de banco isolado, nunca numa branch paga ou em produção.
 - Confirmar FKs e restrições que vinculam indústria, fonte, execução, item e versão.
 - Ativar RLS e revisar permissões efetivas de `anon`, `authenticated` e da role do worker.
 - Usar duas indústrias de teste, duas fontes e conteúdo sintético.
