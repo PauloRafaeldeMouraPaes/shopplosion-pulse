@@ -16,6 +16,8 @@ SQL_DRAFT = ROOT / "docs/pilots/immutable-source-observation-schema-draft.sql"
 WORKER = ROOT / "supabase/functions/pulse-external-source-worker/index.ts"
 FETCH_HELPER = ROOT / "supabase/functions/_shared/fetch-source.ts"
 FETCH_TEST = ROOT / "supabase/functions/_shared/fetch-source.test.ts"
+FAILURE_HELPER = ROOT / "supabase/functions/_shared/record-source-failure.ts"
+FAILURE_TEST = ROOT / "supabase/functions/_shared/record-source-failure.test.ts"
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -28,6 +30,8 @@ def main() -> int:
     worker = WORKER.read_text(encoding="utf-8")
     fetch_helper = FETCH_HELPER.read_text(encoding="utf-8")
     fetch_test = FETCH_TEST.read_text(encoding="utf-8")
+    failure_helper = FAILURE_HELPER.read_text(encoding="utf-8")
+    failure_test = FAILURE_TEST.read_text(encoding="utf-8")
 
     # The contract must stay complete and uniquely identifiable.
     ids = re.findall(r"\bH(\d{2})\s+[—-]", cases)
@@ -99,6 +103,12 @@ def main() -> int:
             "HTTP 403 no-retry unit test is missing")
     require("transient server errors can retry before success" in fetch_test,
             "transient retry unit test is missing")
+    require("recordSourceFailure" in worker,
+            "Worker failure path does not use failure bookkeeping helper")
+    require("source_failure_status_persist_failed" in failure_helper,
+            "Failure bookkeeping helper does not report status-write failures")
+    require("failure bookkeeping errors are observable and do not escape" in failure_test,
+            "Failure bookkeeping failure-path unit test is missing")
 
     require("admin.from('intelligence_source_items').upsert" not in worker,
             "Worker still writes the current projection via the old upsert-only path")
