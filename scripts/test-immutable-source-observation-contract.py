@@ -135,6 +135,10 @@ def main() -> int:
             "JSON collector must reject records without stable external identity")
     require("x.id||x.guid||x.url||i" not in worker,
             "JSON collector must not use mutable array position as identity")
+    require("coverage_status" in design and "scope_fingerprint" in design,
+            "H13 source completeness contract is missing")
+    require("duas execuções completas consecutivas" in cases,
+            "H13 must require consecutive complete snapshots")
 
     print("PASS: static design preflight; H01-H15, safety contract, and SQL-draft guardrails are present.")
     print("LIMIT: static checks are not runtime validation; PostgreSQL contract tests run separately in CI.")
