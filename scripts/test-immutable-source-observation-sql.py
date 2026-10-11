@@ -20,6 +20,8 @@ DRAFT = ROOT / "docs/pilots/immutable-source-observation-schema-draft.sql"
 FIXTURE = ROOT / "tests/fixtures/immutable-source-history-baseline.sql"
 
 ASSERTIONS = r"""
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE FUNCTION public.pulse_test_fail_observation_write()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -478,6 +480,29 @@ BEGIN
        AND v.content_fingerprint = 'd7ad18a30127691a8d7589dd77fb832e6bf52834981dcea15845f175c87ad550'
   ) THEN
     RAISE EXCEPTION 'H12 known fingerprint vector was not preserved in the version row';
+  END IF;
+
+  -- Independently recompute the fingerprint from the actual persisted snapshot.
+  -- json text values are concatenated without whitespace to match JSON.stringify.
+  IF NOT EXISTS (
+    SELECT 1
+      FROM public.intelligence_source_item_versions v
+     WHERE v.source_id = v_source_a
+       AND v.external_id = 'rpc-known-vector'
+       AND encode(
+         digest(
+           convert_to(
+             '[' || to_json(v.title)::text || ',' ||
+             to_json(coalesce(v.url, ''))::text || ',' ||
+             to_json(v.content)::text || ']',
+             'UTF8'
+           ),
+           'sha256'
+         ),
+         'hex'
+       ) = v.content_fingerprint
+  ) THEN
+    RAISE EXCEPTION 'H12 independently recomputed persisted snapshot hash did not match';
   END IF;
 
 END;
