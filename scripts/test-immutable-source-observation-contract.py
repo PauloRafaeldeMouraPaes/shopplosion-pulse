@@ -77,7 +77,8 @@ def main() -> int:
     # than silently preserving the old overwrite-only upsert implementation.
     for token in (
         "admin.rpc('pulse_record_source_item_observation'",
-        "if(recordError)throw new Error('source_item_history_persist_failed:",
+        "if(recordError)throw new Error(`",
+        "source_item_history_persist_failed:${String(recordError.message||'unknown').slice(0,300)}",
         "if(!Array.isArray(recorded)||recorded.length!==1)",
         "p_metadata:{source_type:s.source_type,parser_version:'external-source-worker-v1'}",
         "const fp=await sha(JSON.stringify([title,url||'',content]));",
