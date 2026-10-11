@@ -215,7 +215,7 @@ def main() -> int:
         return fail("schema draft or synthetic fixture is missing")
     draft = DRAFT.read_text(encoding="utf-8")
     matches = list(re.finditer(r"(?im)^rollback;\s*$", draft))
-    if len(matches) != 1 or matches[0].end() != len(draft.rstrip()):
+    if len(matches) != 1 or draft[matches[0].start():].strip().lower() != "rollback;":
         return fail("draft must contain exactly one final ROLLBACK statement")
 
     def run_psql(*args: str) -> subprocess.CompletedProcess[str]:
