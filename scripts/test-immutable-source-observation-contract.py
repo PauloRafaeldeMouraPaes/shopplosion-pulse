@@ -51,7 +51,7 @@ def main() -> int:
     # The SQL is a review-only draft: require an explicit rollback and the
     # core tenant-aware constraints before it can be considered for migration.
     require("DESIGN DRAFT ONLY" in sql, "SQL draft must be marked non-migration")
-    require(re.search(r"(?im)^rollback;\\s*$", sql) is not None,
+    require(re.search(r"(?im)^rollback;\s*$", sql) is not None,
             "SQL draft must end in ROLLBACK so accidental execution cannot persist")
     for token in ("foreign key (fetch_run_id, source_id, industry_id)",
                   "foreign key (version_id, source_id, industry_id)",
