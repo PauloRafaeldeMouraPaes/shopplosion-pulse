@@ -2,7 +2,7 @@
 
 **Status:** H01–H15 não executados integralmente como suíte formal; o aceite completo continua pendente.
 
-**Execução parcial:** [Pulse Regression #2289](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38162099391) passou no commit `a2ad57b35dcd6954e0995c59434f1c9e10475dfe`. O CI verificou a migration criada pela Supabase CLI contra PostgreSQL 17 efêmero e fixture sintética; executou `deno check` no worker e dois testes unitários do retry HTTP. Os cinco workflows do PR concluíram com sucesso nesse commit.
+**Execução parcial mais recente:** [Pulse Regression #2293](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38162187964) passou no commit `9bae7cd2f4847a49c4863ed16e6b273d56169c10`. O CI verificou que a migration gerada pela Supabase CLI corresponde ao desenho, validou-a em PostgreSQL 17 efêmero com fixture sintética, executou `deno check` no worker e os testes unitários do retry HTTP. Os cinco workflows do PR terminaram com sucesso nesse commit. Nenhum banco Supabase foi usado por esses testes.
 
 **Cobertura demonstrada em ambiente sintético:** primeira captura, repetição idêntica, alteração e reversão; IDs externos iguais em fontes diferentes; rejeição de referências cross-tenant por FKs compostas; RLS habilitado e ausência de privilégios diretos de cliente; triggers append-only; retry idempotente e proteção contra retry antigo que regrediria a projeção; publicação versus observação; metadados de parser sem duplicar versão; fingerprint malformado ou reutilizado para payload diferente; migration e rollback.
 
