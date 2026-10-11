@@ -61,7 +61,11 @@ def main() -> int:
                   "unique (fetch_run_id, external_id)",
                   "reject_intelligence_source_history_mutation",
                   "versions_append_only",
-                  "observations_append_only"):
+                  "observations_append_only",
+                  "pulse_record_source_item_observation",
+                  "security invoker",
+                  "grant execute on function",
+                  "pg_advisory_xact_lock"):
         require(token.lower() in sql.lower(),
                 f"SQL draft is missing required safeguard: {token}")
 
