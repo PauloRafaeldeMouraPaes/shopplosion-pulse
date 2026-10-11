@@ -88,7 +88,7 @@ def main() -> int:
         "source_item_history_persist_failed:",
         "if(!Array.isArray(recorded)||recorded.length!==1)",
         "p_metadata:{source_type:s.source_type,parser_version:'external-source-worker-v1'}",
-        "const fp=await sha(JSON.stringify([title,url||'',content]));",
+        "const fp=await sourceContentFingerprint(title,url,content);",
         "fetch_run_create_failed:",
         "fetch_run_finish_failed:",
         "fetchSourceWithRetry(s.url,fetchWithTimeout,sleep)",
