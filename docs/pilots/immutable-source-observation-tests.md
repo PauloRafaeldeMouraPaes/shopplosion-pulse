@@ -1,6 +1,6 @@
 # Contrato de testes — histórico imutável de fontes
 
-**Status:** a matriz formal H01–H15 ainda não foi executada integralmente; o aceite completo continua pendente.
+**Status:** H01–H15 não executados integralmente como suíte formal; o aceite completo continua pendente.
 
 **Execução parcial:** [Pulse Regression #2289](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38162099391) passou no commit `a2ad57b35dcd6954e0995c59434f1c9e10475dfe`. O CI verificou a migration criada pela Supabase CLI contra PostgreSQL 17 efêmero e fixture sintética; executou `deno check` no worker e dois testes unitários do retry HTTP. Os cinco workflows do PR concluíram com sucesso nesse commit.
 
