@@ -2,6 +2,7 @@
 -- by the review-only draft. Used exclusively by an ephemeral CI PostgreSQL.
 create role anon nologin;
 create role authenticated nologin;
+create role service_role nologin bypassrls;
 
 create table public.industries (
   id uuid primary key,
@@ -41,3 +42,7 @@ create table public.intelligence_source_items (
   created_at timestamptz not null default now(),
   unique (source_id, external_id)
 );
+
+-- Approximate the server-worker privileges required by the existing collector.
+grant select on public.intelligence_sources, public.intelligence_source_fetch_runs to service_role;
+grant select, insert, update on public.intelligence_source_items to service_role;
