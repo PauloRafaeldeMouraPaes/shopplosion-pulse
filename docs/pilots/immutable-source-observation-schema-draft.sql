@@ -169,6 +169,9 @@ declare
   v_existing_industry_id uuid;
   v_existing_version_id uuid;
   v_existing_outcome text;
+  v_existing_version_title text;
+  v_existing_version_url text;
+  v_existing_version_content text;
 begin
   if p_external_id is null or length(p_external_id) = 0 or length(p_external_id) > 1000 then
     raise exception 'external_id must contain 1-1000 characters' using errcode = '23514';
@@ -231,11 +234,18 @@ rollback;
 
   v_version_created := found;
   if not v_version_created then
-    select v.id into v_version_id
+    select v.id, v.title, v.url, v.content
+      into v_version_id, v_existing_version_title, v_existing_version_url, v_existing_version_content
       from public.intelligence_source_item_versions v
      where v.source_id = p_source_id
        and v.external_id = p_external_id
        and v.content_fingerprint = p_content_fingerprint;
+    if v_existing_version_title is distinct from p_title
+       or v_existing_version_url is distinct from p_url
+       or v_existing_version_content is distinct from p_content then
+      raise exception 'content fingerprint maps to a different payload; refusing inconsistent history'
+        using errcode = '23514';
+    end if;
   end if;
   if v_version_id is null then
     raise exception 'could not resolve immutable version after insert' using errcode = '23503';
