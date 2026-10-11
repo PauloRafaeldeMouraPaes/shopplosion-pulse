@@ -98,6 +98,11 @@ def main() -> int:
         "fetchSourceWithRetry(s.url,fetchWithTimeout,sleep)",
     ):
         require(token in worker, f"Worker is missing required history guard: {token}")
+    run_finish = worker.index("status:'completed',items_seen:itemsSeen,items_changed:itemsChanged")
+    source_success = worker.index("last_success_at:now,last_error:null")
+    require(run_finish < source_success,
+            "Worker records source success before fetch-run completion can fail")
+
     for token in (
         "response.ok || response.status === 403",
         "throw new Error(`http_${response?.status || 0}`)",
