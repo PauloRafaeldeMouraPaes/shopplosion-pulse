@@ -11,6 +11,8 @@ O worker `supabase/functions/pulse-external-source-worker/index.ts` calcula um S
 
 Consequência: o Pulse pode identificar que um item mudou entre duas coletas, mas não consegue reconstruir de forma confiável todas as versões históricas a partir da linha atual.
 
+**Regra de identidade para feeds JSON:** o coletor usa apenas identificadores fornecidos pela fonte (`id`, `guid`, `url` ou `link`). Registros sem identificador estável são ignorados, em vez de usar a posição no array. Índices mudam quando itens são inseridos ou reordenados e poderiam transformar um registro diferente na mesma identidade histórica, produzindo falsos históricos. A cobertura descartada deve ser monitorada antes de ativar uma fonte JSON no piloto.
+
 ## 2. Modelo recomendado: observações + versões de conteúdo
 
 Não substituir nem reinterpretar as tabelas atuais. Acrescentar duas tabelas:
