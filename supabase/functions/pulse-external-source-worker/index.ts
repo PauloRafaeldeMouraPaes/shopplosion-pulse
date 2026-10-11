@@ -1,9 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { fetchSourceWithRetry } from "../_shared/fetch-source.ts";
 import { recordSourceFailure } from "../_shared/record-source-failure.ts";
+import { sourceContentFingerprint } from "../_shared/source-content-fingerprint.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"content-type,x-pulse-cron","Access-Control-Allow-Methods":"POST,OPTIONS"};const json=(b:unknown,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json"}});const sleep=(ms:number):Promise<void>=>new Promise(resolve=>setTimeout(resolve,ms));
-async function sha(s:string){const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,"0")).join("");}
 const decodeEntities=(s:string)=>String(s||"").replace(/&#(\d+);/g,(_,n)=>{const cp=Number(n);return cp>=0&&cp<=0x10ffff?String.fromCodePoint(cp):" "}).replace(/&#x([0-9a-f]+);/gi,(_,n)=>{const cp=parseInt(n,16);return cp>=0&&cp<=0x10ffff?String.fromCodePoint(cp):" "}).replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").replace(/&lt;/gi,"<").replace(/&gt;/gi,">").replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/&mdash;/gi,"—").replace(/&ndash;/gi,"–").replace(/&hellip;/gi,"…").replace(/&rsquo;|&lsquo;/gi,"’").replace(/&rdquo;|&ldquo;/gi,"”").replace(/&ccedil;/gi,"ç").replace(/&atilde;/gi,"ã").replace(/&otilde;/gi,"õ").replace(/&aacute;/gi,"á").replace(/&eacute;/gi,"é").replace(/&iacute;/gi,"í").replace(/&oacute;/gi,"ó").replace(/&uacute;/gi,"ú").replace(/&ecirc;/gi,"ê").replace(/&ocirc;/gi,"ô").replace(/&agrave;/gi,"à").replace(/&uuml;/gi,"ü").replace(/&#(\d+);/g,(_,n)=>{const cp=Number(n);return cp>=0&&cp<=0x10ffff?String.fromCodePoint(cp):" "}).replace(/&#x([0-9a-f]+);/gi,(_,n)=>{const cp=parseInt(n,16);return cp>=0&&cp<=0x10ffff?String.fromCodePoint(cp):" "});
 const clean=(s:string)=>decodeEntities(String(s||"").replace(/<!\[CDATA\[|\]\]>/g,"").replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ")).replace(/\s+/g," ").trim();
 const metaValue=(html:string,key:string)=>{const re=new RegExp("<meta\\b(?=[^>]*(?:property|name|itemprop)=[\\\"']"+key+"[\\\"'])[^>]*content=[\\\"']([^\\\"']+)[\\\"'][^>]*>","i");const m=html.match(re);return m?decodeEntities(m[1]):"";};
@@ -24,7 +24,7 @@ const url=item.url?String(item.url).slice(0,2000):null;
 const content=String(item.content).slice(0,12000);
 const d=item.published_at?new Date(item.published_at):null;
 const publishedAt=d&&!Number.isNaN(d.getTime())?d.toISOString():null;
-const fp=await sha(JSON.stringify([title,url||'',content]));
+const fp=await sourceContentFingerprint(title,url,content);
 const {data:recorded,error:recordError}=await admin.rpc('pulse_record_source_item_observation',{
 p_industry_id:s.industry_id,
 p_source_id:s.id,
