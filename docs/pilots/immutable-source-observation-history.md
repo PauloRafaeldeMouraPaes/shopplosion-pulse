@@ -20,9 +20,8 @@ Não substituir nem reinterpretar as tabelas atuais. Acrescentar duas tabelas:
 - `id uuid primary key default gen_random_uuid()`
 - `industry_id uuid not null` — mesma partição lógica do restante da inteligência.
 - `source_id uuid not null`
-- `source_item_id uuid null` — referência ao item corrente, quando disponível.
 - `external_id text not null` — identidade fornecida pela fonte.
-- `content_fingerprint text not null` — SHA-256 do conteúdo normalizado capturado.
+- `content_fingerprint text not null` — SHA-256 UTF-8 de uma representação JSON compacta dos campos persistidos `[title, url ou "", content]`; o worker calcula o hash depois de aplicar os limites de tamanho (título 500, URL 2.000, conteúdo 12.000 caracteres).
 - `title text not null`
 - `url text null`
 - `published_at timestamptz null` — data atribuída pela fonte, não a data da coleta.
@@ -31,7 +30,7 @@ Não substituir nem reinterpretar as tabelas atuais. Acrescentar duas tabelas:
 - `metadata jsonb not null default '{}'::jsonb` — tipo de fonte, versão do parser e metadados não sensíveis.
 - Restrição única sugerida: `(source_id, external_id, content_fingerprint)`.
 
-Uma versão só é inserida quando o fingerprint ainda não existir para aquela identidade. Conteúdo idêntico repetido não cria uma versão nova. Mudanças na extração/parser devem ser registradas em `metadata` para não serem confundidas automaticamente com mudanças de comportamento.
+Uma versão só é inserida quando o fingerprint ainda não existir para aquela identidade. Conteúdo idêntico repetido não cria uma versão nova. Mudanças na extração/parser devem ser registradas em `metadata` para não serem confundidas automaticamente com mudanças de comportamento. `intelligence_source_item_versions` não referencia a projeção atual: ela é mutável, enquanto a versão precisa preservar o snapshot de forma independente.
 
 ### `intelligence_source_item_observations` — cada observação em uma execução
 
@@ -52,18 +51,16 @@ Restrições: uma única observação por `(fetch_run_id, external_id)` (a execu
 
 > A semântica de `observed_at` é “o coletor observou este conteúdo nesta execução”, não “o consumidor mudou de preferência nesta data”.
 
-## 3. Fluxo de coleta proposto
+## 3. Fluxo de coleta
 
-1. Criar a linha de `intelligence_source_fetch_runs` como hoje.
-2. Buscar e normalizar os itens.
-3. Calcular o fingerprint determinístico.
-4. Inserir a versão com `ON CONFLICT (source_id, external_id, content_fingerprint) DO NOTHING`; em seguida, resolver o `version_id` existente ou recém-criado.
-5. Inserir uma observação vinculada à execução, sem sobrescrever observações antigas.
-6. Atualizar `intelligence_source_items` como projeção operacional atual, mantendo compatibilidade com consumidores atuais.
-7. Finalizar a execução com contagens de itens vistos, versões novas, itens alterados e falhas.
-8. Se a persistência de versão/observação falhar, marcar a execução como falha parcial/total; não reportar captura bem-sucedida silenciosamente.
+1. Criar `intelligence_source_fetch_runs` e validar que a execução foi persistida.
+2. Buscar e normalizar itens respeitando os limites do coletor.
+3. Gerar `content_fingerprint` de forma determinística usando SHA-256 da representação JSON compacta `[title, url ou "", content]`, com os valores que serão de fato persistidos. A codificação é UTF-8; `published_at` e metadados de parser ficam fora do fingerprint do conteúdo.
+4. Chamar `pulse_record_source_item_observation` uma vez por item. A RPC, dentro de uma única transação, deduplica/insere a versão, atualiza a projeção `intelligence_source_items` e insere a observação append-only.
+5. Atualizar contagens de execução apenas com os resultados efetivamente retornados pela RPC; `current_item_changed` incrementa a contagem de itens alterados.
+6. Ao ocorrer uma falha de persistência, abortar o processamento dessa fonte e marcar a execução como `failed` com erro e contagens parciais. As chamadas bem-sucedidas de itens anteriores permanecem commitadas, mas ficam identificadas como parte de uma execução falha e podem ser reconciliadas; a transação é atômica por item, não pelo lote inteiro.
 
-A inserção da versão, observação e projeção atual deve idealmente ocorrer numa única operação transacional (RPC/função de banco) ou com tratamento explícito de falha e reconciliação. Não depender de uma sequência de chamadas que possa deixar o histórico incompleto sem sinalização.
+O worker passa a falhar explicitamente quando a RPC retorna erro ou resultado inesperado, em vez de ignorar um erro de upsert. O retry dentro da mesma execução e identidade só é idempotente quando aponta para a mesma versão; se vier com fingerprint conflitante, a RPC rejeita a chamada e reverte as gravações dessa chamada.
 
 ## 4. Integridade, isolamento e segurança
 
@@ -86,12 +83,12 @@ Consulta ao catálogo do PostgreSQL em 11/10/2026 confirmou:
 - `intelligence_sources` tem unicidade em `(industry_id, url)`, RLS habilitado e políticas de leitura/inserção/atualização/exclusão por indústria atual.
 - A consulta de políticas não encontrou políticas de escrita para `authenticated` em itens ou execuções; o worker usa cliente administrativo no servidor.
 
-**Implicação para o desenho:** as tabelas novas devem preservar o isolamento por `industry_id`, não receber políticas genéricas de leitura pública e não abrir escrita direta aos usuários autenticados. A política de leitura, se necessária no painel, deve usar o mesmo mecanismo `current_industry_id()` confirmado no banco. A execução do worker precisa continuar restrita ao servidor. Ainda é necessário validar privilégios efetivos, FKs/cascatas e advisors na branch de desenvolvimento antes da migração.
+**Implicação para o desenho:** as tabelas novas devem preservar o isolamento por `industry_id`, não receber políticas genéricas de leitura pública e não abrir escrita direta aos usuários autenticados. A política de leitura, se necessária no painel, deve usar o mesmo mecanismo `current_industry_id()` confirmado no banco. A execução do worker precisa continuar restrita ao servidor. O SQL gerado pelo Supabase CLI e o teste da RPC são exercitados numa fixture sintética de PostgreSQL 17 no CI; isso não equivale a aplicar a migration num clone real do schema de produção. Antes de qualquer deployment, ainda é necessário reconciliar o SQL com o catálogo real, revisar privilégios efetivos e executar advisors num ambiente isolado.
 
 ## 6. Compatibilidade e implantação gradual
 
 1. Fazer inventário de constraints, FKs, RLS/policies e funções atuais.
-2. Criar migration numa branch de desenvolvimento do Supabase, não diretamente em produção.
+2. Gerar a migration com o nome real da Supabase CLI no GitHub Actions/local; validar em PostgreSQL sintético/isolado sem credenciais Supabase e sem aplicar DDL à produção.
 3. Adicionar tabelas e índices sem mudar a leitura atual.
 4. Atualizar o worker para gravar versões/observações.
 5. Testar duas coletas do mesmo item, uma mudança de conteúdo, duas fontes com mesmo `external_id`, isolamento por tenant e falhas parciais.
@@ -113,7 +110,7 @@ Consulta ao catálogo do PostgreSQL em 11/10/2026 confirmou:
 ## 8. Fora do escopo desta etapa
 
 - Não altera o banco de produção.
-- Não executa migrações.
+- Não aplica migrations a banco algum nesta etapa; o arquivo versionado no PR foi executado somente dentro de uma transação de teste que termina em `ROLLBACK` no PostgreSQL efêmero.
 - Não ativa fontes novas nem contorna bloqueios de acesso.
 - Não afirma que existe uma série de comportamento humano ou de preços de varejo comparáveis.
 - Não considera o período anterior à primeira coleta histórica como observado.
