@@ -18,6 +18,8 @@ FETCH_HELPER = ROOT / "supabase/functions/_shared/fetch-source.ts"
 FETCH_TEST = ROOT / "supabase/functions/_shared/fetch-source.test.ts"
 FAILURE_HELPER = ROOT / "supabase/functions/_shared/record-source-failure.ts"
 FAILURE_TEST = ROOT / "supabase/functions/_shared/record-source-failure.test.ts"
+FINGERPRINT_HELPER = ROOT / "supabase/functions/_shared/source-content-fingerprint.ts"
+FINGERPRINT_TEST = ROOT / "supabase/functions/_shared/source-content-fingerprint.test.ts"
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -32,6 +34,8 @@ def main() -> int:
     fetch_test = FETCH_TEST.read_text(encoding="utf-8")
     failure_helper = FAILURE_HELPER.read_text(encoding="utf-8")
     failure_test = FAILURE_TEST.read_text(encoding="utf-8")
+    fingerprint_helper = FINGERPRINT_HELPER.read_text(encoding="utf-8")
+    fingerprint_test = FINGERPRINT_TEST.read_text(encoding="utf-8")
 
     # The contract must stay complete and uniquely identifiable.
     ids = re.findall(r"\bH(\d{2})\s+[—-]", cases)
@@ -109,6 +113,14 @@ def main() -> int:
             "Failure bookkeeping helper does not report status-write failures")
     require("failure bookkeeping errors are observable and do not escape" in failure_test,
             "Failure bookkeeping failure-path unit test is missing")
+    require("sourceContentFingerprint(title,url,content)" in worker,
+            "Worker does not use the canonical fingerprint helper")
+    require("SHA-256(JSON.stringify([title, url ?? \"\", content]))" in fingerprint_helper,
+            "Canonical fingerprint tuple contract is missing")
+    require("d7ad18a30127691a8d7589dd77fb832e6bf52834981dcea15845f175c87ad550" in fingerprint_test,
+            "Known canonical fingerprint vector is missing")
+    require("null URL normalizes to empty string" in fingerprint_test,
+            "Null URL normalization test is missing")
 
     require("admin.from('intelligence_source_items').upsert" not in worker,
             "Worker still writes the current projection via the old upsert-only path")
