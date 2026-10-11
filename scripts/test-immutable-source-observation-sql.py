@@ -28,10 +28,20 @@ DECLARE
   v_source_b uuid := gen_random_uuid();
   v_run_a uuid := gen_random_uuid();
   v_run_b uuid := gen_random_uuid();
+  v_run_a2 uuid := gen_random_uuid();
+  v_run_a3 uuid := gen_random_uuid();
+  v_run_a4 uuid := gen_random_uuid();
   v_item_a uuid := gen_random_uuid();
   v_item_b uuid := gen_random_uuid();
   v_version_a uuid := gen_random_uuid();
   v_version_b uuid := gen_random_uuid();
+  v_rpc_first record;
+  v_rpc_same record;
+  v_rpc_changed record;
+  v_rpc_reverted record;
+  v_rpc_retry record;
+  v_function_oid oid;
+  v_function_is_definer boolean;
   v_role text;
 BEGIN
   IF to_regclass('public.intelligence_source_item_versions') IS NULL
@@ -79,7 +89,24 @@ BEGIN
     RAISE EXCEPTION 'append-only triggers are missing';
   END IF;
 
+  SELECT p.oid, p.prosecdef
+    INTO v_function_oid, v_function_is_definer
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+   WHERE n.nspname = 'public'
+     AND p.proname = 'pulse_record_source_item_observation'
+     AND p.pronargs = 10;
+  IF NOT FOUND OR v_function_is_definer THEN
+    RAISE EXCEPTION 'atomic RPC is missing or unexpectedly SECURITY DEFINER';
+  END IF;
+  IF NOT has_function_privilege('service_role', v_function_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'service_role cannot execute the atomic RPC';
+  END IF;
+
   FOREACH v_role IN ARRAY ARRAY['anon', 'authenticated'] LOOP
+    IF has_function_privilege(v_role, v_function_oid, 'EXECUTE') THEN
+      RAISE EXCEPTION 'client role % can execute the server-only RPC', v_role;
+    END IF;
     IF has_table_privilege(v_role, 'public.intelligence_source_item_versions', 'SELECT')
        OR has_table_privilege(v_role, 'public.intelligence_source_item_versions', 'INSERT')
        OR has_table_privilege(v_role, 'public.intelligence_source_item_versions', 'UPDATE')
@@ -99,7 +126,10 @@ BEGIN
     VALUES (v_source_a, v_industry_a), (v_source_b, v_industry_b);
   INSERT INTO public.intelligence_source_fetch_runs (id, source_id, industry_id, status)
     VALUES (v_run_a, v_source_a, v_industry_a, 'running'),
-           (v_run_b, v_source_b, v_industry_b, 'running');
+           (v_run_b, v_source_b, v_industry_b, 'running'),
+           (v_run_a2, v_source_a, v_industry_a, 'running'),
+           (v_run_a3, v_source_a, v_industry_a, 'running'),
+           (v_run_a4, v_source_a, v_industry_a, 'running');
   INSERT INTO public.intelligence_source_items
     (id, source_id, industry_id, external_id, title, content, content_fingerprint)
     VALUES
@@ -183,9 +213,101 @@ BEGIN
   EXCEPTION WHEN SQLSTATE '55000' THEN NULL;
   END;
 
-  IF (SELECT count(*) FROM public.intelligence_source_item_versions) <> 2
-     OR (SELECT count(*) FROM public.intelligence_source_item_observations) <> 1 THEN
-    RAISE EXCEPTION 'unexpected row counts after acceptance assertions';
+  -- Exercise the atomic RPC: first capture, identical repeat, change, revert,
+  -- same-run retry, conflicting retry, and source/run tenant mismatch.
+  SELECT * INTO v_rpc_first
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+  IF v_rpc_first.outcome <> 'captured'
+     OR NOT v_rpc_first.version_created
+     OR NOT v_rpc_first.current_item_changed THEN
+    RAISE EXCEPTION 'H01 first capture returned unexpected result: %', row_to_json(v_rpc_first);
+  END IF;
+
+  SELECT * INTO v_rpc_same
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a2, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+  IF v_rpc_same.outcome <> 'unchanged'
+     OR v_rpc_same.version_created
+     OR v_rpc_same.current_item_changed
+     OR v_rpc_same.version_id IS DISTINCT FROM v_rpc_first.version_id
+     OR v_rpc_same.observation_id IS NOT DISTINCT FROM v_rpc_first.observation_id THEN
+    RAISE EXCEPTION 'H02 identical repeat did not reuse version and create new observation';
+  END IF;
+
+  SELECT * INTO v_rpc_changed
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a3, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload two', repeat('e', 64), jsonb_build_object('parser_version', 'test-1'));
+  IF v_rpc_changed.outcome <> 'captured'
+     OR NOT v_rpc_changed.version_created
+     OR NOT v_rpc_changed.current_item_changed
+     OR v_rpc_changed.version_id IS NOT DISTINCT FROM v_rpc_first.version_id THEN
+    RAISE EXCEPTION 'H03 content change did not create a distinct version';
+  END IF;
+
+  SELECT * INTO v_rpc_reverted
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a4, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+  IF v_rpc_reverted.outcome <> 'captured'
+     OR v_rpc_reverted.version_created
+     OR NOT v_rpc_reverted.current_item_changed
+     OR v_rpc_reverted.version_id IS DISTINCT FROM v_rpc_first.version_id THEN
+    RAISE EXCEPTION 'H04 revert failed to reuse the original immutable version';
+  END IF;
+
+  SELECT * INTO v_rpc_retry
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a4, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+  IF v_rpc_retry.observation_id IS DISTINCT FROM v_rpc_reverted.observation_id
+     OR v_rpc_retry.outcome <> 'captured'
+     OR v_rpc_retry.current_item_changed
+     OR v_rpc_retry.version_created THEN
+    RAISE EXCEPTION 'H10 same-run retry was not idempotent';
+  END IF;
+
+  -- A reused fetch_run/external_id with a different fingerprint must roll back
+  -- all writes from that conflicting call, not silently overwrite the projection.
+  BEGIN
+    PERFORM * FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a4, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'conflicting payload', repeat('9', 64), jsonb_build_object('parser_version', 'test-1'));
+    RAISE EXCEPTION 'conflicting same-run retry was accepted';
+  EXCEPTION WHEN unique_violation THEN NULL;
+  END;
+
+  BEGIN
+    PERFORM * FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_b, 'rpc-bad-run', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+    RAISE EXCEPTION 'RPC accepted a fetch run from a different source/industry';
+  EXCEPTION WHEN foreign_key_violation THEN NULL;
+  END;
+
+  IF (SELECT count(*) FROM public.intelligence_source_item_versions
+       WHERE external_id = 'rpc-item') <> 2
+     OR (SELECT count(*) FROM public.intelligence_source_item_observations
+       WHERE external_id = 'rpc-item') <> 4
+     OR NOT EXISTS (
+       SELECT 1 FROM public.intelligence_source_items
+       WHERE source_id = v_source_a AND external_id = 'rpc-item'
+         AND content_fingerprint = repeat('f', 64) AND content = 'payload one'
+         AND published_at = '2026-01-01T00:00:00Z'::timestamptz
+     )
+     OR (SELECT count(*) FROM public.intelligence_source_item_versions) <> 4
+     OR (SELECT count(*) FROM public.intelligence_source_item_observations) <> 5 THEN
+    RAISE EXCEPTION 'RPC persistence/idempotency/reversion assertions failed';
   END IF;
 END;
 $pulse_schema_contract$;
