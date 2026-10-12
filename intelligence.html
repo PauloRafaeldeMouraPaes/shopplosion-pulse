@@ -46,17 +46,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
       evidence.map(e=>{
         const external=!!(e.source_item_id||e.source_id||e.source_url);
         const provenance=external
-          ?'Fonte externa: '+esc(e.source_title||'Fonte autorizada')+(e.published_at?' · '+esc(fmt(e.published_at)):'')+
-            (e.source_url?' · <a href="'+esc(e.source_url)+'" target="_blank" rel="noopener noreferrer">Abrir fonte</a>':'')
-          :'Documento '+esc(e.document_id||'')+' · chunk '+(Number.isInteger(e.chunk)?e.chunk:': ');
+          ?'Fonte externa: '+esc(e.source_title||'Fonte autorizada')+(e.published_at?'. Publicado em: '+esc(fmt(e.published_at)):'')+
+            (e.source_url?'. <a href="'+esc(e.source_url)+'" target="_blank" rel="noopener noreferrer">Abrir fonte</a>':'')
+          :'Documento: '+esc(e.document_id||'')+'. Trecho: '+(Number.isInteger(e.chunk)?e.chunk:': ');
         return '<div class="quote">“'+esc(e.quote||'')+'”</div><div class="source">'+provenance+'</div>';
       }).join('')+'</details>'
       :'<div class="evidence"><strong>Evidência insuficiente para exibição.</strong></div>';
     return '<article class="signal"><div class="signalTitle">'+esc(s.title)+
       '<span class="badge '+esc(badge)+'">'+esc(badge)+'</span>'+
-      '<span class="priority '+(level==='alta'?'high':level==='média'?'medium':'')+'">'+level+' · '+s.priority+'/100</span></div>'+
+      '<span class="priority '+(level==='alta'?'high':level==='média'?'medium':'')+'">'+level+'. '+s.priority+'/100</span></div>'+
       '<div class="muted">'+esc(s.summary)+'</div>'+
-      '<div class="muted">Confiança '+(Number(s.confidence||0)*100).toFixed(0)+'% · '+evidence.length+' evidência(s) · observado '+fmt(s.observed_at)+'</div>'+
+      '<div class="muted">Confiança '+(Number(s.confidence||0)*100).toFixed(0)+'%. '+evidence.length+' evidência(s). observado '+fmt(s.observed_at)+'</div>'+
       '<div class="action"><strong>Próxima ação:</strong> '+esc(s.action)+'</div>'+evidenceHtml+'</article>';
   };
   const init=async()=>{
@@ -97,8 +97,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     if(!days.length&&!events.length){
       document.getElementById('digest').innerHTML='<div class="empty">Ainda não há histórico temporal suficiente.</div>';
     }else{
-      let html=days.map(d=>'<div class="signal"><div class="signalTitle">'+fmt(d.day)+'</div><div class="muted">'+(d.new_signals||0)+' novos · '+(d.accelerating||0)+' acelerando · '+(d.decelerating||0)+' desacelerando · '+(d.stable||0)+' estáveis · '+(d.resolved||0)+' resolvidos</div><div class="muted">Mudança média: '+Number(d.avg_change_score||0).toFixed(3)+'</div></div>').join('');
-      html+=events.map(e=>'<div class="change"><strong>'+esc(e.documents?.filename||'Documento')+' · '+fmt(e.observed_at)+'</strong><div class="muted">'+(e.changed_chunk_count||0)+' chunk(s) alterado(s) · magnitude '+Number(e.change_score||0).toFixed(3)+' · adicionados ['+(e.added_chunks||[]).join(', ')+'] · removidos ['+(e.removed_chunks||[]).join(', ')+'] · modificados ['+(e.modified_chunks||[]).join(', ')+']</div></div>').join('');
+      let html=days.map(d=>'<div class="signal"><div class="signalTitle">'+fmt(d.day)+'</div><div class="muted">'+(d.new_signals||0)+' novos. '+(d.accelerating||0)+' acelerando. '+(d.decelerating||0)+' desacelerando. '+(d.stable||0)+' estáveis. '+(d.resolved||0)+' resolvidos</div><div class="muted">Mudança média: '+Number(d.avg_change_score||0).toFixed(3)+'</div></div>').join('');
+      html+=events.map(e=>'<div class="change"><strong>'+esc(e.documents?.filename||'Documento')+'. '+fmt(e.observed_at)+'</strong><div class="muted">'+(e.changed_chunk_count||0)+' chunk(s) alterado(s). magnitude '+Number(e.change_score||0).toFixed(3)+'. adicionados ['+(e.added_chunks||[]).join(', ')+']. removidos ['+(e.removed_chunks||[]).join(', ')+']. modificados ['+(e.modified_chunks||[]).join(', ')+']</div></div>').join('');
       document.getElementById('digest').innerHTML=html;
     }
   };
