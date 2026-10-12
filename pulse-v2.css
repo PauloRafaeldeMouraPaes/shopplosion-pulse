@@ -66,7 +66,6 @@ body.pulse-shell-ready main.wrap>section:first-child:after{
 }
 /* PULSE V3 — unified workspace, replacing the legacy dashboard composition */
 body.pulse-shell-ready:has(.layout){
-  --pulse-bg:var(--surface-app);--pulse-panel:var(--surface-canvas);--pulse-text:var(--ink-1);--pulse-muted:var(--ink-2);--pulse-border:var(--line-1);
   background:var(--surface-app)!important;
 }
 body.pulse-shell-ready:has(.layout) .pulse-rail,
