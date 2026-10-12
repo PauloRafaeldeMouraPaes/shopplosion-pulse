@@ -68,3 +68,6 @@ html.pv3-leaving .pv4-app{opacity:0;transform:translateY(4px);transition:opacity
 
 /* Mobile input zoom prevention: preserve native browser zoom and readable controls. */
 @media(max-width:640px){body.pv3-active input,body.pv3-active textarea,body.pv3-active select{font-size:16px}}
+
+/* Tap feedback without blocking pinch zoom or native navigation. */
+a,button,input,select,textarea{touch-action:manipulation}
