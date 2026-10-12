@@ -37,7 +37,7 @@ body.pulse-shell-ready>header.pulse-original-header{display:none!important}
 .pulse-inspector-meta dt{color:var(--ink-3)}.pulse-inspector-meta dd{margin:0;font-weight:750;text-align:right}
 .pulse-inspector-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 .pulse-inspector-actions button{min-height:44px;border:1px solid var(--line-1);border-radius:var(--radius-control);background:var(--surface-canvas);font-weight:750;cursor:pointer}
-.pulse-inspector-actions button.primary{background:var(--brand-pulse);border-color:var(--brand-pulse);color:var(--on-rail)}
+.pulse-inspector-actions button.primary{background:var(--brand-pulse-strong);border-color:var(--brand-pulse-strong);color:var(--on-brand)}
 .pulse-inspector-actions button:focus-visible{outline:2px solid var(--brand-pulse);outline-offset:2px}
 .pulse-inspector-relations{display:grid;gap:7px;margin-top:10px}
 .pulse-inspector-relations span{font-size:12px;color:var(--ink-2)}
