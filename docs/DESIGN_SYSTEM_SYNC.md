@@ -41,7 +41,7 @@ design/tokens.json  →  scripts/build_design_tokens.py  →  pulse-tokens.css
 ## Estado da fase 1 na rodada de acabamento (12/10/2026)
 
 - `pulse-tokens.css` é carregado antes das folhas de estilo em `index.html`, `app.html`, `ask.html`, `intelligence.html`, `sources.html`, `base.html`, `documento.html` e `auth.html`. Em `documento.html` há apenas um link para tokens.
-- As folhas compartilhadas `pulse-shell.css`, `pulse-v2.css` e `pulse-workspace-v3.css` usam tokens semânticos para cores e raios. As definições duplicadas `--pulse-*`, `--p-*`, `--pv3-*` e `--pv4-*` foram removidas dessas folhas. Ainda há cores pontuais em estilos locais de `app.html` e `ask.html`, a tratar na auditoria por componente.
+- As folhas compartilhadas `pulse-shell.css`, `pulse-v2.css` e `pulse-workspace-v3.css` usam tokens semânticos para cores, raios e sombras. Os estilos locais de `index.html`, `app.html`, `ask.html`, `intelligence.html`, `sources.html`, `base.html`, `documento.html` e `auth.html` foram alinhados aos tokens: sem cores hex fixas nas folhas inline, sem texto CSS abaixo de 11 px e sem raios fora da escala. As variáveis duplicadas não utilizadas foram removidas; os aliases restantes são referenciados por regras existentes.
 - As páginas existentes carregam Inter e Source Serif 4, ambas já definidas no design system; Source Serif 4 fica reservada ao texto de leitura.
 - `pilot-chocolate.html` permanece pendente nesta branch porque o PR #79 altera o mesmo arquivo. Não editar antes da integração desse PR, conforme a regra de concorrência da rodada.
 
