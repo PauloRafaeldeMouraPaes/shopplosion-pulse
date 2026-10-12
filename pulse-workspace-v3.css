@@ -71,3 +71,8 @@ html.pv3-leaving .pv4-app{opacity:0;transform:translateY(4px);transition:opacity
 
 /* Tap feedback without blocking pinch zoom or native navigation. */
 a,button,input,select,textarea{touch-action:manipulation}
+
+/* Keep comparable values aligned without changing their semantics. */
+.pv4-at-a-glance b,.pv4-index,.pv4-confidence,.pv4-diagnostic-cols b,
+.pv4-series-card b,.pv4-series-card strong,.metric strong,.stat strong,
+.stats strong{font-variant-numeric:tabular-nums}
