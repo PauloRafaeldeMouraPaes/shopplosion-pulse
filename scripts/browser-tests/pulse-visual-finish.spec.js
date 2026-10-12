@@ -23,6 +23,10 @@ test.describe('Pulse visual finish contract', () => {
         await page.setViewportSize(viewport);
         await page.goto(pageCase.path, { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle').catch(() => {});
+        if (pageCase.path !== '/pilot-chocolate.html') {
+          await expect(page.locator('.pv4-rail'), 'shared Pulse navigation must mount').toBeVisible({ timeout: 10000 });
+          await expect(page.locator('.pv4-app'), 'shared Pulse page content must mount').toBeVisible({ timeout: 10000 });
+        }
         const audit = await page.evaluate(() => {
           const visible = (el) => {
             if (!(el instanceof Element)) return false;
