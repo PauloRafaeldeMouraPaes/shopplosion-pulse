@@ -21,7 +21,7 @@ for (const [name, content] of [
     failures.push(`Public evidence mirror missing: ${name}`);
     continue;
   }
-  if (/[\\u2013\\u2014]/.test(content)) failures.push(`Public evidence mirror contains U+2013/U+2014: ${name}`);
+  if (content.includes(String.fromCharCode(0x2013)) || content.includes(String.fromCharCode(0x2014))) failures.push(`Public evidence mirror contains U+2013/U+2014: ${name}`);
   if (/lindt/i.test(content)) failures.push(`Public evidence mirror contains a public brand name: ${name}`);
 }
 
