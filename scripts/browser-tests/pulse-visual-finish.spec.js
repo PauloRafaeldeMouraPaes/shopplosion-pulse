@@ -111,7 +111,7 @@ test.describe('Pulse visual finish contract', () => {
             const size = parseFloat(style.fontSize || getComputedStyle(control).fontSize);
             const selector = control.tagName.toLowerCase() + (control.id ? '#' + control.id : '') + (control.tagName === 'SELECT' ? '::selected-option' : '::placeholder');
             if (size < 11) errors.push({ type: 'text-under-11px', text: text.slice(0, 70), size, selector });
-            if (/[\\u2013\\u2014]/.test(text)) errors.push({ type: 'dash-in-visible-text', text: text.slice(0, 90), selector });
+            if (/[\u2013\u2014]/.test(text)) errors.push({ type: 'dash-in-visible-text', text: text.slice(0, 90), selector });
             const fg = parseColor(style.color);
             const bg = backgroundFor(control);
             if (fg) {
