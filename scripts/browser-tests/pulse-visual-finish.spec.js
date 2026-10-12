@@ -111,8 +111,21 @@ test.describe('Pulse visual finish contract', () => {
               .filter(el => visible(el) && el.getBoundingClientRect().bottom <= h1Top + 1).length;
             if (eyebrowCount > 1) errors.push({ type: 'multiple-labels-above-title', count: eyebrowCount, title: h1.innerText.trim() });
           }
-          return { errors, title: document.title, eyebrowCount, visibleTextNodes: document.body.innerText.length };
+          const cssText = [...document.styleSheets].filter(sheet => !/pulse-tokens\\.css/i.test(sheet.href || '')).map(sheet => {
+            try { return [...sheet.cssRules].map(rule => rule.cssText).join('\\n'); }
+            catch (_) { return ''; }
+          }).join('\\n');
+          const below11Count = errors.filter(error => error.type === 'text-under-11px').length;
+          const contrastFailureCount = errors.filter(error => error.type === 'contrast' || error.type === 'contrast-unparsed-color').length;
+          const visibleDashCount = errors.filter(error => error.type === 'dash-in-visible-text' || error.type === 'dash-in-document-title').length;
+          const distinctHexColors = new Set(cssText.match(/#[0-9a-f]{3,8}\\b/gi) || []).size;
+          const importantCount = (cssText.match(/!important/g) || []).length;
+          return {
+            errors, title: document.title, eyebrowCount, visibleTextNodes: document.body.innerText.length,
+            metrics: { below11Count, contrastFailureCount, visibleDashCount, labelsAboveTitle: eyebrowCount, distinctHexColors, importantCount }
+          };
         });
+        console.log('[VISUAL_FINISH_METRICS] ' + JSON.stringify({ page: pageCase.path, width: viewport.width, ...audit.metrics }));
         await testInfo.attach(`${pageCase.name.replace(/[^a-z0-9]+/gi, '-')}-${viewport.width}px`, {
           body: await page.screenshot({ fullPage: true, animations: 'disabled' }),
           contentType: 'image/png',
