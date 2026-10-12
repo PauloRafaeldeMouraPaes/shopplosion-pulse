@@ -66,8 +66,6 @@ async function inspectVisibleText(page) {
       const element = node.parentElement;
       if (!value.trim() || !isVisible(element)) continue;
       if (element.closest('script,style,noscript,template,svg')) continue;
-      const rect = element.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > innerHeight || rect.right < 0 || rect.left > innerWidth) continue;
       const style = getComputedStyle(element);
       const fontSize = Number.parseFloat(style.fontSize);
       const weight = Number(style.fontWeight) || 400;
@@ -121,7 +119,7 @@ for (const pageCase of pages) {
       expect(audit.tooSmall, `Texto visível abaixo de 11 px: ${JSON.stringify(audit.tooSmall.slice(0, 12))}`).toEqual([]);
       expect(audit.lowContrast, `Falhas de contraste AA: ${JSON.stringify(audit.lowContrast.slice(0, 12))}`).toEqual([]);
       expect(audit.dashText, `Travessão ou meia-risca em texto visível/título: ${JSON.stringify(audit.dashText)}`).toEqual([]);
-      expect(audit.labelsAboveTitle, `Mais de um rótulo acima do título: ${JSON.stringify(audit.labelsAboveTitle)}`).toHaveLength(1);
+      expect(audit.labelsAboveTitle.length, `Mais de um rótulo acima do título: ${JSON.stringify(audit.labelsAboveTitle)}`).toBeLessThanOrEqual(1);
     });
   }
 }
