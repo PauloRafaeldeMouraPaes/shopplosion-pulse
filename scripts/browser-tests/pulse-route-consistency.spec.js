@@ -123,4 +123,4 @@ test.describe('Pulse canonical route shell', () => {
 
 // Keep the visual finish contract in the existing browser-smoke entry point.
 // The workflow stays unchanged while this dedicated spec is executed with the shell regression.
-require('./pulse-visual-finish.spec.js');
+require('./pulse-acabamento-contract.spec.js');
