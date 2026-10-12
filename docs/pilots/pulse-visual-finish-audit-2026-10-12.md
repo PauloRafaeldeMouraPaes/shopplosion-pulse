@@ -16,6 +16,8 @@ Auditoria baseada em `vercel-labs/web-interface-guidelines`, commit `434b7f91364
 - `pulse-workspace-v3.js:103`: campo de pergunta com label associado, `name`, `type`, `inputmode`, `autocomplete` e placeholder com reticências tipográficas.
 - `pulse-shell.css:11,18-19,68`: campo de comando com tipografia válida, foco de teclado visível e campo de escopo com tamanho legível.
 - `ask.html:58`: placeholder alterado para reticências tipográficas; o campo mantém nome, tipo, rótulo acessível e autocomplete.
+- `app.html:25`, `ask.html:40`: botões de prompt agora usam tipografia de interface de 14 px, alvo de 44 px e foco visível sem cancelar o indicador.
+- `scripts/pulse-local-evidence.js:81`: removido o travessão da mensagem visível do painel de evidência local.
 - `intelligence.html:5`: título e eyebrow corrigidos; prioridade alta e selo novo deixaram de usar cores de texto com contraste insuficiente, preservando o estado com borda de acento.
 - `app.html:6-7`, `ask.html:6-7`, `intelligence.html:2-3`, `sources.html:2-3`, `base.html:2-3`, `documento.html:6-7`, `auth.html:2-3`, `index.html:6-7`: theme-color e color-scheme presentes e coerentes com o tema claro.
 - As páginas acima carregam `pulse-tokens.css` antes das outras folhas de estilo. `documento.html` contém um único link para tokens.
@@ -40,9 +42,9 @@ Escopo: folhas de estilo compartilhadas e páginas atuais exceto `pilot-chocolat
 | Cores hex distintas na folha de tokens | 15 | 16 |
 | Declarações `!important` nas folhas/páginas auditadas | 247 | 247 |
 | Declarações estáticas de fonte abaixo de 11 px | 0 | 0 |
-| Travessões/meias-riscas no texto de interface das páginas não bloqueadas | 0 | 0 |
+| Travessões/meias-riscas no texto de interface das páginas não bloqueadas | 1 | 0 |
 | Falhas de contraste computadas em navegador | Não medido | Não medido |
-| Falhas estáticas de contraste identificadas e corrigidas nesta revisão | 0 contabilizadas antes | 2 correções: `intelligence.html` |
+| Falhas estáticas de contraste identificadas e corrigidas nesta revisão | 2 identificadas | 0 restantes nas duas regras corrigidas em `intelligence.html` |
 
 A contagem de contraste “não medido” é deliberada: não declarar zero sem execução real do navegador. A paleta recebeu um token novo, `brand-pulse-strong` (`#d3185f`), com contraste calculado de 5,17:1 sobre branco e 4,51:1 sobre `brand-soft`.
 
