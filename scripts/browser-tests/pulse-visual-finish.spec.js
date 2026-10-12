@@ -14,7 +14,7 @@ const viewports = [
 test.describe('Pulse visual finish contract', () => {
   for (const pageCase of pages) {
     for (const viewport of viewports) {
-      test(`${pageCase.name} at ${viewport.width}px meets visual accessibility contract`, async ({ page }) => {
+      test(`${pageCase.name} at ${viewport.width}px meets visual accessibility contract`, async ({ page }, testInfo) => {
         await page.setViewportSize(viewport);
         await page.goto(pageCase.path, { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle').catch(() => {});
@@ -107,11 +107,15 @@ test.describe('Pulse visual finish contract', () => {
           let eyebrowCount = 0;
           if (h1) {
             const h1Top = h1.getBoundingClientRect().top;
-            eyebrowCount = [...document.querySelectorAll('.eyebrow,.overline,.kicker,.page-label,.hero-label,[data-eyebrow="true"]')]
+            eyebrowCount = [...document.querySelectorAll('.eyebrow,.overline,.kicker,.page-label,.hero-label,.pv4-kicker,.pv4-label,.page-kicker,[data-eyebrow="true"],[data-page-kicker]')]
               .filter(el => visible(el) && el.getBoundingClientRect().bottom <= h1Top + 1).length;
             if (eyebrowCount > 1) errors.push({ type: 'multiple-labels-above-title', count: eyebrowCount, title: h1.innerText.trim() });
           }
           return { errors, title: document.title, eyebrowCount, visibleTextNodes: document.body.innerText.length };
+        });
+        await testInfo.attach(`${pageCase.name.replace(/[^a-z0-9]+/gi, '-')}-${viewport.width}px`, {
+          body: await page.screenshot({ fullPage: true, animations: 'disabled' }),
+          contentType: 'image/png',
         });
         expect(audit.errors, `${pageCase.path} at ${viewport.width}px visual audit: ${JSON.stringify(audit.errors.slice(0, 20), null, 2)}`).toEqual([]);
       });
