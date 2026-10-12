@@ -35,18 +35,20 @@ Auditoria baseada em `vercel-labs/web-interface-guidelines`, commit `434b7f91364
 
 ## Métricas estáticas
 
-Escopo: folhas de estilo compartilhadas e páginas atuais exceto `pilot-chocolate.html`, que está bloqueada pelo PR #79. Os números são estáticos; não substituem a medição do spec em navegador.
+Duas leituras são separadas para não misturar valores de token com declarações por arquivo.
 
-| Métrica | Antes | Após esta rodada, ainda sem piloto |
+| Métrica | Antes | Após esta rodada |
 |---|---:|---:|
 | Cores hex distintas na folha de tokens | 15 | 16 |
-| Declarações `!important` nas folhas/páginas auditadas | 247 | 247 |
-| Declarações estáticas de fonte abaixo de 11 px | 0 | 0 |
-| Travessões/meias-riscas no texto de interface das páginas não bloqueadas | 1 | 0 |
+| Soma de cores hex distintas por arquivo nas 11 páginas/folhas comparáveis, excluindo tokens gerados e arquivos bloqueados | 329 | 4 |
+| Declarações `!important` nas 11 páginas/folhas comparáveis | 191 | 244 |
+| Declarações CSS de tamanho abaixo de 11 px | 66 | 0 |
+| U+2013/U+2014 em texto de interface/evidência auditado | 126 | 0 |
 | Falhas de contraste computadas em navegador | Não medido | Não medido |
-| Falhas estáticas de contraste identificadas e corrigidas nesta revisão | 2 identificadas | 0 restantes nas duas regras corrigidas em `intelligence.html` |
 
-A contagem de contraste “não medido” é deliberada: não declarar zero sem execução real do navegador. A paleta recebeu um token novo, `brand-pulse-strong` (`#d3185f`), com contraste calculado de 5,17:1 sobre branco e 4,51:1 sobre `brand-soft`.
+As quatro cores hex restantes nas páginas comparáveis são valores de `theme-color` coerentes com a superfície do app. Há três ocorrências de U+2013/U+2014 em comentários CSS que não são renderizados. O número de `!important` aumentou para preservar cascata e garantir movimento reduzido e tipografia móvel; o CSS legado de `pulse-v2.css` não foi reescrito por inteiro nesta rodada.
+
+A contagem de contraste “não medido” é deliberada: não declarar zero sem execução real do navegador. Duas falhas de foreground identificadas estaticamente em `intelligence.html` foram corrigidas. O token `brand-pulse-strong` (`#d3185f`) tem contraste calculado de 5,17:1 sobre branco e 4,51:1 sobre `brand-soft`.
 
 ## Próxima ação
 
