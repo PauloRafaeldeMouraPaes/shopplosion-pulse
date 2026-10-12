@@ -135,3 +135,5 @@ body.pulse-shell-ready:has(.layout) .pulse-next-action strong{font-size:13px}
 
 :focus-visible{outline:2px solid var(--brand-pulse-strong);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+body.pulse-shell-ready .eyebrow,body.pulse-shell-ready .scopeLabel,body.pulse-shell-ready .period,body.pulse-shell-ready .reach{font-family:var(--font-mono)!important;font-size:11px!important;line-height:14px;letter-spacing:.1em!important;font-weight:600!important;color:var(--ink-3)!important}
