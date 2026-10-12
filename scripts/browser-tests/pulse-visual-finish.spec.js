@@ -102,6 +102,28 @@ test.describe('Pulse visual finish contract', () => {
               errors.push({ type: 'contrast-unparsed-color', text: text.slice(0, 70), color: style.color });
             }
           }
+          for (const control of [...document.querySelectorAll('input[placeholder],textarea[placeholder],select')].filter(visible)) {
+            const text = control.tagName === 'SELECT'
+              ? String(control.options[control.selectedIndex]?.textContent || '').trim()
+              : String(control.getAttribute('placeholder') || '').trim();
+            if (!text) continue;
+            const style = control.tagName === 'SELECT' ? getComputedStyle(control) : getComputedStyle(control, '::placeholder');
+            const size = parseFloat(style.fontSize || getComputedStyle(control).fontSize);
+            const selector = control.tagName.toLowerCase() + (control.id ? '#' + control.id : '') + (control.tagName === 'SELECT' ? '::selected-option' : '::placeholder');
+            if (size < 11) errors.push({ type: 'text-under-11px', text: text.slice(0, 70), size, selector });
+            if (/[\\u2013\\u2014]/.test(text)) errors.push({ type: 'dash-in-visible-text', text: text.slice(0, 90), selector });
+            const fg = parseColor(style.color);
+            const bg = backgroundFor(control);
+            if (fg) {
+              const contrast = ratio(blend(fg, bg), bg);
+              const bold = parseInt(style.fontWeight || getComputedStyle(control).fontWeight, 10) >= 700;
+              const large = size >= 24 || (size >= 18.66 && bold);
+              const minimum = large ? 3 : 4.5;
+              if (contrast + 0.01 < minimum) errors.push({ type: 'contrast', text: text.slice(0, 70), ratio: Number(contrast.toFixed(2)), minimum, foreground: style.color, background: 'rgb(' + bg.slice(0, 3).map(Math.round).join(',') + ')', selector });
+            } else {
+              errors.push({ type: 'contrast-unparsed-color', text: text.slice(0, 70), color: style.color, selector });
+            }
+          }
           if (/[\u2013\u2014]/.test(document.title)) errors.push({ type: 'dash-in-document-title', text: document.title });
           const h1 = [...document.querySelectorAll('h1')].find(visible);
           let eyebrowCount = 0;
