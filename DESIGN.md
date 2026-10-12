@@ -17,9 +17,9 @@ O Pulse é uma interface de inteligência de mercado focada em evidência, legib
 | `ink-1` | `#16151a` | Títulos, números e ação secundária sólida |
 | `ink-2` | `#4a4852` | Corpo de apoio e texto de interface |
 | `ink-3` | `#6e6b76` | Rótulos e metadados; nunca abaixo de 11 px |
-| `brand-pulse` | `#e51b67` | Ação, seleção e citação; decorativo somente sem texto |
+| `brand-pulse` | `#e51b67` | Indicadores não textuais de ação, seleção e citação; nunca texto nem botão preenchido |
 | `brand-pulse-strong` | `#d3185f` | Texto magenta e botão preenchido com texto branco após inclusão no tokens.json |
-| `brand-soft` | `#fdebf1` | Fundo de trechos citados e destaque sutil |
+| `brand-soft` | `#fdebf1` | Fundo de trechos citados, sob texto em `brand-pulse-strong` ou `ink-1` |
 | `on-brand` | `#ffffff` | Texto/ícones de botão de marca. A cor de botão preenchido passa a `brand-pulse-strong` |
 | `on-rail` | `#ffffff` | Texto e ícones primários no rail |
 | `on-rail-muted` | `#b9b7c0` | Navegação inativa no rail |
