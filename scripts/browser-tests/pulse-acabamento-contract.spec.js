@@ -15,10 +15,16 @@ test.describe('Contrato de acabamento visual Pulse', () => {
   for (const item of pages) {
     for (const viewport of viewports) {
       test(item.name + ' ' + viewport.width + 'px: tipografia, contraste e hierarquia', async ({ page }, testInfo) => {
+        const runtimeErrors = [];
+        page.on('pageerror', error => runtimeErrors.push(error.message));
         await page.setViewportSize(viewport);
         await page.goto(item.path, { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle').catch(() => {});
         await page.waitForTimeout(150);
+        if (item.path !== '/pilot-chocolate.html') {
+          await expect(page.locator('.pv4-rail'), 'a casca compartilhada deve montar').toBeVisible({ timeout: 10000 });
+          await expect(page.locator('.pv4-app'), 'o conteúdo compartilhado deve montar').toBeVisible({ timeout: 10000 });
+        }
         const audit = await page.evaluate(() => {
           const visible = (el) => {
             if (!(el instanceof Element)) return false;
@@ -151,7 +157,7 @@ test.describe('Contrato de acabamento visual Pulse', () => {
             },
           };
         });
-        console.log('[PULSE_ACABAMENTO] ' + JSON.stringify({ page: item.path, width: viewport.width, ...audit.metrics }));
+        console.log('[PULSE_ACABAMENTO] ' + JSON.stringify({ page: item.path, width: viewport.width, runtimeErrors: runtimeErrors.slice(0, 8), ...audit.metrics }));
         await testInfo.attach(item.name + '-' + viewport.width + 'px', {
           body: await page.screenshot({ fullPage: true, animations: 'disabled' }),
           contentType: 'image/png',
