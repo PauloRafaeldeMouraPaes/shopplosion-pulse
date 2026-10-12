@@ -28,8 +28,8 @@ Auditoria baseada em `vercel-labs/web-interface-guidelines`, commit `434b7f91364
 - `pilot-chocolate.html:6-8`: título ainda contém U+2014; falta carregar `pulse-tokens.css` e declarar `theme-color`/`color-scheme`. **Bloqueado intencionalmente**: o PR #79 está aberto e altera `pilot-chocolate.html` e o documento do piloto. A regra de concorrência desta rodada exige aguardar a integração antes de editar esses arquivos.
 - `pilot-chocolate.html:8`: estilos locais ainda usam uma paleta hardcoded. Será migrada para tokens quando o conflito com o PR #79 for resolvido.
 - Todas as páginas ainda não receberam teste de teclado manual, leitor de tela e verificação visual de foco encoberto por rail/sticky header.
-- Não foi possível executar o novo spec Playwright neste ambiente: não há checkout local e a tentativa de clonar o repositório falhou porque o ambiente não resolve `github.com`. O workflow de Browser Smoke não inclui esse novo spec e não foi alterado, conforme solicitado.
-- Por isso, os valores de contraste computados no navegador e as capturas a 1440 px e 390 px continuam **não verificados**. O spec `scripts/browser-tests/pulse-acabamento-contract.spec.js` anexa screenshots e falha para texto abaixo de 11 px, contraste AA insuficiente, U+2013/U+2014 no texto visível e mais de um rótulo acima do título, quando executado.
+- A execução local não foi possível: não há checkout local e a tentativa de clonar o repositório falhou porque o ambiente não resolve `github.com`. O workflow de Browser Smoke alcança o novo spec indiretamente: `scripts/browser-tests/pulse-route-consistency.spec.js` o importa via `require('./pulse-acabamento-contract.spec.js')`, sem alteração de workflow.
+- O Browser Smoke do HEAD `3e73ab2a726443d3c9ecd2eee28c29ca1188260d` está em execução. Até sua conclusão, os valores de contraste computados no navegador e as capturas a 1440 px e 390 px continuam **não verificados**. O spec anexa screenshots e falha para texto abaixo de 11 px, contraste AA insuficiente, U+2013/U+2014 no texto visível e mais de um rótulo acima do título.
 - O skip link global não foi adicionado: nas páginas não existe um destino comum estável e criar/alterar IDs ou âncoras contrariaria a restrição explícita desta rodada. Deve ser decidido em rodada de acessibilidade que permita esse contrato.
 - O cleanup de travessões nos dados públicos e nos espelhos, assim como a substituição do nome da marca do piloto por “marca do piloto”, pertence ao commit de dados separado do item 8. Os arquivos concorrentes do PR #79 continuam bloqueados.
 
@@ -52,4 +52,4 @@ A contagem de contraste “não medido” é deliberada: não declarar zero sem 
 
 ## Próxima ação
 
-Após merge do PR #79, concluir `pilot-chocolate.html` e o documento público do piloto. Em seguida executar localmente `npx playwright test scripts/browser-tests/pulse-acabamento-contract.spec.js`, anexar a saída e as capturas, corrigir os achados de runtime e atualizar este relatório antes de marcar o PR como pronto.
+Após merge do PR #79, concluir `pilot-chocolate.html` e o documento público do piloto. Aguardar o Browser Smoke do HEAD atual, revisar falhas de runtime e garantir que as capturas de 1440 px e 390 px estejam acessíveis no PR. Corrigir os achados e atualizar este relatório antes de marcar o PR como pronto.
