@@ -11,8 +11,9 @@
   --ink-2: #4a4852; /* Corpo de apoio, sobre surface-canvas e surface-app. */
   --ink-3: #6e6b76; /* Rótulos e metadados, sobre surface-canvas e surface-app; nunca abaixo de 11 px. */
   --brand-pulse: #e51b67; /* Ação primária, seleção e citação. Nada decorativo em magenta. */
+  --brand-pulse-strong: #d3185f; /* Texto magenta e botão preenchido; usar com on-brand em superfícies claras conforme contraste AA. */
   --brand-soft: #fdebf1; /* Destaque de trecho citado; fundo sob texto em brand-pulse ou ink-1. */
-  --on-brand: #ffffff; /* Texto e ícones sobre brand-pulse; só em peso 500 ou acima. */
+  --on-brand: #ffffff; /* Texto e ícones sobre brand-pulse-strong; peso 500 ou acima. */
   --on-rail: #ffffff; /* Texto e ícones sobre surface-rail (item de navegação ativo, marca). */
   --on-rail-muted: #b9b7c0; /* Itens de navegação inativos no rail, sobre surface-rail. */
   --state-processing: #0e8e96; /* Estado processando/indexando de um documento ou fonte. */
