@@ -145,7 +145,7 @@
     const chunkIndexOf=id=>{const c=chunks.find(x=>x.id===id);return c?c.chunk_index+1:null};
     box.innerHTML=evidenceRows.map(e=>{
       const n=chunkIndexOf(e.document_chunk_id);
-      const period=[fmtDate(e.period_start),fmtDate(e.period_end)].filter(Boolean).join(' → ');
+      const period=[fmtDate(e.period_start),fmtDate(e.period_end)] .filter(Boolean).join(' - ');
       return '<div class="evidenceCard"><div class="claim">'+esc(e.claim)+'</div><div class="evidenceMeta">'
         +(n?'<a href="#chunk-'+n+'" data-jump="'+n+'">bloco '+n+'</a>':'')
         +(period?'<span>'+esc(period)+'</span>':'')
