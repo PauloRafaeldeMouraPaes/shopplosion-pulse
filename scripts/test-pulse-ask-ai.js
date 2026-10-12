@@ -37,7 +37,7 @@ function extractEvidenceArray(source, marker) {
     const char = source[i];
     if (inString) {
       if (escaped) escaped = false;
-      else if (char === '\\\\') escaped = true;
+      else if (char.charCodeAt(0) === 92) escaped = true;
       else if (char === '"') inString = false;
       continue;
     }
@@ -52,9 +52,12 @@ function extractEvidenceArray(source, marker) {
 }
 
 try {
-  const inlineMatch = index.match(/<script type="application\\/json" id="pulse-public-evidence-json">([\\s\\S]*?)<\\/script>/);
-  if (!inlineMatch) throw new Error('index.html public evidence JSON is missing');
-  const htmlEvidence = JSON.parse(inlineMatch[1]);
+  const marker = '<script type="application/json" id="pulse-public-evidence-json">';
+  const markerStart = index.indexOf(marker);
+  const payloadStart = markerStart < 0 ? -1 : index.indexOf('>', markerStart) + 1;
+  const payloadEnd = payloadStart < 0 ? -1 : index.indexOf('</script>', payloadStart);
+  if (markerStart < 0 || payloadStart <= 0 || payloadEnd < 0) throw new Error('index.html public evidence JSON is missing');
+  const htmlEvidence = JSON.parse(index.slice(payloadStart, payloadEnd));
   const browserEvidence = extractEvidenceArray(publicEvidenceJs, 'window.PULSE_EVIDENCE=');
   const edgeEvidence = extractEvidenceArray(publicEvidenceMirror, 'export const PULSE_PUBLIC_EVIDENCE =');
   const canonical = JSON.stringify(htmlEvidence);
