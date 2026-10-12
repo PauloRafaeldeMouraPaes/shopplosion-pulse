@@ -107,7 +107,7 @@ test.describe('Pulse visual finish contract', () => {
           let eyebrowCount = 0;
           if (h1) {
             const h1Top = h1.getBoundingClientRect().top;
-            eyebrowCount = [...document.querySelectorAll('.eyebrow,.overline,.kicker,.page-label,.hero-label,.pv4-kicker,.pv4-label,.page-kicker,[data-eyebrow="true"],[data-page-kicker]')]
+            eyebrowCount = [...document.querySelectorAll('.eyebrow,.overline,.kicker,.label,.section-label,.page-label,.hero-label,.pv4-kicker,.pv4-label,.page-kicker,[data-eyebrow="true"],[data-page-kicker]')]
               .filter(el => visible(el) && el.getBoundingClientRect().bottom <= h1Top + 1).length;
             if (eyebrowCount > 1) errors.push({ type: 'multiple-labels-above-title', count: eyebrowCount, title: h1.innerText.trim() });
           }
