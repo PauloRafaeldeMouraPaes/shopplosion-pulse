@@ -35,9 +35,10 @@ html.pv3-leaving .pv4-app{opacity:0;transform:translateY(4px);transition:opacity
 /* Case actions: preserve hierarchy and make investigation a real action, not a text escape. */
 .pv4-case .pv4-real-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:250px}
 .pv4-case .pv4-real-actions .pv4-primary{margin-top:0}
-.pv4-secondary-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:40px;padding:0 14px;border:1px solid var(--brand-pulse-strong);border-radius:var(--radius-control);background:var(--brand-soft);color:var(--brand-pulse-strong);text-decoration:none;font-size:14px;line-height:20px;font-weight:600;line-height:1}
-.pv4-secondary-action b{font-size:14px;line-height:1}
-.pv4-secondary-action:hover,.pv4-secondary-action:focus-visible{background:var(--brand-soft);border-color:var(--brand-pulse-strong);outline:none}
+.pv4-secondary-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 14px;border:1px solid var(--brand-pulse-strong);border-radius:var(--radius-control);background:var(--brand-soft);color:var(--brand-pulse-strong);text-decoration:none;font-size:14px;line-height:20px;font-weight:600}
+.pv4-secondary-action b{font-size:14px;line-height:20px}
+.pv4-secondary-action:hover{background:var(--brand-soft);border-color:var(--brand-pulse-strong)}
+.pv4-secondary-action:focus-visible{outline:2px solid var(--brand-pulse-strong);outline-offset:2px}
 .pv4-case-critical{border-color:var(--line-1)!important}
 .pv4-case-contrast{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 18px}
 .pv4-case-contrast article{padding:13px;border:1px solid var(--line-1);border-radius:var(--radius-card);background:var(--surface-canvas)}
