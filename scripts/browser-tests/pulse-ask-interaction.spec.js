@@ -134,7 +134,7 @@ test.describe('Ask AI interaction contract', () => {
     }));
     expect(audit.ids).toContain('locomotiva-pascoa-2026-intencao-drivers');
     expect(audit.ids).toContain('rico-preco-chocolate-barra-bombom-out-2026');
-    expect(audit.text).toContain('INDIRETO para Lindt Brasil');
+    expect(audit.text).toContain('INDIRETO para marca do piloto no Brasil');
     expect(audit.text).toContain('CONTEXTUAL para comportamento do shopper');
     expect(audit.text).toContain('não mede comportamento de compra');
   });
@@ -148,7 +148,7 @@ test.describe('Ask AI interaction contract', () => {
     await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
     await expect(page.locator('#results')).toContainText('Kantar');
     await expect(page.locator('#results')).toContainText('Alcance para a pergunta');
-    await expect(page.locator('#results')).toContainText('INDIRETO para Lindt Brasil');
+    await expect(page.locator('#results')).toContainText('INDIRETO para marca do piloto no Brasil');
     await expect(page.locator('#results')).toContainText('Não comprova motivo individual');
     const audit=await page.evaluate(()=>({
       ids:(window.__pulsePublicMatches||[]).map(x=>x.e?.id),
