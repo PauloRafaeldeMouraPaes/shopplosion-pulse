@@ -25,6 +25,46 @@ for (const [name, content] of [
   if (/lindt/i.test(content)) failures.push(`Public evidence mirror contains a public brand name: ${name}`);
 }
 
+function extractEvidenceArray(source, marker) {
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) throw new Error(`Marker not found: ${marker}`);
+  const start = source.indexOf('[', markerIndex);
+  if (start < 0) throw new Error(`Array start not found after: ${marker}`);
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < source.length; i++) {
+    const char = source[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === '[') depth++;
+    else if (char === ']') {
+      depth--;
+      if (depth === 0) return JSON.parse(source.slice(start, i + 1));
+    }
+  }
+  throw new Error(`Array end not found after: ${marker}`);
+}
+
+try {
+  const inlineMatch = index.match(/<script type="application\\/json" id="pulse-public-evidence-json">([\\s\\S]*?)<\\/script>/);
+  if (!inlineMatch) throw new Error('index.html public evidence JSON is missing');
+  const htmlEvidence = JSON.parse(inlineMatch[1]);
+  const browserEvidence = extractEvidenceArray(publicEvidenceJs, 'window.PULSE_EVIDENCE=');
+  const edgeEvidence = extractEvidenceArray(publicEvidenceMirror, 'export const PULSE_PUBLIC_EVIDENCE =');
+  const canonical = JSON.stringify(htmlEvidence);
+  if (JSON.stringify(browserEvidence) !== canonical) failures.push('Public evidence diverges: index.html vs pulse-public-evidence.js');
+  if (JSON.stringify(edgeEvidence) !== canonical) failures.push('Public evidence diverges: index.html vs public-evidence.ts');
+  if (browserEvidence.length !== htmlEvidence.length || edgeEvidence.length !== htmlEvidence.length) failures.push('Public evidence mirror record counts differ');
+} catch (error) {
+  failures.push(`Public evidence mirror parity check could not run: ${error.message}`);
+}
+
 if (!index.includes('window.PULSE_EVIDENCE')) failures.push('public evidence registry missing');
 if (!index.includes('pulse-public-evidence-json')) failures.push('public evidence JSON missing');
 if (!ask.includes('pulse-workspace-v3.js')) failures.push('Ask AI canonical workspace runtime missing');
@@ -84,6 +124,7 @@ if (failures.length) {
 }
 
 console.log('Ask AI regression PASSED');
+console.log('Public evidence hygiene and three-layer parity contract passed.');
 
 // Persistent investigation and shopper knowledge contract verified.
 
