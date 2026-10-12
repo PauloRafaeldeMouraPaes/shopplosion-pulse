@@ -52,7 +52,7 @@ body.pulse-shell-ready>header.pulse-original-header{display:none!important}
   .pulse-account{justify-content:center}.pulse-account-copy{display:none}
 }
 @media(max-width:640px){
-  .pulse-inspector{top:auto;bottom:0;left:0;right:0;width:100%;height:min(78vh,620px);border-left:0;border-top:1px solid var(--line-1);border-radius:var(--radius-panel) var(--radius-panel) 0 0;transform:translateY(105%);box-shadow:var(--shadow-overlay)}
+  .pulse-inspector{top:auto;bottom:0;left:0;right:0;width:100%;height:min(78vh,620px);border-left:0;border-top:1px solid var(--line-1);border-radius:var(--radius-panel) var(--radius-panel) var(--radius-control) var(--radius-control);transform:translateY(105%);box-shadow:var(--shadow-overlay)}
   .pulse-inspector.open{transform:translateY(0)}
   .pulse-scope-header{display:flex;position:fixed;top:0;left:0;right:0;z-index:1240;gap:6px;padding:8px 10px;background:var(--surface-canvas);border-bottom:1px solid var(--line-1)}
   .pulse-scope-header a{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-control);background:var(--surface-sunken);color:var(--ink-2);font-size:12px;font-weight:750}
