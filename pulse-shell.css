@@ -66,3 +66,7 @@ body.pulse-shell-ready>header.pulse-original-header{display:none!important}
 
 :focus-visible{outline:2px solid var(--brand-pulse-strong);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.pulse-context,.pulse-breadcrumb,.pulse-scope-label{font-family:var(--font-mono);font-size:11px;line-height:14px;letter-spacing:.1em}
+.pulse-context{color:var(--ink-3)}
+.pulse-scope-label{color:var(--on-rail-muted)}
