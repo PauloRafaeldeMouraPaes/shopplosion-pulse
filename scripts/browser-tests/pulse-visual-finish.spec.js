@@ -15,6 +15,11 @@ test.describe('Pulse visual finish contract', () => {
   for (const pageCase of pages) {
     for (const viewport of viewports) {
       test(`${pageCase.name} at ${viewport.width}px meets visual accessibility contract`, async ({ page }, testInfo) => {
+        const runtimeErrors = [];
+        page.on('pageerror', error => runtimeErrors.push('pageerror: ' + error.message));
+        page.on('console', message => {
+          if (message.type() === 'error') runtimeErrors.push('console: ' + message.text());
+        });
         await page.setViewportSize(viewport);
         await page.goto(pageCase.path, { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle').catch(() => {});
@@ -147,7 +152,7 @@ test.describe('Pulse visual finish contract', () => {
             metrics: { below11Count, contrastFailureCount, visibleDashCount, labelsAboveTitle: eyebrowCount, distinctHexColors, importantCount }
           };
         });
-        console.log('[VISUAL_FINISH_METRICS] ' + JSON.stringify({ page: pageCase.path, width: viewport.width, ...audit.metrics }));
+        console.log('[VISUAL_FINISH_METRICS] ' + JSON.stringify({ page: pageCase.path, width: viewport.width, runtimeErrors: runtimeErrors.slice(0, 12), ...audit.metrics }));
         await testInfo.attach(`${pageCase.name.replace(/[^a-z0-9]+/gi, '-')}-${viewport.width}px`, {
           body: await page.screenshot({ fullPage: true, animations: 'disabled' }),
           contentType: 'image/png',
