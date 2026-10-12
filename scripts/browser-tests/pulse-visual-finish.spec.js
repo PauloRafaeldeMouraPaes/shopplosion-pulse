@@ -111,14 +111,14 @@ test.describe('Pulse visual finish contract', () => {
               .filter(el => visible(el) && el.getBoundingClientRect().bottom <= h1Top + 1).length;
             if (eyebrowCount > 1) errors.push({ type: 'multiple-labels-above-title', count: eyebrowCount, title: h1.innerText.trim() });
           }
-          const cssText = [...document.styleSheets].filter(sheet => !/pulse-tokens\\.css/i.test(sheet.href || '')).map(sheet => {
-            try { return [...sheet.cssRules].map(rule => rule.cssText).join('\\n'); }
+          const cssText = [...document.styleSheets].filter(sheet => !/pulse-tokens\.css/i.test(sheet.href || '')).map(sheet => {
+            try { return [...sheet.cssRules].map(rule => rule.cssText).join(' '); }
             catch (_) { return ''; }
-          }).join('\\n');
+          }).join(' ');
           const below11Count = errors.filter(error => error.type === 'text-under-11px').length;
           const contrastFailureCount = errors.filter(error => error.type === 'contrast' || error.type === 'contrast-unparsed-color').length;
           const visibleDashCount = errors.filter(error => error.type === 'dash-in-visible-text' || error.type === 'dash-in-document-title').length;
-          const distinctHexColors = new Set(cssText.match(/#[0-9a-f]{3,8}\\b/gi) || []).size;
+          const distinctHexColors = new Set(cssText.match(/#[0-9a-f]{3,8}\b/gi) || []).size;
           const importantCount = (cssText.match(/!important/g) || []).length;
           return {
             errors, title: document.title, eyebrowCount, visibleTextNodes: document.body.innerText.length,
