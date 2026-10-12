@@ -24,6 +24,10 @@ design/tokens.json  →  scripts/build_design_tokens.py  →  pulse-tokens.css
    `pulse-tokens.css` resultante — ninguém precisa rodar o script à mão
    depois de atualizar o token source.
 
+## Token de contraste da rodada de acabamento
+
+`brand-pulse-strong` (`#d3185f`) é o token de alto contraste para texto magenta e botões preenchidos com texto branco. O magenta original `brand-pulse` (`#e51b67`) permanece para usos sem texto, como marca decorativa. Não use o token original como foreground de texto em superfícies claras. Após mudar `design/tokens.json`, rode `python3 scripts/build_design_tokens.py` e inclua o CSS gerado no mesmo conjunto lógico de mudança. A cor forte tem contraste calculado de aproximadamente 5,17:1 sobre branco e 4,51:1 sobre `brand-soft`.
+
 ## Quando o design system mudar
 
 1. Peça ao Claude para reexportar o `tokens.json` do artifact "Pulse", ou
