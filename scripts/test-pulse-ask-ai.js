@@ -5,7 +5,25 @@ const ask = fs.existsSync('ask.html') ? fs.readFileSync('ask.html', 'utf8') : ''
 const workspace = fs.existsSync('pulse-workspace-v3.js') ? fs.readFileSync('pulse-workspace-v3.js', 'utf8') : '';
 const app = fs.existsSync('app.html') ? fs.readFileSync('app.html', 'utf8') : '';
 const saveEvidenceFunction = fs.existsSync('supabase/functions/pulse-save-evidence/index.ts') ? fs.readFileSync('supabase/functions/pulse-save-evidence/index.ts', 'utf8') : '';
+const publicEvidenceJs = fs.existsSync('pulse-public-evidence.js') ? fs.readFileSync('pulse-public-evidence.js', 'utf8') : '';
+const publicEvidenceMirror = fs.existsSync('supabase/functions/pulse-ask-ai/public-evidence.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/public-evidence.ts', 'utf8') : '';
 const failures = [];
+
+// The public evidence registry, browser mirror and Edge Function mirror must
+// stay in sync with the public-text hygiene contract. Data wording is never
+// rewritten at runtime to hide a repository regression.
+for (const [name, content] of [
+  ['index.html', index],
+  ['pulse-public-evidence.js', publicEvidenceJs],
+  ['supabase/functions/pulse-ask-ai/public-evidence.ts', publicEvidenceMirror],
+]) {
+  if (!content) {
+    failures.push(`Public evidence mirror missing: ${name}`);
+    continue;
+  }
+  if (/[\\u2013\\u2014]/.test(content)) failures.push(`Public evidence mirror contains U+2013/U+2014: ${name}`);
+  if (/lindt/i.test(content)) failures.push(`Public evidence mirror contains a public brand name: ${name}`);
+}
 
 if (!index.includes('window.PULSE_EVIDENCE')) failures.push('public evidence registry missing');
 if (!index.includes('pulse-public-evidence-json')) failures.push('public evidence JSON missing');
