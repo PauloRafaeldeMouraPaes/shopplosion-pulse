@@ -40,9 +40,9 @@ design/tokens.json  →  scripts/build_design_tokens.py  →  pulse-tokens.css
 
 ## Estado da fase 1 na rodada de acabamento (12/10/2026)
 
-- `pulse-tokens.css` é carregado antes das folhas de estilo em `index.html`, `app.html`, `ask.html`, `intelligence.html`, `sources.html`, `base.html`, `documento.html` e `auth.html`. Em `documento.html` há apenas um link para tokens.
-- As folhas compartilhadas `pulse-shell.css`, `pulse-v2.css` e `pulse-workspace-v3.css` usam tokens semânticos para cores, raios e sombras. Os estilos locais de `index.html`, `app.html`, `ask.html`, `intelligence.html`, `sources.html`, `base.html`, `documento.html` e `auth.html` foram alinhados aos tokens: sem cores hex fixas nas folhas inline, sem texto CSS abaixo de 11 px e sem raios fora da escala. As variáveis duplicadas não utilizadas foram removidas; os aliases restantes são referenciados por regras existentes.
-- As páginas existentes carregam Inter e Source Serif 4, ambas já definidas no design system; Source Serif 4 fica reservada ao texto de leitura.
-- `pilot-chocolate.html` permanece pendente nesta branch porque o PR #79 altera o mesmo arquivo. Não editar antes da integração desse PR, conforme a regra de concorrência da rodada.
+- O token `brand-pulse-strong` foi adicionado a `design/tokens.json` e o CSS foi regenerado em `pulse-tokens.css`. O contraste calculado é 5,17:1 com branco e 4,51:1 com `brand-soft`.
+- `index.html`, `app.html`, `ask.html`, `intelligence.html`, `sources.html`, `base.html`, `documento.html` e `auth.html` já referenciam `pulse-tokens.css`; ainda precisam de auditoria efetiva de ordem, duplicações, valores fixos, tipografia, tamanhos mínimos, raios e variáveis redundantes. Não interpretar a presença do link como fase 1 concluída.
+- `pilot-chocolate.html` ainda não carrega o arquivo de tokens e contém valores locais fixos. O PR #79 altera esse mesmo arquivo; por isso, ele fica bloqueado para edição até o merge do PR concorrente, conforme a regra desta rodada.
+- O estado de conformidade visual e a remoção de aliases só podem ser declarados por arquivo depois da inspeção e validação correspondentes. Nenhuma auditoria visual ou teste de navegador foi declarado concluído nesta etapa.
 
-O acabamento é incremental, arquivo por arquivo. Nenhuma rota, ID, âncora ou fluxo é alterado.
+A rodada é incremental, arquivo por arquivo. Preservar rotas, IDs, âncoras e fluxos existentes.
