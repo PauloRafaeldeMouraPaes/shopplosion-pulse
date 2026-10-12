@@ -38,24 +38,11 @@ design/tokens.json  →  scripts/build_design_tokens.py  →  pulse-tokens.css
 3. O workflow regenera e commita `pulse-tokens.css` automaticamente. Se
    preferir rodar local: `python3 scripts/build_design_tokens.py`.
 
-## Ainda falta (fase 1 da proposta, "Casca e tokens")
+## Estado da fase 1 na rodada de acabamento (12/10/2026)
 
-`pulse-tokens.css` hoje é gerado, mas **as páginas ainda não o carregam** e
-`pulse-shell.css` / `pulse-v2.css` / `pulse-workspace-v3.css` continuam com
-seus próprios valores hardcoded (as três camadas `--pulse-*`, `--p-*`,
-`--pv3-*` que o diagnóstico da proposta já aponta como redundantes). Para
-fechar o ciclo:
+- `pulse-tokens.css` é carregado antes das folhas de estilo em `index.html`, `app.html`, `ask.html`, `intelligence.html`, `sources.html`, `base.html`, `documento.html` e `auth.html`. Em `documento.html` há apenas um link para tokens.
+- As folhas compartilhadas `pulse-shell.css`, `pulse-v2.css` e `pulse-workspace-v3.css` usam tokens semânticos para cores e raios. As definições duplicadas `--pulse-*`, `--p-*`, `--pv3-*` e `--pv4-*` foram removidas dessas folhas. Ainda há cores pontuais em estilos locais de `app.html` e `ask.html`, a tratar na auditoria por componente.
+- As páginas existentes carregam Inter e Source Serif 4, ambas já definidas no design system; Source Serif 4 fica reservada ao texto de leitura.
+- `pilot-chocolate.html` permanece pendente nesta branch porque o PR #79 altera o mesmo arquivo. Não editar antes da integração desse PR, conforme a regra de concorrência da rodada.
 
-1. Adicionar `<link rel="stylesheet" href="./pulse-tokens.css">` antes das
-   três folhas de estilo atuais em cada página (`index.html`, `app.html`,
-   `ask.html`, `intelligence.html`, `sources.html`, `auth.html`).
-2. Trocar, uma folha de cada vez, os valores hardcoded de cor/raio/sombra
-   por `var(--token)` correspondente, e remover as variáveis `--pulse-*`,
-   `--p-*` e `--pv3-*` que hoje duplicam a mesma cor/raio em três lugares.
-3. Carregar Inter e Source Serif 4 via Google Fonts (ver o README do
-   design system, seção Tipografia) antes de aplicar `.reading` a
-   respostas do Ask AI e texto de análise.
-
-Isso é a fase 1 da proposta de reconstrução ("Casca e tokens... aplicados
-sobre as telas atuais. Nada de backend novo"), e pode ser feito depois,
-arquivo por arquivo.
+O acabamento é incremental, arquivo por arquivo. Nenhuma rota, ID, âncora ou fluxo é alterado.
