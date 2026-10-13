@@ -66,3 +66,19 @@ Após merge do PR #79, corrigir os 8 textos abaixo de 11 px, as 11 falhas de con
 - CI consultado para o commit `7f5c287c91aa4756cabed8ec48d93e0798f0ffda`: Regression #2802, Evidence Contract #517, Multi-Tenant Audit #902 e Private AI Audit #872 passaram; Browser Smoke #1774 falhou. Não houve nova execução de CI nesta revalidação.
 - Bloqueio mantido: o PR #79 modifica `pilot-chocolate.html` e `docs/pilots/chocolate-emerging-shopper-signals.md`. O conteúdo desses arquivos na base `main` ainda contém a paleta local, a referência de confiança fixa e a menção a Lindt no documento. Não foram editados nesta rodada para respeitar a regra de não trabalhar sobre base concorrente.
 - As capturas reais de 1440 px e 390 px continuam sem artifacts acessíveis no PR. Não foram criadas capturas artificiais.
+
+
+## Resultado final do Browser Smoke no HEAD 698c620 (13/10/2026)
+
+Execução real: [Pulse Browser Smoke #1782](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38343963910), commit `698c620302a797c477e983693eba5aaef2815530`. O workflow terminou em **failure**; não declarar o PR pronto.
+
+- Passaram: Pulse Regression #2818, Evidence Contract #525, Multi-Tenant Audit #910 e Private AI Audit #880.
+- Browser Smoke falhou em duas etapas:
+  1. **Condução:** 2 testes passaram e 1 falhou por timeout de 15 s em `page.goto('/app.html', { waitUntil: 'domcontentloaded' })`; a falha ocorreu na navegação, antes das asserções do módulo. Não há evidência suficiente para atribuir a causa ao módulo de condução.
+  2. **Casca/contrato visual:** 12 testes passaram e 5 falharam. Dois testes de navegação para `app.html?v=20260921.15#analyses` expiraram em `page.goto` após 15 s. O contrato visual reportou 8 textos abaixo de 11 px, 11 falhas de contraste, 2 travessões/meias-riscas e 1 rótulo acima do título em `pilot-chocolate.html`, tanto em 1440 quanto em 390 px. Também houve timeout de navegação em `app.html` a 390 px.
+- Exemplo de contraste observado no piloto: texto `#e51b67` sobre branco, razão calculada de 4,48:1, abaixo do mínimo AA de 4,5:1.
+- Ask AI interaction (7 testes) e busca de evidência de chocolate (1 teste) passaram; demais smoke steps observados também passaram.
+- Os erros de timeout devem ser investigados separadamente das falhas de acessibilidade. Não aumentei timeouts nem alterei as asserções para esconder falhas.
+- O PR #79 segue aberto e com conflitos (`mergeable: false`), alterando os dois arquivos do piloto. Por regra explícita, nenhum deles foi editado. Os screenshots continuam sem artifacts publicados pelo workflow existente.
+
+Nenhum workflow, merge ou deploy foi alterado/iniciado nesta investigação.
