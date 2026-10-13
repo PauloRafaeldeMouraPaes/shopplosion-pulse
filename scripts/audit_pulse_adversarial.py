@@ -23,10 +23,12 @@ else:
     for value in attrs:
         if value.startswith(("#", "data:", "mailto:", "tel:", "javascript:")):
             continue
-        # The rebuilt product intentionally shares one canonical workspace runtime
-        # across routes. These two local files are the approved product shell,
-        # not accidental page-specific dependencies.
-        if value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css", "./pulse-config.js")):
+        # The product intentionally shares one canonical workspace runtime and one
+        # generated design-token stylesheet across routes. These are approved
+        # product dependencies, not accidental page-specific references.
+        # pulse-tokens.css is generated from design/tokens.json and must load before
+        # page styles so the source-of-truth tokens are not duplicated inline.
+        if value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css", "./pulse-config.js", "./pulse-tokens.css")):
             continue
         if value.startswith(("./", "../", "/")) or not re.match(r"^[a-z][a-z0-9+.-]*:", value, re.I):
             # Relative paths are only valid if the single-file contract explicitly permits them.
