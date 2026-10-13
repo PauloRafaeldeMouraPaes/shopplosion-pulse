@@ -82,3 +82,12 @@ Execução real: [Pulse Browser Smoke #1782](https://github.com/PauloRafaeldeMou
 - O PR #79 segue aberto e com conflitos (`mergeable: false`), alterando os dois arquivos do piloto. Por regra explícita, nenhum deles foi editado. Os screenshots continuam sem artifacts publicados pelo workflow existente.
 
 Nenhum workflow, merge ou deploy foi alterado/iniciado nesta investigação.
+
+
+## Revalidação adicional: Browser Smoke #1783 e espera de navegação (13/10/2026)
+
+- Run [Pulse Browser Smoke #1783](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38344191278): **falhou por 2 testes visuais do piloto**, com 15 testes passando. A navegação pelas páginas principais e os contratos visuais de `index.html`, `app.html` e `ask.html` passaram nas larguras 1440/390; todos registraram zero erros de runtime, zero textos abaixo de 11 px, zero falhas de contraste, zero travessões/meias-riscas e no máximo um rótulo acima do título.
+- `pilot-chocolate.html` permanece com as mesmas métricas nas duas larguras: 8 textos abaixo de 11 px, 11 falhas de contraste, 2 travessões/meias-riscas e 1 rótulo acima do título. As duas falhas continuam sendo o bloqueio conhecido do PR #79, sem alterações no arquivo.
+- Ajustei somente os testes `pulse-route-consistency.spec.js` e `pulse-acabamento-contract.spec.js` para iniciar a navegação em `waitUntil: 'commit'` e deixar que as asserções existentes aguardem a casca/elementos necessários. Isso separa a conclusão da navegação da prontidão da UI sem elevar timeouts nem remover asserções. No run #1783, os timeouts de navegação anteriores não se reproduziram.
+- Os dois arquivos de teste foram atualizados nos commits `9c93a06525cc357b129f6591b36f579e4696c462` e `9fbc88323bfbb1cf5a25528693a6cb3d578b3d33`. A API de status de commit não expõe os novos workflows de CI para esses commits neste momento; não afirmo que a alteração já passou em uma execução própria.
+- O run #1783 também confirmou os testes de interação Ask AI (7/7) e recuperação de evidência de chocolate (1/1). Não houve mudança de workflow, merge ou deploy.
