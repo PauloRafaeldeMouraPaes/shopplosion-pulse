@@ -101,3 +101,11 @@ Nenhum workflow, merge ou deploy foi alterado/iniciado nesta investigação.
 - O QA adversarial falhava antes por tratar `./pulse-tokens.css` como dependência local não autorizada. A allowlist agora documenta a exceção para a folha de tokens gerada de `design/tokens.json`; o QA passou no run #2415.
 - **Bloqueio externo ao PR #81:** o PR #79 continua aberto e a API do GitHub retorna `mergeable: false`. A rota principal `main` está em `19dff1033ecfca2af627ed47f72761e1b9f13512`, enquanto a cabeça do PR #79 está em `424bc5ac70a2778c8f21e0ab1fe81335a356cd04`. Não há, pela interface consultada, uma lista confiável dos caminhos em conflito; por isso não foi feita resolução especulativa nem alterado `pilot-chocolate.html`/documento do piloto.
 - PR #81 permanece aberto e em draft; nenhum PR foi mesclado, nenhum deploy foi iniciado e nenhum workflow foi modificado.
+
+
+## Correção do contrato visual do piloto (13/10/2026)
+
+- No commit `3c327373f2b46c41d6cd1b0e98911885d4874d69`, alinhei os rótulos ao token tipográfico de 11 px e à cor `ink-3` (`#6e6b76`), que mantém contraste AA sobre superfícies claras.
+- Corrigi o uso de magenta em texto para `brand-pulse-strong` (`#d3185f`), conforme `design/tokens.json`; `brand-pulse` (`#e51b67`) fica reservado a indicadores não textuais.
+- Substituí travessões/meias-riscas visíveis por hífens simples, inclusive no título HTML, e alinhei a redação do limite central aos 13 sinais ativos.
+- A alteração é restrita ao acabamento e à consistência factual do piloto: nenhuma rota, ID, âncora, fluxo, conteúdo probatório ou workflow foi alterado. A aprovação final depende da nova execução do Browser Smoke neste commit.
