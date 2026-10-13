@@ -18,7 +18,7 @@ test.describe('Contrato de acabamento visual Pulse', () => {
         const runtimeErrors = [];
         page.on('pageerror', error => runtimeErrors.push(error.message));
         await page.setViewportSize(viewport);
-        await page.goto(item.path, { waitUntil: 'domcontentloaded' });
+        await page.goto(item.path, { waitUntil: 'commit' });
         await page.waitForLoadState('networkidle').catch(() => {});
         await page.waitForTimeout(150);
         if (item.path !== '/pilot-chocolate.html') {
