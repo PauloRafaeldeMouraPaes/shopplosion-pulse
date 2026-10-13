@@ -56,3 +56,13 @@ A execução real confirmou que o placeholder do Ask AI passou após a correçã
 ## Próxima ação
 
 Após merge do PR #79, corrigir os 8 textos abaixo de 11 px, as 11 falhas de contraste, as duas ocorrências de U+2013/U+2014 e o rótulo duplicado em `pilot-chocolate.html`; trocar “Confiança inicial” pelos campos de fato verificado e alcance. Corrigir também o documento público do piloto e tornar as capturas acessíveis no PR sem alterar workflow, se houver forma suportada. Atualizar este relatório antes de marcar o PR como pronto.
+
+
+## Revalidação complementar em 13/10/2026
+
+- A branch `style/pulse-acabamento-2026-10-12` continua presente. O PR #81 permanece aberto; os PRs #79 e #80 também aparecem abertos na busca do repositório. Nenhum PR foi integrado.
+- Revalidação da geração de tokens por reprodução independente do algoritmo de `scripts/build_design_tokens.py` sobre o conteúdo atual de `design/tokens.json`: saída reproduzida com 5.117 bytes, idêntica byte a byte a `pulse-tokens.css` (blob SHA `737b02d4e3b34da2d493eed7f79c5e3e28205ee1`). Fonte JSON: blob SHA `d4796925bfa3cb3c153de877af261d1e89682841`. **Limite:** o script Python oficial não foi executado nesta sessão; esta verificação independente confirma equivalência do algoritmo reproduzido, não substitui uma execução local do script.
+- No arquivo `pulse-workspace-v3.js` da branch, a grafia literal `COMEÇE` não foi encontrada.
+- CI consultado para o commit `7f5c287c91aa4756cabed8ec48d93e0798f0ffda`: Regression #2802, Evidence Contract #517, Multi-Tenant Audit #902 e Private AI Audit #872 passaram; Browser Smoke #1774 falhou. Não houve nova execução de CI nesta revalidação.
+- Bloqueio mantido: o PR #79 modifica `pilot-chocolate.html` e `docs/pilots/chocolate-emerging-shopper-signals.md`. O conteúdo desses arquivos na base `main` ainda contém a paleta local, a referência de confiança fixa e a menção a Lindt no documento. Não foram editados nesta rodada para respeitar a regra de não trabalhar sobre base concorrente.
+- As capturas reais de 1440 px e 390 px continuam sem artifacts acessíveis no PR. Não foram criadas capturas artificiais.
