@@ -11,7 +11,7 @@ const routes = [
 test.describe('Pulse canonical route shell', () => {
   for (const [url, active] of routes) {
     test(`canonical shell: ${active}`, async ({ page }) => {
-      await page.goto(url, { waitUntil: 'domcontentloaded' });
+      await page.goto(url, { waitUntil: 'commit' });
       await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
       await expect(page.locator('.pv4-rail')).toHaveCount(1);
       await expect(page.locator('.pv4-top')).toHaveCount(1);
@@ -57,7 +57,7 @@ test.describe('Pulse canonical route shell', () => {
 
   test('scope selection stays on the current route', async ({ page }) => {
     for (const [url] of routes) {
-      await page.goto(url, { waitUntil: 'domcontentloaded' });
+      await page.goto(url, { waitUntil: 'commit' });
       await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
       const before = await page.evaluate(() => location.pathname + location.search + location.hash);
       const select = page.locator('.pv4-scope select');
@@ -74,7 +74,7 @@ test.describe('Pulse canonical route shell', () => {
 
   test('mobile keeps all five destinations', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 800 });
-    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'commit' });
     await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
     const links = page.locator('.pv4-rail nav a');
     await expect(links).toHaveCount(5);
@@ -85,7 +85,7 @@ test.describe('Pulse canonical route shell', () => {
   });
 
   test('Universe has real evidence and Inspector contract', async ({ page }) => {
-    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'commit' });
     await page.locator('#pv3-signals .pv4-evidence').first().waitFor({ state: 'visible', timeout: 10000 });
     const total = await page.evaluate(() => Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE.length : 0);
     expect(total).toBeGreaterThan(0);
@@ -110,7 +110,7 @@ test.describe('Pulse canonical route shell', () => {
   });
 
   test('rail navigation uses a single smooth route transition', async ({ page }) => {
-    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'domcontentloaded' });
+    await page.goto('/index.html?v=20260921.15#overview', { waitUntil: 'commit' });
     await page.locator('.pv4-rail').waitFor({ state: 'visible', timeout: 10000 });
     await page.locator('[data-nav="base"]').click();
     await expect(page.locator('html.pv3-leaving')).toHaveCount(1);
@@ -119,3 +119,8 @@ test.describe('Pulse canonical route shell', () => {
     await expect(page.locator('.pv4-rail nav a[aria-current="page"]')).toHaveAttribute('data-nav', 'base');
   });
 });
+
+
+// Keep the visual finish contract in the existing browser-smoke entry point.
+// The workflow stays unchanged while this dedicated spec is executed with the shell regression.
+require('./pulse-acabamento-contract.spec.js');

@@ -5,7 +5,68 @@ const ask = fs.existsSync('ask.html') ? fs.readFileSync('ask.html', 'utf8') : ''
 const workspace = fs.existsSync('pulse-workspace-v3.js') ? fs.readFileSync('pulse-workspace-v3.js', 'utf8') : '';
 const app = fs.existsSync('app.html') ? fs.readFileSync('app.html', 'utf8') : '';
 const saveEvidenceFunction = fs.existsSync('supabase/functions/pulse-save-evidence/index.ts') ? fs.readFileSync('supabase/functions/pulse-save-evidence/index.ts', 'utf8') : '';
+const publicEvidenceJs = fs.existsSync('pulse-public-evidence.js') ? fs.readFileSync('pulse-public-evidence.js', 'utf8') : '';
+const publicEvidenceMirror = fs.existsSync('supabase/functions/pulse-ask-ai/public-evidence.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/public-evidence.ts', 'utf8') : '';
 const failures = [];
+
+// The public evidence registry, browser mirror and Edge Function mirror must
+// stay in sync with the public-text hygiene contract. Data wording is never
+// rewritten at runtime to hide a repository regression.
+for (const [name, content] of [
+  ['index.html', index],
+  ['pulse-public-evidence.js', publicEvidenceJs],
+  ['supabase/functions/pulse-ask-ai/public-evidence.ts', publicEvidenceMirror],
+]) {
+  if (!content) {
+    failures.push(`Public evidence mirror missing: ${name}`);
+    continue;
+  }
+  if (content.includes(String.fromCharCode(0x2013)) || content.includes(String.fromCharCode(0x2014))) failures.push(`Public evidence mirror contains U+2013/U+2014: ${name}`);
+  if (/lindt/i.test(content)) failures.push(`Public evidence mirror contains a public brand name: ${name}`);
+}
+
+function extractEvidenceArray(source, marker) {
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) throw new Error(`Marker not found: ${marker}`);
+  const start = source.indexOf('[', markerIndex);
+  if (start < 0) throw new Error(`Array start not found after: ${marker}`);
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < source.length; i++) {
+    const char = source[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char.charCodeAt(0) === 92) escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === '[') depth++;
+    else if (char === ']') {
+      depth--;
+      if (depth === 0) return JSON.parse(source.slice(start, i + 1));
+    }
+  }
+  throw new Error(`Array end not found after: ${marker}`);
+}
+
+try {
+  const marker = '<script type="application/json" id="pulse-public-evidence-json">';
+  const markerStart = index.indexOf(marker);
+  const payloadStart = markerStart < 0 ? -1 : index.indexOf('>', markerStart) + 1;
+  const payloadEnd = payloadStart < 0 ? -1 : index.indexOf('</script>', payloadStart);
+  if (markerStart < 0 || payloadStart <= 0 || payloadEnd < 0) throw new Error('index.html public evidence JSON is missing');
+  const htmlEvidence = JSON.parse(index.slice(payloadStart, payloadEnd));
+  const browserEvidence = extractEvidenceArray(publicEvidenceJs, 'window.PULSE_EVIDENCE=');
+  const edgeEvidence = extractEvidenceArray(publicEvidenceMirror, 'export const PULSE_PUBLIC_EVIDENCE =');
+  const canonical = JSON.stringify(htmlEvidence);
+  if (JSON.stringify(browserEvidence) !== canonical) failures.push('Public evidence diverges: index.html vs pulse-public-evidence.js');
+  if (JSON.stringify(edgeEvidence) !== canonical) failures.push('Public evidence diverges: index.html vs public-evidence.ts');
+  if (browserEvidence.length !== htmlEvidence.length || edgeEvidence.length !== htmlEvidence.length) failures.push('Public evidence mirror record counts differ');
+} catch (error) {
+  failures.push(`Public evidence mirror parity check could not run: ${error.message}`);
+}
 
 if (!index.includes('window.PULSE_EVIDENCE')) failures.push('public evidence registry missing');
 if (!index.includes('pulse-public-evidence-json')) failures.push('public evidence JSON missing');
@@ -45,7 +106,7 @@ if (!askFn.includes("x-goog-api-key")) failures.push('Gemini authentication head
 if (!askFn.includes("gemini-3.5-flash-lite")) failures.push('Current Gemini production model missing');
 if (!askFn.includes("originatingEvidenceId") || !askFn.includes("public_evidence_id") || !askFn.includes("String(item.id) === originatingEvidenceId")) failures.push('Origin public evidence preservation missing');
 
-if (!ask.includes('<option value="both" selected>Ambos · público + privado</option>')) failures.push('Ask AI default combined scope missing');
+if (!ask.includes('<option value="both" selected>Ambos (público e privado)</option>')) failures.push('Ask AI default combined scope missing');
 const askFnText = fs.existsSync('supabase/functions/pulse-ask-ai/index.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8') : '';
 if (!askFnText.includes('deterministicFallback')) failures.push('Ask AI evidence fallback missing');
 if (!askFnText.includes('fallback: true')) failures.push('Ask AI fallback response contract missing');
@@ -66,6 +127,7 @@ if (failures.length) {
 }
 
 console.log('Ask AI regression PASSED');
+console.log('Public evidence hygiene and three-layer parity contract passed.');
 
 // Persistent investigation and shopper knowledge contract verified.
 

@@ -5,7 +5,7 @@ test.describe('Pulse proposal fidelity', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/index.html?v=20260921.26');
     await expect(page.locator('.pv4-rail nav a[data-nav]')).toHaveCount(5);
-    await expect(page.locator('.pv4-scope')).toContainText('Brasil · CPG');
+    await expect(page.locator('.pv4-scope')).toContainText('Escopo: Brasil, CPG');
     await expect(page.locator('.pv4-canvas')).toBeVisible();
     const card = page.locator('.pv4-evidence[data-evidence-id]').first();
     await card.locator('.pv4-inspect').click();

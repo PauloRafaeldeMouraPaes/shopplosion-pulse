@@ -24,6 +24,10 @@ design/tokens.json  →  scripts/build_design_tokens.py  →  pulse-tokens.css
    `pulse-tokens.css` resultante — ninguém precisa rodar o script à mão
    depois de atualizar o token source.
 
+## Token de contraste da rodada de acabamento
+
+`brand-pulse-strong` (`#d3185f`) é o token de alto contraste para texto magenta e botões preenchidos com texto branco. O magenta original `brand-pulse` (`#e51b67`) permanece para usos sem texto, como marca decorativa. Não use o token original como foreground de texto em superfícies claras. Após mudar `design/tokens.json`, rode `python3 scripts/build_design_tokens.py` e inclua o CSS gerado no mesmo conjunto lógico de mudança. A cor forte tem contraste calculado de aproximadamente 5,17:1 sobre branco e 4,51:1 sobre `brand-soft`.
+
 ## Quando o design system mudar
 
 1. Peça ao Claude para reexportar o `tokens.json` do artifact "Pulse", ou
@@ -34,24 +38,12 @@ design/tokens.json  →  scripts/build_design_tokens.py  →  pulse-tokens.css
 3. O workflow regenera e commita `pulse-tokens.css` automaticamente. Se
    preferir rodar local: `python3 scripts/build_design_tokens.py`.
 
-## Ainda falta (fase 1 da proposta, "Casca e tokens")
+## Estado da fase 1 na rodada de acabamento (12/10/2026)
 
-`pulse-tokens.css` hoje é gerado, mas **as páginas ainda não o carregam** e
-`pulse-shell.css` / `pulse-v2.css` / `pulse-workspace-v3.css` continuam com
-seus próprios valores hardcoded (as três camadas `--pulse-*`, `--p-*`,
-`--pv3-*` que o diagnóstico da proposta já aponta como redundantes). Para
-fechar o ciclo:
+- O token `brand-pulse-strong` foi adicionado a `design/tokens.json` e o CSS foi regenerado em `pulse-tokens.css`. O contraste calculado é 5,17:1 com branco e 4,51:1 com `brand-soft`.
+- `index.html`, `app.html`, `ask.html`, `intelligence.html`, `sources.html`, `base.html`, `documento.html` e `auth.html` carregam `pulse-tokens.css` antes das folhas de estilo. `documento.html` tem um único link de tokens. O acabamento dessas oito páginas e da casca compartilhada foi auditado: sem texto CSS abaixo de 11 px, sem travessão/meia-risca no texto visível, contraste AA validado no contrato de navegador em Hoje, app e Ask AI a 1440/390 px; foco, rótulos, autocomplete, movimento reduzido, alt, números tabulares, `theme-color` e `color-scheme` foram revisados. A auditoria detalhada, com arquivo:linha e pendências, está em `docs/pilots/pulse-visual-finish-audit-2026-10-12.md`.
+- `pulse-shell.css`, `pulse-v2.css` e `pulse-workspace-v3.css` foram migrados para tokens semânticos para cores, raios e sombras. Aliases que ainda aparecem permanecem porque são referenciados pela cascata existente; não foram removidos às cegas. A contagem de `!important` aumentou em alguns pontos para preservar compatibilidade da casca legada e estados de acessibilidade.
+- `pilot-chocolate.html` ainda não carrega o arquivo de tokens e contém valores locais fixos. O PR #79 altera esse mesmo arquivo e o documento público do piloto; o Browser Smoke #1771 falhou somente nos dois testes do piloto (1440/390), com 15 testes aprovados. Não editar os arquivos em conflito antes do merge do PR concorrente, conforme a regra desta rodada.
+- A execução local do spec não foi possível porque o ambiente não resolve `github.com`; o contrato foi executado pelo Browser Smoke no CI. O workflow não foi alterado. Capturas de tela estão anexadas pelo Playwright ao relatório de teste, mas não ficam acessíveis como artifact porque o workflow não publica artifacts. Nenhuma auditoria manual de leitor de tela foi declarada concluída.
 
-1. Adicionar `<link rel="stylesheet" href="./pulse-tokens.css">` antes das
-   três folhas de estilo atuais em cada página (`index.html`, `app.html`,
-   `ask.html`, `intelligence.html`, `sources.html`, `auth.html`).
-2. Trocar, uma folha de cada vez, os valores hardcoded de cor/raio/sombra
-   por `var(--token)` correspondente, e remover as variáveis `--pulse-*`,
-   `--p-*` e `--pv3-*` que hoje duplicam a mesma cor/raio em três lugares.
-3. Carregar Inter e Source Serif 4 via Google Fonts (ver o README do
-   design system, seção Tipografia) antes de aplicar `.reading` a
-   respostas do Ask AI e texto de análise.
-
-Isso é a fase 1 da proposta de reconstrução ("Casca e tokens... aplicados
-sobre as telas atuais. Nada de backend novo"), e pode ser feito depois,
-arquivo por arquivo.
+A rodada é incremental, arquivo por arquivo. Preservar rotas, IDs, âncoras e fluxos existentes.

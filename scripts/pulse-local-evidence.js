@@ -78,7 +78,7 @@
     var list = el('#file-list'); if (!list) return;
     var local = el('#pulse-local-evidence-note');
     if (!local) { local = document.createElement('div'); local.id = 'pulse-local-evidence-note'; local.className = 'pulse-local-note'; list.parentNode.insertBefore(local, list); }
-    local.innerHTML = '<strong>SUA BASE LOCAL</strong><span>Estes estudos ficam salvos apenas neste navegador — não são compartilhados com outros usuários.</span>';
+    local.innerHTML = '<strong>SUA BASE LOCAL</strong><span>Estes estudos ficam salvos apenas neste navegador. Não são compartilhados com outros usuários.</span>';
     var html = state.items.length ? state.items.map(function (x) { return '<article class="pulse-local-file"><div><strong>' + esc(x.name) + '</strong><small>' + esc(x.method) + ' · ' + x.summary.chars + ' caracteres · ' + esc(x.summary.topics.join(', ') || 'tópicos não identificados') + '</small></div><button type="button" class="secondary" data-pulse-local-remove="' + esc(x.id) + '">Remover</button></article>'; }).join('') : '<span class="file-list-empty">Nenhum estudo local adicionado.</span>';
     list.innerHTML = html + '<button type="button" class="secondary pulse-local-clear" id="pulse-local-clear">Limpar toda a base local</button>';
     var clearBtn = el('#pulse-local-clear'); if (clearBtn) clearBtn.addEventListener('click', function () { clear().then(load); });
