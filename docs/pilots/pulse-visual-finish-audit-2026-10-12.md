@@ -91,3 +91,13 @@ Nenhum workflow, merge ou deploy foi alterado/iniciado nesta investigação.
 - Ajustei somente os testes `pulse-route-consistency.spec.js` e `pulse-acabamento-contract.spec.js` para iniciar a navegação em `waitUntil: 'commit'` e deixar que as asserções existentes aguardem a casca/elementos necessários. Isso separa a conclusão da navegação da prontidão da UI sem elevar timeouts nem remover asserções. No run #1783, os timeouts de navegação anteriores não se reproduziram.
 - Os dois arquivos de teste foram atualizados nos commits `9c93a06525cc357b129f6591b36f579e4696c462` e `9fbc88323bfbb1cf5a25528693a6cb3d578b3d33`. A API de status de commit não expõe os novos workflows de CI para esses commits neste momento; não afirmo que a alteração já passou em uma execução própria.
 - O run #1783 também confirmou os testes de interação Ask AI (7/7) e recuperação de evidência de chocolate (1/1). Não houve mudança de workflow, merge ou deploy.
+
+
+## Fechamento da revalidação CI (13/10/2026, 04:02 UTC)
+
+- No commit `dd4b9d477a6a3625e2ce8208e5578710fb0e8ed1`, os workflows **Pulse QA #2415, Regression #2828, Evidence Contract #530, Multi-Tenant Audit #915 e Private AI Audit #885 passaram**.
+- **Browser Smoke #1787 falhou somente em duas asserções** do contrato de acabamento de `pilot-chocolate.html`, nas larguras 1440 px e 390 px. As duas execuções emitiram as mesmas métricas: 8 textos abaixo de 11 px, 11 falhas de contraste, 2 travessões/meias-riscas e 1 rótulo acima do título. Não houve erros de runtime.
+- No mesmo run, os contratos de `index.html`, `app.html` e `ask.html` passaram em desktop e mobile; os testes de navegação/rotas, proposta, mobile, Ask AI (7/7) e recuperação de evidência de chocolate (1/1) passaram. O ajuste de `waitUntil: 'commit'` eliminou os timeouts de navegação observados nos runs anteriores, sem enfraquecer as asserções.
+- O QA adversarial falhava antes por tratar `./pulse-tokens.css` como dependência local não autorizada. A allowlist agora documenta a exceção para a folha de tokens gerada de `design/tokens.json`; o QA passou no run #2415.
+- **Bloqueio externo ao PR #81:** o PR #79 continua aberto e a API do GitHub retorna `mergeable: false`. A rota principal `main` está em `19dff1033ecfca2af627ed47f72761e1b9f13512`, enquanto a cabeça do PR #79 está em `424bc5ac70a2778c8f21e0ab1fe81335a356cd04`. Não há, pela interface consultada, uma lista confiável dos caminhos em conflito; por isso não foi feita resolução especulativa nem alterado `pilot-chocolate.html`/documento do piloto.
+- PR #81 permanece aberto e em draft; nenhum PR foi mesclado, nenhum deploy foi iniciado e nenhum workflow foi modificado.
