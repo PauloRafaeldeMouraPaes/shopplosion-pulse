@@ -221,7 +221,7 @@ Dois feeds RSS oficiais da Agência Brasil estão ativos para descoberta, com fi
 - A captura HTML decodifica entidades numéricas/nomeadas, extrai conteúdo de artigo quando disponível e prioriza a data visível quando ela diverge do timestamp de metadados.
 - Os feeds RSS de descoberta são filtrados por relevância antes da persistência; artigos sem relação com chocolate não entram no piloto.
 - Os workers de sinal e backstop compartilham as mesmas regras de qualidade. A validação rejeita divisões estáticas por segmento sem comparação temporal e deduplica citações sobrepostas, preservando a evidência mais completa.
-- Após revisão, há 13 registros de sinal ativos agrupados em cinco páginas-fonte. Esse número **não** significa 14 tendências independentes: vários registros são métricas distintas do mesmo estudo, e os sinais de dispersão de preços são contexto de varejo.
+- Após a revisão daquela execução, havia 14 registros ativos agrupados em cinco páginas-fonte; a revisão subsequente descrita na seção 15 reduziu a contagem atual para 13. Esse número **não** significa 14 tendências independentes: vários registros são métricas distintas do mesmo estudo, e os sinais de dispersão de preços são contexto de varejo.
 - Os contratos de evidência, regressão, auditoria multi-tenant, auditoria de IA privada e browser smoke passaram nas verificações exigidas para as mudanças de captura e qualidade. O manifesto de deploy foi atualizado para as versões ativas dos workers.
 - A fonte do IBGE continua desativada após HTTP 403; nenhum bloqueio foi contornado. Uma notícia que repetia métricas atribuídas à Abicab permanece em quarentena para evitar falsa independência.
 
@@ -232,7 +232,7 @@ A hipótese mais útil para testar é que **a intenção de compra pode permanec
 
 ## 15. Segunda execução operacional e gate de fechamento (11/10/2026)
 
-A segunda rodada ampliou o baseline inicial para cinco páginas-fonte primárias ativas e **13 sinais ativos após revisão**, distribuídos da seguinte forma: Abicab (4), Agência Brasil/Instituto Locomotiva (1), Kantar/Worldpanel (3), IPEAD/UFMG (2) e Procon Joinville (3). Os sinais não equivalem a 14 fontes independentes: vários fatos vêm da mesma página, e os períodos, universos e regiões diferem.
+A segunda rodada ampliou o baseline inicial para cinco páginas-fonte primárias ativas. Na revisão de qualidade mais recente, restam **13 sinais ativos**, distribuídos da seguinte forma: Abicab (4), Agência Brasil/Instituto Locomotiva (1), Kantar/Worldpanel (3), IPEAD/UFMG (2) e Procon Joinville (3). Um sinal do IPEAD foi retirado da contagem ativa por não atender ao critério de evidência; os registros históricos das rodadas anteriores permanecem documentados. Os sinais não equivalem a 13 fontes independentes: vários fatos vêm da mesma página, e os períodos, universos e regiões diferem.
 
 ### Evidências incluídas
 
@@ -259,3 +259,36 @@ A hipótese mais útil para teste é que a intenção de compra sazonal permane�
 **Avançar para validação longitudinal; não declarar o piloto de shopper concluído ainda.** A cadeia de captura e evidência passou pelo gate de regressão, contrato de evidência e auditorias multi-tenant/privacidade na execução atual. O fechamento final depende de quatro semanas de observação recorrente, comparação de snapshots em datas sucessivas, revisão de falsos positivos e, quando autorizado, corroboração com sell-out/painel ou pesquisa independente. O acompanhamento foi programado semanalmente por quatro semanas a partir de 14/10/2026; cada revisão deve atualizar este protocolo e a página pública apenas quando houver evidência material nova.
 
 **Critérios para declarar o piloto concluído:** (1) quatro semanas de capturas datadas; (2) nenhum erro de proveniência crítico sem resolução; (3) separação auditável entre mudança temporal, dispersão entre lojas, intenção declarada e comportamento observado; (4) sinais prioritários corroborados por fontes independentes ou explicitamente classificados como preliminares; (5) decisão documentada de avançar, corrigir ou interromper.
+
+
+## 12. Verificação de continuidade — 11/10/2026, 16:45 UTC
+
+### Repositório, testes e publicação
+
+- A PR [#72](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/pull/72) está **mesclada**. O commit de merge registrado pelo GitHub é `94a1b91174bd32d9d1b70d05850a6155030f290a`.
+- No commit da PR, os checks de regressão, contrato de evidência, auditoria multi-tenant, auditoria de privacidade/IA e browser smoke terminaram com sucesso; a verificação de status combinada também registrou o preview do Netlify como sucesso. Isso não equivale a afirmar que todos os checks de todos os commits posteriores passaram.
+- A branch `main` avançou depois do merge para `f06586d4e6cc09c34bc429bf4e0df7dd98348784`. Nesse commit, os workflows Pulse Regression, Pulse Single-File Artifact, Pulse QA, Pulse Browser Smoke e Pulse Production Release terminaram com sucesso. No workflow de release, tanto o Release Gate quanto Deploy to GitHub Pages passaram, incluindo a etapa de verificação da identidade da publicação.
+- O workflow de publicação valida a identidade do release e várias páginas principais, mas não inclui explicitamente `pilot-chocolate.html` na lista de rotas verificadas. A leitura direta da URL pública específica do piloto não foi possível neste ambiente; por isso, a disponibilidade e o conteúdo servido dessa página não são declarados como verificados individualmente.
+
+### Estado observado no Supabase
+
+Consulta somente de leitura ao projeto `ppfuygnpgywfpiqxsfys`:
+
+- Indústrias: 3, sendo 2 registros de teste sem fontes, itens ou sinais.
+- Categoria Chocolate: 9 fontes cadastradas, 26 itens de fonte, 33 registros de sinais e 715 eventos históricos.
+- Das 9 fontes, 7 estão ativas e 2 inativas; a fonte do IBGE segue inativa após HTTP 403. As duas fontes RSS de descoberta capturaram notícias gerais, mas o filtro temático não deve convertê-las em evidência de chocolate sem relevância comprovada.
+- Os 33 registros de sinais da categoria estão distribuídos em 13 ativos e 20 descartados. O número de sinais não equivale ao número de fontes independentes.
+- As Edge Functions `pulse-external-source-worker`, `pulse-external-signal-worker` e `pulse-external-deterministic-backstop` estão ACTIVE nas versões 6, 15 e 11, respectivamente. O conteúdo do módulo `quality.mjs` retornado pelo repositório para o worker principal e o backstop é idêntico. As versões e o estado ACTIVE foram consultados no Supabase; não foi possível obter um hash de build comparável diretamente ao commit de cada função a partir dos metadados expostos.
+
+### Limitações que permanecem
+
+- A captura funciona e há evidências persistidas, mas a base continua pequena e concentrada em poucas páginas. Os 26 itens não demonstram, por si, cobertura contínua ou descoberta de mudanças emergentes.
+- Há evidências de intenção declarada, dados históricos de consumo, indicadores de oferta e preços. Esses tipos de evidência devem permanecer separados; diferença de preços entre lojas não deve ser descrita como inflação temporal, e indicadores de produção/lançamentos não comprovam preferência do shopper.
+- Os sinais ativos são candidatos para monitoramento, não uma amostra validada longitudinalmente. Para sinais de alto impacto, a corroboração independente ainda precisa ser demonstrada sinal a sinal; repetir a mesma estatística em páginas derivadas da mesma fonte não conta como independência.
+- O dashboard público apresenta um baseline estático. Embora a publicação geral do site tenha passado no workflow, a URL específica do piloto precisa ser confirmada em ambiente externo antes de declarar a página individualmente validada.
+
+### Decisão de saída atualizada
+
+**Piloto parcialmente validado — não declarar conclusão definitiva.** O código da PR foi integrado, os gates relevantes no commit atual de `main` passaram, a publicação geral do site foi concluída com verificação de identidade e as funções centrais estão ACTIVE. Ainda não foram demonstradas quatro semanas de observação longitudinal nem corroboração independente suficiente para os sinais prioritários, e a URL específica do painel não pôde ser testada diretamente nesta sessão.
+
+Próximos critérios objetivos: (1) observar e comparar snapshots datados durante quatro semanas; (2) verificar a página `pilot-chocolate.html` no endereço público; (3) revisar cada sinal ativo quanto a fonte primária, data, universo, período e independência; (4) manter como preliminar qualquer hipótese de comportamento que dependa de uma única fonte; (5) atualizar este protocolo somente após nova evidência material.
