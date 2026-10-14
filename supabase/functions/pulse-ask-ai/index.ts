@@ -123,7 +123,8 @@ Deno.serve(async (req) => {
   }
   if (scope !== 'industry') {
     const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
-    const publicRanked = PULSE_PUBLIC_EVIDENCE.map((item: any) => {
+    const requiredPublicEvidenceFields = ["natureza","universo_observado","representa","nao_representa","fonte_primaria","fato_verificado_na_fonte","alcance_para_pergunta"]
+    const publicRanked = PULSE_PUBLIC_EVIDENCE.filter((item: any) => requiredPublicEvidenceFields.every((field: string) => typeof item[field] === 'string' && item[field].trim() && !item[field].toUpperCase().includes('[A DEFINIR]')) && String(item.fato_verificado_na_fonte || '').trim().toUpperCase().startsWith('SIM')).map((item: any) => {
       const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ')
       return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null }
     }).filter((item: any) => requestedPublicEvidenceIds.has(String(item.id)) && (item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId)))
