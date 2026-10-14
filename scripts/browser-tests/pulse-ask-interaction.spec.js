@@ -7,7 +7,7 @@ test.describe('Ask AI interaction contract', () => {
     await page.selectOption('#pv3-scope-select', 'public');
     const input=page.locator('.pv4-real-input');
     await expect(input).toBeVisible();
-    await input.fill('Alimentação e bebidas');
+    await input.fill('Chocolate e shopper na Páscoa');
     const actions=page.locator('.pv4-real-actions button');
     await expect(actions).toHaveCount(2);
     await actions.nth(0).click();
@@ -22,7 +22,7 @@ test.describe('Ask AI interaction contract', () => {
     });
     await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
-    await page.locator('.pv4-real-input').fill('O que os sinais recentes de Alimentação e Bebidas indicam sobre preço e vendas?');
+    await page.locator('.pv4-real-input').fill('O que as evidências qualificadas de chocolate indicam sobre preço e shopper na Páscoa?');
     const actions=page.locator('.pv4-real-actions button');
     await actions.nth(0).click();
     await expect.poll(async()=>page.locator('#results .result').count()).toBeGreaterThan(0);
