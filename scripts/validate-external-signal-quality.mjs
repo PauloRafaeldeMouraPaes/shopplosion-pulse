@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
+import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary, shouldRecordSignalEvent } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
 
 const abicab = {
   id: "abicab-item",
@@ -63,10 +63,15 @@ const signalWorker = readFileSync(resolve(root, "supabase/functions/pulse-extern
 const backstopWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/index.ts"), "utf8");
 assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,signal_key'\}\)/, "partial unique index must not be targeted by an invalid PostgREST upsert");
 assert.match(signalWorker, /isGoodEvidenceQuote/);
-assert.match(signalWorker, /const confidenceChanged=prior===null\|\|Math\.abs\(confidence-prior\)>=\.05/ , "confidence movement should be evaluated explicitly before recording an event");
-assert.match(signalWorker, /const evidenceChanged=prior===null\|\|existing\?\.fingerprint!==fingerprint/, "unchanged evidence fingerprints must not create new events");
-assert.match(signalWorker, /if\(confidenceChanged\|\|evidenceChanged\)/, "an event should require a new/changed evidence fingerprint or meaningful confidence change");
+assert.match(signalWorker, /shouldRecordSignalEvent\(/, "the main worker must use the shared event deduplication rule");
+assert.match(backstopWorker, /shouldRecordSignalEvent\(/, "the deterministic backstop must use the same event deduplication rule");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65 }), false, "same fingerprint and confidence must not create another event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.66 }), false, "small confidence movement below 0.05 must not create another event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.70 }), true, "confidence movement at the 0.05 threshold must create an event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "old", fingerprint: "new", confidence: 0.65 }), true, "changed evidence fingerprint must create an event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: null, existingFingerprint: undefined, fingerprint: "new", confidence: 0.65 }), true, "a first observation must create an event");
 assert.doesNotMatch(signalWorker, /changeScore>=\.1\|\|direction!==['"]stable['"]/, "a high model score or non-stable direction alone must not duplicate events on every worker run");
+assert.doesNotMatch(backstopWorker, /changeScore>=\.1\|\|direction!==['"]stable['"]/, "a high model score or non-stable direction alone must not duplicate events on every backstop run");
 
 assert.match(signalWorker, /const duplicateIndex=candidates\.findIndex/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
 assert.doesNotMatch(signalWorker, /const duplicate=candidates\.some/, "the obsolete exact-quote-only deduplication path must not return");
