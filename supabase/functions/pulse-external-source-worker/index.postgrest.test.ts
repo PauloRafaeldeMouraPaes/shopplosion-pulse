@@ -8,6 +8,20 @@ function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
+// Supabase-js normally targets /rest/v1. This CI service exposes raw PostgREST,
+// so rewrite only that prefix while preserving real HTTP/JWT/RPC/transaction behavior.
+const postgrestFetch: typeof fetch = async (input, init) => {
+  const original = input instanceof Request ? input.url : String(input);
+  const target = new URL(original);
+  if (target.pathname.startsWith("/rest/v1")) {
+    target.pathname = target.pathname.slice("/rest/v1".length) || "/";
+  }
+  const request = input instanceof Request
+    ? new Request(target, input as unknown as RequestInit)
+    : target;
+  return await fetch(request, init);
+};
+
 Deno.test("worker calls the real PostgREST observation RPC and reconciles its atomic failure", async () => {
   const apiUrl = Deno.env.get("API_URL") ?? "";
   const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY") ?? "";
@@ -18,6 +32,7 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
 
   const admin = createClient(apiUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: postgrestFetch },
   });
   const errors: string[] = [];
   const handler = createSourceWorkerHandler({
@@ -25,6 +40,10 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
       SUPABASE_URL: apiUrl,
       SUPABASE_SECRET_KEYS: JSON.stringify({ default: serviceRoleKey }),
     } as Record<string, string>)[name],
+    createAdmin: (url, key, options) => createClient(url, key, {
+      ...options,
+      global: { fetch: postgrestFetch },
+    }),
     // Keep collection deterministic and offline; the Supabase/PostgREST persistence path is real.
     fetchSource: async () => new Response(JSON.stringify({
       items: [{
