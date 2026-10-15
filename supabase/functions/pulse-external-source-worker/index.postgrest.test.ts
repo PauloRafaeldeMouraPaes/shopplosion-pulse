@@ -6,6 +6,8 @@ const SOURCE_ID = "22222222-2222-4222-8222-222222222222";
 const INDUSTRY_ID = "11111111-1111-4111-8111-111111111111";
 const SUCCESS_SOURCE_ID = "33333333-3333-4333-8333-333333333333";
 const FORBIDDEN_SOURCE_ID = "44444444-4444-4444-8444-444444444444";
+const SOURCE_ZERO_ROW_ID = "55555555-5555-4555-8555-555555555555";
+const RUN_ZERO_ROW_ID = "66666666-6666-4666-8666-666666666666";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -55,9 +57,9 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
   }));
   const body = await response.json();
   assert(response.status === 200, "Worker should reconcile the source failure instead of crashing");
-  assert(body.status === "completed_with_source_failures", "Expected source failure status: " + JSON.stringify(body));
-  assert(body.sources_failed === 2, "Expected the RPC-failure and HTTP-403 sources to fail");
-  assert(body.failure_bookkeeping_failed === 0, "Failure bookkeeping itself should persist: " + JSON.stringify(body));
+  assert(body.status === "reconciliation_incomplete", "Zero-row failure writes must surface incomplete reconciliation: " + JSON.stringify(body));
+  assert(body.sources_failed === 4, "Expected RPC failure, HTTP 403, and two zero-row scenarios to fail");
+  assert(body.failure_bookkeeping_failed === 2, "Both deliberately suppressed failure writes must be reported: " + JSON.stringify(body));
 
   const { data: source, error: sourceError } = await admin
     .from("intelligence_sources")
@@ -89,8 +91,10 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
   assert(!items.error && items.count === 0, "Current item projection must roll back with the failed RPC");
   assert(!versions.error && versions.count === 0, "Immutable version insert must roll back with the failed RPC");
   assert(!observations.error && observations.count === 0, "No observation may survive the failed atomic RPC");
-  assert(!errors.some((line) => line.includes("source_failure_status_persist_failed") || line.includes("source_failure_reconciliation_incomplete")),
-    "Unexpected failure-bookkeeping write error was logged");
+  assert(errors.some((line) => line.includes("source_failure_status_persist_failed") && line.includes('"target":"source"')),
+    "The suppressed source failure write must be reported");
+  assert(errors.some((line) => line.includes("source_failure_status_persist_failed") && line.includes('"target":"fetch_run"')),
+    "The suppressed fetch-run failure write must be reported");
 
   const { data: forbiddenSource, error: forbiddenSourceError } = await admin
     .from("intelligence_sources")
@@ -147,4 +151,40 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
   assert(!successfulItems.error && successfulItems.count === 1, "Successful RPC must persist the current item projection");
   assert(!successfulVersions.error && successfulVersions.count === 1, "Successful RPC must persist one immutable version");
   assert(!successfulObservations.error && successfulObservations.count === 1, "Successful RPC must persist one observation");
+
+  const { data: sourceZeroRow, error: sourceZeroRowError } = await admin
+    .from("intelligence_sources")
+    .select("id,last_error")
+    .eq("id", SOURCE_ZERO_ROW_ID)
+    .eq("industry_id", INDUSTRY_ID)
+    .single();
+  assert(!sourceZeroRowError && sourceZeroRow, "Could not read source zero-row fixture: " + String(sourceZeroRowError));
+  assert(sourceZeroRow.last_error === null, "Suppressed source failure update must leave the prior source state intact");
+  const { data: sourceZeroRun, error: sourceZeroRunError } = await admin
+    .from("intelligence_source_fetch_runs")
+    .select("id,status,completeness_status,absence_inference_eligible")
+    .eq("source_id", SOURCE_ZERO_ROW_ID)
+    .eq("industry_id", INDUSTRY_ID);
+  assert(!sourceZeroRunError && sourceZeroRun?.length === 1, "Expected source-zero-row fetch run");
+  assert(sourceZeroRun[0].status === "failed" && sourceZeroRun[0].absence_inference_eligible === false,
+    "Fetch-run write must still succeed when source failure update returns zero rows");
+
+  const { data: runZeroRowSource, error: runZeroRowSourceError } = await admin
+    .from("intelligence_sources")
+    .select("id,last_error")
+    .eq("id", RUN_ZERO_ROW_ID)
+    .eq("industry_id", INDUSTRY_ID)
+    .single();
+  assert(!runZeroRowSourceError && runZeroRowSource, "Could not read run-zero-row source fixture");
+  assert(String(runZeroRowSource.last_error).includes("source_item_history_persist_failed"),
+    "Source failure write must succeed when fetch-run failure update returns zero rows");
+  const { data: runZeroRow, error: runZeroRowError } = await admin
+    .from("intelligence_source_fetch_runs")
+    .select("id,status,completeness_status,absence_inference_eligible")
+    .eq("source_id", RUN_ZERO_ROW_ID)
+    .eq("industry_id", INDUSTRY_ID);
+  assert(!runZeroRowError && runZeroRow?.length === 1, "Expected run-zero-row fetch run");
+  assert(runZeroRow[0].status !== "failed", "Suppressed fetch-run failure update must not be mistaken for a persisted failure");
+  assert(runZeroRow[0].absence_inference_eligible === false, "Unreconciled fetch run must never authorize absence inference");
+
 });
