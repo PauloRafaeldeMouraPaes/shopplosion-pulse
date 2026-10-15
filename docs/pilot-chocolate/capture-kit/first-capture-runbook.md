@@ -7,8 +7,8 @@ Status: **prepared, not executed**. No real observations are included in this ru
 Do not start capture or a four-week baseline until all applicable boxes are accepted by a human owner.
 
 - [ ] Category taxonomy, discovery questions and transparent sampling method are documented in `category-scope.md`; brand approval is not required for category-level discovery.
-- [ ] Each source has a completed `source-permissions.template.csv` record with terms/license version and explicit permission for intended collection, raw retention, derived analytics and commercial display.
-- [ ] Retail sample is authorized in writing and has a recorded sample ID/hash.
+- [ ] Each source has a completed `source-permissions.template.csv` record documenting access method, terms/license version, collection rules, retention, derived analytics, citation and commercial display. For legitimately public sources, record the applicable terms and access basis; obtain a written license/agreement when required for restricted feeds.
+- [ ] Any restricted retail sample/feed is covered by the provider's required written authorization and has a recorded sample ID/hash; public observations may proceed only where the source's terms permit the intended method and use.
 - [ ] Source-specific settings, time zone, collection method, cadence, and known gaps are documented.
 - [ ] QA reviewer approves the first reproducible capture and records the decision.
 - [ ] Fixed category query sets, sampling method and observation schedule are frozen before the baseline start date.
@@ -39,7 +39,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 
 ## Retail sample procedure
 
-1. Use only the provider's expressly authorized sample/API/feed and the exact permission scope in the source register.
+1. Use a public source only where its terms permit the intended access and use, or use a provider sample/API/feed under the expressly authorized scope recorded in the source register.
 2. Retain the received artifact only as permitted. Record sample ID, retrieval time, license version, original filename and hash if allowed.
 3. Validate each product match by EAN where available, plus brand, variant and net weight; record store/network granularity and earliest/latest observation dates. This is data QA, not a buyer-approval gate.
 4. Distinguish observed price, regular price, promotional price, promotion mechanics, availability and missing/not-observed states. Never infer out-of-stock from a missing row.
@@ -48,7 +48,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 
 ## QA acceptance for the first run
 
-- Source rights explicitly cover the intended use.
+- Source terms and access basis support the intended collection, retention and use; obtain a written license where required.
 - All retained rows have source provenance and unambiguous observation timestamps.
 - No unexplained duplicate observation keys; corrections are appended with notes rather than silently overwriting history.
 - Product/EAN, variant, net weight, currency and price values pass the documented checks.
