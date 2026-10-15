@@ -118,7 +118,7 @@
     const escLocal=v=>String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
     const sourceFamily=e=>{
       const source=String(e.fonte_primaria||e.fonte||'').toLowerCase();
-      if(source.includes('kantar')||source.includes('worldpanel')||source.includes('numerator')) return 'Kantar / Worldpanel';
+      if(source.includes('kantar')||source.includes('worldpanel')) return 'Kantar / Worldpanel';
       if(source.includes('locomotiva')) return 'Instituto Locomotiva';
       if(source.includes('rico connect')) return 'Rico Connect';
       if(source.includes('abicab')) return 'Abicab';
