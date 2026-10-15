@@ -12,6 +12,229 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 :focus-within{scroll-margin-top:72px}
 @media(max-width:640px){input,select,textarea{font-size:16px!important}button,.nav a,.actions button{min-height:44px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Apple-design finish: quiet materials, deliberate type hierarchy, and direct feedback.
+   Existing routes, IDs, data queries, and interaction flow remain unchanged. */
+body {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+header {
+  padding: 12px clamp(16px, 3vw, 32px);
+  background: color-mix(in srgb, var(--surface-canvas) 92%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
+  border-bottom-color: color-mix(in srgb, var(--line-1) 82%, transparent);
+}
+.brand {
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: -0.02em;
+}
+.nav { gap: 4px; }
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 12px;
+  transition: background-color 140ms ease, color 140ms ease, transform 100ms ease;
+}
+.nav a:hover:not(.active) {
+  background: var(--surface-app);
+  color: var(--ink-1);
+}
+.nav a:active { transform: scale(.98); }
+.wrap {
+  width: min(1180px, calc(100% - 40px));
+  margin: 32px auto 64px;
+}
+.hero, .panel {
+  padding: clamp(20px, 2.3vw, 28px);
+}
+.hero h1 {
+  font-size: clamp(28px, 3vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  max-width: 24ch;
+  margin: 6px 0 12px;
+  font-optical-sizing: auto;
+}
+.hero > .muted {
+  max-width: 76ch;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.eyebrow {
+  letter-spacing: .12em;
+  line-height: 1.3;
+}
+.grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+.metric {
+  min-width: 0;
+  padding: 18px;
+  border-radius: var(--radius-card);
+}
+.metric .muted {
+  display: block;
+  min-height: 20px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.metric strong {
+  margin-top: 8px;
+  font-size: clamp(24px, 2.2vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -.03em;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+.panels {
+  align-items: start;
+  gap: 18px;
+  margin-top: 18px;
+}
+.panel h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -.01em;
+  font-weight: 700;
+}
+.signal { padding: 18px 0; }
+.signalTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: -.01em;
+}
+.badge, .priority {
+  margin-left: 0;
+  padding: 5px 9px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+}
+.signal > .muted {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.action {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--brand-pulse);
+  line-height: 1.55;
+  font-size: 13px;
+}
+.action strong { font-size: 12px; font-weight: 750; }
+.evidence {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: var(--surface-app);
+}
+.evidence summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  transition: color 140ms ease;
+}
+.evidence summary:hover { color: var(--brand-pulse-strong); }
+.evidence[open] summary { color: var(--ink-1); }
+.quote {
+  max-width: 68ch;
+  margin-top: 8px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-1);
+}
+.source {
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.source a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.change {
+  margin-top: 12px;
+  padding: 14px;
+  line-height: 1.55;
+}
+.change strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.empty {
+  padding: 20px;
+  line-height: 1.6;
+}
+.decision { margin-top: 20px; }
+.decisionBox {
+  padding: 16px;
+  background: var(--surface-app);
+}
+.decisionBox strong { font-size: 14px; }
+.decisionBox span {
+  display: block;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.footer {
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 900px) {
+  .wrap { width: min(100% - 32px, 760px); margin-top: 24px; }
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panels { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  header { padding: 12px 16px; gap: 10px; }
+  .nav { width: 100%; gap: 4px; }
+  .nav a { min-height: 44px; padding: 9px 10px; font-size: 12px; }
+  .wrap { width: calc(100% - 24px); margin: 16px auto 40px; }
+  .hero, .panel { padding: 18px; border-radius: var(--radius-panel); }
+  .hero h1 { font-size: clamp(27px, 7vw, 32px); }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 20px; }
+  .metric { padding: 14px; }
+  .metric strong { font-size: 25px; }
+  .panels { gap: 12px; margin-top: 12px; }
+  .signal { padding: 16px 0; }
+}
+@media (max-width: 380px) {
+  .grid { grid-template-columns: 1fr; }
+  .nav { flex-wrap: wrap; }
+  .nav a { flex: 1 1 auto; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  header { background: var(--surface-canvas); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .hero, .panel, .decisionBox, .evidence { border-color: var(--ink-3); }
+  .nav a.active { border: 1px solid var(--brand-pulse-strong); }
+}
+@media (prefers-reduced-motion: reduce) {
+  header, .nav a, .evidence summary { transition: none; }
+  .nav a:active { transform: none; }
+}
+
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"><link rel="stylesheet" href="./pulse-workspace-v3.css?v=20260924.logo-cache"><script>if(new URLSearchParams(location.search).get("v")!=="20260922.23")location.replace("./intelligence.html?v=20260922.23")</script></head><body><!-- intelligence_signal_timeline: temporal contract backed by the server-side view; rendered UI uses the industry-scoped change digest. --><header><div class="brand">SHOPPLOSION PULSE</div><nav class="nav"><a href="./index.html">Universo Pulse</a><a href="./app.html?v=20260922.23">Minha indústria</a><a href="./ask.html?v=20260922.23">Ask AI</a><a href="./sources.html?v=20260922.23">Fontes</a><a href="./intelligence.html?v=20260922.23" class="active">Intelligence</a></nav></header><main class="wrap"><section class="hero"><div class="eyebrow">Inteligência privada</div><h1 id="title">Intelligence da sua indústria</h1><p class="muted">Sinais observáveis, evolução temporal e mudanças relevantes derivados da base privada da indústria autenticada e de fontes externas autorizadas. Toda conclusão exige evidência validada e proveniência rastreável.</p><div class="grid"><div class="metric"><span class="muted">Sinais ativos</span><strong id="signals">: </strong></div><div class="metric"><span class="muted">Alta prioridade</span><strong id="high">: </strong></div><div class="metric"><span class="muted">Novos</span><strong id="new">: </strong></div><div class="metric"><span class="muted">Acelerando</span><strong id="up">: </strong></div><div class="metric"><span class="muted">Qualidade</span><strong id="quality">: </strong></div></div></section><div class="panels"><section class="panel"><h2>Prioridades executivas</h2><div id="signalList"><div class="empty">Carregando…</div></div></section><section class="panel"><h2>Evolução recente</h2><div id="digest"><div class="empty">Carregando…</div></div><div class="decision"><div class="decisionBox"><strong>Regra de decisão</strong><span>Um sinal só entra como prioridade quando possui evidência validada. Sem evidência suficiente, o Pulse mostra a ausência em vez de fabricar uma recomendação.</span></div></div><div class="footer">Magnitude, recorrência e confiança são sinais de priorização, não prova adicional dos fatos.</div></section></div></main><script src="./pulse-config.js?v=20260922.23"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 (function(){
   const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
