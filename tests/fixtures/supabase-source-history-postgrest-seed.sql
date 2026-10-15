@@ -19,7 +19,14 @@ values
    '11111111-1111-4111-8111-111111111111',
    'PostgREST observation RPC failure test',
    'json',
-   'https://example.test/feed.json',
+   'https://example.test/feed-failure.json',
+   true,
+   0),
+  ('33333333-3333-4333-8333-333333333333',
+   '11111111-1111-4111-8111-111111111111',
+   'PostgREST observation RPC success test',
+   'json',
+   'https://example.test/feed-success.json',
    true,
    0);
 
@@ -28,8 +35,11 @@ returns trigger
 language plpgsql
 as $pulse_test_reject_source_observation$
 begin
-  raise exception 'injected PostgREST observation persistence failure'
-    using errcode = '55000';
+  if new.external_id = 'postgrest-atomic-failure' then
+    raise exception 'injected PostgREST observation persistence failure'
+      using errcode = '55000';
+  end if;
+  return new;
 end;
 $pulse_test_reject_source_observation$;
 
