@@ -83,3 +83,9 @@ A second catalog pass inspected function bodies without invoking them:
 - `pulse_external_signal_deterministic_backstop()` creates or updates signals/events from recent active source items; `pulse_resolve_stale_intelligence_signals()` changes active signals to resolved. Both are internal mutation paths.
 
 This narrows the disposition but is still not an ACL migration. Before remediation, confirm grants inherited through `PUBLIC`, run positive/negative role tests in staging, and preserve trigger/cron/service-role execution. The production database remains read-only for this investigation.
+
+## Candidate ACL coverage cross-reference (2026-10-15)
+
+Draft PR #89 now proposes direct API-role revokes for the trigger function, the backstop scheduler and fallback-candidate lookup, plus the four manifest entries classified `internal_only`: `pulse_capture_document_version(uuid)`, `pulse_external_intelligence_self_test()`, `pulse_external_signal_deterministic_backstop()`, and `pulse_resolve_stale_intelligence_signals()`. Its ephemeral PostgreSQL contract verifies API-role denial and preservation of explicit `service_role` execution for those routines. The functions classified `review_required` and user-context routines are intentionally untouched by this candidate until their caller/data contracts are signed off.
+
+The expanded candidate is still not a production migration. The actual staging cron → Vault → Edge Function path, API denial against the staged grants, trigger execution after revocation, and Security Advisor delta remain release gates. The linked runbook is `staging-signal-event-acl-acceptance.md`.
