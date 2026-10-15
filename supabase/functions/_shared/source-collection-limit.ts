@@ -1,23 +1,32 @@
 /**
- * Fail closed when a source response is known to exceed the worker's parser cap.
+ * Fail closed when a response is known to be truncated, paginated, or outside
+ * the worker's supported collection shape.
  *
- * This does NOT prove a snapshot is complete. It only prevents the current
- * 50-entry RSS/Atom/JSON limit from silently discarding known records while
- * the fetch run is marked completed.
+ * This is a defensive completeness preflight, not proof of a complete snapshot.
  */
 export const SOURCE_ITEM_LIMIT = 50;
+
+const INCOMPLETE = "source_snapshot_incomplete";
 
 function countBlocks(body: string, tag: string): number {
   const matches = body.match(new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?<\\/${tag}\\s*>`, "gi"));
   return matches?.length ?? 0;
 }
 
+function hasNextPageLink(body: string): boolean {
+  return /<link\\b(?=[^>]*\\brel\\s*=\\s*["']?next\\b)[^>]*>/i.test(body)
+    || /["'](?:next|next_page|nextPage|nextCursor|next_cursor)["']\\s*:\\s*(?:"[^"]+"|\\d+|true)/i.test(body)
+    || /["'](?:has_more|hasMore|has_next|hasNext)["']\\s*:\\s*true/i.test(body);
+}
+
 export function sourceCollectionLimitError(sourceType: string, body: string): string | null {
   if (sourceType === "rss") {
-    const count = /<feed\b/i.test(body)
+    if (!/<(?:rss|feed)\\b/i.test(body)) return `${INCOMPLETE}:unsupported_or_invalid_feed_document`;
+    if (hasNextPageLink(body)) return `${INCOMPLETE}:pagination_not_exhausted`;
+    const count = /<feed\\b/i.test(body)
       ? countBlocks(body, "entry")
       : countBlocks(body, "item");
-    return count > SOURCE_ITEM_LIMIT ? "source_snapshot_incomplete:collection_limit_exceeded" : null;
+    return count > SOURCE_ITEM_LIMIT ? `${INCOMPLETE}:collection_limit_exceeded` : null;
   }
 
   if (sourceType === "json") {
@@ -25,24 +34,27 @@ export function sourceCollectionLimitError(sourceType: string, body: string): st
     try {
       parsed = JSON.parse(body);
     } catch {
-      return null; // The existing JSON parser will raise the parse error.
+      return null; // The existing JSON parser will report invalid JSON.
     }
     const record = parsed && typeof parsed === "object" && !Array.isArray(parsed)
       ? parsed as Record<string, unknown>
       : null;
-    const items = Array.isArray(parsed)
-      ? parsed
+    const collectionKey = Array.isArray(parsed)
+      ? "root"
       : Array.isArray(record?.items)
-      ? record.items
+      ? "items"
       : Array.isArray(record?.data)
-      ? record.data
-      : [];
-    return items.length > SOURCE_ITEM_LIMIT
-      ? "source_snapshot_incomplete:collection_limit_exceeded"
+      ? "data"
       : null;
+    if (!collectionKey) return `${INCOMPLETE}:unsupported_json_collection_shape`;
+    if (hasNextPageLink(body)) return `${INCOMPLETE}:pagination_not_exhausted`;
+    const items = collectionKey === "root"
+      ? parsed as unknown[]
+      : record![collectionKey] as unknown[];
+    return items.length > SOURCE_ITEM_LIMIT ? `${INCOMPLETE}:collection_limit_exceeded` : null;
   }
 
-  // HTML currently represents an individual page, not a paginated collection.
-  // Do not pretend this check establishes page/catalog completeness.
+  // HTML is currently modeled as one page/article. This guard does not prove
+  // that a listing/catalog has no additional pages.
   return null;
 }
