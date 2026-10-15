@@ -87,6 +87,41 @@ for (const row of review.records) {
 }
 checks.push(`artifact hashes checked for ${review.records.filter(row => row.signal_id).length} signal rows`);
 
+// Structural and identity checks across all supporting capture registers.
+const supportingCsvs = [
+  { file: "public-source-capture-2026-10-14.csv", id: "capture_id", required: ["source_url", "source_name", "observed_fact"] },
+  { file: "public-retail-snapshot-2026-10-14.csv", id: "observation_id", required: ["source_url", "retailer", "observed_price_brl", "review_status"] },
+  { file: "public-source-provenance-2026-10-14.csv", id: "source_id", required: ["source_url", "access_method", "source_status"] },
+  { file: "product-universe-initial-2026-10-14.csv", id: "product_id", required: ["brand", "product_name", "retailer", "inclusion_status"] },
+  { file: "retail-sample-acceptance-2026-10-14.csv", id: "sample_id", required: ["source_url", "overall_row_decision", "notes"] },
+];
+for (const spec of supportingCsvs) {
+  const file = `${KIT}/${spec.file}`;
+  const csv = readCsv(file);
+  for (const column of [spec.id, ...spec.required]) {
+    if (!csv.headers.includes(column)) errors.push(`${file}: required column missing: ${column}`);
+  }
+  const ids = csv.records.map(row => row[spec.id]).filter(Boolean);
+  if (ids.length !== csv.records.length) errors.push(`${file}: blank ${spec.id} value`);
+  if (new Set(ids).size !== ids.length) errors.push(`${file}: duplicate ${spec.id}`);
+  for (const [index, row] of csv.records.entries()) {
+    if (row.source_url && !/^https?:\\/\\//i.test(row.source_url)) {
+      errors.push(`${file}: row ${index + 2} has a non-HTTP source_url`);
+    }
+  }
+  if (spec.file === "product-universe-initial-2026-10-14.csv") {
+    for (const [index, row] of csv.records.entries()) {
+      if (row.inclusion_status !== "exploratory_only") errors.push(`${file}: row ${index + 2} must remain exploratory_only until QA`);
+    }
+  }
+  if (spec.file === "retail-sample-acceptance-2026-10-14.csv") {
+    for (const [index, row] of csv.records.entries()) {
+      if (row.overall_row_decision !== "exploratory_only") errors.push(`${file}: row ${index + 2} must not pass baseline acceptance without completed QA`);
+    }
+  }
+}
+checks.push(`five supporting CSV registers checked for structure, unique identities and exploratory-only status`);
+
 // Uncaptured Trends slots must never masquerade as zero/empty search interest or a completed export.
 const trendsPath = `${KIT}/trends-export-status-2026-10-15.csv`;
 const trends = readCsv(trendsPath);
