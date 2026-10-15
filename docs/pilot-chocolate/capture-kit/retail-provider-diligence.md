@@ -12,7 +12,7 @@ This document is an optional diligence checklist only; it is not a prerequisite 
 - Geography: record actual coverage; use at least two retailer networks where feasible.
 - Desired time series: daily observations where available, with full available history and explicit gaps.
 
-## Questions requiring written answers
+## Questions requiring clear answers
 
 1. Which of the supplied EANs are covered today? Return exact EAN, product title, brand, variant and net weight, separated by retailer/store.
 2. Is Lindt coverage confirmed for the Brazilian retailers requested? Which exact EANs and retailers? Do not answer only with a general brand list.
@@ -58,10 +58,10 @@ Claims relevant to the pilot, as stated by the provider:
 Preliminary fit: **worth requesting a written sample and coverage statement**, because the advertised EAN-level daily history is aligned with the intended price baseline. This is not a recommendation to sign up or buy.
 
 Unresolved diligence questions before any account/trial/API use:
-1. Confirm in writing the exact EAN × retailer/store coverage for 5–10 buyer-approved chocolate products, including Lindt if available and at least four comparable products.
+1. Confirm in writing the exact EAN × retailer/store coverage for 5–10 category-selected chocolate products, including Lindt if available and at least four comparable products.
 2. Confirm the actual historical start date and whether 180 days are available for each exact EAN/store, not just as a general product feature.
-3. Obtain a permitted sample or written approval for a sample, including price, promotion mechanics, net weight, availability semantics, source URL, capture timestamp and repeat-observation behavior.
-4. Obtain the applicable license/terms version and written confirmation of retention of raw observations, derived analytics, citations, and display inside a commercial analytics product. The public page describes allowed product display but also restricts reselling the API or replicating the base as a competing data service; clarify that Pulse's proposed use is permitted.
+3. Obtain a sample explicitly permitted by the provider's applicable terms, including price, promotion mechanics, net weight, availability semantics, source URL, capture timestamp and repeat-observation behavior.
+4. Obtain the applicable license/terms version and confirmation of retention of raw observations, derived analytics, citations, and display inside a commercial analytics product. The public page describes allowed product display but also restricts reselling the API or replicating the base as a competing data service; clarify that Pulse's proposed use is permitted.
 5. Confirm whether data are store-level or only network-level for the selected products, and document gaps/coverage separately from zero price or out-of-stock.
 6. Reconfirm all fees, tax, overages, trial restrictions and cancellation terms before using the trial.
 
@@ -75,11 +75,11 @@ This is a distinct route from the self-service Data Market API. The provider's i
 
 **Assessment:** this institutional route is more aligned with Pulse as a commercial analytics product than assuming a self-service API trial grants all needed rights. It is still only a provider claim, not a recommendation or authorization. The page's generic coverage figures do not prove Lindt or any pilot EAN is present. An NDA, sample request, data license or commercial commitment has not been initiated.
 
-If the owner later authorizes supplier contact, request a written, non-binding scoping response first and require:
-- sample coverage by buyer-approved EAN × retailer/source × date, including Lindt if available and comparable chocolate SKUs;
+If the owner later authorizes supplier contact, request a non-binding scoping response first and require:
+- sample coverage by category-selected EAN × retailer/source × date, including Lindt if available and comparable chocolate SKUs;
 - exact start/end dates, missing days, store/source granularity and historical versioning;
 - field dictionary for observed price, regular/promo price, promotion mechanics, net weight, availability, source URL and collection timestamp;
-- written permission to retain raw records, create derived indicators, cite provenance and display outputs in Pulse to its customers, with explicit limits on model training, redistribution, retention/deletion and derivative data;
+- contractual permission to retain raw records, create derived indicators, cite provenance and display outputs in Pulse to its customers, with explicit limits on model training, redistribution, retention/deletion and derivative data;
 - all fees, NDA scope, sample restrictions, contract duration, renewal, cancellation and service commitments.
 
 Do not sign an NDA, submit business/contact details, provide EAN lists, activate a trial, or accept terms without explicit approval. If approved, evaluate the institutional sample and self-service API as separate offers; do not assume their licensing or coverage is interchangeable.
