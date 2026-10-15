@@ -31,7 +31,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 ## Google Trends capture procedure
 
 1. Open the official Explore interface manually.
-2. Use the pre-registered query set in `trends-query-plan.md`; do not change query type, geography, category, search type or period after seeing results without recording a protocol amendment.
+2. Use the pre-registered query set in `google-trends-capture-plan.md`; do not change query type, geography, category, search type or period after seeing results without recording a protocol amendment.
 3. Export each configured comparison separately and retain the original CSV unchanged.
 4. Record each export in `trends-export-manifest.template.csv`, including exact settings, export time in UTC, source URL, original filename and SHA-256.
 5. Check date coverage, header/encoding, duplicate dates, missing dates and whether values are low-volume/zero. Preserve zeros as exported; do not interpret them as zero demand.
@@ -40,16 +40,16 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 ## Retail sample procedure
 
 1. Prefer directly accessible public product/listing pages and record their URLs, observation timestamps and attribution. Do not bypass login walls, technical blocks or rate limits. Provider feeds are an optional enrichment path, not a start gate.
-2. Retain the received artifact only as permitted. Record sample ID, retrieval time, license version, original filename and hash if allowed.
+2. For public listings, retain the source URL, capture context, observation timestamp, displayed fields and provenance notes. For any optional provider sample, retain artifacts only as its specific license permits and record source/sample ID, retrieval time, terms version, filename and hash if allowed.
 3. Validate each product match by EAN where available, plus brand, variant and net weight; record store/network granularity and earliest/latest observation dates. This is data QA, not a buyer-approval gate.
 4. Distinguish observed price, regular price, promotional price, promotion mechanics, availability and missing/not-observed states. Never infer out-of-stock from a missing row.
-5. Fill `retail-sample-acceptance.template.csv` and reject any price without verified EAN, weight, currency, source and timestamp.
+5. Fill `retail-sample-acceptance.template.csv`. An exploratory public listing without a visible EAN may remain as `preliminary`; it must not pass an exact-SKU comparison gate until identity is verified. Baseline-accepted price rows require verified product identity, weight, currency, source and timestamp.
 6. Report coverage by product/format/price tier × retailer/store × date, including missing days. Use EAN for exact matching when present; do not treat a provider's overall store count or brand list as proof of actual coverage. Lindt coverage is optional for a category-wide baseline.
 
 ## QA acceptance for the first run
 
 - Source provenance, access method, attribution and relevant reuse constraints are documented; no bespoke permission is required for ordinary public-source discovery.
-- All retained rows have source provenance and unambiguous observation timestamps.
+- All baseline-accepted rows have source provenance and unambiguous observation timestamps. Exploratory desk rows with date-only timestamps remain preliminary and do not start the baseline.
 - No unexplained duplicate observation keys; corrections are appended with notes rather than silently overwriting history.
 - Product/EAN, variant, net weight, currency and price values pass the documented checks.
 - Missingness, coverage and gaps are explicit; no absent row is treated as zero price or out-of-stock.
