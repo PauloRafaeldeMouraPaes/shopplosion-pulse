@@ -19,6 +19,23 @@ alter table public.intelligence_source_fetch_runs
   add constraint intelligence_source_fetch_runs_id_source_industry_unique
   unique (id, source_id, industry_id);
 
+-- Durable per-run completeness metadata. These fields describe collection
+-- quality separately from the operational running/completed/failed lifecycle.
+alter table public.intelligence_source_fetch_runs
+  add column scope_fingerprint text,
+  add column parser_version text,
+  add column completeness_status text not null default 'incomplete'
+    check (completeness_status in ('complete', 'incomplete', 'failed')),
+  add column absence_inference_eligible boolean not null default false,
+  add column completeness_reason text,
+  add column pagination_exhausted boolean not null default false,
+  add column finite_scope_proven boolean not null default false,
+  add column response_status integer,
+  add column response_content_type text,
+  add column reported_total_count bigint,
+  add column returned_item_count integer not null default 0
+    check (returned_item_count >= 0);
+
 alter table public.intelligence_source_items
   add constraint intelligence_source_items_id_source_industry_unique
   unique (id, source_id, industry_id);
