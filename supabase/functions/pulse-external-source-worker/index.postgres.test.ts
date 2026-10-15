@@ -43,21 +43,13 @@ async function runPostgresScenario(scenario: Scenario) {
 
     if (scenario === "source_failure_write_zero_row") {
       await db.unsafe(`create function ${identifier(schema)}.suppress_source_failure_update()
-        returns trigger language plpgsql as $
-        begin
-          if new.last_error is not null then return null; end if;
-          return new;
-        end $`);
+        returns trigger language plpgsql as 'begin if new.last_error is not null then return null; end if; return new; end;'`);
       await db.unsafe(`create trigger suppress_source_failure_update before update on ${q("intelligence_sources")}
         for each row execute function ${identifier(schema)}.suppress_source_failure_update()`);
     }
     if (scenario === "run_failure_write_zero_row") {
       await db.unsafe(`create function ${identifier(schema)}.suppress_run_failure_update()
-        returns trigger language plpgsql as $
-        begin
-          if new.status = 'failed' then return null; end if;
-          return new;
-        end $`);
+        returns trigger language plpgsql as 'begin if new.status = ''failed'' then return null; end if; return new; end;'`);
       await db.unsafe(`create trigger suppress_run_failure_update before update on ${q("intelligence_source_fetch_runs")}
         for each row execute function ${identifier(schema)}.suppress_run_failure_update()`);
     }
@@ -66,7 +58,7 @@ async function runPostgresScenario(scenario: Scenario) {
     const admin = {
       rpc: async (name: string) => {
         if (name === "pulse_intelligence_worker_token") return { data: "cron-secret", error: null };
-        if (name === "pulse_record_source_item_observation" && scenario === "observation_rpc_failure") {
+        if (name === "pulse_record_source_item_observation" && scenario !== "http_403") {
           return { data: null, error: { message: "injected observation persistence failure" } };
         }
         throw new Error("Unexpected RPC: " + name);
