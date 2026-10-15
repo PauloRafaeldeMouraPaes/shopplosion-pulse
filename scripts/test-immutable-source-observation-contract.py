@@ -19,6 +19,7 @@ FETCH_HELPER = ROOT / "supabase/functions/_shared/fetch-source.ts"
 FETCH_TEST = ROOT / "supabase/functions/_shared/fetch-source.test.ts"
 FAILURE_HELPER = ROOT / "supabase/functions/_shared/record-source-failure.ts"
 FAILURE_TEST = ROOT / "supabase/functions/_shared/record-source-failure.test.ts"
+WORKER_INTEGRATION_TEST = ROOT / "supabase/functions/pulse-external-source-worker/index.postgres.test.ts"
 FINGERPRINT_HELPER = ROOT / "supabase/functions/_shared/source-content-fingerprint.ts"
 FINGERPRINT_TEST = ROOT / "supabase/functions/_shared/source-content-fingerprint.test.ts"
 
@@ -36,6 +37,7 @@ def main() -> int:
     fetch_test = FETCH_TEST.read_text(encoding="utf-8")
     failure_helper = FAILURE_HELPER.read_text(encoding="utf-8")
     failure_test = FAILURE_TEST.read_text(encoding="utf-8")
+    worker_integration_test = WORKER_INTEGRATION_TEST.read_text(encoding="utf-8")
     fingerprint_helper = FINGERPRINT_HELPER.read_text(encoding="utf-8")
     fingerprint_test = FINGERPRINT_TEST.read_text(encoding="utf-8")
 
@@ -139,6 +141,11 @@ def main() -> int:
             "Failure bookkeeping helper does not report status-write failures")
     require("failure bookkeeping errors are observable and do not escape" in failure_test,
             "Failure bookkeeping failure-path unit test is missing")
+    for token in ("PostgreSQL-backed worker reconciles a forbidden source",
+                  "PostgreSQL-backed worker reconciles observation RPC persistence failure",
+                  "absence_inference_eligible", "source_item_history_persist_failed"):
+        require(token in worker_integration_test,
+                f"Worker PostgreSQL failure contract is missing: {token}")
     require("sourceContentFingerprint(title,url,content)" in worker,
             "Worker does not use the canonical fingerprint helper")
     require("SHA-256(JSON.stringify([title, url ?? \"\", content]))" in fingerprint_helper,
