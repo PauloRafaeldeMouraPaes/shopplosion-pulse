@@ -61,3 +61,9 @@ The filenames use the São Paulo local capture date (2026-10-14). UTC-date field
 ## Current gate
 
 The public-source discovery work has begun; the baseline remains `not_started` because the four Google Trends CSV exports still require manual download through the official chart UI, repeatable capture stream, reproducibility and human QA gates are not yet satisfied.
+
+## Supplemental cross-category shopper context — 15 October 2026
+
+A follow-up review captured the publicly accessible Worldpanel by Numerator article published 6 October 2026, [Brasileiro vai menos às compras, aumenta o carrinho e reorganiza gastos entre canais](https://worldpanel.webflow.io/insights/brasileiro-menos-compras-aumenta-carrinho-canais). The publisher reports budget constraints across 70% of Brazilian households in 2026, promotional purchases +35% in value in Q2 year over year, and a growing role for stock-up missions and premium/economy balancing. Its Consumer Insights 2026 covers 120 FMCG categories, but the article does not provide a chocolate-specific cut, raw panel data, sample size or uncertainty intervals.
+
+This is useful to refine hypotheses about price/promotion and premium trade-offs, but it is **cross-category context only**. It does not establish chocolate shopper behavior, purchases, switching or causal effects, and it is not independent chocolate-specific corroboration. The detailed source record and interpretation limits are in `shopper-context-follow-up-2026-10-15.md`. It does not change the 11 preliminary candidate reviews or the baseline state: the four actual Google Trends exports and repeatable retail observations remain pending.
