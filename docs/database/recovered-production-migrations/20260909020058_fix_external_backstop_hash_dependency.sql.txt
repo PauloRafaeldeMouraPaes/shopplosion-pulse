@@ -1,0 +1,19 @@
+create or replace function public.pulse_external_signal_deterministic_backstop()
+returns jsonb language plpgsql security definer set search_path=public as $$
+declare i record; c jsonb; ev jsonb; sid uuid; sk text; fp text; n int:=0; e int:=0;
+begin
+ for i in select * from public.intelligence_source_items where status='active' and fetched_at >= now()-interval '30 days' order by fetched_at desc limit 500 loop
+   c:=public.pulse_external_intelligence_fallback_candidate(i.id); continue when c is null;
+   sk:=md5(i.industry_id::text||'|change|'||lower(regexp_replace(coalesce(i.title,'material external change'),'\\s+',' ','g')));
+   ev:=c->'evidence'; fp:=md5(sk||'|'||coalesce(c->>'summary','')||'|'||ev::text);
+   insert into public.intelligence_signals(industry_id,title,summary,signal_type,signal_key,confidence,evidence,source_document_ids,status,observed_at,updated_at,fingerprint)
+   values(i.industry_id,c->>'title',c->>'summary','change',sk,(c->>'confidence')::numeric,ev,'{}'::uuid[],'active',now(),now(),fp)
+   on conflict(industry_id,signal_key) do update set summary=excluded.summary,evidence=excluded.evidence,confidence=excluded.confidence,fingerprint=excluded.fingerprint,observed_at=now(),updated_at=now(),status='active'
+   returning id into sid;
+   n:=n+1;
+   if not exists(select 1 from public.intelligence_signal_events where signal_id=sid and fingerprint=fp) then
+      insert into public.intelligence_signal_events(signal_id,industry_id,fingerprint,observed_at,confidence,direction,change_score,evidence) values(sid,i.industry_id,fp,now(),(c->>'confidence')::numeric,'new',(c->>'change_score')::numeric,ev); e:=e+1;
+   end if;
+ end loop;
+ return jsonb_build_object('signals_upserted',n,'events_created',e);
+end $$;

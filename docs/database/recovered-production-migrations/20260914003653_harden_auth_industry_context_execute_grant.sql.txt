@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.auth_industry_context() FROM anon; GRANT EXECUTE ON FUNCTION public.auth_industry_context() TO authenticated;

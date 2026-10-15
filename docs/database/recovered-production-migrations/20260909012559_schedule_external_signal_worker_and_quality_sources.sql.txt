@@ -1,0 +1,16 @@
+create or replace function public.pulse_external_signal_schedule_tick() returns bigint language plpgsql security definer set search_path='public','extensions','vault','pg_catalog' as $$ declare token text; request_id bigint; begin select decrypted_secret into token from vault.decrypted_secrets where name='pulse_intelligence_worker_token' limit 1; if token is null or token='' then raise exception 'pulse_intelligence_worker_token_missing'; end if; select net.http_post(url:='https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-external-signal-worker',headers:=jsonb_build_object('Content-Type','application/json','x-pulse-cron',token),body:=jsonb_build_object('source','cron','requested_at',now()),timeout_milliseconds:=60000) into request_id; return request_id; end; $$;
+revoke execute on function public.pulse_external_signal_schedule_tick() from public,anon,authenticated;
+do $$ begin perform cron.unschedule(jobid) from cron.job where jobname='pulse-external-signal-worker'; perform cron.schedule('pulse-external-signal-worker','15 */3 * * *','select public.pulse_external_signal_schedule_tick();'); end $$;
+create or replace function public.pulse_intelligence_quality_check() returns jsonb language plpgsql security definer set search_path='public' as $$
+declare r_id uuid; v_checked int:=0; v_grounded int:=0; v_evidence_fail int:=0; v_duplicate_fail int:=0; v_pass boolean;
+begin
+ insert into public.intelligence_quality_runs default values returning id into r_id;
+ select count(*) into v_checked from public.intelligence_signals s where s.status='active';
+ select count(*) into v_grounded from public.intelligence_signals s where s.status='active' and jsonb_typeof(s.evidence)='array' and jsonb_array_length(s.evidence)>0 and ((cardinality(s.source_document_ids)>0 and exists(select 1 from public.documents d where d.industry_id=s.industry_id and d.id=any(s.source_document_ids))) or exists(select 1 from jsonb_array_elements(s.evidence) e where (e->>'source_item_id') is not null and exists(select 1 from public.intelligence_source_items i where i.id=(e->>'source_item_id')::uuid and i.industry_id=s.industry_id and i.source_id=(e->>'source_id')::uuid)));
+ v_evidence_fail:=v_checked-v_grounded;
+ select count(*) into v_duplicate_fail from (select industry_id,signal_key,count(*) n from public.intelligence_signals where status='active' and signal_key is not null group by industry_id,signal_key having count(*)>1) q;
+ v_pass:=(v_evidence_fail=0 and v_duplicate_fail=0);
+ update public.intelligence_quality_runs set finished_at=now(),signals_checked=v_checked,grounded_signals=v_grounded,evidence_failures=v_evidence_fail,duplicate_failures=v_duplicate_fail,pass=v_pass where id=r_id;
+ perform public.pulse_resolve_stale_intelligence_signals();
+ return jsonb_build_object('status','completed','signals_checked',v_checked,'grounded_signals',v_grounded,'evidence_failures',v_evidence_fail,'duplicate_failures',v_duplicate_fail,'pass',v_pass);
+end; $$;

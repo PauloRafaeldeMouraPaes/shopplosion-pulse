@@ -1,0 +1,14 @@
+CREATE OR REPLACE VIEW public.document_indexing_coverage
+WITH (security_invoker = true) AS
+SELECT
+  industry_id,
+  COUNT(*)::integer AS documents,
+  COUNT(*) FILTER (WHERE indexing_status = 'indexed')::integer AS indexed_documents,
+  COUNT(*) FILTER (WHERE indexing_status = 'pending')::integer AS pending_documents,
+  COUNT(*) FILTER (WHERE indexing_status = 'stored_only')::integer AS stored_only_documents,
+  COALESCE(SUM(chunk_count),0)::integer AS chunks,
+  ROUND(100.0 * COUNT(*) FILTER (WHERE indexing_status = 'indexed') / NULLIF(COUNT(*),0), 1) AS indexing_coverage_pct
+FROM public.document_indexing_status
+GROUP BY industry_id;
+GRANT SELECT ON public.document_indexing_coverage TO authenticated;
+REVOKE ALL ON public.document_indexing_coverage FROM anon;

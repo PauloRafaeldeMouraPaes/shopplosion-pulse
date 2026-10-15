@@ -1,0 +1,1 @@
+create unique index if not exists shopper_knowledge_investigation_unique_idx on public.shopper_knowledge (investigation_id) where investigation_id is not null;

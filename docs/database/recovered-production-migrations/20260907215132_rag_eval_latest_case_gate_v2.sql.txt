@@ -1,0 +1,11 @@
+DROP VIEW IF EXISTS public.rag_eval_quality_status;
+CREATE VIEW public.rag_eval_quality_status
+WITH (security_invoker = true) AS
+WITH latest AS (
+  SELECT DISTINCT ON (case_id) industry_id, case_id, passed, expected_terms_found, expected_terms_total, expected_documents_found, expected_documents_total, created_at
+  FROM public.rag_eval_runs
+  ORDER BY case_id, created_at DESC
+)
+SELECT industry_id, COUNT(*)::integer AS cases, COUNT(*) FILTER (WHERE passed)::integer AS passed, COUNT(*) FILTER (WHERE NOT passed)::integer AS failed, ROUND(AVG(expected_terms_found::numeric / NULLIF(expected_terms_total,0)),3) AS avg_term_recall, ROUND(AVG(expected_documents_found::numeric / NULLIF(expected_documents_total,0)),3) AS avg_document_recall, MAX(created_at) AS last_run_at, CASE WHEN COUNT(*)=0 THEN 'NO_DATA' WHEN COUNT(*) FILTER (WHERE NOT passed)=0 THEN 'PASS' ELSE 'FAIL' END AS gate_status FROM latest GROUP BY industry_id;
+GRANT SELECT ON public.rag_eval_quality_status TO authenticated;
+REVOKE ALL ON public.rag_eval_quality_status FROM anon;

@@ -1,0 +1,34 @@
+create extension if not exists pg_net with schema extensions;
+create extension if not exists pg_cron;
+
+create or replace function public.pulse_index_pending_internal()
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions, vault
+as $$
+declare
+  project_url text;
+  publishable_key text;
+begin
+  select decrypted_secret into project_url from vault.decrypted_secrets where name = 'project_url' limit 1;
+  select decrypted_secret into publishable_key from vault.decrypted_secrets where name = 'publishable_key' limit 1;
+  if project_url is null or publishable_key is null then
+    raise exception 'Pulse scheduler secrets are not configured';
+  end if;
+  perform net.http_post(
+    url := project_url || '/functions/v1/pulse-index-pending',
+    headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer ' || publishable_key,'apikey',publishable_key),
+    body := jsonb_build_object('source','pg_cron','requested_at',now()),
+    timeout_milliseconds := 10000
+  );
+end;
+$$;
+
+revoke all on function public.pulse_index_pending_internal() from public, anon, authenticated;
+
+select cron.schedule(
+  'pulse-index-pending-worker',
+  '*/1 * * * *',
+  $$select public.pulse_index_pending_internal();$$
+);
