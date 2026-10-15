@@ -5,11 +5,14 @@ Status: **completed as a secondary-source desk capture; not a four-week baseline
 ## What was captured
 
 - `public-source-capture-2026-10-15.csv`: seven dated public-source records across shopper survey reporting, industry/price context, macro retail context and historical Easter retail snapshots.
+- `public-retail-snapshot-2026-10-15.csv`: six currently visible 80g product listings from Pão de Açúcar across Lacta, Garoto and Nestlé, including conditional promotions and normalized price per 100g.
 - `public-source-review-2026-10-15.csv`: four preliminary signal candidates with observed facts separated from hypotheses, alternatives, independence assessment and follow-up actions.
 
-Capture date is 2026-10-15 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, current multi-retailer product-page panel, social listening corpus, or SKU-level historical retail series was collected.
+Capture date is 2026-10-15 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, multi-retailer product-page panel, social listening corpus, or SKU-level historical retail series was collected. The retail snapshot is only one retailer, with no delivery ZIP selected and no EAN displayed in the captured pages.
 
 ## Preliminary signals
+
+0. **Retail price snapshot (one retailer only).** Six 80g pages show displayed prices from R$9.69 to R$13.99 (R$12.11–R$17.49 per 100g), including conditional multi-buy offers. This is an offer snapshot, not a trend or like-for-like brand comparison; delivery region and stock were not verified.
 
 1. **Price scrutiny and format flexibility (preliminary).** Two separate nationwide Easter surveys report price sensitivity and planned interest in bars/bonbons as well as eggs. This is corroboration across survey organizations, but it is seasonal, self-reported and does not establish a year-round or emerging trend.
 2. **Input and shelf-price divergence (hypothesis).** FGV's Easter basket metrics and Banco do Nordeste's cocoa-market context suggest aggregate basket movement, chocolate item movement and cocoa inputs need to be measured separately. This does not establish causal price transmission.
