@@ -229,3 +229,8 @@ This inventory adds evidence to issue #90 and issue #91; it does not change thei
 
 
 The routine-by-routine read-only ACL inventory is now tracked in [security-definer-acl-manifest-2026-10-15.csv](security-definer-acl-manifest-2026-10-15.csv). It records the observed effective grants, dependencies, initial disposition and required positive/negative tests for all exposed SECURITY DEFINER routines reviewed. This manifest is an audit artifact only; the dispositions are not a production grant change.
+
+
+### Trigger dependency cross-check
+
+A fresh read-only catalog inventory of non-internal triggers in schema public whose target function is SECURITY DEFINER found one attachment: intelligence_signals.intelligence_signal_event_capture → capture_intelligence_signal_event(), AFTER INSERT OR UPDATE OF confidence, status, evidence, observed_at. No non-internal public trigger currently references capture_document_version(); its initial manifest disposition is therefore review_required (possible legacy/orphaned routine), not trigger_only. This distinction must be preserved in the ACL migration: never infer a trigger dependency from a function name alone.
