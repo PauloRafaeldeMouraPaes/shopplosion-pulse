@@ -2,7 +2,7 @@ import postgres from "npm:postgres@3.4.7";
 import { createSourceWorkerHandler } from "./index.ts";
 import { fetchSourceWithRetry } from "../_shared/fetch-source.ts";
 
-type Scenario = "http_403" | "observation_rpc_failure";
+type Scenario = "http_403" | "observation_rpc_failure" | "source_failure_write_zero_row" | "run_failure_write_zero_row";
 
 const identifier = (value: string) => {
   if (!/^[a-z_][a-z0-9_]*$/i.test(value)) throw new Error("Unsafe SQL identifier");
@@ -40,6 +40,27 @@ async function runPostgresScenario(scenario: Scenario) {
       (id, industry_id, name, source_type, url, active, poll_interval_minutes)
       values ($1,$2,$3,$4,$5,true,0)`,
       ["source-test", "industry-test", "Test Chocolate Source", "json", "https://example.test/feed.json"]);
+
+    if (scenario === "source_failure_write_zero_row") {
+      await db.unsafe(`create function ${identifier(schema)}.suppress_source_failure_update()
+        returns trigger language plpgsql as $
+        begin
+          if new.last_error is not null then return null; end if;
+          return new;
+        end $`);
+      await db.unsafe(`create trigger suppress_source_failure_update before update on ${q("intelligence_sources")}
+        for each row execute function ${identifier(schema)}.suppress_source_failure_update()`);
+    }
+    if (scenario === "run_failure_write_zero_row") {
+      await db.unsafe(`create function ${identifier(schema)}.suppress_run_failure_update()
+        returns trigger language plpgsql as $
+        begin
+          if new.status = 'failed' then return null; end if;
+          return new;
+        end $`);
+      await db.unsafe(`create trigger suppress_run_failure_update before update on ${q("intelligence_source_fetch_runs")}
+        for each row execute function ${identifier(schema)}.suppress_run_failure_update()`);
+    }
 
     const allowedTables = new Set(["intelligence_sources", "intelligence_source_fetch_runs"]);
     const admin = {
@@ -102,6 +123,7 @@ async function runPostgresScenario(scenario: Scenario) {
       },
     };
 
+    const logs: string[] = [];
     const handler = createSourceWorkerHandler({
       env: (name) => ({
         SUPABASE_URL: "http://supabase.test",
@@ -110,7 +132,7 @@ async function runPostgresScenario(scenario: Scenario) {
       createAdmin: () => admin,
       sleep: async () => {},
       fetchSource: async (url, _fetcher, wait) => {
-        if (scenario === "http_403") {
+        if (scenario !== "observation_rpc_failure") {
           return await fetchSourceWithRetry(url, async () => new Response("forbidden", { status: 403 }), wait);
         }
         return new Response(JSON.stringify({
@@ -123,15 +145,18 @@ async function runPostgresScenario(scenario: Scenario) {
         }), { status: 200, headers: { "content-type": "application/json" } });
       },
       logInfo: () => {},
-      logError: () => {},
+      logError: (message) => { logs.push(String(message)); },
     });
     const response = await handler(new Request("http://worker.test/", {
       method: "POST",
       headers: { "x-pulse-cron": "cron-secret" },
     }));
     const body = await response.json();
-    if (response.status !== 200 || body.status !== "completed_with_source_failures") {
-      throw new Error("Unexpected worker response: " + JSON.stringify({ status: response.status, body }));
+    const expectedStatus = scenario === "source_failure_write_zero_row" || scenario === "run_failure_write_zero_row"
+      ? "reconciliation_incomplete"
+      : "completed_with_source_failures";
+    if (response.status !== 200 || body.status !== expectedStatus) {
+      throw new Error("Unexpected worker response: " + JSON.stringify({ status: response.status, body, expectedStatus }));
     }
 
     const sources = await db.unsafe(`select last_error from ${q("intelligence_sources")} where id = $1`, ["source-test"]);
@@ -142,7 +167,21 @@ async function runPostgresScenario(scenario: Scenario) {
     if (runs.length !== 1 || runs[0].status !== "failed" || runs[0].absence_inference_eligible !== false) {
       throw new Error("PostgreSQL fetch-run failure state was not persisted safely");
     }
-    if (runs[0].completeness_status !== "failed") throw new Error("Failed collection was not marked incomplete/failed");
+    if (scenario === "source_failure_write_zero_row") {
+      if (sources[0].last_error !== null) throw new Error("Suppressed source failure update unexpectedly changed the source row");
+      if (runs[0].status !== "failed") throw new Error("Run failure update should succeed when source failure update is suppressed");
+      if (body.failure_bookkeeping_failed !== 1) throw new Error("A zero-row source update must be reported as incomplete reconciliation");
+      if (!logs.some((line) => line.includes('"target":"source"') && line.includes('"error":"Error: no_row"'))) {
+        throw new Error("Missing structured report for zero-row source failure update");
+      }
+    } else if (scenario === "run_failure_write_zero_row") {
+      if (!String(sources[0].last_error).length) throw new Error("Source failure update should persist when run failure update is suppressed");
+      if (runs[0].status === "failed") throw new Error("Suppressed run failure update unexpectedly changed the fetch-run row");
+      if (body.failure_bookkeeping_failed !== 1) throw new Error("A zero-row run update must be reported as incomplete reconciliation");
+      if (!logs.some((line) => line.includes('"target":"fetch_run"') && line.includes('"error":"Error: no_row"'))) {
+        throw new Error("Missing structured report for zero-row fetch-run failure update");
+      }
+    } else if (runs[0].completeness_status !== "failed") throw new Error("Failed collection was not marked incomplete/failed");
     if (scenario === "http_403" && runs[0].items_seen !== 0) throw new Error("403 must not create observed items");
     if (scenario === "observation_rpc_failure" && !String(runs[0].error).includes("source_item_history_persist_failed")) {
       throw new Error("Fetch-run row did not preserve the observation persistence error");
@@ -161,4 +200,14 @@ Deno.test({
 Deno.test({
   name: "PostgreSQL-backed worker reconciles observation RPC persistence failure",
   fn: async () => await runPostgresScenario("observation_rpc_failure"),
+});
+
+Deno.test({
+  name: "PostgreSQL-backed worker detects zero-row source failure bookkeeping",
+  fn: async () => await runPostgresScenario("source_failure_write_zero_row"),
+});
+
+Deno.test({
+  name: "PostgreSQL-backed worker detects zero-row fetch-run failure bookkeeping",
+  fn: async () => await runPostgresScenario("run_failure_write_zero_row"),
 });
