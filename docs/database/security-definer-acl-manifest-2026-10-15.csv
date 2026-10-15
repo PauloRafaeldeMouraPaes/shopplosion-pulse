@@ -20,3 +20,4 @@
 "pulse_intelligence_worker_token","","true","false","false","true","postgres","secret token lookup for trusted worker","internal_only","API roles denied; trusted server path positive without logging token"
 "pulse_rag_eval_schedule_tick","","true","false","false","true","postgres","cron scheduler","internal_only","Cron owner and service_role path positive; API roles negative"
 "verify_pulse_internal_token","p_token text, p_name text","true","false","false","true","postgres","internal token verifier","internal_only","API roles denied; valid token positive and invalid token negative without logging token"
+"rls_auto_enable","","true","false","false","true","postgres","RLS auto-enable helper, pg_catalog search_path","internal_only","Confirm trigger/event dependencies and owner-only intended execution; API roles denied"
