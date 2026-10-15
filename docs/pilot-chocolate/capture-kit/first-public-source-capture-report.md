@@ -4,7 +4,7 @@ Status: **completed as a secondary-source desk capture; not a four-week baseline
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: seven dated public-source records across shopper survey reporting, industry/price context, macro retail context and historical Easter retail snapshots.
+- `public-source-capture-2026-10-14.csv`: eight dated public-source records across shopper survey reporting, industry/price context, macro retail context and historical Easter retail snapshots.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé, including conditional promotions and normalized price per 100g.
 - `public-source-review-2026-10-14.csv`: four preliminary signal candidates with observed facts separated from hypotheses, alternatives, independence assessment and follow-up actions.
 
