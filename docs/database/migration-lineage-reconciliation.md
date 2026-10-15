@@ -226,3 +226,6 @@ The same catalog query observed current_industry_id() as executable by authentic
 5. Re-run Security Advisor and the multi-tenant audit; compare results against a recorded baseline.
 
 This inventory adds evidence to issue #90 and issue #91; it does not change their release gates.
+
+
+The routine-by-routine read-only ACL inventory is now tracked in [security-definer-acl-manifest-2026-10-15.csv](security-definer-acl-manifest-2026-10-15.csv). It records the observed effective grants, dependencies, initial disposition and required positive/negative tests for all exposed SECURITY DEFINER routines reviewed. This manifest is an audit artifact only; the dispositions are not a production grant change.
