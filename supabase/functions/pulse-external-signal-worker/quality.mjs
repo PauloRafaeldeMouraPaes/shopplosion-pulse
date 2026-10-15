@@ -1,4 +1,6 @@
-export function shouldRecordSignalEvent({ priorConfidence, existingFingerprint, fingerprint, confidence }) {
+export function shouldRecordSignalEvent({ priorConfidence, existingFingerprint, fingerprint, confidence, priorStatus, status }) {
+  if (priorStatus === "resolved" && status === "resolved") return false;
+  if (priorStatus !== undefined && status !== undefined && priorStatus !== status) return true;
   const hasPrior = priorConfidence !== null && priorConfidence !== undefined;
   if (!hasPrior) return true;
   if (existingFingerprint !== fingerprint) return true;
