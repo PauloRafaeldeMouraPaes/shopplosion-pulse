@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate Chocolate capture-kit artifact integrity
+        run: node scripts/test-chocolate-capture-kit-integrity.js
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
       - name: Run semantic data integrity checks
