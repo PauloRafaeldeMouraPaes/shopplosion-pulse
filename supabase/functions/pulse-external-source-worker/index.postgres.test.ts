@@ -155,12 +155,12 @@ async function runPostgresScenario(scenario: Scenario) {
 
 Deno.test({
   name: "PostgreSQL-backed worker reconciles a forbidden source without accepting a snapshot",
-  permissions: { env: ["DATABASE_URL"], net: ["localhost:5432", "127.0.0.1:5432"] },
+  permissions: { env: ["DATABASE_URL"], net: ["localhost:5432"] },
   fn: async () => await runPostgresScenario("http_403"),
 });
 
 Deno.test({
   name: "PostgreSQL-backed worker reconciles observation RPC persistence failure",
-  permissions: { env: ["DATABASE_URL"], net: ["localhost:5432", "127.0.0.1:5432"] },
+  permissions: { env: ["DATABASE_URL"], net: ["localhost:5432"] },
   fn: async () => await runPostgresScenario("observation_rpc_failure"),
 });
