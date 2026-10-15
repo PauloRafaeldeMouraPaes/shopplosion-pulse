@@ -37,9 +37,9 @@ Deno.test("two complete runs must share the same scope before absence can be inf
   const first = await assessSnapshotCompleteness({ ...input, runId: "run-1", previousRunId: "run-0" });
   const second = await assessSnapshotCompleteness({ ...input, runId: "run-2", previousRunId: "run-1" });
   if (!mayInferAbsence(first, second)) throw new Error("matching complete runs should permit absence evaluation");
-  const changedScope = await assessSnapshotCompleteness({ ...input, url: "https://example.test/other", runId: "run-3", previousRunId: "run-2" });
+  const changedScope = await assessSnapshotCompleteness({ ...input, url: "https://example.test/other", runId: "run-2", previousRunId: "run-1" });
   if (mayInferAbsence(first, changedScope)) throw new Error("scope change must reset consecutive-run rule");
-  const incomplete = await assessSnapshotCompleteness({ ...input, paginationExhausted: false, runId: "run-3", previousRunId: "run-2" });
+  const incomplete = await assessSnapshotCompleteness({ ...input, paginationExhausted: false, runId: "run-2", previousRunId: "run-1" });
   if (mayInferAbsence(first, incomplete)) throw new Error("incomplete run must never confirm absence");
 });
 
