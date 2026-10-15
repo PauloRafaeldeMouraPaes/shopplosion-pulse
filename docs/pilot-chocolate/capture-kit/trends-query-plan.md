@@ -1,0 +1,49 @@
+# Google Trends query plan — Chocolate pilot
+
+Status: **pre-registered plan; no observations collected**. This document fixes the first query sets before viewing/exporting results, reducing the risk of choosing terms because they show an interesting curve.
+
+## Capture protocol
+
+- Interface: https://trends.google.com/trends/explore/
+- Geography: Brazil (BR); do not mix national and state-level series.
+- Time windows: last 5 years for seasonal context and last 12 months for recent context. Export each window separately.
+- Category: Food & Drink if the interface offers a consistent category for every item in the comparison; otherwise use the same broader setting for every item and record it.
+- Search type: Web Search.
+- Query type: use **Search term** for every item in a set. Do not mix Search term and Topic in one comparison. If a Topic is later tested, create a separately named set.
+- Export each comparison from one Explore view so the relative index is comparable within that view. Do not compare index values across separate exports as though they share a common absolute scale.
+- Save the untouched CSV, Explore URL, export timestamp (UTC), settings, and SHA-256. Keep each window separate.
+- If a query is too low-volume, retain the zero/insufficient result as a limitation; do not substitute a new term after seeing results without recording a versioned rationale.
+
+## Fixed query sets
+
+### Set A — category language
+Use these five Search terms together in one comparison:
+1. chocolate
+2. barra de chocolate
+3. chocolate amargo
+4. chocolate ao leite
+5. chocolate sem açúcar
+
+Interpret as relative search interest for the selected terms, not category size, people, purchase, or preference. Terms have different breadth and intent; do not sum their indices.
+
+### Set B — brand search interest
+Use these five Search terms together in one comparison:
+1. Lindt
+2. Lacta
+3. Garoto
+4. Nestlé
+5. Ferrero Rocher
+
+This is a brand-query benchmark only. It is vulnerable to differences in brand awareness, ambiguity, spelling, campaigns, and product portfolios. It is not market share or switching evidence. If the interface suggests a Topic instead of a Search term, do not silently accept it; record the exact selection or create a separate Topic comparison.
+
+## Review and false-positive controls
+
+- Compare the same calendar periods across the five-year view; mark Easter, Valentine's Day, Mother's Day, Christmas, and other obvious seasonal peaks before interpreting changes.
+- Do not label a single peak or a change in normalized index as an emerging shopper shift without checking seasonality, sampling/low-volume behavior, and independent evidence.
+- A zero index is not proof of no demand.
+- Do not infer sales, sell-out, preference, price elasticity, or brand switching from Trends alone.
+- Record the reviewer decision for each candidate: accept, reject, or preliminary, with reason and source links.
+
+## Baseline gate
+
+This plan does not start the four-week baseline. The baseline remains `not_started` until the first real export is retained with settings, timestamp, hash, and QA approval. Subsequent captures must repeat the fixed query sets and settings; any changes require a versioned note rather than silently replacing the plan.
