@@ -79,6 +79,7 @@ def main() -> int:
                   "unique (fetch_run_id, external_id)",
                   "previous_fetch_run_id",
                   "intelligence_source_fetch_runs_previous_run_fk",
+                  "intelligence_source_fetch_runs_single_successor_idx",
                   "reject_intelligence_source_history_mutation",
                   "versions_append_only",
                   "observations_append_only",
