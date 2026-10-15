@@ -31,7 +31,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 ## Google Trends capture procedure
 
 1. Open the official Explore interface manually.
-2. Use the pre-registered query set in `google-trends-capture-plan.md`; do not change query type, geography, category, search type or period after seeing results without recording a protocol amendment.
+2. Use the pre-registered query set in `trends-query-plan.md`; do not change query type, geography, category, search type or period after seeing results without recording a protocol amendment.
 3. Export each configured comparison separately and retain the original CSV unchanged.
 4. Record each export in `trends-export-manifest.template.csv`, including exact settings, export time in UTC, source URL, original filename and SHA-256.
 5. Check date coverage, header/encoding, duplicate dates, missing dates and whether values are low-volume/zero. Preserve zeros as exported; do not interpret them as zero demand.
