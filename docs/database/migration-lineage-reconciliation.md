@@ -136,3 +136,12 @@ I queried GitHub's commit history separately for each of the 10 SQL paths curren
 The path-history endpoints returned only these introduction commits for the respective paths; no later path revisions or deletion/rename entries were returned for these current filenames. This is a path-history finding, **not** proof that an equivalent SQL statement never existed under another path, in a squash/baseline, or outside Git.
 
 The timeline narrows the search but does not classify the 68 unmatched production versions. In particular, production history begins on 2026-09-07, while current files 005 and 006 were first committed on 2026-09-20; that chronology alone cannot prove which historical SQL was applied or whether it was consolidated. Keep those rows unresolved until the original SQL, authoritative baseline, or independently reviewable normalized schema diff establishes provenance. No migration files were created or changed as part of this history check.
+
+
+## Full SQL-tree sweep across migration-path history (2026-10-15)
+
+I retrieved the nine commits returned by GitHub's history endpoint for `supabase/migrations` (from 2026-09-04 through 2026-09-22), then recursively inspected each commit tree. Across those nine snapshots, the only tracked `.sql` files found anywhere in the repository are the same cumulative set of ten files under `supabase/migrations/`. No additional SQL file path was found in any of those snapshots, and the per-file history endpoints did not return rename/deletion history for the ten current paths.
+
+This is stronger evidence that the 68 unmatched production statements are not recoverable as tracked SQL files in the inspected Git history snapshots. It still does **not** prove they were never present in another branch, repository, unreachable commit, manual SQL session, or external backup. The responsible disposition is therefore still `unmapped` pending independent provenance, rather than asserting `out_of_band` as a fact.
+
+The latest PR #93 documentation commit has all repository CI checks complete: regression, browser smoke, evidence contract, private AI audit, multi-tenant audit, and validate passed; Netlify redirect processing passed, while header/pages checks concluded neutral. This validates the documentation change only, not production lineage or database behavior.
