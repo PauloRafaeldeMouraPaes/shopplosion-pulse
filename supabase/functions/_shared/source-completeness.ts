@@ -97,3 +97,20 @@ export function mayInferAbsence(previous: SnapshotCompleteness | null, current: 
     && previous.scopeFingerprint === current.scopeFingerprint
   );
 }
+
+
+export function classifySourceFailure(errorMessage: string): string {
+  const message = String(errorMessage || "").toLowerCase();
+  if (/http_403\b|forbidden|access_denied/.test(message)) return "authentication_or_access_denied";
+  if (/http_401\b|unauthorized/.test(message)) return "authentication_or_access_denied";
+  if (/http_429\b|rate.?limit|too many requests/.test(message)) return "rate_limited";
+  if (/source_snapshot_incomplete|pagination_not_exhausted|collection_limit_exceeded|reported_total_exceeds_returned_items/.test(message)) {
+    return "known_incomplete_response";
+  }
+  if (/parse|json|xml|unsupported_or_invalid_feed_document/.test(message)) return "parser_or_document_failure";
+  if (/persist|database|rpc|fetch_run_create_failed|fetch_run_finish_failed|source_status_update_failed/.test(message)) {
+    return "persistence_failure";
+  }
+  if (/http_5\d\d\b|http_0\b|timeout|abort|network|fetch failed/.test(message)) return "transient_transport_failure";
+  return "collection_failure_unclassified";
+}
