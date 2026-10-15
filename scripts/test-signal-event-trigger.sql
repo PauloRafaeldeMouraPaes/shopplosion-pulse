@@ -65,6 +65,9 @@ BEGIN
      OR has_function_privilege('authenticated', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE') THEN
     RAISE EXCEPTION 'API roles must not directly execute the cron scheduler';
   END IF;
+  IF NOT has_function_privilege('postgres', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'cron owner lost scheduler execution';
+  END IF;
   IF has_function_privilege('anon', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE') THEN
     RAISE EXCEPTION 'API roles must not directly execute internal candidate lookup';
