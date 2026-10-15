@@ -25,7 +25,7 @@ async function runPostgresScenario(scenario: Scenario) {
       last_success_at timestamptz, last_error text, updated_at timestamptz
     )`);
     await db.unsafe(`create table ${q("intelligence_source_fetch_runs")} (
-      id text primary key, source_id text not null, industry_id text not null,
+      id text primary key default gen_random_uuid()::text, source_id text not null, industry_id text not null,
       started_at timestamptz not null default now(), finished_at timestamptz,
       status text not null, items_seen integer not null default 0,
       items_changed integer not null default 0, error text,
