@@ -1,0 +1,39 @@
+name: Signal Event Trigger Contract
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "docs/database/signal-event-trigger-draft.sql"
+      - "scripts/test-signal-event-trigger.sql"
+      - ".github/workflows/signal-event-trigger-contract.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "docs/database/signal-event-trigger-draft.sql"
+      - "scripts/test-signal-event-trigger.sql"
+      - ".github/workflows/signal-event-trigger-contract.yml"
+
+jobs:
+  trigger-contract:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pulse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d pulse_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify semantic trigger contract in ephemeral PostgreSQL
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pulse_test
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/test-signal-event-trigger.sql
