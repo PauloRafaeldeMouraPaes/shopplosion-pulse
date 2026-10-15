@@ -61,3 +61,17 @@ Deno.test("failure bookkeeping treats a zero-row update as not persisted", async
     throw new Error("A zero-row source update must emit a reconciliation warning");
   }
 });
+
+Deno.test("failure reporter exceptions do not abort reconciliation", async () => {
+  const result = await recordSourceFailure(
+    "source-test",
+    "run-test",
+    "http_403",
+    async () => ({ data: null, error: null }),
+    async () => ({ data: { id: "run-test" }, error: null }),
+    () => { throw new Error("logger unavailable"); },
+  );
+  if (result.sourceStatusPersisted || !result.runStatusPersisted) {
+    throw new Error("Reporter failure must not mask row persistence outcomes");
+  }
+});
