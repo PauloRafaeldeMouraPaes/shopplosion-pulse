@@ -55,6 +55,8 @@ jobs:
         run: deno test supabase/functions/_shared/record-source-failure.test.ts
       - name: Test source collection truncation guard
         run: deno test supabase/functions/_shared/source-collection-limit.test.ts
+      - name: Test snapshot completeness and absence safeguards
+        run: deno test supabase/functions/_shared/source-completeness.test.ts
       - name: Test canonical source content fingerprint
         run: deno test supabase/functions/_shared/source-content-fingerprint.test.ts
       - name: Test stable JSON source identity
