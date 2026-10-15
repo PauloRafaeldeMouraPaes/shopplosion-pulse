@@ -36,7 +36,7 @@ def main() -> int:
     with MANIFEST.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         required = {
-            "production_version", "production_name", "production_sql_chars",
+            "production_version", "production_name", "production_sql_chars", "production_sql_bytes",
             "production_git_blob_sha1", "production_trimmed_blob_sha1",
             "repo_path", "repo_blob_sha", "mapping_status", "evidence",
         }
@@ -64,9 +64,15 @@ def main() -> int:
         path = ROOT / expected_path
         if not path.is_file():
             raise AssertionError(f"Mapped repository migration is missing: {expected_path}")
-        actual_blob = git_blob_sha(path.read_bytes())
-        if actual_blob != row["repo_blob_sha"]:
-            raise AssertionError(f"Git blob hash mismatch for {expected_path}: expected {row['repo_blob_sha']}, got {actual_blob}")
+        actual_bytes = path.read_bytes()
+        actual_blob = git_blob_sha(actual_bytes)
+        expected_production_hash = row["production_git_blob_sha1"] if expected_status == "confirmed_exact_blob_match" else row["production_trimmed_blob_sha1"]
+        if actual_blob != row["repo_blob_sha"] or actual_blob != expected_production_hash:
+            raise AssertionError(f"Git blob hash mismatch for {expected_path}: expected {expected_production_hash}, got {actual_blob}")
+        if git_blob_sha(actual_bytes.rstrip(b"\r\n")) != row["production_trimmed_blob_sha1"]:
+            raise AssertionError(f"Trimmed production Git blob hash mismatch for {expected_path}")
+        if expected_status == "confirmed_exact_blob_match" and len(actual_bytes) != int(row["production_sql_bytes"]):
+            raise AssertionError(f"Production byte length mismatch for {expected_path}")
 
     current_mappings = [row for row in rows if row["mapping_status"] in {"confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim"}]
     recovered = [row for row in rows if row["mapping_status"] == "recovered_from_production_history"]
@@ -84,12 +90,17 @@ def main() -> int:
         path = ROOT / row["repo_path"]
         if not path.is_file():
             raise AssertionError(f"Recovered archive missing: {row['repo_path']}")
-        actual_blob = git_blob_sha(path.read_bytes())
-        if actual_blob != row["repo_blob_sha"]:
+        actual_bytes = path.read_bytes()
+        actual_blob = git_blob_sha(actual_bytes)
+        if actual_blob != row["repo_blob_sha"] or actual_blob != row["production_git_blob_sha1"]:
             raise AssertionError(f"Recovered archive Git blob hash mismatch for {row['production_version']}")
+        if len(actual_bytes) != int(row["production_sql_bytes"]):
+            raise AssertionError(f"Recovered archive byte length mismatch for {row['production_version']}")
+        if git_blob_sha(actual_bytes.rstrip(b"\r\n")) != row["production_trimmed_blob_sha1"]:
+            raise AssertionError(f"Recovered archive trimmed hash mismatch for {row['production_version']}")
         text = path.read_text(encoding="utf-8")
         if len(text) != int(row["production_sql_chars"]):
-            raise AssertionError(f"Recovered archive length mismatch for {row['production_version']}")
+            raise AssertionError(f"Recovered archive character length mismatch for {row['production_version']}")
     for row in unmapped:
         if row["repo_path"] or row["repo_blob_sha"]:
             raise AssertionError(f"Unmapped production row must not invent repository provenance: {row['production_version']}")
@@ -103,7 +114,7 @@ def main() -> int:
         unexpected = sorted(actual_paths - EXPECTED_REPOSITORY_MIGRATIONS)
         raise AssertionError(f"Repository migration inventory changed; missing={missing}, unexpected={unexpected}. Reconcile the manifest before release.")
 
-    print("Validated 72 production rows, 4 current migration-file mappings, 68 exact archived SQL bodies, 0 unmapped versions, and 10 active migration files.")
+    print("Validated 72 production SQL bodies with UTF-8 byte-accurate Git blob hashes, 4 current migration-file mappings, 68 exact archived SQL bodies, 0 unmapped versions, and 10 active migration files.")
     print("Archived bodies are exact read-only copies from the production ledger; original Git authoring context and safe forward-only release strategy remain separate gates. No database connection was made by this validator.")
     return 0
 
