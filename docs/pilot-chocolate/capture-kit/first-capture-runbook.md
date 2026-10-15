@@ -7,7 +7,7 @@ Status: **exploratory public-source capture executed; repeatable baseline not ye
 Exploratory desk capture of accessible public sources may proceed without supplier or brand approval. Do not label it a baseline or start the four-week clock until the applicable reproducibility and QA gates are accepted by a human owner.
 
 - [ ] Category taxonomy, discovery questions and transparent sampling method are documented in `category-scope.md`; brand approval is not required for category-level discovery.
-- [ ] Each source has a `source-provenance.template.csv` record with URL, access method, timestamps, attribution and any relevant reuse limits. Do not seek bespoke permission just to analyze ordinary publicly accessible category signals; use a restricted feed only if its terms support the intended use.
+- [ ] Each source has a row in the dated `public-source-provenance-YYYY-MM-DD.csv` register (use `source-provenance.template.csv` only as a blank schema) with URL, access method, timestamps, attribution and any relevant reuse limits. Do not seek bespoke permission just to analyze ordinary publicly accessible category signals; use a restricted feed only if its terms support the intended use.
 - [ ] Prefer public retail listings and other openly accessible category signals for the initial discovery run. A provider feed is optional, not a prerequisite; use one only if its access terms and intended use are compatible.
 - [ ] Source-specific settings, time zone, collection method, cadence, and known gaps are documented.
 - [ ] QA reviewer approves the first reproducible capture and records the decision.
@@ -40,7 +40,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 ## Retail sample procedure
 
 1. Prefer directly accessible public product/listing pages and record their URLs, observation timestamps and attribution. Do not bypass login walls, technical blocks or rate limits. Provider feeds are an optional enrichment path, not a start gate.
-2. For public listings, retain the source URL, capture context, observation timestamp, displayed fields and provenance notes. For any optional provider sample, retain artifacts only as its specific license permits and record source/sample ID, retrieval time, terms version, filename and hash if allowed.
+2. For public listings, retain the source URL, capture context, observation timestamp, displayed fields and provenance notes. For any optional provider sample, retain artifacts only as its specific license permits and record source/sample ID, retrieval time, terms version, filename and hash if allowed. For public pages, document the observed access method and applicable site restrictions; do not treat the mere absence of bespoke permission as a blocker.
 3. Validate each product match by EAN where available, plus brand, variant and net weight; record store/network granularity and earliest/latest observation dates. This is data QA, not a buyer-approval gate.
 4. Distinguish observed price, regular price, promotional price, promotion mechanics, availability and missing/not-observed states. Never infer out-of-stock from a missing row.
 5. Fill `retail-sample-acceptance.template.csv`. An exploratory public listing without a visible EAN may remain as `preliminary`; it must not pass an exact-SKU comparison gate until identity is verified. Baseline-accepted price rows require verified product identity, weight, currency, source and timestamp.
@@ -67,7 +67,7 @@ The four-week baseline start timestamp is the first accepted capture after every
 - Reviewer:
 - Category scope and sampling register reference:
 - Trends export manifest reference:
-- Retail sample/license reference:
+- Retail sample/source-use reference:
 - QA report reference:
 - Accepted/rejected decision and rationale:
 - Baseline start timestamp (leave blank until accepted):
