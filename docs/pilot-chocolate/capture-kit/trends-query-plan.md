@@ -5,6 +5,9 @@ Status: **pre-registered plan; no observations collected**. This document fixes 
 ## Capture protocol
 
 - Interface: https://trends.google.com/trends/explore/
+- Official export guidance: Google Trends Help, “Export, embed, and cite Trends data” — https://support.google.com/trends/answer/4365538?hl=en. Export the chart's CSV from the interface; preserve the original file and cite Google Trends when reusing the data.
+- Provenance fields to record with each export: query text/type, geography, time window, category, search type, export timestamp, Explore URL, raw filename and SHA-256.
+- Treat the plotted values as normalized relative search interest, not absolute search counts or observed purchase behavior. Do not merge independently normalized exports into one numeric series.
 - Geography: Brazil (BR); do not mix national and state-level series.
 - Time windows: last 5 years for seasonal context and last 12 months for recent context. Export each window separately.
 - Category: Food & Drink if the interface offers a consistent category for every item in the comparison; otherwise use the same broader setting for every item and record it.
