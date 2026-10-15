@@ -120,6 +120,13 @@ if (providerFallbackStart < 0 || !askFnText.slice(providerFallbackStart, provide
   failures.push('Deterministic fallback must preserve canonical evidence source URLs');
 }
 
+const requiredQualificationFields = ['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
+for (const field of requiredQualificationFields) {
+  if (!canonicalEdge.includes(field)) failures.push(`Public evidence qualification gate missing required field ${field}`);
+}
+if (!canonicalEdge.includes("String(item.fato_verificado_na_fonte || '').trim().toUpperCase().startsWith('SIM')")) {
+  failures.push('Public evidence qualification must require explicit source verification');
+}
 for (const field of ['public_nature','public_universe','public_represents','public_limits','public_primary_source','public_verification','public_scope']) {
   if (!canonicalEdge.includes(field)) failures.push(`Public Ask AI context missing qualification metadata ${field}`);
 }
