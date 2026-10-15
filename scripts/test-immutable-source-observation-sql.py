@@ -77,6 +77,29 @@ BEGIN
     RAISE EXCEPTION 'history tables were not created inside the transaction';
   END IF;
 
+  IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'intelligence_source_fetch_runs'
+        AND column_name = 'scope_fingerprint'
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'intelligence_source_fetch_runs'
+        AND column_name = 'completeness_status'
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'intelligence_source_fetch_runs'
+        AND column_name = 'absence_inference_eligible'
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'intelligence_source_fetch_runs'
+        AND column_name = 'pagination_exhausted'
+    ) THEN
+    RAISE EXCEPTION 'per-run completeness metadata columns are missing';
+  END IF;
+
   IF NOT (SELECT relrowsecurity FROM pg_class
           WHERE oid = 'public.intelligence_source_item_versions'::regclass)
      OR NOT (SELECT relrowsecurity FROM pg_class
@@ -152,6 +175,13 @@ BEGIN
            (v_industry_b, 'contract-b', 'active');
   INSERT INTO public.intelligence_sources (id, industry_id)
     VALUES (v_source_a, v_industry_a), (v_source_b, v_industry_b);
+  IF EXISTS (
+      SELECT 1 FROM public.intelligence_source_fetch_runs
+      WHERE id = v_run_a AND (completeness_status <> 'incomplete' OR absence_inference_eligible)
+    ) THEN
+    RAISE EXCEPTION 'new run defaults must remain conservative for absence inference';
+  END IF;
+
   INSERT INTO public.intelligence_source_fetch_runs (id, source_id, industry_id, status)
     VALUES (v_run_a, v_source_a, v_industry_a, 'running'),
            (v_run_b, v_source_b, v_industry_b, 'running'),
