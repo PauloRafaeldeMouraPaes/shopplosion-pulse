@@ -156,14 +156,14 @@ async function runPostgresScenario(scenario: Scenario) {
     if (sources.length !== 1 || !String(sources[0].last_error).length) {
       throw new Error("PostgreSQL source failure state was not persisted");
     }
-    if (runs.length !== 1 || runs[0].status !== "failed" || runs[0].absence_inference_eligible !== false) {
-      throw new Error("PostgreSQL fetch-run failure state was not persisted safely");
+    if (runs.length !== 1 || runs[0].absence_inference_eligible !== false) {
+      throw new Error("PostgreSQL fetch-run row was missing or incorrectly eligible for absence inference");
     }
     if (scenario === "source_failure_write_zero_row") {
       if (sources[0].last_error !== null) throw new Error("Suppressed source failure update unexpectedly changed the source row");
       if (runs[0].status !== "failed") throw new Error("Run failure update should succeed when source failure update is suppressed");
       if (body.failure_bookkeeping_failed !== 1) throw new Error("A zero-row source update must be reported as incomplete reconciliation");
-      if (!logs.some((line) => line.includes('"target":"source"') && line.includes('"error":"Error: no_row"'))) {
+      if (!logs.some((line) => line.includes("source_failure_status_persist_failed") && line.includes('"target":"source"'))) {
         throw new Error("Missing structured report for zero-row source failure update");
       }
     } else if (scenario === "run_failure_write_zero_row") {
