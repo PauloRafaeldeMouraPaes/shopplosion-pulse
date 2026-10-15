@@ -19,6 +19,16 @@ Status: **pre-registered plan; no observations collected**. This document fixes 
 
 ## Fixed query sets
 
+Direct Explore links are provided as convenience entry points. Before export, confirm every UI setting below and record the actual URL/settings; the links themselves are not evidence that a CSV was exported.
+
+### Registered direct links
+
+- Set A, Brazil, past 5 years: https://trends.google.com/trends/explore?date=today%205-y&geo=BR&q=chocolate,barra%20de%20chocolate,chocolate%20amargo,chocolate%20ao%20leite,chocolate%20sem%20a%C3%A7%C3%BAcar
+- Set A, Brazil, past 12 months: https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&q=chocolate,barra%20de%20chocolate,chocolate%20amargo,chocolate%20ao%20leite,chocolate%20sem%20a%C3%A7%C3%BAcar
+- Set B, Brazil, past 5 years: https://trends.google.com/trends/explore?date=today%205-y&geo=BR&q=Lindt,Lacta,Garoto,Nestl%C3%A9,Ferrero%20Rocher
+- Set B, Brazil, past 12 months: https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&q=Lindt,Lacta,Garoto,Nestl%C3%A9,Ferrero%20Rocher
+
+The links do not guarantee that Google will retain the requested search-term interpretation or category selection; verify the interface before export.
 ### Set A — category language
 Use these five Search terms together in one comparison:
 1. chocolate
