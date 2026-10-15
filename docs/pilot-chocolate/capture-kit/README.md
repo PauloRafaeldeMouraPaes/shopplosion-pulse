@@ -10,9 +10,9 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `retail-sample-acceptance.template.csv`: coverage, missing-day, field, product matching and reuse-scope checks by sample/product.
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
-- `public-source-capture-2026-10-15.csv`: first dated secondary-source desk capture; preliminary evidence only.
-- `public-source-review-2026-10-15.csv`: preliminary signal candidates, alternative explanations and follow-up decisions.
-- `public-retail-snapshot-2026-10-15.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
+- `public-source-capture-2026-10-14.csv`: first dated secondary-source desk capture; preliminary evidence only.
+- `public-source-review-2026-10-14.csv`: preliminary signal candidates, alternative explanations and follow-up decisions.
+- `public-retail-snapshot-2026-10-14.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
 - `product-universe.template.csv`: transparent record of the representative multi-brand product/retailer sample, inclusion rationale and coverage gaps; it is not an approval request.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
