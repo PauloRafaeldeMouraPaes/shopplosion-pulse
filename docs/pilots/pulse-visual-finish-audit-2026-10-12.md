@@ -109,3 +109,15 @@ Nenhum workflow, merge ou deploy foi alterado/iniciado nesta investigação.
 - Corrigi o uso de magenta em texto para `brand-pulse-strong` (`#d3185f`), conforme `design/tokens.json`; `brand-pulse` (`#e51b67`) fica reservado a indicadores não textuais.
 - Substituí travessões/meias-riscas visíveis por hífens simples, inclusive no título HTML, e alinhei a redação do limite central aos 13 sinais ativos.
 - A alteração é restrita ao acabamento e à consistência factual do piloto: nenhuma rota, ID, âncora, fluxo, conteúdo probatório ou workflow foi alterado. A aprovação final depende da nova execução do Browser Smoke neste commit.
+
+
+## Atualização posterior — piloto Chocolate, 15/10/2026
+
+O bloqueio de concorrência citado acima para o PR #79 deixou de se aplicar: o PR #79 foi encerrado sem merge. O acabamento do piloto foi feito separadamente no PR #96, sem alteração de rotas, IDs, âncoras, fluxo, conteúdo de evidência ou links.
+
+- `pilot-chocolate.html` agora carrega `pulse-tokens.css` antes dos estilos locais e usa os tokens de `design/tokens.json` para superfícies, tipografia, cores semânticas, espaçamento, raios e elevação.
+- Texto de ação/ênfase usa `brand-pulse-strong`; `brand-pulse` fica restrito a acentos não textuais. Cartões de lista mantêm borda e não recebem sombra; a superfície principal usa a elevação de painel do design system.
+- Foco visível, alvos de toque do link de retorno, números tabulares, layout responsivo e variantes para movimento/transparência/contraste reduzidos foram preservados ou adicionados sem novas interações.
+- No HEAD `3d8717a6f9f2d38c3416dd2f41ac505fc2b83319`, os cinco workflows passaram. O Browser Smoke mediu `pilot-chocolate.html` em 1440 px e 390 px com zero textos abaixo de 11 px, zero falhas de contraste AA, zero travessões/meias-riscas e zero erros de runtime.
+
+A verificação continua automatizada; teclado manual, leitor de tela e inspeção visual humana ainda não foram executados. Esta atualização não declara o baseline Chocolate pronto: os gates de captura de dados e evidência permanecem separados do acabamento visual.
