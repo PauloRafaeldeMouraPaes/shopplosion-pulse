@@ -99,7 +99,13 @@
     const qv=String(document.getElementById('query')?.value||'').trim();
     const terms=qv.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').split(/[^a-z0-9]+/).filter(t=>t.length>=2).slice(0,10);
     if(!terms.length){show('Digite uma pergunta válida.','error');return false}
-    const items=Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[];
+    const requiredPublicEvidenceFields=['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
+    const isQualifiedPublicEvidence=e=>requiredPublicEvidenceFields.every(field=>{
+      const value=String(e?.[field]??'').trim();
+      return value.length>0&&!value.includes('[A DEFINIR]');
+    })&&/^SIM\\b/i.test(String(e?.fato_verificado_na_fonte??'').trim());
+    // Keep the raw registry intact for audit, but never display or pass quarantined records to Ask AI.
+    const items=(Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[]).filter(isQualifiedPublicEvidence);
     const fixedId=new URLSearchParams(location.search).get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
     const rows=items.map(e=>{
       const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,e.fonte,e.tipo,(e.keywords||[]).join(' ')].filter(Boolean).join(' ').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
