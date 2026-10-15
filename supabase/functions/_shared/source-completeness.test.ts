@@ -62,6 +62,7 @@ Deno.test("failure classification distinguishes access, rate limit, parsing, inc
     ["http_403", "authentication_or_access_denied"],
     ["http_429", "rate_limited"],
     ["source_snapshot_incomplete:pagination_not_exhausted", "known_incomplete_response"],
+    ["source_snapshot_incomplete:source_item_content_exceeds_limit", "known_incomplete_response"],
     ["JSON parse failed", "parser_or_document_failure"],
     ["source_item_history_persist_failed", "persistence_failure"],
     ["fetch_run_predecessor_query_failed", "persistence_failure"],
