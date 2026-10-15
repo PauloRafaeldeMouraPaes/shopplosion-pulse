@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Ask AI interaction contract', () => {
   test('Buscar evidências públicas no shell visível executa e retorna evidências reais', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.17', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#pv3-scope-select')).toBeVisible();
     await page.selectOption('#pv3-scope-select', 'public');
     const input=page.locator('.pv4-real-input');
@@ -20,7 +20,7 @@ test.describe('Ask AI interaction contract', () => {
     page.on('request',request=>{
       if(request.url().includes('/functions/v1/pulse-ask-ai')) aiRequests++;
     });
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.17', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('O que as evidências qualificadas de chocolate indicam sobre preço e shopper na Páscoa?');
     const actions=page.locator('.pv4-real-actions button');
@@ -48,7 +48,7 @@ test.describe('Ask AI interaction contract', () => {
       });
     });
     await page.addInitScript(()=>{Object.defineProperty(window,'__PULSE_ASK_ACCESS_TOKEN',{configurable:true,get:()=> 'test-industry-token',set:()=>{}})});
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.17', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
     const actions=page.locator('.pv4-real-actions button');
@@ -78,7 +78,7 @@ test.describe('Ask AI interaction contract', () => {
       });
     });
     await page.addInitScript(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.17', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
     const actions=page.locator('.pv4-real-actions button');
@@ -108,7 +108,7 @@ test.describe('Ask AI interaction contract', () => {
       });
     });
     await page.addInitScript(()=>{window.__PULSE_ASK_ACCESS_TOKEN='test-industry-token'});
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.17', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('Quais sinais de chocolate merecem investigação?');
     const actions=page.locator('.pv4-real-actions button');
@@ -123,7 +123,7 @@ test.describe('Ask AI interaction contract', () => {
   });
 
   test('Chocolate recupera sinais de 2026 com natureza e limites distintos', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.17', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     await page.locator('.pv4-real-input').fill('intenção de compra chocolate Páscoa 2026 preço ovos barra Locomotiva');
     await page.locator('.pv4-real-actions button').nth(0).click();
@@ -140,7 +140,7 @@ test.describe('Ask AI interaction contract', () => {
   });
 
   test('Busca de chocolate recupera evidências específicas com alcance e natureza declarados', async ({ page }) => {
-    await page.goto('/ask.html?v=20260922.16', { waitUntil: 'domcontentloaded' });
+    await page.goto('/ask.html?v=20260922.17', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#pv3-scope-select', 'public');
     const input=page.locator('.pv4-real-input');
     await input.fill('mudanças emergentes no shopper de chocolate');
@@ -166,6 +166,20 @@ test.describe('Ask AI interaction contract', () => {
     }));
     expect(audit.ids.some(id=>id==='kantar-chocolate-brasil-volume-q1-2025')).toBeTruthy();
     expect(audit.metadata.some(x=>x.natureza && x.natureza!=='[A DEFINIR]' && x.alcance && x.alcance!=='[A DEFINIR]')).toBeTruthy();
+    const qualificationAudit=await page.evaluate(()=>{
+      const required=['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
+      const valid=e=>required.every(field=>String(e?.[field]??'').trim()&&!String(e[field]).includes('[A DEFINIR]'))&&/^SIM\\b/i.test(String(e?.fato_verificado_na_fonte??'').trim());
+      return {
+        matches:(window.__pulsePublicMatches||[]).length,
+        invalidMatches:(window.__pulsePublicMatches||[]).filter(x=>!valid(x.e)).map(x=>x.e?.id),
+        invalidAnswerEvidence:(window.__pulsePublicEvidenceForAnswer||[]).filter(e=>!valid(e)).map(e=>e.id),
+        quarantinedIds:(window.__pulsePublicMatches||[]).filter(x=>String(x.e?.id||'').startsWith('ibge-ipca-')).map(x=>x.e.id)
+      };
+    });
+    expect(qualificationAudit.matches).toBeGreaterThan(0);
+    expect(qualificationAudit.invalidMatches).toEqual([]);
+    expect(qualificationAudit.invalidAnswerEvidence).toEqual([]);
+    expect(qualificationAudit.quarantinedIds).toEqual([]);
   });
 
 
