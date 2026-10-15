@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
     const requiredPublicEvidenceFields = ["natureza","universo_observado","representa","nao_representa","fonte_primaria","fato_verificado_na_fonte","alcance_para_pergunta"]
     const sourceFamily = (item: any) => {
       const source = String(item.fonte_primaria || item.fonte || '').toLowerCase()
-      if (source.includes('kantar') || source.includes('worldpanel') || source.includes('numerator')) return 'Kantar / Worldpanel'
+      if (source.includes('kantar') || source.includes('worldpanel')) return 'Kantar / Worldpanel'
       if (source.includes('locomotiva')) return 'Instituto Locomotiva'
       if (source.includes('rico connect')) return 'Rico Connect'
       if (source.includes('abicab')) return 'Abicab'
