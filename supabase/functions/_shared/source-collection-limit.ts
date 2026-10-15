@@ -22,11 +22,22 @@ function hasNextPageLink(body: string): boolean {
 
 export function sourceCollectionLimitError(sourceType: string, body: string): string | null {
   if (sourceType === "rss") {
-    if (!/<(?:rss|feed)\b/i.test(body)) return INCOMPLETE + ":unsupported_or_invalid_feed_document";
+    const isAtom = /<feed\\b/i.test(body);
+    if (isAtom) {
+      // Structural sanity check only; this is not a full XML well-formedness proof.
+      if (!/<feed\\b[^>]*>/i.test(body) || !/<\\/feed\\s*>/i.test(body)) {
+        return INCOMPLETE + ":unsupported_or_invalid_feed_document";
+      }
+    } else if (
+      !/<rss\\b[^>]*>/i.test(body)
+      || !/<channel\\b[^>]*>/i.test(body)
+      || !/<\\/channel\\s*>/i.test(body)
+      || !/<\\/rss\\s*>/i.test(body)
+    ) {
+      return INCOMPLETE + ":unsupported_or_invalid_feed_document";
+    }
     if (hasNextPageLink(body)) return INCOMPLETE + ":pagination_not_exhausted";
-    const count = /<feed\b/i.test(body)
-      ? countBlocks(body, "entry")
-      : countBlocks(body, "item");
+    const count = isAtom ? countBlocks(body, "entry") : countBlocks(body, "item");
     return count > SOURCE_ITEM_LIMIT ? INCOMPLETE + ":collection_limit_exceeded" : null;
   }
 
