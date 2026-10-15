@@ -59,3 +59,14 @@ The cron owner does not need direct API-role grants for this schedule. Any grant
 6. Re-run Security Advisor and compare the new findings with the recorded baseline.
 
 **Release gate:** no bulk revoke and no production DDL until migration lineage is reconciled, the call graph is reviewed, and the staging acceptance matrix passes. The separate event-trigger draft in PR #89 is not applied to production.
+
+
+## Function-body risk notes (read-only inspection; do not invoke)
+
+- `pulse_external_intelligence_self_test()` creates a source, source item, signal and event under the first active industry, then attempts cleanup. It is a mutating production routine, not a harmless health check; do not use it to validate ACLs or staging behavior. Test its SQL body only against isolated fixtures.
+- `pulse_capture_document_version(uuid)` writes document versions, per-version chunks and change events for the supplied document ID, with no caller authorization check in the function body. The inspected caller is the server-side intelligence worker; direct API execution is unnecessary and should be denied after staging verifies the worker call.
+- `pulse_external_signal_deterministic_backstop()` mutates signal/event state over active recent source items, and `pulse_resolve_stale_intelligence_signals()` resolves signals. Both should be internal-only; never run them as part of an ACL audit.
+- `pulse_external_intelligence_contract_check()` and `pulse_intelligence_external_quality_check()` are diagnostics that aggregate active-signal/evidence quality across the tenant data. Even though their result shape is counts/status rather than source content, their intended API audience and cross-industry aggregation should be reviewed before any public grant is retained.
+- `auth_industry_context()` filters by `profiles.id = auth.uid()` and returns no row for an anonymous caller; `current_industry_id()` also derives its value from `auth.uid()` and active industry status. Preserve authenticated access only if the frontend genuinely needs these helpers and tests prove a user cannot switch or spoof industry context.
+
+These function-body findings are based on `pg_get_functiondef` read-only catalog queries. No function was executed, no secret was read, and no production state changed. They strengthen the priority of least-privilege ACL staging but do not authorize a production revoke.
