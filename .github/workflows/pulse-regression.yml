@@ -56,7 +56,7 @@ jobs:
       - name: Test source worker access and persistence failure reconciliation
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pulse_test
-        run: deno test supabase/functions/pulse-external-source-worker/index.test.ts supabase/functions/pulse-external-source-worker/index.postgres.test.ts
+        run: deno test --allow-env=DATABASE_URL --allow-net=localhost:5432 supabase/functions/pulse-external-source-worker/index.test.ts supabase/functions/pulse-external-source-worker/index.postgres.test.ts
       - name: Test source collection truncation guard
         run: deno test supabase/functions/_shared/source-collection-limit.test.ts
       - name: Test snapshot completeness and absence safeguards
