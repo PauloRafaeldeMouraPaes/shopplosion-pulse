@@ -39,7 +39,7 @@ CREATE TRIGGER intelligence_signal_event_capture
 AFTER UPDATE OF status ON public.intelligence_signals
 FOR EACH ROW EXECUTE FUNCTION public.capture_intelligence_signal_event();
 
-GRANT UPDATE ON public.intelligence_signals TO service_role;
+GRANT SELECT, UPDATE ON public.intelligence_signals TO service_role;
 """
 
 ASSERTIONS = r"""
