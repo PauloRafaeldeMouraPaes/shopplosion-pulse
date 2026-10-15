@@ -18,7 +18,7 @@ Use broad category and need-state signals first; use brands and SKUs as optional
 
 Freeze the initial category taxonomy, queries and sampling method before inspecting the resulting curves. The retail basket should be selected by transparent coverage criteria (format, weight range, price tier, product type and retailer availability), not by a target brand's approval. Record all included and excluded items, coverage gaps and why the sample is or is not representative. Expand the basket when category coverage requires it.
 
-No buyer-side approval is required to discover category-level insights from sources that are legitimately public or properly licensed. This does not waive source terms, copyright, privacy, access controls, or commercial-use restrictions. A vendor contract may still be required for restricted retailer feeds or licensed data.
+Category discovery should begin with openly accessible public signals and should not depend on buyer, brand, retailer or supplier approval. This does not mean every item online can be copied, scraped or redistributed without limits; use reasonable access methods, attribute sources, avoid personal/sensitive data and do not bypass access controls. Paid feeds are optional enrichment, not a prerequisite.
 
 ## Interpretation
 
