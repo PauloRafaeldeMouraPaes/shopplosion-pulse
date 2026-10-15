@@ -164,4 +164,27 @@ test.describe('Ask AI interaction contract', () => {
     expect(audit.metadata.some(x=>x.natureza && x.natureza!=='[A DEFINIR]' && x.alcance && x.alcance!=='[A DEFINIR]')).toBeTruthy();
   });
 
+
+  test('O conjunto público do Pulse só expõe evidências com proveniência qualificada', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    const audit = await page.evaluate(() => {
+      const required = ['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
+      const items = Array.isArray(window.PULSE_EVIDENCE) ? window.PULSE_EVIDENCE : [];
+      return {
+        count: items.length,
+        invalid: items.filter(item => !required.every(field =>
+          typeof item[field] === 'string' &&
+          item[field].trim() &&
+          !item[field].toUpperCase().includes('[A DEFINIR]')
+        ) || !String(item.fato_verificado_na_fonte || '').trim().toUpperCase().startsWith('SIM')).map(item => item.id),
+        ids: items.map(item => item.id)
+      };
+    });
+    expect(audit.count).toBeGreaterThan(0);
+    expect(audit.invalid).toEqual([]);
+    expect(audit.ids).toContain('kantar-chocolate-brasil-volume-q1-2025');
+    expect(audit.ids).toContain('locomotiva-pascoa-2026-intencao-drivers');
+    expect(audit.ids).not.toContain('ibge-ipca-alimentos-2026-01');
+  });
+
 });
