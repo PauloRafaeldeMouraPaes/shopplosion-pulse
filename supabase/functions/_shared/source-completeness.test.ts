@@ -64,6 +64,7 @@ Deno.test("failure classification distinguishes access, rate limit, parsing, inc
     ["source_snapshot_incomplete:pagination_not_exhausted", "known_incomplete_response"],
     ["JSON parse failed", "parser_or_document_failure"],
     ["source_item_history_persist_failed", "persistence_failure"],
+    ["fetch_run_predecessor_query_failed", "persistence_failure"],
   ];
   for (const [message, expected] of cases) {
     if (classifySourceFailure(message) !== expected) {
