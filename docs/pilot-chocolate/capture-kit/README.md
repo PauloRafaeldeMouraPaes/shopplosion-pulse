@@ -14,6 +14,9 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `public-source-capture-2026-10-14.csv`: twenty-four dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
 - `trends-query-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
+- `trends-export-status-2026-10-15.csv`: four required exports and their explicit capture/QA states.
+- `google-trends-manual-export-checklist.md`: step-by-step manual export, hash, provenance and QA instructions; no export is implied.
+- `repeatable-capture-cadence.md`: weekly source-capture procedure and explicit gates before starting the four-week baseline.
 - `public-source-review-2026-10-14.csv`: eleven preliminary signal candidates, alternative explanations and follow-up decisions.
 - `public-retail-snapshot-2026-10-14.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
