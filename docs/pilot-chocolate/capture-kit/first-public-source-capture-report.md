@@ -8,7 +8,7 @@ Status: **exploratory capture completed; not a four-week baseline**.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
 - `public-source-review-2026-10-14.csv`: six preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned.
-- `google-trends-capture-plan.md`: registered category and brand query sets with direct Google Trends Explore links; no actual Trends CSV is represented as captured.
+- `trends-query-plan.md`: registered category and brand query sets with direct Google Trends Explore links; no actual Trends CSV is represented as captured.
 
 Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel or social listening corpus was collected. The direct retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
@@ -34,7 +34,7 @@ Capture date is 2026-10-14 UTC at date precision; exact clock time was not recor
 
 ## Next capture sequence
 
-1. Manually export the four registered Google Trends comparisons in `google-trends-capture-plan.md` (Brazil; separate five-year and twelve-month windows; same search settings), preserving original CSVs, URLs, settings and SHA-256 hashes.
+1. Manually export the four registered Google Trends comparisons in `trends-query-plan.md` (Brazil; separate five-year and twelve-month windows; same search settings), preserving original CSVs, URLs, settings and SHA-256 hashes.
 2. Repeat the direct public retail snapshot across multiple retailer networks and a transparent multi-brand sample, recording URL, observation time, product/pack weight, price, promotion, availability wording and currency. Treat each as a dated snapshot; verify EAN/product identity before like-for-like comparisons.
 3. Compare repeated Pulse captures with the public CustoPorPrato history only after reviewing its methodology and intended reuse; do not count the same underlying supermarket observations as an independent source family.
 4. Collect independent public recipe/review/conversation sources with publication dates and deduplicate syndicated content.
