@@ -2,7 +2,7 @@ name: Pulse Evidence Contract
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, fix/quarantine-unqualified-public-evidence]
   workflow_dispatch:
 
 concurrency:

@@ -2,7 +2,7 @@ name: Pulse Browser Smoke
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, fix/quarantine-unqualified-public-evidence]
   push:
     branches: [main, pulse-next-level-reconciliation]
   workflow_dispatch:
