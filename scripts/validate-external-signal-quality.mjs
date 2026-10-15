@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary, shouldRecordSignalEvent } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
+import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary, shouldRecordSignalEvent, signalEventDirection } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
 
 const abicab = {
   id: "abicab-item",
@@ -65,6 +65,13 @@ assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,s
 assert.match(signalWorker, /isGoodEvidenceQuote/);
 assert.match(signalWorker, /shouldRecordSignalEvent\(/, "the main worker must use the shared event deduplication rule");
 assert.match(backstopWorker, /shouldRecordSignalEvent\(/, "the deterministic backstop must use the same event deduplication rule");
+assert.match(signalWorker, /signalEventDirection\(/, "the main worker must derive event direction from confidence delta");
+assert.match(backstopWorker, /signalEventDirection\(/, "the deterministic backstop must not label unchanged confidence as an upward event");
+assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.65, candidateDirection: "new" }), "new", "evidence-only changes must not be mislabeled as confidence increases");
+assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.70, candidateDirection: "stable" }), "up", "a meaningful confidence increase should be up");
+assert.equal(signalEventDirection({ priorConfidence: 0.70, confidence: 0.65, candidateDirection: "stable" }), "down", "a meaningful confidence decrease should be down");
+assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.66, candidateDirection: "stable" }), "stable", "small confidence movement should preserve candidate direction");
+
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65 }), false, "same fingerprint and confidence must not create another event");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.66 }), false, "small confidence movement below 0.05 must not create another event");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.70 }), true, "confidence movement at the 0.05 threshold must create an event");
