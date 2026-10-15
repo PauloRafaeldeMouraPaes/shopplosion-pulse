@@ -22,17 +22,17 @@ function hasNextPageLink(body: string): boolean {
 
 export function sourceCollectionLimitError(sourceType: string, body: string): string | null {
   if (sourceType === "rss") {
-    const isAtom = /<feed\\b/i.test(body);
+    const isAtom = /<feed\b/i.test(body);
     if (isAtom) {
       // Structural sanity check only; this is not a full XML well-formedness proof.
-      if (!/<feed\\b[^>]*>/i.test(body) || !/<\\/feed\\s*>/i.test(body)) {
+      if (!/<feed\b[^>]*>/i.test(body) || !/<\/feed\s*>/i.test(body)) {
         return INCOMPLETE + ":unsupported_or_invalid_feed_document";
       }
     } else if (
-      !/<rss\\b[^>]*>/i.test(body)
-      || !/<channel\\b[^>]*>/i.test(body)
-      || !/<\\/channel\\s*>/i.test(body)
-      || !/<\\/rss\\s*>/i.test(body)
+      !/<rss\b[^>]*>/i.test(body)
+      || !/<channel\b[^>]*>/i.test(body)
+      || !/<\/channel\s*>/i.test(body)
+      || !/<\/rss\s*>/i.test(body)
     ) {
       return INCOMPLETE + ":unsupported_or_invalid_feed_document";
     }
