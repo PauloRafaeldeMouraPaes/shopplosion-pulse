@@ -1,4 +1,4 @@
-export type FailureWriteResult = { error?: { message?: string } | null };
+export type FailureWriteResult = { data?: unknown; error?: { message?: string } | null };
 export type FailureWriter = () => Promise<FailureWriteResult>;
 export type FailureReporter = (message: string) => void;
 
