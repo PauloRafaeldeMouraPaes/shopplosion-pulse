@@ -1,6 +1,6 @@
 # Chocolate pilot — capture kit (pre-production)
 
-Status: **pre-production; exploratory public-source observations captured**. This directory includes dated secondary-source notes and one-day public retail listing snapshots. These are preliminary observations, not a validated trend or a started four-week baseline.
+Status: **pre-production; exploratory public-source observations captured**. This directory includes dated secondary-source notes and one-day public retail listing snapshots. Filenames use São Paulo local capture date 2026-10-14; UTC-date fields use 2026-10-15. Exact capture clock times were not recorded. These are preliminary observations, not a validated trend or a started four-week baseline.
 
 ## Files
 
