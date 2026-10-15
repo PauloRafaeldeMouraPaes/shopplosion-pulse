@@ -10,7 +10,8 @@ Status: **exploratory capture completed; not a four-week baseline**.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned, including the official Google Trends export instructions.
 - `product-universe-initial-2026-10-14.csv`: seven product × retailer records, all exploratory because EANs are not visible and exact timestamps/regions are incomplete.
 - `retail-sample-acceptance-2026-10-14.csv`: seven row-level QA decisions; none is baseline-accepted. They remain exploratory pending exact timestamps, product identity and source-use review.
-- `trends-query-plan.md`: registered category and brand query sets with direct Google Trends Explore links; no actual Trends CSV is represented as captured.
+- `trends-query-plan.md`: registered category and brand query sets with direct Google Trends Explore links.
+- `trends-export-status-2026-10-15.csv`: four required export slots, explicitly marked `not_captured`; this is a tracking register, not search-interest data.
 
 The filenames use the São Paulo local capture date (2026-10-14). UTC-date fields are recorded as 2026-10-15 because capture occurred after midnight UTC; exact clock time was not recorded. Historical publication/observation dates inside source pages remain their own dates. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel or social listening corpus was collected. The direct retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
