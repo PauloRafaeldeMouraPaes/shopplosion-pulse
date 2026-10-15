@@ -40,6 +40,17 @@ Deno.test("pagination hints fail closed for Atom and supported JSON responses", 
   );
 });
 
+Deno.test("JSON total metadata larger than the returned array fails closed", () => {
+  assertIncomplete(
+    sourceCollectionLimitError("json", JSON.stringify({ items: [{ id: 1 }], total_count: 120 })),
+    "JSON total_count",
+  );
+  assertIncomplete(
+    sourceCollectionLimitError("json", JSON.stringify({ data: [{ id: 1 }], totalCount: 2 })),
+    "JSON totalCount",
+  );
+});
+
 Deno.test("unsupported collection shape and invalid feed root fail closed", () => {
   assertIncomplete(sourceCollectionLimitError("json", JSON.stringify({ results: [{ id: 1 }] })), "unsupported JSON shape");
   assertIncomplete(sourceCollectionLimitError("rss", "<html>login page</html>"), "non-feed response");
