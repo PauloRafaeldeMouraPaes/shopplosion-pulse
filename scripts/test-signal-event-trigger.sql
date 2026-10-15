@@ -64,7 +64,7 @@ BEGIN
   SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
   IF v_count <> 1 THEN RAISE EXCEPTION 'timestamp-only and sub-threshold updates must not create events'; END IF;
 
-  UPDATE public.intelligence_signals SET confidence = 0.70, observed_at = observed_at + interval '1 minute' WHERE id = v_signal;
+  UPDATE public.intelligence_signals SET confidence = 0.71, observed_at = observed_at + interval '1 minute' WHERE id = v_signal;
   SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
   SELECT direction, change_score INTO v_direction, v_score FROM public.intelligence_signal_events WHERE signal_id = v_signal ORDER BY observed_at DESC LIMIT 1;
   IF v_count <> 2 OR v_direction <> 'up' OR v_score <> 0.05 THEN
