@@ -9,6 +9,12 @@ Status: investigation only. No production schema, data, grants, or migration his
 - The production history also includes entries such as `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary`. The corresponding files were not found at the expected `supabase/migrations/<name>.sql` paths on the default branch. This does not establish whether they were renamed, squashed, stored elsewhere, or applied out of band.
 - The live signal-event trigger/function and the current SECURITY DEFINER grants require a separate reviewed migration. Do not infer its original migration from current production state alone.
 
+## Per-version reconciliation manifest (2026-10-15)
+
+The read-only production migration listing is now preserved row-by-row in `docs/database/production-migration-lineage-manifest-2026-10-15.csv`. It contains all 72 production versions and names. Four versions have source mappings supported by SQL Git-blob hashes (three exact byte-for-byte matches and one match after trimming only terminal CR/LF); the other 68 are explicitly `unresolved`. For unresolved rows, an empty repository path is intentional and means no authoritative mapping has been established—not that the migration is safe to recreate or that it never existed.
+
+The manifest is an auditable snapshot, not a live drift detector and not authorization to reconcile Supabase migration history. In particular, the legacy production names `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary` still have no proven source file. Git history, renamed/deleted files, previous commits and external deployment records remain to be investigated before classification.
+
 ## Required reconciliation
 
 1. Inventory every tracked SQL migration and its Git history, including deleted/renamed files and migrations stored outside `supabase/migrations/`.
