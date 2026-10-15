@@ -103,7 +103,7 @@
     const isQualifiedPublicEvidence=e=>requiredPublicEvidenceFields.every(field=>{
       const value=String(e?.[field]??'').trim();
       return value.length>0&&!value.toUpperCase().includes('[A DEFINIR]');
-    })&&/^SIM\\b/i.test(String(e?.fato_verificado_na_fonte??'').trim());
+    })&&String(e?.fato_verificado_na_fonte??'').trim().toUpperCase().startsWith('SIM');
     // Keep the raw registry intact for audit, but never display or pass quarantined records to Ask AI.
     const items=(Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[]).filter(isQualifiedPublicEvidence);
     const fixedId=new URLSearchParams(location.search).get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
