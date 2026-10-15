@@ -57,3 +57,6 @@ A suíte deve demonstrar, usando os IDs sintéticos:
 ## Portão de liberação
 
 A mudança não deve ser considerada pronta até que H01–H15 passem em ambiente isolado, a revisão de segurança não encontre falhas críticas e o CI do PR mostre resultados concluídos. Testes de documentação ou revisão estática não substituem execução do contrato.
+
+
+Recent regression guard: RSS responses must contain a channel and closing RSS/channel tags; Atom responses must close the feed root. This prevents some malformed responses from being interpreted as empty successful captures. It is a structural sanity check only, not a complete XML parser or a positive completeness guarantee.
