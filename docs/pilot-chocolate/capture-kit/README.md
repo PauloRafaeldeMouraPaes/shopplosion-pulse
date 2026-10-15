@@ -37,3 +37,7 @@ No source has been authorized or connected by this kit, no supplier request has 
 
 For the first review, retain both accepted and rejected candidates. For each candidate record: stable signal ID; capture artifact/hash; source family and publication/observation dates; universe and method; observed fact; separate hypothesis; alternative explanations (seasonality, promotion, distribution, source coverage, sampling and syndicated reporting); independence/corroboration status; confidence; reviewer; decision and rationale. Contradictory signals remain visible. A single-source signal is labeled preliminary, not consolidated.
 
+## Provider shortlist note
+
+A public-source desk review identified **Cnova Tech Data Market** as a candidate for written coverage/sample diligence only. Its public page advertises EAN-level daily price observations, e-commerce/delivery coverage and up to 180 days of history; these remain provider claims, not verified results. Lindt coverage, exact historical depth by EAN/store, licensing for Pulse's commercial use and sample quality are unconfirmed. No account, trial, API call or supplier contact has been initiated. See `retail-provider-diligence.md` for the decision gate and questions.
+
