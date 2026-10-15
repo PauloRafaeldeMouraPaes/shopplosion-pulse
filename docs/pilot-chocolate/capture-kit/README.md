@@ -10,8 +10,10 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `retail-sample-acceptance.template.csv`: coverage, missing-day, field, product matching and reuse-scope checks by sample/product.
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
-- `public-source-capture-2026-10-14.csv`: first dated secondary-source desk capture; preliminary evidence only.
-- `public-source-review-2026-10-14.csv`: preliminary signal candidates, alternative explanations and follow-up decisions.
+- `public-source-capture-2026-10-14.csv`: nine dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
+- `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
+- `google-trends-capture-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
+- `public-source-review-2026-10-14.csv`: six preliminary signal candidates, alternative explanations and follow-up decisions.
 - `public-retail-snapshot-2026-10-14.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
 - `product-universe.template.csv`: transparent record of the representative multi-brand product/retailer sample, inclusion rationale and coverage gaps; it is not an approval request.
@@ -43,7 +45,7 @@ No private API, paid provider, account creation or supplier response is a prereq
 | Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
 | Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
 
-No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no raw Google Trends export, multi-retailer observation panel, or longitudinal retail time series has been collected; the first retail snapshot covers only one retailer. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
+No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no raw Google Trends export, multi-retailer observation panel, or longitudinal retail time series has been collected; the first direct retail snapshot covers two retailers; the secondary price aggregator is a separate benchmark and may overlap with the same underlying supermarket sites. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
 
 ### First weekly review record
 
