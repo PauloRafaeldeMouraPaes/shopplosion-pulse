@@ -81,7 +81,9 @@ def main() -> int:
                   "grant execute on function",
                   "pg_advisory_xact_lock",
                   "An existing observation makes this call a retry",
-                  "stale retries"):
+                  "stale retries",
+                  "current_item.status = 'rejected'",
+                  "re-fetching is not authorization to undo an explicit moderation decision"):
         require(token.lower() in sql.lower(),
                 f"SQL draft is missing required safeguard: {token}")
 
