@@ -4,7 +4,7 @@ Status: **exploratory capture completed; not a four-week baseline**.
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: eleven dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
+- `public-source-capture-2026-10-14.csv`: twelve dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
 - `public-source-review-2026-10-14.csv`: seven preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned.
@@ -13,6 +13,8 @@ Status: **exploratory capture completed; not a four-week baseline**.
 Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel or social listening corpus was collected. The direct retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
 ## Preliminary signals
+
+- **Cross-SKU price monitoring candidate (one source family).** The aggregator reports +1.1% between August and September monthly averages for Lacta milk 80g, +1.5% since August for Lacta Diamante Negro 80g, and +9.3% between August and September for Suflair Duo 80g. Suflair's São Paulo subset is small (9 observations across 9 markets/cities), and coverage/date windows differ across products. This is a candidate for repeat capture of retail prices, not an emerging shopper trend or evidence of a brand pricing strategy.
 
 - **Cross-SKU retail price context (preliminary, one source family).** The same CustoPorPrato aggregator also lists Lacta Diamante Negro 80g (105 markets, 7 states; São Paulo average R$9.76; latest collection 8 September 2026) and Nestlé Diplomata 80g (43 markets, 3 states; São Paulo average R$9.19, Minas Gerais R$11.03; latest collection 12 August 2026). These broaden SKU coverage but are not independent corroboration, and the unequal observation dates/coverage prevent a direct same-period comparison.
 
