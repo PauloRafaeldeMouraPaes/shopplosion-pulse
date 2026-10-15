@@ -1,14 +1,14 @@
-# First public-source desk capture — 15 October 2026
+# First public-source desk capture — 14 October 2026
 
 Status: **completed as a secondary-source desk capture; not a four-week baseline**.
 
 ## What was captured
 
-- `public-source-capture-2026-10-15.csv`: seven dated public-source records across shopper survey reporting, industry/price context, macro retail context and historical Easter retail snapshots.
-- `public-retail-snapshot-2026-10-15.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé, including conditional promotions and normalized price per 100g.
-- `public-source-review-2026-10-15.csv`: four preliminary signal candidates with observed facts separated from hypotheses, alternatives, independence assessment and follow-up actions.
+- `public-source-capture-2026-10-14.csv`: seven dated public-source records across shopper survey reporting, industry/price context, macro retail context and historical Easter retail snapshots.
+- `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé, including conditional promotions and normalized price per 100g.
+- `public-source-review-2026-10-14.csv`: four preliminary signal candidates with observed facts separated from hypotheses, alternatives, independence assessment and follow-up actions.
 
-Capture date is 2026-10-15 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated multi-retailer panel, social listening corpus, or SKU-level historical retail series was collected. The retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
+Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated multi-retailer panel, social listening corpus, or SKU-level historical retail series was collected. The retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
 ## Preliminary signals
 
