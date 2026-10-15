@@ -4,7 +4,7 @@ Status: **prepared, not executed**. No real observations are included in this ru
 
 ## Hard stop conditions
 
-Do not start capture or a four-week baseline until all applicable boxes are accepted by a human owner.
+Exploratory desk capture of accessible public sources may proceed without supplier or brand approval. Do not label it a baseline or start the four-week clock until the applicable reproducibility and QA gates are accepted by a human owner.
 
 - [ ] Category taxonomy, discovery questions and transparent sampling method are documented in `category-scope.md`; brand approval is not required for category-level discovery.
 - [ ] Each source has a `source-provenance.template.csv` record with URL, access method, timestamps, attribution and any relevant reuse limits. Do not seek bespoke permission just to analyze ordinary publicly accessible category signals; use a restricted feed only if its terms support the intended use.
