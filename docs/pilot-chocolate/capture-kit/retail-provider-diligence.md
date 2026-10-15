@@ -69,7 +69,7 @@ Decision remains `not_evaluated` until a human reviewer records the supplier res
 
 ## Additional route found — institutional data licensing (public-page review)
 
-Reviewed on 2026-10-15: https://cnovatech.com.br/parcerias-de-dados
+Reviewed on 2026-10-14: https://cnovatech.com.br/parcerias-de-dados
 
 This is a distinct route from the self-service Data Market API. The provider's institutional page describes licensed feeds for data/analytics products, SKU × source × day granularity, EAN matching, versioned history advertised since January 2026, daily updates, API/CSV/Parquet delivery, and a sample after NDA. The page states that scope, history depth and fields are set contractually and that the source list and detailed coverage are shared under NDA.
 
