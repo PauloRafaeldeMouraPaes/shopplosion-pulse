@@ -150,6 +150,19 @@ def main() -> int:
     require("duas execuções completas consecutivas" in cases,
             "H13 must require consecutive complete snapshots")
 
+    # H07/H08 deliberately keep retained source history worker-only. Assert
+    # the SQL contract tests both client roles against both history tables.
+    for token in (
+        "SET LOCAL ROLE anon;",
+        "SET LOCAL ROLE authenticated;",
+        "intelligence_source_item_versions",
+        "intelligence_source_item_observations",
+        "H07 anon unexpectedly read",
+        "H07 authenticated unexpectedly read",
+    ):
+        require(token in sql_test,
+                f"SQL contract is missing client-access denial case: {token}")
+
     print("PASS: static design preflight; H01-H15, safety contract, and SQL-draft guardrails are present.")
     print("LIMIT: static checks are not runtime validation; PostgreSQL contract tests run separately in CI.")
     return 0
