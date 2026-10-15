@@ -168,7 +168,7 @@ test.describe('Ask AI interaction contract', () => {
     expect(audit.metadata.some(x=>x.natureza && x.natureza!=='[A DEFINIR]' && x.alcance && x.alcance!=='[A DEFINIR]')).toBeTruthy();
     const qualificationAudit=await page.evaluate(()=>{
       const required=['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
-      const valid=e=>required.every(field=>String(e?.[field]??'').trim()&&!String(e[field]).toUpperCase().includes('[A DEFINIR]'))&&/^SIM\\b/i.test(String(e?.fato_verificado_na_fonte??'').trim());
+      const valid=e=>required.every(field=>String(e?.[field]??'').trim()&&!String(e[field]).toUpperCase().includes('[A DEFINIR]'))&&String(e?.fato_verificado_na_fonte??'').trim().toUpperCase().startsWith('SIM');
       return {
         matches:(window.__pulsePublicMatches||[]).length,
         invalidMatches:(window.__pulsePublicMatches||[]).filter(x=>!valid(x.e)).map(x=>x.e?.id),
