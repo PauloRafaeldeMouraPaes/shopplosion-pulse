@@ -4,6 +4,10 @@ export type FailureReporter = (message: string) => void;
 
 const defaultReporter: FailureReporter = (message) => console.error(message);
 
+function emitReport(report: FailureReporter, message: string): void {
+  try { report(message); } catch { /* reporting cannot interrupt failure reconciliation */ }
+}
+
 /**
  * Best-effort failure bookkeeping. A bookkeeping failure must not hide the
  * original collection error or prevent the worker from handling other sources.
@@ -26,7 +30,7 @@ export async function recordSourceFailure(
     if (!result?.data) throw new Error("no_row");
     sourceStatusPersisted = true;
   } catch (error) {
-    report(JSON.stringify({
+    emitReport(report, JSON.stringify({
       event: "source_failure_status_persist_failed",
       target: "source",
       source_id: sourceId,
