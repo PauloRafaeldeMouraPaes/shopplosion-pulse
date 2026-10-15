@@ -4,7 +4,7 @@ Status: investigation only. No production schema, data, grants, or migration his
 
 ## Verified state
 
-- Supabase production reports **69 timestamped migrations**, from `20260907035807` through `20260922041853`.
+- Supabase production reports **72 timestamped migrations**, from `20260907035807` through `20260922041853`.
 - The repository contains a numbered migration at `supabase/migrations/010_knowledge_updates_saved_evidence.sql`. Its content matches the production migration named `010_knowledge_updates_saved_evidence` at version `20260922032516`; this is one confirmed mapping, not proof of complete lineage.
 - The production history also includes entries such as `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary`. The corresponding files were not found at the expected `supabase/migrations/<name>.sql` paths on the default branch. This does not establish whether they were renamed, squashed, stored elsewhere, or applied out of band.
 - The live signal-event trigger/function and the current SECURITY DEFINER grants require a separate reviewed migration. Do not infer its original migration from current production state alone.
@@ -77,7 +77,7 @@ These are candidate lineage mappings, not a complete 69-version reconciliation. 
 ### Quantified gap
 
 - Current tracked SQL files: **10**.
-- Production migration-history rows: **69**.
+- Production migration-history rows: **72**.
 - One direct name/content mapping is confirmed; three more semantic mappings need full SQL equivalence checks.
 - The other production entries still need evidence-backed mapping to SQL/history, or an explicit disposition (for example, older baseline already present before timestamped history, squashed into a later file, out-of-band change, or unrecoverable source).
 
@@ -85,7 +85,7 @@ The historical commit/tree inspection also did not find the three exact producti
 
 ## Next safe technical step
 
-Build a reviewed manifest with one row per production version: `version`, `production_name`, `repo_path`, `repo_blob_sha`, `mapping_type`, `evidence`, `review_status`. Only after this manifest accounts for all 69 entries should CI enforce it. Do not fabricate placeholder migrations or create timestamped no-op files just to make counts match.
+Build a reviewed manifest with one row per production version: `version`, `production_name`, `repo_path`, `repo_blob_sha`, `mapping_type`, `evidence`, `review_status`. Only after this manifest accounts for all 72 entries should CI enforce it. Do not fabricate placeholder migrations or create timestamped no-op files just to make counts match.
 
 
 ### Live schema cross-check for the four recent candidate mappings
@@ -97,4 +97,9 @@ A read-only comparison of production columns, indexes and RLS policies against t
 - `009_shopper_knowledge_layer.sql`: production `shopper_knowledge` has the expected claim/source/segment/category/mission/period/confidence/status/evidence/payload fields and investigation indexes.
 - `010_knowledge_updates_saved_evidence.sql`: production `knowledge_updates`, `saved_evidence`, scope column and their indexes/policies match the checked-in feature definitions.
 
-This raises the confidence in the four feature mappings but does not establish byte-for-byte identity or resolve the other 65 production history rows. Production schema state can have been modified by later migrations, so it cannot substitute for original historical SQL.
+This raises the confidence in the four feature mappings but does not establish byte-for-byte identity or resolve the other 68 production history rows. Production schema state can have been modified by later migrations, so it cannot substitute for original historical SQL.
+
+
+## Machine-readable inventory
+
+The full read-only production migration listing is recorded in [production-migration-lineage-manifest.csv](production-migration-lineage-manifest.csv): **72 rows**, one per production version. Each row has an explicit mapping status and evidence note. Four recent feature migrations are mapped or candidate-mapped; the other 68 rows remain unresolved and must not be guessed. This manifest is a working audit artifact, not a declaration that lineage is reconciled.
