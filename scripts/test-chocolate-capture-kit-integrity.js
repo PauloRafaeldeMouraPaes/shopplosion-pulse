@@ -93,7 +93,7 @@ const supportingCsvs = [
   { file: "public-retail-snapshot-2026-10-14.csv", id: "observation_id", required: ["source_url", "retailer", "observed_price_brl", "review_status"] },
   { file: "public-source-provenance-2026-10-14.csv", id: "source_id", required: ["source_url", "access_method", "source_status"] },
   { file: "product-universe-initial-2026-10-14.csv", id: "product_id", required: ["brand", "product_name", "retailer", "inclusion_status"] },
-  { file: "retail-sample-acceptance-2026-10-14.csv", id: "sample_id", required: ["source_url", "overall_row_decision", "notes"] },
+  { file: "retail-sample-acceptance-2026-10-14.csv", id: "sample_id", required: ["access_basis_reference", "overall_row_decision", "notes"] },
 ];
 for (const spec of supportingCsvs) {
   const file = `${KIT}/${spec.file}`;
