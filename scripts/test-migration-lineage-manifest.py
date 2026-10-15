@@ -26,7 +26,7 @@ EXPECTED_MAPPINGS = {
     "20260922031240": ("supabase/migrations/009_shopper_knowledge_layer.sql", "confirmed_exact_blob_match"),
     "20260922032516": ("supabase/migrations/010_knowledge_updates_saved_evidence.sql", "confirmed_exact_blob_match"),
 }
-ALLOWED_STATUSES = {"unmapped", "confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim"}
+ALLOWED_STATUSES = {"unmapped", "confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim", "recovered_from_production_history"}
 
 def git_blob_sha(data: bytes) -> str:
     header = f"blob {len(data)}\0".encode("ascii")
@@ -68,10 +68,28 @@ def main() -> int:
         if actual_blob != row["repo_blob_sha"]:
             raise AssertionError(f"Git blob hash mismatch for {expected_path}: expected {row['repo_blob_sha']}, got {actual_blob}")
 
-    mapped = [row for row in rows if row["mapping_status"] != "unmapped"]
+    current_mappings = [row for row in rows if row["mapping_status"] in {"confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim"}]
+    recovered = [row for row in rows if row["mapping_status"] == "recovered_from_production_history"]
     unmapped = [row for row in rows if row["mapping_status"] == "unmapped"]
-    if len(mapped) != 4 or len(unmapped) != 68:
-        raise AssertionError(f"Expected 4 evidence-backed mappings and 68 explicit gaps; found {len(mapped)} mapped / {len(unmapped)} unmapped")
+    if len(current_mappings) != 4 or len(recovered) != 68 or len(unmapped) != 0:
+        raise AssertionError(
+            f"Expected 4 current-file mappings, 68 exact production-body archives, and 0 unmapped rows; "
+            f"found {len(current_mappings)} / {len(recovered)} / {len(unmapped)}"
+        )
+    for row in recovered:
+        if not row["repo_path"].startswith("docs/database/recovered-production-migrations/") or not row["repo_path"].endswith(".sql.txt"):
+            raise AssertionError(f"Recovered body must be a non-executable .sql.txt archive: {row['production_version']}")
+        if row["repo_blob_sha"] != row["production_git_blob_sha1"]:
+            raise AssertionError(f"Recovered production SQL SHA mismatch in manifest: {row['production_version']}")
+        path = ROOT / row["repo_path"]
+        if not path.is_file():
+            raise AssertionError(f"Recovered archive missing: {row['repo_path']}")
+        actual_blob = git_blob_sha(path.read_bytes())
+        if actual_blob != row["repo_blob_sha"]:
+            raise AssertionError(f"Recovered archive Git blob hash mismatch for {row['production_version']}")
+        text = path.read_text(encoding="utf-8")
+        if len(text) != int(row["production_sql_chars"]):
+            raise AssertionError(f"Recovered archive length mismatch for {row['production_version']}")
     for row in unmapped:
         if row["repo_path"] or row["repo_blob_sha"]:
             raise AssertionError(f"Unmapped production row must not invent repository provenance: {row['production_version']}")
@@ -85,8 +103,8 @@ def main() -> int:
         unexpected = sorted(actual_paths - EXPECTED_REPOSITORY_MIGRATIONS)
         raise AssertionError(f"Repository migration inventory changed; missing={missing}, unexpected={unexpected}. Reconcile the manifest before release.")
 
-    print("Validated 72 production history rows, 4 hash-backed mappings, 68 explicit gaps, and 10 repository migration files.")
-    print("This is a checked-in inventory preflight, not proof of live production lineage; no database connection was made.")
+    print("Validated 72 production rows, 4 current migration-file mappings, 68 exact archived SQL bodies, 0 unmapped versions, and 10 active migration files.")
+    print("Archived bodies are exact read-only copies from the production ledger; original Git authoring context and safe forward-only release strategy remain separate gates. No database connection was made by this validator.")
     return 0
 
 if __name__ == "__main__":
