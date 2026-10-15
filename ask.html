@@ -102,7 +102,7 @@
     const requiredPublicEvidenceFields=['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
     const isQualifiedPublicEvidence=e=>requiredPublicEvidenceFields.every(field=>{
       const value=String(e?.[field]??'').trim();
-      return value.length>0&&!value.includes('[A DEFINIR]');
+      return value.length>0&&!value.toUpperCase().includes('[A DEFINIR]');
     })&&/^SIM\\b/i.test(String(e?.fato_verificado_na_fonte??'').trim());
     // Keep the raw registry intact for audit, but never display or pass quarantined records to Ask AI.
     const items=(Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[]).filter(isQualifiedPublicEvidence);
