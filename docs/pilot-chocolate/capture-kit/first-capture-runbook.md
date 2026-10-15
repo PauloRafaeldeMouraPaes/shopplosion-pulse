@@ -7,8 +7,8 @@ Status: **prepared, not executed**. No real observations are included in this ru
 Do not start capture or a four-week baseline until all applicable boxes are accepted by a human owner.
 
 - [ ] Category taxonomy, discovery questions and transparent sampling method are documented in `category-scope.md`; brand approval is not required for category-level discovery.
-- [ ] Each source has a completed `source-permissions.template.csv` record documenting access method, terms/license version, collection rules, retention, derived analytics, citation and commercial display. For legitimately public sources, record the applicable terms and access basis; obtain a written license/agreement when required for restricted feeds.
-- [ ] Any restricted retail sample/feed is covered by the provider's required written authorization and has a recorded sample ID/hash; public observations may proceed only where the source's terms permit the intended method and use.
+- [ ] Each source has a `source-provenance.template.csv` record with URL, access method, timestamps, attribution and any relevant reuse limits. Do not seek bespoke permission just to analyze ordinary publicly accessible category signals; use a restricted feed only if its terms support the intended use.
+- [ ] Prefer public retail listings and other openly accessible category signals for the initial discovery run. A provider feed is optional, not a prerequisite; use one only if its access terms and intended use are compatible.
 - [ ] Source-specific settings, time zone, collection method, cadence, and known gaps are documented.
 - [ ] QA reviewer approves the first reproducible capture and records the decision.
 - [ ] Fixed category query sets, sampling method and observation schedule are frozen before the baseline start date.
@@ -39,7 +39,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 
 ## Retail sample procedure
 
-1. Use a public source only where its terms permit the intended access and use, or use a provider sample/API/feed under the expressly authorized scope recorded in the source register.
+1. Prefer directly accessible public product/listing pages and record their URLs, observation timestamps and attribution. Do not bypass login walls, technical blocks or rate limits. Provider feeds are an optional enrichment path, not a start gate.
 2. Retain the received artifact only as permitted. Record sample ID, retrieval time, license version, original filename and hash if allowed.
 3. Validate each product match by EAN where available, plus brand, variant and net weight; record store/network granularity and earliest/latest observation dates. This is data QA, not a buyer-approval gate.
 4. Distinguish observed price, regular price, promotional price, promotion mechanics, availability and missing/not-observed states. Never infer out-of-stock from a missing row.
@@ -48,7 +48,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 
 ## QA acceptance for the first run
 
-- Source terms and access basis support the intended collection, retention and use; obtain a written license where required.
+- Source provenance, access method, attribution and relevant reuse constraints are documented; no bespoke permission is required for ordinary public-source discovery.
 - All retained rows have source provenance and unambiguous observation timestamps.
 - No unexplained duplicate observation keys; corrections are appended with notes rather than silently overwriting history.
 - Product/EAN, variant, net weight, currency and price values pass the documented checks.
@@ -58,7 +58,7 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 
 ## Baseline clock
 
-The four-week baseline start timestamp is the first accepted capture after every hard gate passes. A failed or unauthorized sample does not start the clock. Record start/end timestamps and capture schedule in a versioned manifest. If settings, coverage, license or methodology materially changes, document the change and decide explicitly whether the baseline must restart.
+The four-week baseline start timestamp is the first accepted capture after every hard gate passes. A failed, irreproducible or unusable capture does not start the clock. Record start/end timestamps and capture schedule in a versioned manifest. If settings, coverage, license or methodology materially changes, document the change and decide explicitly whether the baseline must restart.
 
 ## First-run outcome record
 
