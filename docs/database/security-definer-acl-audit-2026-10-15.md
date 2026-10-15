@@ -9,10 +9,10 @@
 | `auth_industry_context()` | yes | yes | Returns the caller's profile/industry context. Confirm the intended user-facing contract; likely authenticated-only, not anonymous. |
 | `capture_document_version()` | yes | yes | Trigger-returning function; catalog query found no attached non-internal trigger. Review direct API exposure and any hidden caller before revoking. |
 | `capture_intelligence_signal_event()` | yes | yes | Attached to the `intelligence_signals` trigger. Remove direct API access only after proving trigger invocation remains functional. |
-| `pulse_capture_document_version(uuid)` | yes | yes | Mutates document-version history. Review application callers and intended audience before deciding minimum grant. |
+| `pulse_capture_document_version(uuid)` | yes | yes | Called by `supabase/functions/pulse-intelligence-worker/index.ts` through the server-side Supabase admin client. Preserve the internal worker path; direct `anon`/`authenticated` access is not required by the inspected caller. |
 | `pulse_external_backstop_schedule_tick()` | yes | yes | Internal scheduler reads Vault token and dispatches the deterministic-backstop Edge Function; internal-only. |
 | `pulse_external_intelligence_contract_check()` | yes | yes | Diagnostic/quality output; classify returned data and intended audience. |
-| `pulse_external_intelligence_fallback_candidate(uuid)` | yes | yes | Reads source content/evidence candidate; internal server path unless a constrained public contract is proven. |
+| `pulse_external_intelligence_fallback_candidate(uuid)` | yes | yes | Called by `supabase/functions/pulse-external-deterministic-backstop/index.ts` through its server-side admin client. Preserve service-role access; direct `anon`/`authenticated` access is not required by the inspected caller. |
 | `pulse_external_intelligence_self_test()` | yes | yes | Mutating test routine; review fixture creation/cleanup; internal-only by default. |
 | `pulse_external_signal_deterministic_backstop()` | yes | yes | Mutating backstop; internal-only. |
 | `pulse_intelligence_external_quality_check()` | yes | yes | Diagnostic/quality output; classify returned data and intended audience. |
