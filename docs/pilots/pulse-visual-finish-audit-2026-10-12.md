@@ -109,3 +109,15 @@ Nenhum workflow, merge ou deploy foi alterado/iniciado nesta investigação.
 - Corrigi o uso de magenta em texto para `brand-pulse-strong` (`#d3185f`), conforme `design/tokens.json`; `brand-pulse` (`#e51b67`) fica reservado a indicadores não textuais.
 - Substituí travessões/meias-riscas visíveis por hífens simples, inclusive no título HTML, e alinhei a redação do limite central aos 13 sinais ativos.
 - A alteração é restrita ao acabamento e à consistência factual do piloto: nenhuma rota, ID, âncora, fluxo, conteúdo probatório ou workflow foi alterado. A aprovação final depende da nova execução do Browser Smoke neste commit.
+
+## Addendum — acabamento Apple Design do piloto (15/10/2026)
+
+A observação de 12/10 sobre o piloto estava ligada ao conflito então aberto com o PR #79. O PR #79 foi encerrado sem merge; a página do piloto voltou a ser trabalhada isoladamente no PR Draft #97, sem alterar o documento factual nem os 13 sinais.
+
+- `pilot-chocolate.html` agora carrega `pulse-tokens.css`, `theme-color` e `color-scheme`. A paleta local foi removida em favor dos tokens semânticos existentes; `pulse-tokens.css` continua gerado e não foi editado manualmente.
+- A tipografia usa a escala do Pulse para display, leitura, seção, interface e metadados. As superfícies de hipótese e limite têm hierarquia distinta, sem empilhar translucidez ou sombras desnecessárias.
+- Links têm foco visível; o CSS respeita `prefers-reduced-motion`. A estrutura de conteúdo, rotas, IDs, âncoras e fluxo permaneceu intacta.
+- Browser Smoke no HEAD `6b37585282be920dfa474037dc41f8e7b2f9ca82` (run [#38738736529](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/actions/runs/38738736529)) passou: em 1440 px e 390 px, zero erros de runtime, zero textos abaixo de 11 px, zero falhas de contraste e zero travessões/meias-riscas visíveis. `labelsAboveTitle=1` é o único eyebrow de categoria, permitido pelo contrato; não há rótulo duplicado. Os cinco workflows da PR #97 passaram nesse HEAD.
+- Limites ainda honestos: o workflow não publica screenshots como artifacts; não declarei revisão visual manual, teste manual de teclado nem auditoria de leitor de tela como concluídos.
+
+O PR #97 permanece Draft. Este addendum registra a candidata validada pelo Browser Smoke; não autoriza merge ou deploy.
