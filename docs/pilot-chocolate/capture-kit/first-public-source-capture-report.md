@@ -29,6 +29,8 @@ Capture date is 2026-10-14 UTC at date precision; exact clock time was not recor
 
 ## Interpretation guardrails
 
+- **Quarantined data-quality issue:** the CustoPorPrato Nestlé Diplomata 80g page returned conflicting coverage/date summaries between the search result and opened page. Its capture and provenance rows are retained for auditability but explicitly quarantined; do not use its values in synthesis until a stable dated page capture resolves the discrepancy.
+
 - These are observations and hypotheses, not a validated emerging shopper trend.
 - Survey results describe stated intent, not completed purchases.
 - Seasonal Easter findings must not be extrapolated to October/year-round demand without further evidence.
