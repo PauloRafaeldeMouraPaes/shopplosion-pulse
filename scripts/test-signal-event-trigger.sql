@@ -84,6 +84,11 @@ BEGIN
   SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
   IF v_count <> 1 THEN RAISE EXCEPTION 'insert must create exactly one initial event'; END IF;
 
+  UPDATE public.intelligence_signals SET status = 'paused' WHERE id = v_signal;
+  UPDATE public.intelligence_signals SET status = 'active' WHERE id = v_signal;
+  SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
+  IF v_count <> 1 THEN RAISE EXCEPTION 'non-resolution status-only changes must not create events'; END IF;
+
   UPDATE public.intelligence_signals SET observed_at = observed_at + interval '1 minute' WHERE id = v_signal;
   UPDATE public.intelligence_signals SET confidence = 0.66 WHERE id = v_signal;
   SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
