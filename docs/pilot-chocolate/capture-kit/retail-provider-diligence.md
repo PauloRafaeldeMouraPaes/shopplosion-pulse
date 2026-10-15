@@ -65,6 +65,23 @@ Unresolved diligence questions before any account/trial/API use:
 
 Decision remains `not_evaluated` until a human reviewer records the supplier response, license version, sample ID/hash, per-EAN coverage and acceptance-test results. The published claims are not observed pilot data and must not be entered into the baseline.
 
+## Additional route found — institutional data licensing (public-page review)
+
+Reviewed on 2026-10-15: https://cnovatech.com.br/parcerias-de-dados
+
+This is a distinct route from the self-service Data Market API. The provider's institutional page describes licensed feeds for data/analytics products, SKU × source × day granularity, EAN matching, versioned history advertised since January 2026, daily updates, API/CSV/Parquet delivery, and a sample after NDA. The page states that scope, history depth and fields are set contractually and that the source list and detailed coverage are shared under NDA.
+
+**Assessment:** this institutional route is more aligned with Pulse as a commercial analytics product than assuming a self-service API trial grants all needed rights. It is still only a provider claim, not a recommendation or authorization. The page's generic coverage figures do not prove Lindt or any pilot EAN is present. An NDA, sample request, data license or commercial commitment has not been initiated.
+
+If the owner later authorizes supplier contact, request a written, non-binding scoping response first and require:
+- sample coverage by buyer-approved EAN × retailer/source × date, including Lindt if available and comparable chocolate SKUs;
+- exact start/end dates, missing days, store/source granularity and historical versioning;
+- field dictionary for observed price, regular/promo price, promotion mechanics, net weight, availability, source URL and collection timestamp;
+- written permission to retain raw records, create derived indicators, cite provenance and display outputs in Pulse to its customers, with explicit limits on model training, redistribution, retention/deletion and derivative data;
+- all fees, NDA scope, sample restrictions, contract duration, renewal, cancellation and service commitments.
+
+Do not sign an NDA, submit business/contact details, provide EAN lists, activate a trial, or accept terms without explicit approval. If approved, evaluate the institutional sample and self-service API as separate offers; do not assume their licensing or coverage is interchangeable.
+
 ## Draft supplier inquiry (not sent)
 
 **Subject:** Validação de cobertura e amostra autorizada — preços de chocolates por EAN no Brasil
