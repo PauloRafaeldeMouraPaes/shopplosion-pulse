@@ -12,6 +12,7 @@ Status: **schema and protocol only**. This directory contains no collected obser
 - `source-permissions.template.csv`: record license version, permitted collection, retention, derived analytics and commercial display before ingesting data.
 - `weekly-signal-review.template.csv`: log observed facts separately from hypotheses, alternatives, corroboration, confidence and human accept/reject decisions.
 - `review-protocol.md`: evidence, quality and interpretation rules.
+- `first-capture-runbook.md`: execution steps, hard stop gates, QA acceptance and baseline start conditions.
 
 ## Activation gates
 
