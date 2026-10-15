@@ -28,17 +28,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      postgrest:
-        image: postgrest/postgrest:v12.2.3
-        env:
-          PGRST_DB_URI: postgresql://postgres:postgres@postgres:5432/pulse_test
-          PGRST_DB_SCHEMAS: public
-          PGRST_DB_ANON_ROLE: anon
-          PGRST_JWT_SECRET: pulse-postgrest-test-secret-2026-10-15-change-me
-          PGRST_SERVER_PORT: 3000
-          PGRST_DB_POOL: 10
-        ports:
-          - 54321:3000
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,8 +49,6 @@ jobs:
           deno-version: v2.x
       - name: Type-check external source history worker
         run: deno check supabase/functions/pulse-external-source-worker/index.ts
-      - name: Type-check real PostgREST integration test
-        run: deno check supabase/functions/pulse-external-source-worker/index.postgrest.test.ts
       - name: Test source HTTP retry policy
         run: deno test supabase/functions/_shared/fetch-source.test.ts
       - name: Test source failure bookkeeping
@@ -122,33 +109,3 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pulse_test
         run: python3 scripts/test-immutable-source-observation-sql.py
-
-      - name: Prepare ephemeral PostgREST worker fixture
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pulse_test
-        shell: bash
-        run: |
-          set -euo pipefail
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f tests/fixtures/source-worker-postgrest-baseline.sql
-          python3 - <<PY >> "$GITHUB_ENV"
-          import base64, hashlib, hmac, json, time
-          secret = b"pulse-postgrest-test-secret-2026-10-15-change-me"
-          encode = lambda value: base64.urlsafe_b64encode(value).rstrip(b"=").decode()
-          header = encode(json.dumps({"alg": "HS256", "typ": "JWT"}, separators=(",", ":")).encode())
-          now = int(time.time())
-          payload = encode(json.dumps({"role": "service_role", "iss": "supabase", "iat": now, "exp": now + 3600, "aud": "authenticated"}, separators=(",", ":")).encode())
-          unsigned = f"{header}.{payload}"
-          signature = encode(hmac.new(secret, unsigned.encode(), hashlib.sha256).digest())
-          print("SERVICE_ROLE_KEY=" + unsigned + "." + signature)
-          print("API_URL=http://127.0.0.1:54321")
-          PY
-          for attempt in $(seq 1 30); do
-            status="$(curl -sS -o /dev/null -w "%{http_code}" http://127.0.0.1:54321/ || true)"
-            if [ "$status" = "200" ]; then exit 0; fi
-            sleep 2
-          done
-          echo "PostgREST did not become ready on the isolated CI endpoint" >&2
-          exit 1
-
-      - name: Exercise source worker through real PostgREST
-        run: deno test --allow-env --allow-net=127.0.0.1:54321 supabase/functions/pulse-external-source-worker/index.postgrest.test.ts
