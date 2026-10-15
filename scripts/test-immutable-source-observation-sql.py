@@ -186,6 +186,25 @@ BEGIN
            (v_run_a7, v_source_a, v_industry_a, 'running'),
            (v_run_a9, v_source_a, v_industry_a, 'running');
 
+  UPDATE public.intelligence_source_fetch_runs
+     SET previous_fetch_run_id = v_run_a
+   WHERE id = v_run_a2;
+  IF NOT EXISTS (
+      SELECT 1 FROM public.intelligence_source_fetch_runs
+      WHERE id = v_run_a2 AND previous_fetch_run_id = v_run_a
+    ) THEN
+    RAISE EXCEPTION 'fetch-run predecessor lineage was not persisted';
+  END IF;
+
+  BEGIN
+    UPDATE public.intelligence_source_fetch_runs
+       SET previous_fetch_run_id = v_run_b
+     WHERE id = v_run_a3;
+    RAISE EXCEPTION 'cross-source predecessor link unexpectedly succeeded';
+  EXCEPTION WHEN foreign_key_violation THEN
+    NULL;
+  END;
+
   IF EXISTS (
       SELECT 1 FROM public.intelligence_source_fetch_runs
       WHERE id = v_run_a AND (completeness_status <> 'incomplete' OR absence_inference_eligible)
