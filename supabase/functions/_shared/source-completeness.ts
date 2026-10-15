@@ -122,7 +122,7 @@ export function classifySourceFailure(errorMessage: string): string {
     return "known_incomplete_response";
   }
   if (/parse|json|xml|unsupported_or_invalid_feed_document/.test(message)) return "parser_or_document_failure";
-  if (/persist|database|rpc|fetch_run_create_failed|fetch_run_finish_failed|source_status_update_failed/.test(message)) {
+  if (/persist|database|rpc|fetch_run_create_failed|fetch_run_predecessor_query_failed|fetch_run_finish_failed|source_status_update_failed/.test(message)) {
     return "persistence_failure";
   }
   if (/http_5\d\d\b|http_0\b|timeout|abort|network|fetch failed/.test(message)) return "transient_transport_failure";
