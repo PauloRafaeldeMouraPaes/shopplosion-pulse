@@ -55,3 +55,19 @@ Deno.test("parser or persistence failure disables absence inference", async () =
     }
   }
 });
+
+Deno.test("failure classification distinguishes access, rate limit, parsing, incompleteness, and persistence", async () => {
+  const { classifySourceFailure } = await import("./source-completeness.ts");
+  const cases: Array<[string, string]> = [
+    ["http_403", "authentication_or_access_denied"],
+    ["http_429", "rate_limited"],
+    ["source_snapshot_incomplete:pagination_not_exhausted", "known_incomplete_response"],
+    ["JSON parse failed", "parser_or_document_failure"],
+    ["source_item_history_persist_failed", "persistence_failure"],
+  ];
+  for (const [message, expected] of cases) {
+    if (classifySourceFailure(message) !== expected) {
+      throw new Error(`failure classification mismatch for ${message}`);
+    }
+  }
+});
