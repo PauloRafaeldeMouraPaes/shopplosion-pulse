@@ -54,6 +54,7 @@ DECLARE
   v_run_a6 uuid := gen_random_uuid();
   v_run_a7 uuid := gen_random_uuid();
   v_run_a8 uuid;
+  v_run_a9 uuid := gen_random_uuid();
   v_atomic_failure boolean := false;
   v_item_a uuid := gen_random_uuid();
   v_item_b uuid := gen_random_uuid();
@@ -66,6 +67,7 @@ DECLARE
   v_rpc_reverted record;
   v_rpc_stale record;
   v_rpc_retry record;
+  v_rpc_rejected_repeat record;
   v_function_oid oid;
   v_function_is_definer boolean;
   v_role text;
@@ -158,7 +160,8 @@ BEGIN
            (v_run_a4, v_source_a, v_industry_a, 'running'),
            (v_run_a5, v_source_a, v_industry_a, 'running'),
            (v_run_a6, v_source_a, v_industry_a, 'running'),
-           (v_run_a7, v_source_a, v_industry_a, 'running');
+           (v_run_a7, v_source_a, v_industry_a, 'running'),
+           (v_run_a9, v_source_a, v_industry_a, 'running');
   INSERT INTO public.intelligence_source_items
     (id, source_id, industry_id, external_id, title, content, content_fingerprint)
     VALUES
@@ -444,10 +447,33 @@ BEGIN
   EXCEPTION WHEN foreign_key_violation THEN NULL;
   END;
 
+  -- Re-fetch must not silently undo an explicit moderation/rejection decision.
+  UPDATE public.intelligence_source_items
+     SET status = 'rejected'
+   WHERE source_id = v_source_a AND external_id = 'rpc-item';
+
+  SELECT * INTO v_rpc_rejected_repeat
+    FROM public.pulse_record_source_item_observation(
+      v_industry_a, v_source_a, v_run_a9, 'rpc-item', 'RPC item',
+      'https://example.test/rpc', '2026-01-01T00:00:00Z'::timestamptz,
+      'payload one', repeat('f', 64), jsonb_build_object('parser_version', 'test-1'));
+  IF v_rpc_rejected_repeat.outcome <> 'unchanged'
+     OR v_rpc_rejected_repeat.version_created
+     OR v_rpc_rejected_repeat.current_item_changed THEN
+    RAISE EXCEPTION 're-fetch of rejected item returned unexpected version/change flags';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.intelligence_source_items
+     WHERE source_id = v_source_a AND external_id = 'rpc-item'
+       AND status = 'rejected'
+  ) THEN
+    RAISE EXCEPTION 'identical re-fetch silently reactivated a rejected item';
+  END IF;
+
   IF (SELECT count(*) FROM public.intelligence_source_item_versions
        WHERE external_id = 'rpc-item') <> 2
      OR (SELECT count(*) FROM public.intelligence_source_item_observations
-       WHERE external_id = 'rpc-item') <> 5
+       WHERE external_id = 'rpc-item') <> 6
      OR NOT EXISTS (
        SELECT 1 FROM public.intelligence_source_items
        WHERE source_id = v_source_a AND external_id = 'rpc-item'
@@ -455,7 +481,7 @@ BEGIN
          AND published_at = '2026-01-01T00:00:00Z'::timestamptz
      )
      OR (SELECT count(*) FROM public.intelligence_source_item_versions) <> 6
-     OR (SELECT count(*) FROM public.intelligence_source_item_observations) <> 6 THEN
+     OR (SELECT count(*) FROM public.intelligence_source_item_observations) <> 7 THEN
     RAISE EXCEPTION 'RPC persistence/idempotency/reversion assertions failed';
   END IF;
 
