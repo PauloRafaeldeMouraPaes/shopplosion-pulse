@@ -198,6 +198,15 @@ BEGIN
 
   BEGIN
     UPDATE public.intelligence_source_fetch_runs
+       SET previous_fetch_run_id = v_run_a
+     WHERE id = v_run_a4;
+    RAISE EXCEPTION 'branched predecessor lineage unexpectedly succeeded';
+  EXCEPTION WHEN unique_violation THEN
+    NULL;
+  END;
+
+  BEGIN
+    UPDATE public.intelligence_source_fetch_runs
        SET previous_fetch_run_id = v_run_b
      WHERE id = v_run_a3;
     RAISE EXCEPTION 'cross-source predecessor link unexpectedly succeeded';
