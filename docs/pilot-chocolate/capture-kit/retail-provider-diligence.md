@@ -65,3 +65,27 @@ Unresolved diligence questions before any account/trial/API use:
 
 Decision remains `not_evaluated` until a human reviewer records the supplier response, license version, sample ID/hash, per-EAN coverage and acceptance-test results. The published claims are not observed pilot data and must not be entered into the baseline.
 
+## Draft supplier inquiry (not sent)
+
+**Subject:** Validação de cobertura e amostra autorizada — preços de chocolates por EAN no Brasil
+
+Olá, equipe Data Market,
+
+Estamos avaliando uma fonte de dados para um piloto de inteligência de mercado na categoria de chocolates no Brasil. Antes de criar conta, consumir cota de teste ou contratar qualquer plano, precisamos confirmar a cobertura e os direitos de uso para um conjunto pequeno de produtos.
+
+Poderiam responder por escrito aos pontos abaixo?
+
+1. Podemos enviar uma lista de 5–10 EANs aprovados por nós para verificar a cobertura por EAN × rede/loja × canal? Precisamos incluir produtos Lindt e ao menos quatro comparáveis de Lacta, Garoto e/ou Nestlé.
+2. Para cada EAN coberto, vocês conseguem informar a primeira data histórica disponível, a frequência real das observações, a cobertura por loja e eventuais lacunas?
+3. A amostra pode ser fornecida antes de ativarmos a conta ou consumirmos as 50 requisições do trial? Se sim, em quais condições e com que autorização de uso?
+4. Quais campos estão disponíveis para preço regular/promocional, mecânica/condições de promoção, peso líquido, moeda, disponibilidade, URL de origem e timestamp de coleta?
+5. Poderiam compartilhar a versão vigente dos termos/licença e confirmar se podemos reter observações brutas, produzir análises derivadas e exibir resultados/citações em um produto comercial de analytics, sem revender a API nem replicar a base?
+6. Quais são o custo total, impostos, limites, overages, cancelamento e restrições após o trial?
+
+Nosso critério é avaliar a qualidade da amostra e os direitos de uso antes de qualquer integração. Não precisamos de acesso amplo nesta etapa.
+
+Obrigado(a),
+Equipe do piloto de inteligência de mercado
+
+**Status:** rascunho para revisão; não enviado. Substituir/validar a lista de EANs antes de qualquer envio.
+
