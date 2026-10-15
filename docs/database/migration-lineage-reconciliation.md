@@ -103,3 +103,15 @@ This raises the confidence in the four feature mappings but does not establish b
 ## Machine-readable inventory
 
 The full read-only production migration listing is recorded in [production-migration-lineage-manifest.csv](production-migration-lineage-manifest.csv): **72 rows**, one per production version. Each row has an explicit mapping status and evidence note. Four recent feature migrations are mapped or candidate-mapped; the other 68 rows remain unresolved and must not be guessed. This manifest is a working audit artifact, not a declaration that lineage is reconciled.
+
+
+## Exact SQL identity checks (2026-10-15)
+
+The production migration table stores the SQL statement payloads. I computed the Git blob SHA-1 for each stored statement directly in PostgreSQL (without returning the SQL text) and compared it with the Git blob SHAs of the 10 checked-in files. Results:
+
+- **3 exact byte-for-byte matches:** production `20260922030641 / complete_analysis_artifact_metadata` ↔ `008_analysis_artifact_metadata.sql`; `20260922031240 / create_shopper_knowledge_layer` ↔ `009_shopper_knowledge_layer.sql`; and `20260922032516 / 010_knowledge_updates_saved_evidence` ↔ `010_knowledge_updates_saved_evidence.sql`.
+- **1 match after trimming terminal CR/LF only:** production `20260922030555 / create_investigations_and_link_analyses` ↔ `007_investigations_and_analysis_link.sql`. The stored statement is one character longer; the trimmed Git blob SHA matches exactly.
+- The other **68 production versions** do not exactly match any of the 10 current files, even after terminal CR/LF trimming. They remain unmapped and require historical-baseline/squash/out-of-band classification.
+- This also proves the numeric prefix is not an identity: production `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary` do not match current files with the same numeric prefixes.
+
+The manifest now records statement length, production Git blob SHA-1, trimmed SHA-1, checked-in file SHA, and mapping status for every one of the 72 production versions. This is a stronger, reproducible comparison than filename matching. No SQL payload was copied into the active migration directory, and no production changes were made.
