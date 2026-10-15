@@ -106,7 +106,9 @@ def main() -> int:
         "fetch_run_predecessor_query_failed",
         "fetch_run_create_failed:",
         "fetch_run_finish_failed:",
-        "fetchSourceWithRetry(s.url,fetchWithTimeout,sleep)",
+        "fetchSource(s.url,fetchWithTimeout,wait)",
+        "dependencies.fetchSource ?? fetchSourceWithRetry",
+        "if (import.meta.main) Deno.serve(createSourceWorkerHandler())",
     ):
         require(token in worker, f"Worker is missing required history guard: {token}")
     run_finish = worker.index("status:'completed',items_seen:itemsSeen,items_changed:itemsChanged")
