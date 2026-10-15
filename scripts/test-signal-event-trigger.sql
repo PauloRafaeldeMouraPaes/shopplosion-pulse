@@ -8,6 +8,9 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
     CREATE ROLE authenticated NOLOGIN;
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+    CREATE ROLE service_role NOLOGIN;
+  END IF;
 END;
 $roles$;
 
@@ -22,6 +25,13 @@ CREATE TABLE public.intelligence_signals (
   observed_at timestamptz NOT NULL DEFAULT now(),
   fingerprint text
 );
+
+CREATE FUNCTION public.pulse_external_backstop_schedule_tick()
+RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
+CREATE FUNCTION public.pulse_external_intelligence_fallback_candidate(p_item_id uuid)
+RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT '{}'::jsonb $stub$;
+GRANT EXECUTE ON FUNCTION public.pulse_external_backstop_schedule_tick() TO service_role;
+GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid) TO service_role;
 
 CREATE TABLE public.intelligence_signal_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -49,6 +59,18 @@ BEGIN
   IF has_function_privilege('anon', 'public.capture_intelligence_signal_event()', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.capture_intelligence_signal_event()', 'EXECUTE') THEN
     RAISE EXCEPTION 'API roles must not directly execute the trigger function';
+  END IF;
+
+  IF has_function_privilege('anon', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'API roles must not directly execute the cron scheduler';
+  END IF;
+  IF has_function_privilege('anon', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'API roles must not directly execute internal candidate lookup';
+  END IF;
+  IF NOT has_function_privilege('service_role', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'trusted worker role lost candidate lookup execution';
   END IF;
 
   INSERT INTO public.intelligence_signals
