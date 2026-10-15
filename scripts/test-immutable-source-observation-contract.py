@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "docs/pilots/immutable-source-observation-history.md"
 CASES = ROOT / "docs/pilots/immutable-source-observation-tests.md"
 SQL_DRAFT = ROOT / "docs/pilots/immutable-source-observation-schema-draft.sql"
+SQL_TEST = ROOT / "scripts/test-immutable-source-observation-sql.py"
 WORKER = ROOT / "supabase/functions/pulse-external-source-worker/index.ts"
 FETCH_HELPER = ROOT / "supabase/functions/_shared/fetch-source.ts"
 FETCH_TEST = ROOT / "supabase/functions/_shared/fetch-source.test.ts"
@@ -29,6 +30,7 @@ def main() -> int:
     design = DESIGN.read_text(encoding="utf-8")
     cases = CASES.read_text(encoding="utf-8")
     sql = SQL_DRAFT.read_text(encoding="utf-8")
+    sql_test = SQL_TEST.read_text(encoding="utf-8")
     worker = WORKER.read_text(encoding="utf-8")
     fetch_helper = FETCH_HELPER.read_text(encoding="utf-8")
     fetch_test = FETCH_TEST.read_text(encoding="utf-8")
