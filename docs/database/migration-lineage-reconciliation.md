@@ -158,3 +158,16 @@ CI on the branch head passed the five Pulse workflows; specifically, its Regress
 A read-only query of production confirms that the existing `intelligence_source_item_versions` and `intelligence_source_item_observations` tables are absent. Current `intelligence_source_items` has five `active` and 21 `rejected` rows at the time of this check. Both current `main` and the candidate worker reset `status='active'` during a source-item upsert; this is pre-existing behavior, but it must be explicitly tested so a repeated identical capture does not silently undo an intentional rejection. No production DDL or data was changed.
 
 This candidate may help the future Chocolate capture system preserve history, but it does not solve the historical migration gap and is not authorized for production application. The 68 unmatched production versions remain unresolved.
+
+
+## Accessible branch-tip sweep completed (2026-10-15)
+
+The repository exposes 113 branch names across its two paginated branch listings. I inspected the recursive Git tree for all 93 distinct commit SHAs at those branch tips (duplicate branch names pointing to the same commit were counted once). For each tree, I compared tracked SQL blob SHAs with the 72 production statement blob hashes and terminal-CR/LF-trimmed hashes in the manifest.
+
+Result: no additional SQL blob in those accessible branch-tip snapshots maps to the 68 unresolved production statements. The only positive production-hash mappings remain the same four recent feature migrations; the other SQL files in older branch tips are the cumulative 001–006 set, or the same current 001–010 set. One separate candidate migration for immutable source history exists on `docs/cross-signal-market-human-behavior`, but its content hash does not match any production statement and its timestamp follows the latest production migration version. It is a future proposal, not historical recovery.
+
+This materially broadens the negative search evidence, but it is not proof about non-tip/unreachable Git objects, deleted remote refs not exposed by the current branch listing, another repository, manual SQL, or backups. Accordingly, keep the 68 rows labelled `unmapped`; do not infer `out_of_band` solely from absence in the inspected branch tips.
+
+## Latest verification
+
+On commit `de15f7702b066739bf89894d26e2ca364f4735f9`, all Pulse CI checks have now completed successfully, including Browser Smoke, Regression, Evidence Contract, Private AI Audit, Multi-Tenant Audit and Validate. Netlify redirect processing succeeded; header/pages checks were neutral because that commit did not include those rule files. These checks validate this documentation-only branch; they do not establish production migration lineage or production database correctness.
