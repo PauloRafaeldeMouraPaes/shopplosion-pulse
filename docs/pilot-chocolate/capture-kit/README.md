@@ -10,7 +10,7 @@ Status: **schema and protocol only**. This directory contains no collected obser
 - `retail-sample-acceptance.template.csv`: coverage, missing-day, field, matching and rights acceptance checks by sample/product.
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
 - `product-universe.template.csv`: transparent record of the representative multi-brand product/retailer sample, inclusion rationale and coverage gaps; it is not an approval request.
-- `source-permissions.template.csv`: record license version, permitted collection, retention, derived analytics and commercial display before ingesting data.
+- `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
 - `weekly-signal-review.template.csv`: log observed facts separately from hypotheses, alternatives, corroboration, confidence and human accept/reject decisions.
 - `review-protocol.md`: evidence, quality and interpretation rules.
 - `first-capture-runbook.md`: execution steps, hard stop gates, QA acceptance and baseline start conditions.
@@ -18,7 +18,7 @@ Status: **schema and protocol only**. This directory contains no collected obser
 ## Activation gates
 
 1. Trends CSV exported manually from the official interface and original file retained; record export timestamp and exact settings.
-2. Retail observations obtained from legitimately public sources where use is allowed, or from a source whose license permits the intended analysis and display.
+2. Retail observations gathered from accessible public sources using appropriate access methods; paid/restricted feeds are optional enrichment.
 3. Category taxonomy and sampling method documented before interpreting results; EAN/weight/variant checks validate item identity rather than require brand approval.
 4. Review rejects missing provenance, ambiguous timestamps, duplicate records and unsupported shopper claims.
 5. Four-week baseline starts after the first reproducible, lawfully obtained, QA-accepted category capture.
@@ -32,13 +32,13 @@ No scraper, credentials, external API calls, production writes or recurring capt
 | Gate | Status | Evidence required to change status |
 |---|---|---|
 | Google Trends capture | Pending | Original CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
-| Source-use review | Pending | Source terms/access method documented; written license or agreement only where the source requires it, with retention and commercial-use scope verified |
+| Source provenance | Pending | Public URL, access method, timestamps, attribution and relevant reuse limits documented; no bespoke permission gate for ordinary public-source discovery |
 | Retail coverage | Pending | Multi-brand/category sample with documented EAN × retailer/store coverage and gaps; Lindt is optional, not a prerequisite |
 | Reproducibility and QA | Pending | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |
 | Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
 | Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
 
-No restricted source has been licensed or connected by this kit, no supplier request has been sent, no CSV observations have been collected, and no coverage or matching threshold has been measured. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
+No restricted source has been connected by this kit, no supplier request has been sent, no CSV observations have been collected, and no coverage or matching threshold has been measured. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
 
 ### First weekly review record
 
