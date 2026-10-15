@@ -1,0 +1,1 @@
+grant execute on function public.pulse_external_intelligence_fallback_candidate(uuid) to service_role;

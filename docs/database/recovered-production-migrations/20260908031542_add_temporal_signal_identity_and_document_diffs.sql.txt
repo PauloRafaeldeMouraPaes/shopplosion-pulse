@@ -1,0 +1,12 @@
+ALTER TABLE public.intelligence_signals ADD COLUMN IF NOT EXISTS signal_key text;
+CREATE UNIQUE INDEX IF NOT EXISTS intelligence_signals_industry_signal_key_uidx ON public.intelligence_signals(industry_id, signal_key) WHERE signal_key IS NOT NULL;
+CREATE TABLE IF NOT EXISTS public.document_version_chunks (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), version_id uuid NOT NULL REFERENCES public.document_versions(id) ON DELETE CASCADE, chunk_index integer NOT NULL, content_fingerprint text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(version_id, chunk_index));
+CREATE INDEX IF NOT EXISTS document_version_chunks_version_idx ON public.document_version_chunks(version_id, chunk_index);
+CREATE TABLE IF NOT EXISTS public.document_change_events (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), document_id uuid NOT NULL REFERENCES public.documents(id) ON DELETE CASCADE, previous_version_id uuid REFERENCES public.document_versions(id) ON DELETE SET NULL, current_version_id uuid NOT NULL REFERENCES public.document_versions(id) ON DELETE CASCADE, added_chunks integer[] NOT NULL DEFAULT '{}', removed_chunks integer[] NOT NULL DEFAULT '{}', modified_chunks integer[] NOT NULL DEFAULT '{}', changed_chunk_count integer NOT NULL DEFAULT 0, change_score numeric NOT NULL DEFAULT 0 CHECK (change_score >= 0 AND change_score <= 1), observed_at timestamptz NOT NULL DEFAULT now(), UNIQUE(document_id, current_version_id));
+CREATE INDEX IF NOT EXISTS document_change_events_document_time_idx ON public.document_change_events(document_id, observed_at DESC);
+ALTER TABLE public.document_version_chunks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.document_change_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS document_version_chunks_select_own_industry ON public.document_version_chunks;
+CREATE POLICY document_version_chunks_select_own_industry ON public.document_version_chunks FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.document_versions v JOIN public.documents d ON d.id=v.document_id WHERE v.id=document_version_chunks.version_id AND d.industry_id=current_industry_id()));
+DROP POLICY IF EXISTS document_change_events_select_own_industry ON public.document_change_events;
+CREATE POLICY document_change_events_select_own_industry ON public.document_change_events FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.documents d WHERE d.id=document_change_events.document_id AND d.industry_id=current_industry_id()));

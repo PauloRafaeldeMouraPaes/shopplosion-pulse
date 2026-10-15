@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS public.ask_ai_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  industry_id uuid NOT NULL REFERENCES public.industries(id) ON DELETE CASCADE,
+  created_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  query_length integer NOT NULL CHECK (query_length BETWEEN 1 AND 500),
+  retrieved_count integer NOT NULL DEFAULT 0 CHECK (retrieved_count >= 0),
+  citation_count integer NOT NULL DEFAULT 0 CHECK (citation_count >= 0),
+  latency_ms integer CHECK (latency_ms IS NULL OR latency_ms >= 0),
+  model text,
+  outcome text NOT NULL CHECK (outcome IN ('answered','no_evidence','scope_rejected','retrieval_error','provider_error','invalid_query')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ask_ai_events_industry_created_idx ON public.ask_ai_events(industry_id, created_at DESC);
+ALTER TABLE public.ask_ai_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS ask_ai_events_select_own_industry ON public.ask_ai_events;
+CREATE POLICY ask_ai_events_select_own_industry ON public.ask_ai_events FOR SELECT TO authenticated USING (industry_id = private.current_industry_id());
+DROP POLICY IF EXISTS ask_ai_events_insert_own_industry ON public.ask_ai_events;
+CREATE POLICY ask_ai_events_insert_own_industry ON public.ask_ai_events FOR INSERT TO authenticated WITH CHECK (industry_id = private.current_industry_id() AND created_by = (select auth.uid()));
+GRANT SELECT, INSERT ON public.ask_ai_events TO authenticated;
+REVOKE ALL ON public.ask_ai_events FROM anon;

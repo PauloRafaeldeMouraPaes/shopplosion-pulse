@@ -1,0 +1,30 @@
+create or replace function public.pulse_index_schedule_tick()
+returns bigint
+language plpgsql
+security definer
+set search_path = public, extensions, vault, pg_catalog
+as $$
+declare
+  token text;
+  request_id bigint;
+begin
+  select decrypted_secret into token
+  from vault.decrypted_secrets
+  where name = 'pulse_index_worker_token'
+  limit 1;
+  if token is null or token = '' then
+    raise exception 'pulse_index_worker_token_missing';
+  end if;
+  select net.http_post(
+    url := 'https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-index-worker',
+    headers := jsonb_build_object('Content-Type','application/json','x-pulse-cron',token),
+    body := jsonb_build_object('source','cron','requested_at',now()),
+    timeout_milliseconds := 10000
+  ) into request_id;
+  return request_id;
+end;
+$$;
+revoke all on function public.pulse_index_schedule_tick() from public, anon, authenticated;
+grant execute on function public.pulse_index_schedule_tick() to postgres;
+select cron.unschedule(2);
+select cron.schedule('pulse-index-worker-secure','*/1 * * * *','select public.pulse_index_schedule_tick();');

@@ -1,0 +1,11 @@
+create or replace function public.pulse_external_intelligence_fallback_candidate(p_item_id uuid)
+returns jsonb language plpgsql security definer set search_path=public as $$
+declare r record; m text[];
+begin
+ select id,title,content,source_id,url,published_at,industry_id into r from public.intelligence_source_items where id=p_item_id and status='active' and fetched_at >= now()-interval '30 days';
+ if not found then return null; end if;
+ m := regexp_match(coalesce(r.content,''), '[0-9]+([.,][0-9]+)?[[:space:]]*%');
+ if m is null then return null; end if;
+ if coalesce(r.content,'') !~* '(increase|increased|rise|rose|growth|grew|decline|declined|decrease|decreased|drop|dropped|shift|expanded|contracted|up|down|aumento|crescimento|queda|redu[cç][aã]o|expand)' then return null; end if;
+ return jsonb_build_object('signal_type','change','title',left(coalesce(r.title,'Material external change'),180),'summary','A captured external source reports a quantified change that may be relevant to the industry.','confidence',0.72,'direction','new','change_score',0.35,'evidence',jsonb_build_array(jsonb_build_object('source_item_id',r.id,'quote',left(r.content,700))));
+end $$;

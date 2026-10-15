@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public.index_bootstrap_runs;
