@@ -175,13 +175,6 @@ BEGIN
            (v_industry_b, 'contract-b', 'active');
   INSERT INTO public.intelligence_sources (id, industry_id)
     VALUES (v_source_a, v_industry_a), (v_source_b, v_industry_b);
-  IF EXISTS (
-      SELECT 1 FROM public.intelligence_source_fetch_runs
-      WHERE id = v_run_a AND (completeness_status <> 'incomplete' OR absence_inference_eligible)
-    ) THEN
-    RAISE EXCEPTION 'new run defaults must remain conservative for absence inference';
-  END IF;
-
   INSERT INTO public.intelligence_source_fetch_runs (id, source_id, industry_id, status)
     VALUES (v_run_a, v_source_a, v_industry_a, 'running'),
            (v_run_b, v_source_b, v_industry_b, 'running'),
@@ -192,6 +185,13 @@ BEGIN
            (v_run_a6, v_source_a, v_industry_a, 'running'),
            (v_run_a7, v_source_a, v_industry_a, 'running'),
            (v_run_a9, v_source_a, v_industry_a, 'running');
+
+  IF EXISTS (
+      SELECT 1 FROM public.intelligence_source_fetch_runs
+      WHERE id = v_run_a AND (completeness_status <> 'incomplete' OR absence_inference_eligible)
+    ) THEN
+    RAISE EXCEPTION 'new run defaults must remain conservative for absence inference';
+  END IF;
   INSERT INTO public.intelligence_source_items
     (id, source_id, industry_id, external_id, title, content, content_fingerprint)
     VALUES
