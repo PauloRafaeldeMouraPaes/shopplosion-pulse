@@ -46,7 +46,7 @@ export async function recordSourceFailure(
       if (!result?.data) throw new Error("no_row");
       runStatusPersisted = true;
     } catch (error) {
-      report(JSON.stringify({
+      emitReport(report, JSON.stringify({
         event: "source_failure_status_persist_failed",
         target: "fetch_run",
         source_id: sourceId,
