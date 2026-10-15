@@ -4,7 +4,7 @@ Status: **exploratory capture completed; not a four-week baseline**.
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: seventeen dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
+- `public-source-capture-2026-10-14.csv`: nineteen dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
 - `public-source-review-2026-10-14.csv`: eight preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned.
@@ -15,6 +15,8 @@ Status: **exploratory capture completed; not a four-week baseline**.
 Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel or social listening corpus was collected. The direct retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
 ## Preliminary signals
+
+- **Direct online price/offer contrast (preliminary, not like-for-like).** Pão de Açúcar displays Lacta ao leite 80g at R$13.99 with a Leve 3 Pague 2 offer (R$9.33 per unit when buying three); Super Muffato displays R$7.20 regular and R$6.15 promotional. Both pages say online prices/offers are day-specific. EAN and delivery ZIP are not visible/selected, and exact SKU equivalence and offer comparability are unverified; do not interpret this as a validated retailer price premium.
 
 - **Expanded secondary price benchmark (one source family).** Four additional product pages extend the CustoPorPrato set: Lacta Laka Oreo 80g (6 observations, São Paulo mean R$7.99; page reports -29.2% between August and September), Lacta Ao Leite bar 80g (12 observations across 5 states; regional means from R$8.99 in PE to R$12.29 in SP), Garoto Ao Leite 80g (10 markets in 4 states; national median R$8.74; SP mean R$7.99, +5.8% since August), and Classic 40% cocoa 80g (51 markets in 5 states; national median R$11.08; state averages from R$7.98 in SC to R$12.34 in SP). The Laka Oreo sample is very small, and these product pages are not independent sources. Treat reported monthly movement as a monitoring hypothesis only; sample composition, promotions and coverage can explain differences.
 
