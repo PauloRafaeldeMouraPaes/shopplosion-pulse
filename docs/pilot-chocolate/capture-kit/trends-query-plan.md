@@ -10,7 +10,7 @@ Status: **pre-registered plan; no observations collected**. This document fixes 
 - Treat the plotted values as normalized relative search interest, not absolute search counts or observed purchase behavior. Do not merge independently normalized exports into one numeric series.
 - Geography: Brazil (BR); do not mix national and state-level series.
 - Time windows: last 5 years for seasonal context and last 12 months for recent context. Export each window separately.
-- Category: Food & Drink if the interface offers a consistent category for every item in the comparison; otherwise use the same broader setting for every item and record it.
+- Category: **All categories (`cat=0`)** for all four registered exports. This keeps a consistent broad context for the pre-registered baseline. If a future analysis selects Food & Drink, create a versioned query plan rather than silently changing this baseline.
 - Search type: Web Search.
 - Query type: use **Search term** for every item in a set. Do not mix Search term and Topic in one comparison. If a Topic is later tested, create a separately named set.
 - Export each comparison from one Explore view so the relative index is comparable within that view. Do not compare index values across separate exports as though they share a common absolute scale.
@@ -23,10 +23,10 @@ Direct Explore links are provided as convenience entry points. Before export, co
 
 ### Registered direct links
 
-- Set A, Brazil, past 5 years: https://trends.google.com/trends/explore?date=today%205-y&geo=BR&q=chocolate,barra%20de%20chocolate,chocolate%20amargo,chocolate%20ao%20leite,chocolate%20sem%20a%C3%A7%C3%BAcar
-- Set A, Brazil, past 12 months: https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&q=chocolate,barra%20de%20chocolate,chocolate%20amargo,chocolate%20ao%20leite,chocolate%20sem%20a%C3%A7%C3%BAcar
-- Set B, Brazil, past 5 years: https://trends.google.com/trends/explore?date=today%205-y&geo=BR&q=Lindt,Lacta,Garoto,Nestl%C3%A9,Ferrero%20Rocher
-- Set B, Brazil, past 12 months: https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&q=Lindt,Lacta,Garoto,Nestl%C3%A9,Ferrero%20Rocher
+- Set A, Brazil, past 5 years: https://trends.google.com/trends/explore?date=today%205-y&geo=BR&cat=0&q=chocolate,barra%20de%20chocolate,chocolate%20amargo,chocolate%20ao%20leite,chocolate%20sem%20a%C3%A7%C3%BAcar
+- Set A, Brazil, past 12 months: https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&cat=0&q=chocolate,barra%20de%20chocolate,chocolate%20amargo,chocolate%20ao%20leite,chocolate%20sem%20a%C3%A7%C3%BAcar
+- Set B, Brazil, past 5 years: https://trends.google.com/trends/explore?date=today%205-y&geo=BR&cat=0&q=Lindt,Lacta,Garoto,Nestl%C3%A9,Ferrero%20Rocher
+- Set B, Brazil, past 12 months: https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&cat=0&q=Lindt,Lacta,Garoto,Nestl%C3%A9,Ferrero%20Rocher
 
 The links do not guarantee that Google will retain the requested search-term interpretation or category selection; verify the interface before export.
 ### Set A — category language
