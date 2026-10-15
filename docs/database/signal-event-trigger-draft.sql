@@ -31,11 +31,10 @@ BEGIN
       v_direction := 'resolved';
       v_change := 1;
       v_emit := true;
-    ELSIF NEW.status IS DISTINCT FROM OLD.status THEN
-      v_direction := CASE WHEN NEW.status = 'active' THEN 'new' ELSE 'stable' END;
-      v_change := 0;
-      v_emit := true;
     ELSE
+      -- Non-resolution status changes alone are not signal events. If the same
+      -- update also changes confidence materially or the fingerprint, the
+      -- corresponding semantic change below still emits one event.
       v_delta := COALESCE(NEW.confidence, 0) - COALESCE(OLD.confidence, 0);
       v_fingerprint_changed :=
         COALESCE(NEW.fingerprint, NEW.id::text)
