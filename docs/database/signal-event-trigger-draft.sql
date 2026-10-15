@@ -85,6 +85,17 @@ REVOKE ALL ON FUNCTION public.pulse_external_backstop_schedule_tick()
 REVOKE ALL ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid)
   FROM PUBLIC, anon, authenticated;
 
+-- Additional routines classified internal_only by the read-only ACL manifest.
+-- Existing explicit grants to service_role and execution by owner/cron remain.
+REVOKE ALL ON FUNCTION public.pulse_capture_document_version(uuid)
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.pulse_external_intelligence_self_test()
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.pulse_external_signal_deterministic_backstop()
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.pulse_resolve_stale_intelligence_signals()
+  FROM PUBLIC, anon, authenticated;
+
 DROP TRIGGER IF EXISTS intelligence_signal_event_capture
   ON public.intelligence_signals;
 
