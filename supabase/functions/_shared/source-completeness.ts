@@ -8,6 +8,8 @@
 export const SOURCE_PARSER_VERSION = "external-source-worker-v1";
 
 export type SnapshotCompleteness = {
+  runId?: string;
+  previousRunId?: string | null;
   scopeFingerprint: string;
   parserVersion: string;
   completenessStatus: "complete" | "incomplete" | "failed";
@@ -49,6 +51,8 @@ export async function assessSnapshotCompleteness(input: {
   sourceId: string;
   sourceType: string;
   url: string;
+  runId?: string;
+  previousRunId?: string | null;
   responseValidated: boolean;
   parserValidated: boolean;
   persistenceSucceeded: boolean;
@@ -58,6 +62,8 @@ export async function assessSnapshotCompleteness(input: {
   const scopeFingerprint = await sourceScopeFingerprint(input);
   if (!input.responseValidated || !input.parserValidated || !input.persistenceSucceeded) {
     return {
+      runId: input.runId,
+      previousRunId: input.previousRunId,
       scopeFingerprint,
       parserVersion: SOURCE_PARSER_VERSION,
       completenessStatus: "failed",
@@ -78,6 +84,8 @@ export async function assessSnapshotCompleteness(input: {
     };
   }
   return {
+    runId: input.runId,
+    previousRunId: input.previousRunId,
     scopeFingerprint,
     parserVersion: SOURCE_PARSER_VERSION,
     completenessStatus: "complete",
@@ -95,6 +103,10 @@ export function mayInferAbsence(previous: SnapshotCompleteness | null, current: 
     && previous.absenceInferenceEligible
     && current.absenceInferenceEligible
     && previous.scopeFingerprint === current.scopeFingerprint
+    && Boolean(previous.runId)
+    && Boolean(current.runId)
+    && current.runId !== previous.runId
+    && current.previousRunId === previous.runId
   );
 }
 
