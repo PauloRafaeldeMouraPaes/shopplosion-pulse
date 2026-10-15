@@ -145,3 +145,16 @@ I retrieved the nine commits returned by GitHub's history endpoint for `supabase
 This is stronger evidence that the 68 unmatched production statements are not recoverable as tracked SQL files in the inspected Git history snapshots. It still does **not** prove they were never present in another branch, repository, unreachable commit, manual SQL session, or external backup. The responsible disposition is therefore still `unmapped` pending independent provenance, rather than asserting `out_of_band` as a fact.
 
 The latest PR #93 documentation commit has all repository CI checks complete: regression, browser smoke, evidence contract, private AI audit, multi-tenant audit, and validate passed; Netlify redirect processing passed, while header/pages checks concluded neutral. This validates the documentation change only, not production lineage or database behavior.
+
+
+## Cross-branch candidate migration review (2026-10-15)
+
+A targeted branch-tip audit found one additional SQL candidate outside `main`: branch `docs/cross-signal-market-human-behavior` contains `supabase/migrations/20261011174650_immutable_source_observation_history.sql`, its design draft under `docs/pilots/`, and a synthetic PostgreSQL fixture. Its Git blob does not match any of the 72 production SQL statement hashes, and its timestamp (2026-10-11) is later than the newest production migration version (2026-09-22). It is therefore a **proposed future migration**, not historical source for the 68 unresolved production rows.
+
+The branch's PR #80 was still open as Draft. Its actual 23-file diff includes the source worker and the candidate migration, although the previous description said the PR did not change workers or the database. The description was corrected on 2026-10-15 to identify the real scope and the release gates: [PR #80](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/pull/80).
+
+CI on the branch head passed the five Pulse workflows; specifically, its Regression job generated/verified the migration with Supabase CLI, tested it against PostgreSQL 17 in an ephemeral database, type-checked the worker, and ran unit tests for retry, failure bookkeeping, fingerprinting and source identity. This is useful isolated validation, but **not** completion of H01-H15 and not proof of production compatibility. The branch's own test contract still flags H13 as not implemented, H07 as deny-all rather than tenant-scoped read validation, and H09/H15 as missing end-to-end worker failure/reconciliation tests.
+
+A read-only query of production confirms that the existing `intelligence_source_item_versions` and `intelligence_source_item_observations` tables are absent. Current `intelligence_source_items` has five `active` and 21 `rejected` rows at the time of this check. Both current `main` and the candidate worker reset `status='active'` during a source-item upsert; this is pre-existing behavior, but it must be explicitly tested so a repeated identical capture does not silently undo an intentional rejection. No production DDL or data was changed.
+
+This candidate may help the future Chocolate capture system preserve history, but it does not solve the historical migration gap and is not authorized for production application. The 68 unmatched production versions remain unresolved.
