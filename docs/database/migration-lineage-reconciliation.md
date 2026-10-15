@@ -12,7 +12,7 @@ Status: investigation only. No production schema, data, grants, or migration his
 ## Required reconciliation
 
 1. Inventory every tracked SQL migration and its Git history, including deleted/renamed files and migrations stored outside `supabase/migrations/`.
-2. Map all 69 production versions to authoritative SQL or explicitly document each gap as renamed, squashed, out-of-band, or unrecoverable. Record the evidence for each mapping.
+2. Map all 72 production versions to authoritative SQL or explicitly document each gap as renamed, squashed, out-of-band, or unrecoverable. Record the evidence for each mapping.
 3. Compare the live trigger, function bodies, grants, policies, and scheduler definitions against the reconciled source.
 4. Add CI drift detection so checked-in migrations and production history cannot silently diverge again.
 5. Stage the trigger deduplication and SECURITY DEFINER grant corrections, then test timestamp-only updates, no-op updates, confidence/fingerprint changes, resolution transitions, cron execution, denial for `anon`/`authenticated`, trusted internal success, regression, and Security Advisor.
@@ -72,7 +72,7 @@ A recursive tree read of the current `main` commit confirms there are exactly 10
 | `20260922031240` | `create_shopper_knowledge_layer` | `009_shopper_knowledge_layer.sql` | Strong semantic match; verify complete SQL equivalence before calling exact |
 | `20260922032516` | `010_knowledge_updates_saved_evidence` | `010_knowledge_updates_saved_evidence.sql` | Name and content correspondence confirmed |
 
-These are candidate lineage mappings, not a complete 69-version reconciliation. The checked-in files `005_evidence_qualification.sql` and `007_investigations_and_analysis_link.sql` do **not** correspond by filename to production `005_performance_indexes` or `007_document_search_vector`; likewise `008_analysis_artifact_metadata.sql` is not the same named migration as production `008_document_indexing_summary`. Treating numeric prefixes as identities would be unsafe.
+These are candidate lineage mappings, not a complete 72-version reconciliation. The checked-in files `005_evidence_qualification.sql` and `007_investigations_and_analysis_link.sql` do **not** correspond by filename to production `005_performance_indexes` or `007_document_search_vector`; likewise `008_analysis_artifact_metadata.sql` is not the same named migration as production `008_document_indexing_summary`. Treating numeric prefixes as identities would be unsafe.
 
 ### Quantified gap
 
