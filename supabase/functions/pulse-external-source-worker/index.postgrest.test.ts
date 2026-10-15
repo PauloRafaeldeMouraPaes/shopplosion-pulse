@@ -3,6 +3,7 @@ import { createSourceWorkerHandler } from "./index.ts";
 
 const SOURCE_ID = "22222222-2222-4222-8222-222222222222";
 const INDUSTRY_ID = "11111111-1111-4111-8111-111111111111";
+const SUCCESS_SOURCE_ID = "33333333-3333-4333-8333-333333333333";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -26,14 +27,18 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
       SUPABASE_SECRET_KEYS: JSON.stringify({ default: serviceRoleKey }),
     } as Record<string, string>)[name],
     // Keep collection deterministic and offline; the Supabase/PostgREST persistence path is real.
-    fetchSource: async () => new Response(JSON.stringify({
-      items: [{
-        id: "postgrest-atomic-failure",
-        title: "Chocolate category demand update",
-        description: "A sufficiently long public market observation used to test atomic rollback through PostgREST.",
-        url: "https://example.test/item-postgrest-atomic-failure",
-      }],
-    }), { status: 200, headers: { "content-type": "application/json" } }),
+    fetchSource: async (url) => {
+      const success = url.includes("feed-success");
+      const itemId = success ? "postgrest-success" : "postgrest-atomic-failure";
+      return new Response(JSON.stringify({
+        items: [{
+          id: itemId,
+          title: success ? "Chocolate category demand stable" : "Chocolate category demand update",
+          description: "A sufficiently long public market observation used to test atomic rollback through PostgREST.",
+          url: `https://example.test/item-${itemId}`,
+        }],
+      }), { status: 200, headers: { "content-type": "application/json" } });
+    },
     sleep: async () => {},
     logInfo: () => {},
     logError: (message) => errors.push(String(message)),
@@ -81,4 +86,33 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
   assert(!observations.error && observations.count === 0, "No observation may survive the failed atomic RPC");
   assert(!errors.some((line) => line.includes("source_failure_status_persist_failed") || line.includes("source_failure_reconciliation_incomplete")),
     "Unexpected failure-bookkeeping write error was logged");
+
+  const { data: successfulSource, error: successfulSourceError } = await admin
+    .from("intelligence_sources")
+    .select("id,last_error")
+    .eq("id", SUCCESS_SOURCE_ID)
+    .eq("industry_id", INDUSTRY_ID)
+    .single();
+  assert(!successfulSourceError && successfulSource, "Could not read successful source row: " + String(successfulSourceError));
+  assert(successfulSource.last_error === null, "Successful PostgREST source should not retain an error");
+
+  const { data: successfulRuns, error: successfulRunError } = await admin
+    .from("intelligence_source_fetch_runs")
+    .select("id,status,items_seen,completeness_status,absence_inference_eligible")
+    .eq("source_id", SUCCESS_SOURCE_ID)
+    .eq("industry_id", INDUSTRY_ID);
+  assert(!successfulRunError && successfulRuns?.length === 1, "Expected exactly one successful fetch run: " + String(successfulRunError));
+  assert(successfulRuns[0].status === "completed" && successfulRuns[0].items_seen === 1,
+    "Successful RPC must persist the item and complete the run");
+  assert(successfulRuns[0].completeness_status === "incomplete" && successfulRuns[0].absence_inference_eligible === false,
+    "Successful fetch must remain fail-closed when exhaustive scope is not proven");
+
+  const [successfulItems, successfulVersions, successfulObservations] = await Promise.all([
+    admin.from("intelligence_source_items").select("id", { count: "exact", head: true }).eq("source_id", SUCCESS_SOURCE_ID),
+    admin.from("intelligence_source_item_versions").select("id", { count: "exact", head: true }).eq("source_id", SUCCESS_SOURCE_ID),
+    admin.from("intelligence_source_item_observations").select("id", { count: "exact", head: true }).eq("source_id", SUCCESS_SOURCE_ID),
+  ]);
+  assert(!successfulItems.error && successfulItems.count === 1, "Successful RPC must persist the current item projection");
+  assert(!successfulVersions.error && successfulVersions.count === 1, "Successful RPC must persist one immutable version");
+  assert(!successfulObservations.error && successfulObservations.count === 1, "Successful RPC must persist one observation");
 });
