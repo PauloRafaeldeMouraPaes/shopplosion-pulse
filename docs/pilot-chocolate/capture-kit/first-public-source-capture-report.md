@@ -8,6 +8,8 @@ Status: **exploratory capture completed; not a four-week baseline**.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
 - `public-source-review-2026-10-14.csv`: seven preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned.
+- `product-universe-initial-2026-10-14.csv`: seven product × retailer records, all exploratory because EANs are not visible and exact timestamps/regions are incomplete.
+- `retail-sample-acceptance-2026-10-14.csv`: seven row-level QA decisions; none is baseline-accepted. They remain exploratory pending exact timestamps, product identity and source-use review.
 - `trends-query-plan.md`: registered category and brand query sets with direct Google Trends Explore links; no actual Trends CSV is represented as captured.
 
 Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel or social listening corpus was collected. The direct retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
@@ -33,7 +35,7 @@ Capture date is 2026-10-14 UTC at date precision; exact clock time was not recor
 - Broad retail, cocoa supply and aggregate price indexes remain separate from direct shopper behavior.
 - The CustoPorPrato history is a secondary online-price sample, not official inflation data, and may overlap with supermarket sources; avoid double-counting it as independent corroboration.
 - Historical retail examples must not be backfilled into Pulse's own longitudinal series.
-- The reviewer field is unassigned; no human acceptance decision has been recorded.
+- The reviewer field is unassigned; no human acceptance decision has been recorded. The seven direct retail rows have explicit preliminary QA decisions and remain exploratory only.
 
 ## Next capture sequence
 
