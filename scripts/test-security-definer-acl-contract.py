@@ -81,6 +81,9 @@ BEGIN
   IF has_function_privilege('service_role', 'public.capture_document_version()', 'EXECUTE') THEN
     RAISE EXCEPTION 'unused trigger-returning function remains directly executable by service_role';
   END IF;
+  IF has_function_privilege('postgres', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE') IS NOT TRUE THEN
+    RAISE EXCEPTION 'database owner lost scheduler execution';
+  END IF;
   IF has_function_privilege('service_role', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE') THEN
     RAISE EXCEPTION 'cron-only scheduler remains directly executable by service_role';
   END IF;
