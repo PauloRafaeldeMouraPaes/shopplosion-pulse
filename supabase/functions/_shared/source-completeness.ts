@@ -75,6 +75,8 @@ export async function assessSnapshotCompleteness(input: {
   }
   if (!input.paginationExhausted || !input.finiteScopeProven) {
     return {
+      runId: input.runId,
+      previousRunId: input.previousRunId,
       scopeFingerprint,
       parserVersion: SOURCE_PARSER_VERSION,
       completenessStatus: "incomplete",
