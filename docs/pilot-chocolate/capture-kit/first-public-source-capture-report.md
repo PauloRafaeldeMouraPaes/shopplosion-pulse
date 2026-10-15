@@ -4,7 +4,7 @@ Status: **exploratory capture completed; not a four-week baseline**.
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: sixteen dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
+- `public-source-capture-2026-10-14.csv`: seventeen dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
 - `public-source-review-2026-10-14.csv`: eight preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned.
@@ -30,6 +30,8 @@ Capture date is 2026-10-14 UTC at date precision; exact clock time was not recor
 7. **Recipe-content seed (not a signal).** A dated Receitas Globo chocolate-recipe page is recorded as a seed source. One article cannot establish recipe popularity or emerging behavior; a repeated corpus is required.
 
 ## Interpretation guardrails
+
+- The aggregator's own methodology states that its 26 September 2026 release covers 597,451 products, 463 supermarkets, 270 cities and 27 states, with 3,279,896 prices; the sample is non-probabilistic, not weighted by household consumption, online-only, uneven across states and explicitly not an official inflation index. These are platform-reported coverage figures, not independently audited counts.
 
 - **Quarantined data-quality issue:** the CustoPorPrato Nestlé Diplomata 80g page returned conflicting coverage/date summaries between the search result and opened page. Its capture and provenance rows are retained for auditability but explicitly quarantined; do not use its values in synthesis until a stable dated page capture resolves the discrepancy.
 
