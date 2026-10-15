@@ -1,18 +1,18 @@
 # Chocolate pilot — capture kit (pre-production)
 
-Status: **schema and protocol only**. This directory contains no collected observations and must not be interpreted as evidence or a started baseline.
+Status: **pre-production; exploratory public-source observations captured**. This directory includes dated secondary-source notes and one-day public retail listing snapshots. These are preliminary observations, not a validated trend or a started four-week baseline.
 
 ## Files
 
 - `trends-observations.template.csv`: one row per exported Google Trends series/term and time point, with query settings repeated for auditability.
 - `trends-export-manifest.template.csv`: one row per actual export, with settings, timestamp, original filename, SHA-256 and comparison-export reference.
 - `retail-observations.template.csv`: one row per product × retailer/location × observation time.
-- `retail-sample-acceptance.template.csv`: coverage, missing-day, field, matching and rights acceptance checks by sample/product.
+- `retail-sample-acceptance.template.csv`: coverage, missing-day, field, product matching and reuse-scope checks by sample/product.
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
 - `public-source-capture-2026-10-15.csv`: first dated secondary-source desk capture; preliminary evidence only.
 - `public-source-review-2026-10-15.csv`: preliminary signal candidates, alternative explanations and follow-up decisions.
-- `public-retail-snapshot-2026-10-15.csv`: six dated, publicly visible product listing snapshots from one retailer, with unit prices and promotion mechanics.
+- `public-retail-snapshot-2026-10-15.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
 - `product-universe.template.csv`: transparent record of the representative multi-brand product/retailer sample, inclusion rationale and coverage gaps; it is not an approval request.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
@@ -32,7 +32,7 @@ No private API, paid provider, account creation or supplier response is a prereq
 
 ## Baseline status record
 
-**Current status: `not_started`.** This is a documentation/preparation kit, not a collected dataset.
+**Current status: `not_started`.** This is an exploratory desk-capture kit, not a longitudinal or representative dataset.
 
 | Gate | Status | Evidence required to change status |
 |---|---|---|
