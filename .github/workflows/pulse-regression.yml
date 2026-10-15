@@ -53,6 +53,8 @@ jobs:
         run: deno test supabase/functions/_shared/fetch-source.test.ts
       - name: Test source failure bookkeeping
         run: deno test supabase/functions/_shared/record-source-failure.test.ts
+      - name: Test source worker access and persistence failure reconciliation
+        run: deno test supabase/functions/pulse-external-source-worker/index.test.ts
       - name: Test source collection truncation guard
         run: deno test supabase/functions/_shared/source-collection-limit.test.ts
       - name: Test snapshot completeness and absence safeguards
