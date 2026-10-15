@@ -6,7 +6,7 @@ Status: **exploratory capture completed; not a four-week baseline**.
 
 - `public-source-capture-2026-10-14.csv`: twenty-four dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
-- `public-source-review-2026-10-14.csv`: eight preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
+- `public-source-review-2026-10-14.csv`: eleven preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned, including the official Google Trends export instructions.
 - `product-universe-initial-2026-10-14.csv`: seven product × retailer records, all exploratory because EANs are not visible and exact timestamps/regions are incomplete.
 - `retail-sample-acceptance-2026-10-14.csv`: seven row-level QA decisions; none is baseline-accepted. They remain exploratory pending exact timestamps, product identity and source-use review.
