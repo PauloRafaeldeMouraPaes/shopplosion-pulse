@@ -1,3 +1,10 @@
+export function shouldRecordSignalEvent({ priorConfidence, existingFingerprint, fingerprint, confidence }) {
+  const hasPrior = priorConfidence !== null && priorConfidence !== undefined;
+  if (!hasPrior) return true;
+  if (existingFingerprint !== fingerprint) return true;
+  return Math.abs(Number(confidence) - Number(priorConfidence)) >= 0.05;
+}
+
 export function isGoodEvidenceQuote(quote, content) {
   const q = String(quote || "").trim();
   if (q.length < 35 || q.length > 500 || !String(content || "").includes(q)) return false;
