@@ -19,6 +19,12 @@ test.describe('Contrato de acabamento visual Pulse', () => {
         page.on('pageerror', error => runtimeErrors.push(error.message));
         await page.setViewportSize(viewport);
         await page.goto(item.path, { waitUntil: 'commit' });
+        if (item.path === '/pilot-chocolate.html') {
+          await expect(page.locator('link[rel="stylesheet"][href*="pulse-tokens.css"]'),
+            'o piloto deve consumir o design system compartilhado').toHaveCount(1);
+          await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#f7f6f4');
+          await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'light');
+        }
         await page.waitForLoadState('networkidle').catch(() => {});
         await page.waitForTimeout(150);
         if (item.path !== '/pilot-chocolate.html') {
