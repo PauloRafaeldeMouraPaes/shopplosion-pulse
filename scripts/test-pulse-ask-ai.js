@@ -135,6 +135,10 @@ for (const label of ['natureza:', 'universo observado:', 'representa:', 'limites
 }
 if (!ask.includes('<strong>Representa:</strong>') || !ask.includes('<strong>Verificação na fonte:</strong>')) failures.push('Ask AI UI must display representativeness and source verification metadata');
 
+// Scope filtering must happen before confidence is computed so confidence
+// cannot accidentally include evidence excluded by the selected scope.
+if (workspace.includes("function evidence(){") && workspace.indexOf("if(scope==='industry') return privateEvidence") < workspace.indexOf("function confidenceHigh")) failures.push('Scope filter ordering is invalid');
+
 if (failures.length) {
   console.error('Ask AI regression FAILED');
   failures.forEach(f => console.error(`- ${f}`));
@@ -145,9 +149,4 @@ console.log('Ask AI regression PASSED');
 console.log('Public evidence hygiene and three-layer parity contract passed.');
 
 // Persistent investigation and shopper knowledge contract verified.
-
-// Final validation marker: shared scope, saved evidence and knowledge update loop.
-
-if (workspace.includes("function evidence(){") && workspace.indexOf("if(scope==='industry') return privateEvidence") < workspace.indexOf("function confidenceHigh")) failures.push('Scope filter ordering is invalid');
-
-// Final scope regression marker.
+// Shared scope, saved evidence and knowledge update loop are covered above.
