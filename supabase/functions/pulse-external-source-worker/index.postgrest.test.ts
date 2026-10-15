@@ -1,9 +1,11 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createSourceWorkerHandler } from "./index.ts";
+import { fetchSourceWithRetry } from "../_shared/fetch-source.ts";
 
 const SOURCE_ID = "22222222-2222-4222-8222-222222222222";
 const INDUSTRY_ID = "11111111-1111-4111-8111-111111111111";
 const SUCCESS_SOURCE_ID = "33333333-3333-4333-8333-333333333333";
+const FORBIDDEN_SOURCE_ID = "44444444-4444-4444-8444-444444444444";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -27,7 +29,10 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
       SUPABASE_SECRET_KEYS: JSON.stringify({ default: serviceRoleKey }),
     } as Record<string, string>)[name],
     // Keep collection deterministic and offline; the Supabase/PostgREST persistence path is real.
-    fetchSource: async (url) => {
+    fetchSource: async (url, _fetcher, wait) => {
+      if (url.includes("feed-403")) {
+        return await fetchSourceWithRetry(url, async () => new Response("forbidden", { status: 403 }), wait);
+      }
       const success = url.includes("feed-success");
       const itemId = success ? "postgrest-success" : "postgrest-atomic-failure";
       return new Response(JSON.stringify({
@@ -51,7 +56,7 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
   const body = await response.json();
   assert(response.status === 200, "Worker should reconcile the source failure instead of crashing");
   assert(body.status === "completed_with_source_failures", "Expected source failure status: " + JSON.stringify(body));
-  assert(body.sources_failed === 1, "Expected exactly one failed source");
+  assert(body.sources_failed === 2, "Expected the RPC-failure and HTTP-403 sources to fail");
   assert(body.failure_bookkeeping_failed === 0, "Failure bookkeeping itself should persist: " + JSON.stringify(body));
 
   const { data: source, error: sourceError } = await admin
@@ -86,6 +91,33 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
   assert(!observations.error && observations.count === 0, "No observation may survive the failed atomic RPC");
   assert(!errors.some((line) => line.includes("source_failure_status_persist_failed") || line.includes("source_failure_reconciliation_incomplete")),
     "Unexpected failure-bookkeeping write error was logged");
+
+  const { data: forbiddenSource, error: forbiddenSourceError } = await admin
+    .from("intelligence_sources")
+    .select("id,last_error")
+    .eq("id", FORBIDDEN_SOURCE_ID)
+    .eq("industry_id", INDUSTRY_ID)
+    .single();
+  assert(!forbiddenSourceError && forbiddenSource, "Could not read reconciled HTTP-403 source row: " + String(forbiddenSourceError));
+  assert(String(forbiddenSource.last_error).includes("http_403"), "HTTP 403 must persist as an explicit source failure");
+  const { data: forbiddenRuns, error: forbiddenRunError } = await admin
+    .from("intelligence_source_fetch_runs")
+    .select("id,status,items_seen,completeness_status,absence_inference_eligible,error")
+    .eq("source_id", FORBIDDEN_SOURCE_ID)
+    .eq("industry_id", INDUSTRY_ID);
+  assert(!forbiddenRunError && forbiddenRuns?.length === 1, "Expected one persisted HTTP-403 fetch run: " + String(forbiddenRunError));
+  assert(forbiddenRuns[0].status === "failed" && forbiddenRuns[0].items_seen === 0,
+    "HTTP 403 must mark the fetch run failed without item observations");
+  assert(forbiddenRuns[0].completeness_status === "failed" && forbiddenRuns[0].absence_inference_eligible === false,
+    "HTTP 403 must not authorize absence inference");
+  const [forbiddenItems, forbiddenVersions, forbiddenObservations] = await Promise.all([
+    admin.from("intelligence_source_items").select("id", { count: "exact", head: true }).eq("source_id", FORBIDDEN_SOURCE_ID),
+    admin.from("intelligence_source_item_versions").select("id", { count: "exact", head: true }).eq("source_id", FORBIDDEN_SOURCE_ID),
+    admin.from("intelligence_source_item_observations").select("id", { count: "exact", head: true }).eq("source_id", FORBIDDEN_SOURCE_ID),
+  ]);
+  assert(!forbiddenItems.error && forbiddenItems.count === 0, "HTTP 403 must not persist a current-item row");
+  assert(!forbiddenVersions.error && forbiddenVersions.count === 0, "HTTP 403 must not persist an immutable version");
+  assert(!forbiddenObservations.error && forbiddenObservations.count === 0, "HTTP 403 must not persist an observation");
 
   const { data: successfulSource, error: successfulSourceError } = await admin
     .from("intelligence_sources")
