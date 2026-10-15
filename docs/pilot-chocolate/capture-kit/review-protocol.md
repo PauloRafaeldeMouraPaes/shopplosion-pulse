@@ -19,9 +19,9 @@ Neither dimension alone proves purchase, sell-out, preference, switching, price 
 
 ## Retail observations
 
-1. Start with pages that are ordinarily accessible to the public. Record the URL, capture time, page context, displayed values, attribution and any material reuse limitation. Do not require bespoke brand or supplier permission as a universal gate for public category discovery.
-2. Respect applicable site terms and technical controls. Do not bypass authentication, CAPTCHAs, rate limits or access controls, and do not automate collection where the source prohibits it. If a particular source restricts the intended use, exclude it or use a suitable alternative.
-3. A paid/private feed is optional enrichment. Before using one, record its specific access and license basis and confirm that the intended use is within scope.
+1. Start with pages ordinarily accessible to the public. Record URL, capture time, page context, displayed values, attribution and material reuse limits. Public-source discovery does not require bespoke brand/supplier approval by default; document the actual access basis and check source-specific terms before systematic collection, redistribution or commercial display.
+2. Respect applicable site terms and technical controls. Do not bypass authentication, CAPTCHAs, rate limits or access controls, and do not automate collection where the source prohibits it. If a source restricts the intended collection or reuse, limit the activity accordingly or choose a suitable alternative; this is source-specific, not a universal brand-approval gate.
+3. A paid/private feed is optional enrichment, not a baseline prerequisite. Before using one, record its specific access and license basis and confirm the intended use is within scope.
 4. Match products by EAN first, then verify brand, variant and net weight. A name-only match is insufficient for like-for-like comparison; retain unverified public listings as exploratory records with an explicit match status.
 5. Preserve source values and price fields exactly. Record regular and promotional prices separately and include promotion conditions where published.
 6. Compute price_per_100g_brl = observed_price_brl / net_weight_g * 100 only when both values are confirmed. Keep raw inputs.
