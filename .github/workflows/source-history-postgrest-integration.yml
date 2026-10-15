@@ -90,7 +90,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          supabase stop --no-backup || true
+          timeout 90s supabase stop --no-backup || true
           if [ -d /tmp/pulse-source-history-migrations ]; then
             shopt -s nullglob
             migrations=(/tmp/pulse-source-history-migrations/*.sql)
