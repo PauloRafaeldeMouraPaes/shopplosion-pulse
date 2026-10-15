@@ -5,7 +5,9 @@ Status: **schema and protocol only**. This directory contains no collected obser
 ## Files
 
 - `trends-observations.template.csv`: one row per exported Google Trends series/term and time point, with query settings repeated for auditability.
+- `trends-export-manifest.template.csv`: one row per actual export, with settings, timestamp, original filename, SHA-256 and comparison-export reference.
 - `retail-observations.template.csv`: one row per product × retailer/location × observation time.
+- `retail-sample-acceptance.template.csv`: coverage, missing-day, field, matching and rights acceptance checks by sample/product.
 - `ean-approval.template.csv`: buyer-approved product/EAN list; leave blank until the owner validates exact GTIN/EAN, variant and net weight.
 - `source-permissions.template.csv`: record license version, permitted collection, retention, derived analytics and commercial display before ingesting data.
 - `weekly-signal-review.template.csv`: log observed facts separately from hypotheses, alternatives, corroboration, confidence and human accept/reject decisions.
