@@ -33,8 +33,8 @@ def main() -> int:
         if not REQUIRED_COLUMNS.issubset(columns):
             raise AssertionError(f"Missing manifest columns: {sorted(REQUIRED_COLUMNS - columns)}")
         rows = list(reader)
-    if len(rows) < 22:
-        raise AssertionError(f"Expected at least 22 catalogued SECURITY DEFINER routines, found {len(rows)}")
+    if len(rows) != 23:
+        raise AssertionError(f"Expected 23 catalogued SECURITY DEFINER routines from the 2026-10-15 snapshot, found {len(rows)}")
     names = [row["routine"] for row in rows]
     if len(names) != len(set(names)):
         raise AssertionError("Duplicate routine name in ACL manifest")
