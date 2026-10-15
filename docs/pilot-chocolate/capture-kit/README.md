@@ -12,7 +12,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
 - `public-source-capture-2026-10-14.csv`: nine dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
-- `google-trends-capture-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
+- `trends-query-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
 - `public-source-review-2026-10-14.csv`: six preliminary signal candidates, alternative explanations and follow-up decisions.
 - `public-retail-snapshot-2026-10-14.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
