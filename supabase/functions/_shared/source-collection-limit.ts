@@ -52,7 +52,17 @@ export function sourceCollectionLimitError(sourceType: string, body: string): st
     const items = collectionKey === "root"
       ? parsed as unknown[]
       : record![collectionKey] as unknown[];
-    return items.length > SOURCE_ITEM_LIMIT ? INCOMPLETE + ":collection_limit_exceeded" : null;
+    if (items.length > SOURCE_ITEM_LIMIT) return INCOMPLETE + ":collection_limit_exceeded";
+
+    // APIs often expose the total result count separately from the current page.
+    // If that count exceeds the returned array, the worker must not mark this
+    // partial page as a completed collection.
+    const total = [record?.total_count, record?.totalCount, record?.total, record?.count]
+      .find((value) => typeof value === "number" && Number.isFinite(value));
+    if (typeof total === "number" && total > items.length) {
+      return INCOMPLETE + ":reported_total_exceeds_returned_items";
+    }
+    return null;
   }
 
   // HTML is currently modeled as one page/article. This guard does not prove
