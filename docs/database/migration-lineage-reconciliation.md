@@ -86,3 +86,15 @@ The historical commit/tree inspection also did not find the three exact producti
 ## Next safe technical step
 
 Build a reviewed manifest with one row per production version: `version`, `production_name`, `repo_path`, `repo_blob_sha`, `mapping_type`, `evidence`, `review_status`. Only after this manifest accounts for all 69 entries should CI enforce it. Do not fabricate placeholder migrations or create timestamped no-op files just to make counts match.
+
+
+### Live schema cross-check for the four recent candidate mappings
+
+A read-only comparison of production columns, indexes and RLS policies against the checked-in SQL confirms that the following files describe the corresponding live feature sets, although exact historical SQL equivalence still requires the original migration bodies or a reviewed normalized diff:
+
+- `007_investigations_and_analysis_link.sql`: production `investigations` table and `analyses.investigation_id` are present, with the expected tenant-scoped indexes/policies.
+- `008_analysis_artifact_metadata.sql`: production `analyses.status`, `limits`, `published_at`, and `analyses_status_idx` are present.
+- `009_shopper_knowledge_layer.sql`: production `shopper_knowledge` has the expected claim/source/segment/category/mission/period/confidence/status/evidence/payload fields and investigation indexes.
+- `010_knowledge_updates_saved_evidence.sql`: production `knowledge_updates`, `saved_evidence`, scope column and their indexes/policies match the checked-in feature definitions.
+
+This raises the confidence in the four feature mappings but does not establish byte-for-byte identity or resolve the other 65 production history rows. Production schema state can have been modified by later migrations, so it cannot substitute for original historical SQL.
