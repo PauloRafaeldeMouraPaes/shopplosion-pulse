@@ -4,10 +4,10 @@ Status: **exploratory capture completed; not a four-week baseline**.
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: nineteen dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
+- `public-source-capture-2026-10-14.csv`: twenty dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
 - `public-source-review-2026-10-14.csv`: eight preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
-- `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned.
+- `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned, including the official Google Trends export instructions.
 - `product-universe-initial-2026-10-14.csv`: seven product × retailer records, all exploratory because EANs are not visible and exact timestamps/regions are incomplete.
 - `retail-sample-acceptance-2026-10-14.csv`: seven row-level QA decisions; none is baseline-accepted. They remain exploratory pending exact timestamps, product identity and source-use review.
 - `trends-query-plan.md`: registered category and brand query sets with direct Google Trends Explore links; no actual Trends CSV is represented as captured.
@@ -55,4 +55,4 @@ Capture date is 2026-10-14 UTC at date precision; exact clock time was not recor
 
 ## Current gate
 
-The public-source discovery work has begun; the baseline remains `not_started` because the Trends export, repeatable capture stream, reproducibility and human QA gates are not yet satisfied.
+The public-source discovery work has begun; the baseline remains `not_started` because the four Google Trends CSV exports still require manual download through the official chart UI, repeatable capture stream, reproducibility and human QA gates are not yet satisfied.
