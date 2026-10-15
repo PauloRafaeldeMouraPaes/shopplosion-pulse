@@ -9,6 +9,7 @@ Status: **schema and protocol only**. This directory contains no collected obser
 - `retail-observations.template.csv`: one row per product × retailer/location × observation time.
 - `retail-sample-acceptance.template.csv`: coverage, missing-day, field, matching and rights acceptance checks by sample/product.
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
+- `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
 - `product-universe.template.csv`: transparent record of the representative multi-brand product/retailer sample, inclusion rationale and coverage gaps; it is not an approval request.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
 - `weekly-signal-review.template.csv`: log observed facts separately from hypotheses, alternatives, corroboration, confidence and human accept/reject decisions.
@@ -23,7 +24,7 @@ Status: **schema and protocol only**. This directory contains no collected obser
 4. Review rejects missing provenance, ambiguous timestamps, duplicate records and unsupported shopper claims.
 5. Four-week baseline starts after the first reproducible, lawfully obtained, QA-accepted category capture.
 
-No scraper, credentials, external API calls, production writes or recurring capture are included in this kit.
+No private API, paid provider, account creation or supplier response is a prerequisite to the public-source discovery run.
 
 ## Baseline status record
 
