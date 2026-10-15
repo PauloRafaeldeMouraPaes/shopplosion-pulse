@@ -28,6 +28,13 @@ values
    'json',
    'https://example.test/feed-success.json',
    true,
+   0),
+  ('44444444-4444-4444-8444-444444444444',
+   '11111111-1111-4111-8111-111111111111',
+   'PostgREST HTTP 403 failure test',
+   'json',
+   'https://example.test/feed-403.json',
+   true,
    0);
 
 create or replace function public.pulse_test_reject_source_observation()
