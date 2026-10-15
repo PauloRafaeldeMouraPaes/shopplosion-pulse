@@ -85,6 +85,8 @@ Até existir cobertura real emitida e testada por cada adaptador, H13 permanece 
 5. Atualizar contagens de execução apenas com os resultados efetivamente retornados pela RPC; `current_item_changed` incrementa a contagem de itens alterados.
 6. Ao ocorrer uma falha de persistência, abortar o processamento dessa fonte e marcar a execução como `failed` com erro e contagens parciais. As chamadas bem-sucedidas de itens anteriores permanecem commitadas, mas ficam identificadas como parte de uma execução falha e podem ser reconciliadas; a transação é atômica por item, não pelo lote inteiro.
 
+O estado de moderação da projeção atual não deve ser confundido com frescor do conteúdo: uma coleta não pode anular silenciosamente uma rejeição explícita. A RPC preserva `status='rejected'` em qualquer recaptura; reativar um item rejeitado exige uma ação de revisão explícita, separada do coletor.
+
 O worker passa a falhar explicitamente quando a RPC retorna erro ou resultado inesperado, em vez de ignorar um erro de upsert. O retry dentro da mesma execução e identidade só é idempotente quando aponta para a mesma versão; se vier com fingerprint conflitante, a RPC rejeita a chamada e reverte as gravações dessa chamada.
 
 ## 4. Integridade, isolamento e segurança
