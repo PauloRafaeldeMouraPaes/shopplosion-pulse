@@ -7,7 +7,7 @@ Deno.test("failure bookkeeping records source and run failure", async () => {
     "source-test",
     "run-test",
     "HTTP 403",
-    async () => { writes.push("source"); return { error: null }; },
+    async () => { writes.push("source"); return { data: { id: "persisted" }, error: null }; },
     async () => { writes.push("run"); return { error: null }; },
     (message) => reports.push(message),
   );
