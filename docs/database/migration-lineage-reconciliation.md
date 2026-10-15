@@ -234,3 +234,10 @@ The routine-by-routine read-only ACL inventory is now tracked in [security-defin
 ### Trigger dependency cross-check
 
 A fresh read-only catalog inventory of non-internal triggers in schema public whose target function is SECURITY DEFINER found one attachment: intelligence_signals.intelligence_signal_event_capture → capture_intelligence_signal_event(), AFTER INSERT OR UPDATE OF confidence, status, evidence, observed_at. No non-internal public trigger currently references capture_document_version(); its initial manifest disposition is therefore review_required (possible legacy/orphaned routine), not trigger_only. This distinction must be preserved in the ACL migration: never infer a trigger dependency from a function name alone.
+
+
+### Active cron call graph cross-check (read-only)
+
+The active cron inventory confirms the database scheduler owner is postgres for the current worker schedules: external backstop (15 * * * *), external signal worker (15 */3 * * *), external source worker (0 */3 * * *), index worker (every minute), intelligence daily (06:30), Ask AI eval (06:15), RAG eval (06:00), and intelligence quality check (06:45). Each command is a direct call to its named public scheduler/check routine. In the current ACL catalog, the worker/scheduler routines in this list are denied to anon/authenticated except pulse_external_backstop_schedule_tick(), which remains exposed and is the highest-priority scheduler grant defect. The quality-check job calls pulse_intelligence_quality_check(), which is not SECURITY DEFINER in the current inventory and is outside this specific manifest.
+
+The cron owner being postgres is evidence for preserving owner execution; it is not evidence that service_role must have EXECUTE on every scheduler. Stage the least-privilege grant matrix and verify cron still succeeds after direct API privileges are removed.
