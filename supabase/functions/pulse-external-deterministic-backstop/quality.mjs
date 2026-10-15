@@ -2,7 +2,7 @@ export function shouldRecordSignalEvent({ priorConfidence, existingFingerprint, 
   const hasPrior = priorConfidence !== null && priorConfidence !== undefined;
   if (!hasPrior) return true;
   if (existingFingerprint !== fingerprint) return true;
-  return Math.abs(Number(confidence) - Number(priorConfidence)) >= 0.05;
+  return Math.abs(Number(confidence) - Number(priorConfidence)) >= 0.05 - Number.EPSILON;
 }
 
 export function isGoodEvidenceQuote(quote, content) {
