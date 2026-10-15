@@ -1,0 +1,98 @@
+name: Source History PostgREST Integration
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/functions/pulse-external-source-worker/**"
+      - "supabase/migrations/*immutable_source_observation_history.sql"
+      - "docs/pilots/immutable-source-observation-schema-draft.sql"
+      - "tests/fixtures/supabase-source-history-*.sql"
+      - ".github/workflows/source-history-postgrest-integration.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/functions/pulse-external-source-worker/**"
+      - "supabase/migrations/*immutable_source_observation_history.sql"
+      - "docs/pilots/immutable-source-observation-schema-draft.sql"
+      - "tests/fixtures/supabase-source-history-*.sql"
+      - ".github/workflows/source-history-postgrest-integration.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: source-history-postgrest-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  postgrest-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - name: Keep migrations out of automatic startup and start isolated stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pulse-source-history-migrations
+          shopt -s nullglob
+          migrations=(supabase/migrations/*.sql)
+          test "${#migrations[@]}" -gt 0
+          mv "${migrations[@]}" /tmp/pulse-source-history-migrations/
+          supabase start
+      - name: Export local Supabase connection values
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase status -o env > /tmp/pulse-supabase-status.env
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          allowed = {"API_URL", "DB_URL", "SERVICE_ROLE_KEY"}
+          values = {}
+          for line in Path("/tmp/pulse-supabase-status.env").read_text().splitlines():
+              key, sep, value = line.partition("=")
+              if sep and key in allowed:
+                  values[key] = value.strip().strip('"')
+          if set(values) != allowed:
+              raise SystemExit("Supabase CLI did not provide API_URL, DB_URL and SERVICE_ROLE_KEY")
+          if values["API_URL"] != "http://127.0.0.1:54321":
+              raise SystemExit("Refusing to test against a non-local Supabase API")
+          if not values["DB_URL"].startswith("postgresql://postgres:postgres@127.0.0.1:54322/"):
+              raise SystemExit("Refusing to test against a non-local PostgreSQL database")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+              for key, value in values.items():
+                  handle.write(f"{key}={value}\n")
+          PY
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Build isolated schema and apply candidate source-history migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f /tmp/pulse-source-history-migrations/001_multitenant_core.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f tests/fixtures/supabase-source-history-baseline.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f /tmp/pulse-source-history-migrations/20261011174650_immutable_source_observation_history.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f tests/fixtures/supabase-source-history-postgrest-seed.sql
+      - name: Exercise worker through local PostgREST and verify atomic rollback
+        run: deno test --allow-env=API_URL,SERVICE_ROLE_KEY --allow-net=127.0.0.1:54321 supabase/functions/pulse-external-source-worker/index.postgrest.test.ts
+      - name: Stop local Supabase and restore migration files
+        if: always()
+        shell: bash
+        run: |
+          timeout 90s supabase stop --no-backup || true
+          if [ -d /tmp/pulse-source-history-migrations ]; then
+            shopt -s nullglob
+            migrations=(/tmp/pulse-source-history-migrations/*.sql)
+            if [ "${#migrations[@]}" -gt 0 ]; then mv "${migrations[@]}" supabase/migrations/; fi
+          fi
