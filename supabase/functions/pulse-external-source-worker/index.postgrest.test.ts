@@ -79,6 +79,6 @@ Deno.test("worker calls the real PostgREST observation RPC and reconciles its at
   assert(!items.error && items.count === 0, "Current item projection must roll back with the failed RPC");
   assert(!versions.error && versions.count === 0, "Immutable version insert must roll back with the failed RPC");
   assert(!observations.error && observations.count === 0, "No observation may survive the failed atomic RPC");
-  assert(errors.some((line) => line.includes("source_failure_status_persist_failed") === false),
+  assert(!errors.some((line) => line.includes("source_failure_status_persist_failed") || line.includes("source_failure_reconciliation_incomplete")),
     "Unexpected failure-bookkeeping write error was logged");
 });
