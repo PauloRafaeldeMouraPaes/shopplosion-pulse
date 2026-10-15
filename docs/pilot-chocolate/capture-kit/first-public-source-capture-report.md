@@ -4,7 +4,7 @@ Status: **exploratory capture completed; not a four-week baseline**.
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: twenty dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
+- `public-source-capture-2026-10-14.csv`: twenty-four dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
 - `public-source-review-2026-10-14.csv`: eight preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned, including the official Google Trends export instructions.
@@ -15,6 +15,9 @@ Status: **exploratory capture completed; not a four-week baseline**.
 The filenames use the São Paulo local capture date (2026-10-14). UTC-date fields are recorded as 2026-10-15 because capture occurred after midnight UTC; exact clock time was not recorded. Historical publication/observation dates inside source pages remain their own dates. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel or social listening corpus was collected. The direct retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
 ## Preliminary signals
+
+- **Price/value trade-off (seasonal historical context, not an October shift).** An Agência Brasil report on an Instituto Locomotiva/QuestionPro survey of 1,557 adults, fielded 25 February–13 March 2026, reports that 61% cited price as a choice factor, followed by ingredient quality (53%), size (44%), known brand (43%) and flavor variety (40%); 12% cited special-diet options. This supports a hypothesis to test against non-Easter evidence, not a current trend claim.
+- **Novel recipe experimentation and social visibility (low confidence).** Foodnews's 10 September editorial discusses ingredient combinations and texture contrast; Receitas Globo's 28 February article reports one unusual chocolate mousse video with over 20 million views, while noting mixed reactions. This suggests a qualitative coding dimension only. One viral episode does not prove sustained preference or purchases.
 
 - **Direct online price/offer contrast (preliminary, not like-for-like).** Pão de Açúcar displays Lacta ao leite 80g at R$13.99 with a Leve 3 Pague 2 offer (R$9.33 per unit when buying three); Super Muffato displays R$7.20 regular and R$6.15 promotional. Both pages say online prices/offers are day-specific. EAN and delivery ZIP are not visible/selected, and exact SKU equivalence and offer comparability are unverified; do not interpret this as a validated retailer price premium.
 
