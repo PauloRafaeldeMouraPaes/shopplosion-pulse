@@ -22,6 +22,7 @@ alter table public.intelligence_source_fetch_runs
 -- Durable per-run completeness metadata. These fields describe collection
 -- quality separately from the operational running/completed/failed lifecycle.
 alter table public.intelligence_source_fetch_runs
+  add column previous_fetch_run_id uuid,
   add column scope_fingerprint text,
   add column parser_version text,
   add column completeness_status text not null default 'incomplete'
@@ -35,6 +36,12 @@ alter table public.intelligence_source_fetch_runs
   add column reported_total_count bigint,
   add column returned_item_count integer not null default 0
     check (returned_item_count >= 0);
+
+alter table public.intelligence_source_fetch_runs
+  add constraint intelligence_source_fetch_runs_previous_run_fk
+  foreign key (previous_fetch_run_id, source_id, industry_id)
+  references public.intelligence_source_fetch_runs (id, source_id, industry_id)
+  on delete restrict;
 
 alter table public.intelligence_source_items
   add constraint intelligence_source_items_id_source_industry_unique
