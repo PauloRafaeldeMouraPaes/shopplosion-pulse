@@ -79,6 +79,13 @@ $signal_event_capture$;
 REVOKE ALL ON FUNCTION public.capture_intelligence_signal_event()
   FROM PUBLIC, anon, authenticated;
 
+-- The hourly pg_cron job runs as postgres; API clients must not be able to
+-- invoke the scheduler or internal candidate lookup directly.
+REVOKE ALL ON FUNCTION public.pulse_external_backstop_schedule_tick()
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid)
+  FROM PUBLIC, anon, authenticated;
+
 DROP TRIGGER IF EXISTS intelligence_signal_event_capture
   ON public.intelligence_signals;
 
