@@ -12,6 +12,7 @@ Status: **schema and protocol only**. This directory contains no collected obser
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
 - `public-source-capture-2026-10-15.csv`: first dated secondary-source desk capture; preliminary evidence only.
 - `public-source-review-2026-10-15.csv`: preliminary signal candidates, alternative explanations and follow-up decisions.
+- `public-retail-snapshot-2026-10-15.csv`: six dated, publicly visible product listing snapshots from one retailer, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
 - `product-universe.template.csv`: transparent record of the representative multi-brand product/retailer sample, inclusion rationale and coverage gaps; it is not an approval request.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
@@ -42,7 +43,7 @@ No private API, paid provider, account creation or supplier response is a prereq
 | Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
 | Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
 
-No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no raw Google Trends export, current multi-retailer observation panel, or longitudinal retail time series has been collected. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
+No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no raw Google Trends export, multi-retailer observation panel, or longitudinal retail time series has been collected; the first retail snapshot covers only one retailer. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
 
 ### First weekly review record
 
