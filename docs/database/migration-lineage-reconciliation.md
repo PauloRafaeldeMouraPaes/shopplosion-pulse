@@ -115,3 +115,24 @@ The production migration table stores the SQL statement payloads. I computed the
 - This also proves the numeric prefix is not an identity: production `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary` do not match current files with the same numeric prefixes.
 
 The manifest now records statement length, production Git blob SHA-1, trimmed SHA-1, checked-in file SHA, and mapping status for every one of the 72 production versions. This is a stronger, reproducible comparison than filename matching. No SQL payload was copied into the active migration directory, and no production changes were made.
+
+
+## Historical Git path audit (2026-10-15)
+
+I queried GitHub's commit history separately for each of the 10 SQL paths currently tracked under `supabase/migrations/`. The current tracked files first appear in these commits:
+
+| File(s) | First observed commit date (UTC) | Commit |
+|---|---|---|
+| `001_multitenant_core.sql`, `002_storage_and_membership_hardening.sql` | 2026-09-04 | `d293073f` |
+| `003_private_document_intelligence.sql` | 2026-09-04 | `842b03b4` |
+| `004_private_document_integrity.sql` | 2026-09-06 | `66cb6907` |
+| `005_evidence_qualification.sql` | 2026-09-20 | `f39f226b` |
+| `006_analysis_artifact_state.sql` | 2026-09-20 | `852da60c` |
+| `007_investigations_and_analysis_link.sql` | 2026-09-22 | `da059386` |
+| `008_analysis_artifact_metadata.sql` | 2026-09-22 | `42132cfa` |
+| `009_shopper_knowledge_layer.sql` | 2026-09-22 | `d72aaa19` |
+| `010_knowledge_updates_saved_evidence.sql` | 2026-09-22 | `5aa4e393` |
+
+The path-history endpoints returned only these introduction commits for the respective paths; no later path revisions or deletion/rename entries were returned for these current filenames. This is a path-history finding, **not** proof that an equivalent SQL statement never existed under another path, in a squash/baseline, or outside Git.
+
+The timeline narrows the search but does not classify the 68 unmatched production versions. In particular, production history begins on 2026-09-07, while current files 005 and 006 were first committed on 2026-09-20; that chronology alone cannot prove which historical SQL was applied or whether it was consolidated. Keep those rows unresolved until the original SQL, authoritative baseline, or independently reviewable normalized schema diff establishes provenance. No migration files were created or changed as part of this history check.
