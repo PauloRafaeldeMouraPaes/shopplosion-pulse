@@ -4,13 +4,18 @@ Status: **completed as a secondary-source desk capture; not a four-week baseline
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: eight dated public-source records across shopper survey reporting, industry/price context, macro retail context and historical Easter retail snapshots.
+- `public-source-capture-2026-10-14.csv`: nine dated public-source records across shopper survey reporting, industry/price context, macro retail context and historical Easter retail snapshots.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé, including conditional promotions and normalized price per 100g.
-- `public-source-review-2026-10-14.csv`: four preliminary signal candidates with observed facts separated from hypotheses, alternatives, independence assessment and follow-up actions.
+- `public-source-review-2026-10-14.csv`: six preliminary signal candidates with observed facts separated from hypotheses, alternatives, independence assessment and follow-up actions.
+- `public-source-provenance-2026-10-14.csv`: source provenance, collection method and reuse caveats.
+- `google-trends-capture-plan.md`: exact query sets and direct Explore links; no actual Trends CSV has yet been exported.
 
-Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated multi-retailer panel, social listening corpus, or SKU-level historical retail series was collected. The retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
+Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel, or social listening corpus was collected. A public secondary price aggregator does expose a historical series for Lacta 80g; its methodology reports 280 observations across 211 markets and 177 cities from 1 April to 26 September 2026, with a São Paulo subset of 149 observations across 96 markets and 78 cities. This is a non-probability online-price sample, not official inflation data or shopper behavior, and its underlying store pages may overlap with direct retail observations. The retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
 ## Preliminary signals
+
+- **Historical retail benchmark (preliminary).** CustoPorPrato reports a Lacta 80g online-price series through 26 September 2026 and a 1.1% rise between the August and September monthly means for its São Paulo sample. The site states that coverage is non-probabilistic and changes in market coverage may affect comparisons. Use as a secondary benchmark only, not independent corroboration of the supermarket listings that may underlie it.
+- **Recipe-content seed (not a signal).** A dated Receitas Globo chocolate-recipe page was recorded as a seed source. One article cannot establish recipe popularity or an emerging behavior; a repeated corpus is required.
 
 0. **Retail offer snapshot (two retailers, one day).** Seven 80g pages show displayed prices from R$6.15 to R$13.99 (R$7.69–R$17.49 per 100g), including conditional promotions. This is not a trend or like-for-like comparison: variants, offers and delivery regions differ, and EAN-level matching was not possible.
 
