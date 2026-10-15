@@ -23,6 +23,7 @@ export async function recordSourceFailure(
   try {
     const result = await updateSource();
     if (result?.error) throw new Error(result.error.message || "unknown database error");
+    if (!result?.data) throw new Error("no_row");
     sourceStatusPersisted = true;
   } catch (error) {
     report(JSON.stringify({
@@ -38,6 +39,7 @@ export async function recordSourceFailure(
     try {
       const result = await updateRun();
       if (result?.error) throw new Error(result.error.message || "unknown database error");
+      if (!result?.data) throw new Error("no_row");
       runStatusPersisted = true;
     } catch (error) {
       report(JSON.stringify({
