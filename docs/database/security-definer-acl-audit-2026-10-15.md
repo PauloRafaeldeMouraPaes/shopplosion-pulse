@@ -6,17 +6,17 @@
 
 | Routine signature | anon | authenticated | Observed dependency / initial disposition |
 |---|---:|---:|---|
-| `auth_industry_context()` | yes | yes | Returns the caller's profile/industry context. Confirm the intended user-facing contract; likely authenticated-only, not anonymous. |
-| `capture_document_version()` | yes | yes | Trigger-returning function; catalog query found no attached non-internal trigger. Review direct API exposure and any hidden caller before revoking. |
+| `auth_industry_context()` | yes | yes | Returns only the row whose `profiles.id = auth.uid()`. Intended user-facing context appears authenticated-only; revoke `anon`, preserve `authenticated`, then verify no unauthenticated RPC contract depends on the empty result. |
+| `capture_document_version()` | yes | yes | Trigger-returning function; no non-internal trigger dependency was found in the live catalog. Direct API execution is unnecessary for ordinary clients; revoke direct API grants after confirming no hidden trigger attachment in staging. |
 | `capture_intelligence_signal_event()` | yes | yes | Attached to the `intelligence_signals` trigger. Remove direct API access only after proving trigger invocation remains functional. |
 | `pulse_capture_document_version(uuid)` | yes | yes | Called by `supabase/functions/pulse-intelligence-worker/index.ts` through the server-side Supabase admin client. Preserve the internal worker path; direct `anon`/`authenticated` access is not required by the inspected caller. |
 | `pulse_external_backstop_schedule_tick()` | yes | yes | Internal scheduler reads Vault token and dispatches the deterministic-backstop Edge Function; internal-only. |
-| `pulse_external_intelligence_contract_check()` | yes | yes | Diagnostic/quality output; classify returned data and intended audience. |
+| `pulse_external_intelligence_contract_check()` | yes | yes | Aggregates active signals and evidence-grounding failures across industries. This is a cross-tenant operational diagnostic, not a demonstrated client contract; internal-only unless an explicit product/API contract is found. |
 | `pulse_external_intelligence_fallback_candidate(uuid)` | yes | yes | Called by `supabase/functions/pulse-external-deterministic-backstop/index.ts` through its server-side admin client. Preserve service-role access; direct `anon`/`authenticated` access is not required by the inspected caller. |
-| `pulse_external_intelligence_self_test()` | yes | yes | Mutating test routine; review fixture creation/cleanup; internal-only by default. |
-| `pulse_external_signal_deterministic_backstop()` | yes | yes | Mutating backstop; internal-only. |
-| `pulse_intelligence_external_quality_check()` | yes | yes | Diagnostic/quality output; classify returned data and intended audience. |
-| `pulse_resolve_stale_intelligence_signals()` | yes | yes | Mutates temporal signal state; internal-only. |
+| `pulse_external_intelligence_self_test()` | yes | yes | Confirmed mutating: creates a synthetic source, item, and signal in an active industry. Internal-only; direct API execution is inappropriate and the test must run only in isolated environments. |
+| `pulse_external_signal_deterministic_backstop()` | yes | yes | Confirmed mutating: scans recent active source items and creates or updates intelligence signals/events. Internal-only; allow only the trusted server worker path. |
+| `pulse_intelligence_external_quality_check()` | yes | yes | Aggregates active signal/evidence checks across industries. No user-scoped filter or client contract was found in the definition; internal-only by default. |
+| `pulse_resolve_stale_intelligence_signals()` | yes | yes | Confirmed mutating: resolves active signals older than three days when no recent event exists. Internal-only; allow only the trusted temporal/worker path. |
 | `current_industry_id()` | no | yes | Authenticated user-context function; preserve only if the application contract and RLS assumptions validate it. |
 
 The current Supabase Security Advisor reports 11 `anon` and 12 `authenticated` findings in this class. The counts are consistent with the catalog snapshot above: 11 routines are callable by `anon`, and `current_industry_id()` adds the twelfth authenticated-callable routine.
@@ -70,3 +70,16 @@ The cron owner does not need direct API-role grants for this schedule. Any grant
 - `auth_industry_context()` filters by `profiles.id = auth.uid()` and returns no row for an anonymous caller; `current_industry_id()` also derives its value from `auth.uid()` and active industry status. Preserve authenticated access only if the frontend genuinely needs these helpers and tests prove a user cannot switch or spoof industry context.
 
 These function-body findings are based on `pg_get_functiondef` read-only catalog queries. No function was executed, no secret was read, and no production state changed. They strengthen the priority of least-privilege ACL staging but do not authorize a production revoke.
+
+## Definition-level classification refinement (read-only, 2026-10-15)
+
+A second catalog pass inspected function bodies without invoking them:
+
+- `auth_industry_context()` filters on `profiles.id = auth.uid()`, so the minimum plausible API contract is `authenticated`, not `anon`.
+- `capture_document_version()` is a trigger-returning routine with no non-internal trigger dependency in the current catalog; it should not be callable directly by API roles.
+- `pulse_capture_document_version(uuid)` is a mutating document-version capture path and its inspected application caller is the internal intelligence worker; retain the trusted worker's ability, not direct API-role execution.
+- `pulse_external_intelligence_contract_check()` and `pulse_intelligence_external_quality_check()` aggregate quality findings across active signals without a user/tenant filter in the routine body. Treat these as internal diagnostics unless a constrained, tenant-scoped client contract is demonstrated.
+- `pulse_external_intelligence_self_test()` creates synthetic source/item/signal rows in an active industry. It must not be directly callable by client roles and should run only in an isolated test environment.
+- `pulse_external_signal_deterministic_backstop()` creates or updates signals/events from recent active source items; `pulse_resolve_stale_intelligence_signals()` changes active signals to resolved. Both are internal mutation paths.
+
+This narrows the disposition but is still not an ACL migration. Before remediation, confirm grants inherited through `PUBLIC`, run positive/negative role tests in staging, and preserve trigger/cron/service-role execution. The production database remains read-only for this investigation.
