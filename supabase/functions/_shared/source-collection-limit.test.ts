@@ -71,3 +71,21 @@ Deno.test("invalid JSON is left for the existing parser to reject", () => {
     throw new Error("Truncation guard must not replace the existing JSON parse error");
   }
 });
+
+
+Deno.test("RSS without a channel or closing structure fails closed instead of becoming an empty capture", () => {
+  for (const body of [
+    "<rss></rss>",
+    "<rss><channel></channel>",
+    "<rss><item><title>orphan</title></item></rss>",
+  ]) {
+    assertIncomplete(sourceCollectionLimitError("rss", body), "malformed RSS structure");
+  }
+});
+
+Deno.test("Atom without a closing feed root fails closed", () => {
+  assertIncomplete(
+    sourceCollectionLimitError("rss", "<feed><entry><title>incomplete document</title></entry>"),
+    "malformed Atom structure",
+  );
+});
