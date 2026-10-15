@@ -185,3 +185,44 @@ A fresh read-only inspection of production confirms the following current grants
 The active cron job `pulse-external-backstop-hourly` runs as `postgres` on schedule `15 * * * *` and invokes `select public.pulse_external_backstop_schedule_tick();`. This means direct API grants on the scheduler are not required for the current cron owner, but any revocation must be validated against the real scheduled execution and its Vault-to-Edge-Function token path before release.
 
 The latest Security Advisor read still reports 11 SECURITY DEFINER routines executable by `anon` and 12 executable by `authenticated`. No ACL, trigger, function, cron definition, or production data was changed during this read-only check. The signal-trigger draft in PR #89 proposes narrowly revoking direct API execution from the trigger, scheduler, and internal fallback-candidate lookup while preserving `service_role` access where required; this remains a candidate, not an applied production change. Other Advisor findings require call-graph classification and must not be bulk-revoked.
+
+
+## Function ACL inventory refresh (read-only, 2026-10-15)
+
+A fresh catalog query enumerated every SECURITY DEFINER function in exposed schema public, including effective EXECUTE privileges for anon, authenticated, and service_role. This is a privilege inventory, not authorization to change grants. It confirms that the current issue is broader than the two routines named in the initial event-fix draft.
+
+### Client-executable SECURITY DEFINER routines observed
+
+| Routine | anon | authenticated | Initial disposition |
+|---|---:|---:|---|
+| auth_industry_context() | yes | yes | User-context RPC; inspect RLS/callers before deciding whether anon access is intentional |
+| capture_document_version() | yes | yes | Trigger function; review/revoke direct execution without breaking trigger invocation |
+| capture_intelligence_signal_event() | yes | yes | Trigger function; review/revoke direct execution without breaking trigger invocation |
+| pulse_capture_document_version(uuid) | yes | yes | Mutating/version-capture RPC; inspect application call sites and intended audience |
+| pulse_external_backstop_schedule_tick() | yes | yes | High priority: internal scheduler that reads Vault token and dispatches Edge Function work |
+| pulse_external_intelligence_contract_check() | yes | yes | Diagnostic/quality routine; classify returned data and operational exposure |
+| pulse_external_intelligence_fallback_candidate(uuid) | yes | yes | Internal content/evidence candidate lookup; restrict to trusted server path unless reviewed otherwise |
+| pulse_external_intelligence_self_test() | yes | yes | Mutating self-test; inspect fixture creation and cleanup before any access is allowed |
+| pulse_external_signal_deterministic_backstop() | yes | yes | Mutating backstop; should be internal-only unless a constrained caller is proven |
+| pulse_intelligence_external_quality_check() | yes | yes | Diagnostic/quality routine; classify returned data and operational exposure |
+| pulse_resolve_stale_intelligence_signals() | yes | yes | Mutating resolution routine; should be internal-only unless a constrained caller is proven |
+
+The same catalog query observed current_industry_id() as executable by authenticated but not anon; scheduler functions for Ask AI, external signals, external source collection, indexing, RAG evaluation and intelligence were executable only by service_role (and their database owner), as was pulse_intelligence_worker_token(). These are comparison controls, not proof that every other grant is correct.
+
+### Confirmed behavior and limits
+
+- capture_intelligence_signal_event() remains a duplicate-event source: it inserts an event for every qualifying trigger invocation and has no semantic OLD/NEW no-op guard.
+- pulse_external_backstop_schedule_tick() uses Vault and net.http_post to invoke the deterministic-backstop Edge Function with x-pulse-cron; the function itself checks that token. The database scheduler path must be validated in staging as the database owner, without exposing scheduler execution to API roles.
+- This refresh did not call any exposed routines, invoke the scheduler, read secrets, or change production grants/data/schema.
+- A blanket revoke is not yet justified for all 11 rows: auth_industry_context() may be a deliberate user-facing context RPC, and trigger functions must remain invocable through their triggers even when direct EXECUTE is removed. For each routine, document the caller, expected role, data returned/mutated, trigger/cron dependencies, and positive/negative test before generating the ACL migration.
+- Security Advisor findings are privilege warnings, not a substitute for reviewing each function body and call graph. Do not declare the security issue closed until the post-change advisor and staging acceptance matrix pass.
+
+### Required follow-up before migration
+
+1. Add a per-routine disposition to the ACL manifest: internal_only, authenticated_user_context, trigger_only, or review_required.
+2. For every routine, record direct and inherited grants, ownership, trigger/cron references, and application call sites.
+3. Stage least-privilege revokes and only the minimum positive grants. Explicitly test that trigger execution continues after direct EXECUTE is revoked, and that the trusted cron owner can still execute the scheduler.
+4. Validate API denial for anon and authenticated, expected authenticated context access (if retained), service-role worker access, cron-to-Vault-to-Edge Function execution, and the complete signal-event behavior matrix.
+5. Re-run Security Advisor and the multi-tenant audit; compare results against a recorded baseline.
+
+This inventory adds evidence to issue #90 and issue #91; it does not change their release gates.
