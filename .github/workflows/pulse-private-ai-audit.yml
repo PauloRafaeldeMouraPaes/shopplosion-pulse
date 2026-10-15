@@ -3,7 +3,7 @@ name: Pulse Private AI Audit
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main]
+    branches: [main, fix/quarantine-unqualified-public-evidence]
 
 permissions:
   contents: read
