@@ -27,6 +27,7 @@ export type SourceWorkerDependencies = {
   logError?: (...args: any[]) => void;
 };
 
+// H13 fail-closed guard: current RSS/Atom, JSON, and HTML adapters do not prove finite scope plus exhausted pagination; never infer absence from these snapshots.
 export function createSourceWorkerHandler(dependencies: SourceWorkerDependencies = {}) {
   const getEnv = dependencies.env ?? ((name: string) => Deno.env.get(name));
   const makeAdmin = dependencies.createAdmin ?? ((url: string, key: string, options?: any) => createClient(url, key, options));
