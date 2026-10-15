@@ -34,7 +34,7 @@ Neither dimension alone proves purchase, sell-out, preference, switching, price 
 - Stable deduplication key for Trends: source + export settings + query type + query text + series date.
 - Flag exact duplicates, changed payloads with identical keys, missing provenance, invalid EAN, non-positive weight/price, currency mismatch and impossible dates.
 - Never silently replace an earlier observation. Append a corrected row with a review note and retain the original artifact.
-- Proposed pilot gate: at least 80% of a fixed 5–10 EAN set matched correctly across at least two retailers, with timestamps and verified weight/price. Treat this as a proposed threshold, not a measured result.
+- Proposed retail QA gate: document the share of sampled observations with verified item identity, timestamp, price/weight and retailer/store context across multiple product types and retailer networks where available. Do not use a single brand's EAN list as the category denominator; set and justify any numerical threshold before reviewing results.
 
 ## Signal review
 
@@ -54,6 +54,6 @@ A four-week baseline begins only after:
 1. source access and usage rights are approved;
 2. a real capture has been reproduced and QA accepted;
 3. raw files, settings, hashes and timestamps are retained;
-4. the fixed SKU/query set and sampling schedule are documented.
+4. the fixed category query sets, transparent sample method and sampling schedule are documented.
 
 Before that gate, the baseline status is not_started.
