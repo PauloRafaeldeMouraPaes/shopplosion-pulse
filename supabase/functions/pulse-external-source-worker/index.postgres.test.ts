@@ -153,10 +153,10 @@ async function runPostgresScenario(scenario: Scenario) {
 
     const sources = await db.unsafe(`select last_error from ${q("intelligence_sources")} where id = $1`, ["source-test"]);
     const runs = await db.unsafe(`select status, completeness_status, absence_inference_eligible, error, items_seen from ${q("intelligence_source_fetch_runs")}`);
-    if (sources.length !== 1 || !String(sources[0].last_error).length) {
+    if (sources.length !== 1 || (scenario !== "source_failure_write_zero_row" && !String(sources[0].last_error).length)) {
       throw new Error("PostgreSQL source failure state was not persisted");
     }
-    if (runs.length !== 1 || runs[0].absence_inference_eligible !== false) {
+    if (runs.length !== 1 || (scenario !== "run_failure_write_zero_row" && runs[0].status !== "failed") || runs[0].absence_inference_eligible !== false) {
       throw new Error("PostgreSQL fetch-run row was missing or incorrectly eligible for absence inference");
     }
     if (scenario === "source_failure_write_zero_row") {
