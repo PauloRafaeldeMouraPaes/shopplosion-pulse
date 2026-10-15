@@ -105,7 +105,7 @@ for (const spec of supportingCsvs) {
   if (ids.length !== csv.records.length) errors.push(`${file}: blank ${spec.id} value`);
   if (new Set(ids).size !== ids.length) errors.push(`${file}: duplicate ${spec.id}`);
   for (const [index, row] of csv.records.entries()) {
-    if (row.source_url && !/^https?:\\/\\//i.test(row.source_url)) {
+    if (row.source_url && !(row.source_url.startsWith("https://") || row.source_url.startsWith("http://"))) {
       errors.push(`${file}: row ${index + 2} has a non-HTTP source_url`);
     }
   }
