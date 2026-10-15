@@ -35,6 +35,20 @@ values
    'json',
    'https://example.test/feed-403.json',
    true,
+   0),
+  ('55555555-5555-4555-8555-555555555555',
+   '11111111-1111-4111-8111-111111111111',
+   'PostgREST source failure zero-row test',
+   'json',
+   'https://example.test/feed-source-zero-row.json',
+   true,
+   0),
+  ('66666666-6666-4666-8666-666666666666',
+   '11111111-1111-4111-8111-111111111111',
+   'PostgREST fetch-run failure zero-row test',
+   'json',
+   'https://example.test/feed-run-zero-row.json',
+   true,
    0);
 
 create or replace function public.pulse_test_reject_source_observation()
@@ -53,5 +67,39 @@ $pulse_test_reject_source_observation$;
 create trigger pulse_test_reject_source_observation
 before insert on public.intelligence_source_item_observations
 for each row execute function public.pulse_test_reject_source_observation();
+
+
+
+create or replace function public.pulse_test_suppress_source_failure_write()
+returns trigger
+language plpgsql
+as $pulse_test_suppress_source_failure_write$
+begin
+  if new.id = '55555555-5555-4555-8555-555555555555'::uuid and new.last_error is not null then
+    return null;
+  end if;
+  return new;
+end;
+$pulse_test_suppress_source_failure_write$;
+
+create trigger pulse_test_suppress_source_failure_write
+before update on public.intelligence_sources
+for each row execute function public.pulse_test_suppress_source_failure_write();
+
+create or replace function public.pulse_test_suppress_fetch_run_failure_write()
+returns trigger
+language plpgsql
+as $pulse_test_suppress_fetch_run_failure_write$
+begin
+  if new.source_id = '66666666-6666-4666-8666-666666666666'::uuid and new.status = 'failed' then
+    return null;
+  end if;
+  return new;
+end;
+$pulse_test_suppress_fetch_run_failure_write$;
+
+create trigger pulse_test_suppress_fetch_run_failure_write
+before update on public.intelligence_source_fetch_runs
+for each row execute function public.pulse_test_suppress_fetch_run_failure_write();
 
 notify pgrst, 'reload schema';
