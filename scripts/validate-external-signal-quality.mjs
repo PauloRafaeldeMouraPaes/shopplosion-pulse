@@ -65,8 +65,10 @@ assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,s
 assert.match(signalWorker, /isGoodEvidenceQuote/);
 assert.match(signalWorker, /shouldRecordSignalEvent\(/, "the main worker must use the shared event deduplication rule");
 assert.match(backstopWorker, /shouldRecordSignalEvent\(/, "the deterministic backstop must use the same event deduplication rule");
-assert.match(signalWorker, /signalEventDirection\(/, "the main worker must derive event direction from confidence delta");
-assert.match(backstopWorker, /signalEventDirection\(/, "the deterministic backstop must not label unchanged confidence as an upward event");
+assert.doesNotMatch(signalWorker, /from\(['"]intelligence_signal_events['"]\)\.insert/, "the main worker must rely on the database trigger as the sole event writer");
+assert.doesNotMatch(backstopWorker, /from\(['"]intelligence_signal_events['"]\)\.insert/, "the deterministic backstop must not duplicate trigger-generated events");
+assert.match(signalWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the main worker must preserve resolved signals");
+assert.match(backstopWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the backstop must preserve resolved signals");
 assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.65, candidateDirection: "new" }), "new", "evidence-only changes must not be mislabeled as confidence increases");
 assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.70, candidateDirection: "stable" }), "up", "a meaningful confidence increase should be up");
 assert.equal(signalEventDirection({ priorConfidence: 0.70, confidence: 0.65, candidateDirection: "stable" }), "down", "a meaningful confidence decrease should be down");
@@ -77,6 +79,8 @@ assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprin
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.70 }), true, "confidence movement at the 0.05 threshold must create an event");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "old", fingerprint: "new", confidence: 0.65 }), true, "changed evidence fingerprint must create an event");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: null, existingFingerprint: undefined, fingerprint: "new", confidence: 0.65 }), true, "a first observation must create an event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "old", fingerprint: "new", confidence: 0.65, priorStatus: "resolved", status: "resolved" }), false, "resolved signals must not emit repeated events");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65, priorStatus: "active", status: "resolved" }), true, "resolution transition must emit one event");
 assert.doesNotMatch(signalWorker, /changeScore>=\.1\|\|direction!==['"]stable['"]/, "a high model score or non-stable direction alone must not duplicate events on every worker run");
 assert.doesNotMatch(backstopWorker, /changeScore>=\.1\|\|direction!==['"]stable['"]/, "a high model score or non-stable direction alone must not duplicate events on every backstop run");
 
