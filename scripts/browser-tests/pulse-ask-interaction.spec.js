@@ -150,6 +150,10 @@ test.describe('Ask AI interaction contract', () => {
     await expect(page.locator('#results')).toContainText('Alcance para a pergunta');
     await expect(page.locator('#results')).toContainText('INDIRETO para marca do piloto no Brasil');
     await expect(page.locator('#results')).toContainText('Não comprova motivo individual');
+    await expect(page.locator('#results')).toContainText('Família de fonte: Kantar / Worldpanel');
+    await expect(page.locator('#results')).toContainText('Família igual não equivale a confirmação independente');
+    const familyAudit = await page.locator('#results').textContent();
+    expect((familyAudit.match(/Família de fonte: Kantar \/ Worldpanel/g)||[]).length).toBeGreaterThanOrEqual(2);
     const audit=await page.evaluate(()=>({
       ids:(window.__pulsePublicMatches||[]).map(x=>x.e?.id),
       count:(window.__pulsePublicMatches||[]).length,
