@@ -134,6 +134,9 @@ for (const id of requiredIds) {
   if (row.geo !== "BR" || row.search_type !== "Web Search" || row.query_type !== "Search term") {
     errors.push(`${trendsPath}: ${id} has unexpected geography/search configuration`);
   }
+  if (row.category !== "All categories (cat=0)" || !row.source_url.includes("&cat=0&")) {
+    errors.push(`${trendsPath}: ${id} must keep the pre-registered All categories (cat=0) setting`);
+  }
   if (row.status === "not_captured") {
     if (row.exported_at_utc || row.raw_filename || row.raw_file_sha256) {
       errors.push(`${trendsPath}: ${id} is not_captured but contains export metadata`);
