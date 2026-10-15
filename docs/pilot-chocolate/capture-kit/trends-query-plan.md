@@ -39,6 +39,18 @@ Use these five Search terms together in one comparison:
 
 This is a brand-query benchmark only. It is vulnerable to differences in brand awareness, ambiguity, spelling, campaigns, and product portfolios. It is not market share or switching evidence. If the interface suggests a Topic instead of a Search term, do not silently accept it; record the exact selection or create a separate Topic comparison.
 
+### Set C — category needs and usage occasions (exploratory extension)
+
+These terms are candidate dimensions to test only after the core Set A capture is preserved. Record each exact term and the rationale before export; do not choose terms retrospectively because a curve looks compelling. Possible dimensions include:
+- chocolate vegano
+- chocolate sem açúcar
+- chocolate sem lactose
+- chocolate alto teor de cacau
+- presente chocolate
+- receita com chocolate
+
+This extension is a separate, versioned set because terms differ in intent and volume. It is not a market-size measure and must not be summed with Set A. If low-volume terms return zero, retain that limitation.
+
 ## Review and false-positive controls
 
 - Compare the same calendar periods across the five-year view; mark Easter, Valentine's Day, Mother's Day, Christmas, and other obvious seasonal peaks before interpreting changes.
