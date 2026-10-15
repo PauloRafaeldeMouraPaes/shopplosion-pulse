@@ -43,6 +43,10 @@ alter table public.intelligence_source_fetch_runs
   references public.intelligence_source_fetch_runs (id, source_id, industry_id)
   on delete restrict;
 
+create unique index intelligence_source_fetch_runs_single_successor_idx
+  on public.intelligence_source_fetch_runs (previous_fetch_run_id)
+  where previous_fetch_run_id is not null;
+
 alter table public.intelligence_source_items
   add constraint intelligence_source_items_id_source_industry_unique
   unique (id, source_id, industry_id);
