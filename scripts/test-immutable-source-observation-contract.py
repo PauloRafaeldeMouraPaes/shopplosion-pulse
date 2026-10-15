@@ -118,6 +118,14 @@ def main() -> int:
             "HTTP 403 no-retry unit test is missing")
     require("transient server errors can retry before success" in fetch_test,
             "transient retry unit test is missing")
+    require("failureWrites.sourceStatusPersisted" in worker and "failureWrites.runStatusPersisted" in worker,
+            "Worker must observe failed error-state persistence rather than reporting success")
+    require("status:failureBookkeepingFailed>0?'reconciliation_incomplete'" in worker,
+            "Worker must expose incomplete failure reconciliation in its response")
+    require("completeness_status:'incomplete'" in worker and "absence_inference_eligible:false" in worker,
+            "Worker must keep unproven snapshots ineligible for absence inference")
+    require("scope_fingerprint:scopeFingerprint" in worker and "response_content_type:responseContentType" in worker,
+            "Worker must persist run scope and response metadata")
     require("recordSourceFailure" in worker,
             "Worker failure path does not use failure bookkeeping helper")
     require("source_failure_status_persist_failed" in failure_helper,
