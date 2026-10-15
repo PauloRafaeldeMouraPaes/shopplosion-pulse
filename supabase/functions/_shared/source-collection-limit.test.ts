@@ -1,4 +1,4 @@
-import { sourceCollectionLimitError, SOURCE_ITEM_LIMIT } from "./source-collection-limit.ts";
+import { sourceCollectionLimitError, SOURCE_ITEM_LIMIT, sourceItemFieldLimitError, SOURCE_ITEM_FIELD_LIMITS } from "./source-collection-limit.ts";
 
 function assertIncomplete(result: string | null, reason: string): void {
   if (!result?.startsWith("source_snapshot_incomplete:")) {
@@ -88,4 +88,39 @@ Deno.test("Atom without a closing feed root fails closed", () => {
     sourceCollectionLimitError("rss", "<feed><entry><title>incomplete document</title></entry>"),
     "malformed Atom structure",
   );
+});
+
+Deno.test("item fields at documented storage limits are accepted without truncation", () => {
+  const result = sourceItemFieldLimitError({
+    externalId: "i".repeat(SOURCE_ITEM_FIELD_LIMITS.externalId),
+    title: "t".repeat(SOURCE_ITEM_FIELD_LIMITS.title),
+    url: "u".repeat(SOURCE_ITEM_FIELD_LIMITS.url),
+    content: "c".repeat(SOURCE_ITEM_FIELD_LIMITS.content),
+  });
+  if (result !== null) throw new Error("Exact field limits must not be rejected: " + result);
+});
+
+Deno.test("over-limit identity, title, URL, or content invalidates the entire snapshot", () => {
+  const base = { externalId: "stable-id", title: "Title", url: "https://example.test/item", content: "Content" };
+  const cases: Array<[string, Partial<typeof base>, string]> = [
+    ["identity", { externalId: "i".repeat(SOURCE_ITEM_FIELD_LIMITS.externalId + 1) }, "source_item_external_id_exceeds_limit"],
+    ["title", { title: "t".repeat(SOURCE_ITEM_FIELD_LIMITS.title + 1) }, "source_item_title_exceeds_limit"],
+    ["URL", { url: "u".repeat(SOURCE_ITEM_FIELD_LIMITS.url + 1) }, "source_item_url_exceeds_limit"],
+    ["content", { content: "c".repeat(SOURCE_ITEM_FIELD_LIMITS.content + 1) }, "source_item_content_exceeds_limit"],
+  ];
+  for (const [field, override, reason] of cases) {
+    const result = sourceItemFieldLimitError({ ...base, ...override });
+    if (result !== "source_snapshot_incomplete:" + reason) {
+      throw new Error(field + " over-limit handling was not fail-closed: " + String(result));
+    }
+  }
+});
+
+Deno.test("missing stable identity invalidates item rather than falling back to truncation", () => {
+  const result = sourceItemFieldLimitError({
+    externalId: "", title: "Title", url: null, content: "Content",
+  });
+  if (result !== "source_snapshot_incomplete:source_item_identity_missing") {
+    throw new Error("Missing source identity was not rejected: " + String(result));
+  }
 });
