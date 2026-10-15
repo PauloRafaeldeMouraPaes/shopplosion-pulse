@@ -63,6 +63,11 @@ const signalWorker = readFileSync(resolve(root, "supabase/functions/pulse-extern
 const backstopWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/index.ts"), "utf8");
 assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,signal_key'\}\)/, "partial unique index must not be targeted by an invalid PostgREST upsert");
 assert.match(signalWorker, /isGoodEvidenceQuote/);
+assert.match(signalWorker, /const confidenceChanged=prior===null\|\|Math\.abs\(confidence-prior\)>=\.05/ , "confidence movement should be evaluated explicitly before recording an event");
+assert.match(signalWorker, /const evidenceChanged=prior===null\|\|existing\?\.fingerprint!==fingerprint/, "unchanged evidence fingerprints must not create new events");
+assert.match(signalWorker, /if\(confidenceChanged\|\|evidenceChanged\)/, "an event should require a new/changed evidence fingerprint or meaningful confidence change");
+assert.doesNotMatch(signalWorker, /changeScore>=\.1\|\|direction!==['"]stable['"]/, "a high model score or non-stable direction alone must not duplicate events on every worker run");
+
 assert.match(signalWorker, /const duplicateIndex=candidates\.findIndex/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
 assert.doesNotMatch(signalWorker, /const duplicate=candidates\.some/, "the obsolete exact-quote-only deduplication path must not return");
 assert.doesNotMatch(signalWorker, /validatedItemIds/, "one valid quote must not suppress distinct deterministic evidence from the same source item");
