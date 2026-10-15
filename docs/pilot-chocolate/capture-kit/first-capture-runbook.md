@@ -6,12 +6,12 @@ Status: **prepared, not executed**. No real observations are included in this ru
 
 Do not start capture or a four-week baseline until all applicable boxes are accepted by a human owner.
 
-- [ ] Owner approves the exact EAN/product list in `ean-approval.template.csv`.
+- [ ] Category taxonomy, discovery questions and transparent sampling method are documented in `category-scope.md`; brand approval is not required for category-level discovery.
 - [ ] Each source has a completed `source-permissions.template.csv` record with terms/license version and explicit permission for intended collection, raw retention, derived analytics and commercial display.
 - [ ] Retail sample is authorized in writing and has a recorded sample ID/hash.
 - [ ] Source-specific settings, time zone, collection method, cadence, and known gaps are documented.
 - [ ] QA reviewer approves the first reproducible capture and records the decision.
-- [ ] The fixed query/EAN set and observation schedule are frozen before the baseline start date.
+- [ ] Fixed category query sets, sampling method and observation schedule are frozen before the baseline start date.
 
 A public marketing page, green CI, a draft email, a preview deployment or a planned query is not proof that any gate passed.
 
@@ -41,10 +41,10 @@ Never put credentials, tokens, personal data or restricted raw data in a public 
 
 1. Use only the provider's expressly authorized sample/API/feed and the exact permission scope in the source register.
 2. Retain the received artifact only as permitted. Record sample ID, retrieval time, license version, original filename and hash if allowed.
-3. Validate every product match by EAN, variant and net weight; record store/network granularity and earliest/latest observation dates.
+3. Validate each product match by EAN where available, plus brand, variant and net weight; record store/network granularity and earliest/latest observation dates. This is data QA, not a buyer-approval gate.
 4. Distinguish observed price, regular price, promotional price, promotion mechanics, availability and missing/not-observed states. Never infer out-of-stock from a missing row.
 5. Fill `retail-sample-acceptance.template.csv` and reject any price without verified EAN, weight, currency, source and timestamp.
-6. Report coverage by EAN × retailer/store × date, including missing days. Do not treat a provider's overall store count or brand list as proof of SKU coverage.
+6. Report coverage by product/format/price tier × retailer/store × date, including missing days. Use EAN for exact matching when present; do not treat a provider's overall store count or brand list as proof of actual coverage. Lindt coverage is optional for a category-wide baseline.
 
 ## QA acceptance for the first run
 
@@ -65,7 +65,7 @@ The four-week baseline start timestamp is the first accepted capture after every
 - Run ID:
 - Owner:
 - Reviewer:
-- Approved EAN list reference:
+- Category scope and sampling register reference:
 - Trends export manifest reference:
 - Retail sample/license reference:
 - QA report reference:
