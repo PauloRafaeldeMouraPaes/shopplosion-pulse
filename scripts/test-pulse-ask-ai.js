@@ -120,6 +120,14 @@ if (providerFallbackStart < 0 || !askFnText.slice(providerFallbackStart, provide
   failures.push('Deterministic fallback must preserve canonical evidence source URLs');
 }
 
+for (const field of ['public_universe','public_represents','public_verification']) {
+  if (!canonicalEdge.includes(field)) failures.push(`Public Ask AI context missing qualification metadata ${field}`);
+}
+for (const label of ['universo observado:', 'representa:', 'verificação na fonte:']) {
+  if (!canonicalEdge.toLowerCase().includes(label)) failures.push(`Public Ask AI prompt missing ${label}`);
+}
+if (!ask.includes('<strong>Representa:</strong>') || !ask.includes('<strong>Verificação na fonte:</strong>')) failures.push('Ask AI UI must display representativeness and source verification metadata');
+
 if (failures.length) {
   console.error('Ask AI regression FAILED');
   failures.forEach(f => console.error(`- ${f}`));
