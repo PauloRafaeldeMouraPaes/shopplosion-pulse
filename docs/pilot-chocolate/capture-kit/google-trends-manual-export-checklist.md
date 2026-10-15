@@ -4,15 +4,15 @@ Status: **execution guide only; no export is implied by this file**. Use this ch
 
 ## Required exports
 
-1. [Set A — Brazil, last 5 years](https://trends.google.com/trends/explore?date=today%205-y&geo=BR&q=chocolate%2Cbarra%20de%20chocolate%2Cchocolate%20amargo%2Cchocolate%20ao%20leite%2Cchocolate%20sem%20a%C3%A7%C3%BAcar)
-2. [Set A — Brazil, last 12 months](https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&q=chocolate%2Cbarra%20de%20chocolate%2Cchocolate%20amargo%2Cchocolate%20ao%20leite%2Cchocolate%20sem%20a%C3%A7%C3%BAcar)
-3. [Set B — Brazil, last 5 years](https://trends.google.com/trends/explore?date=today%205-y&geo=BR&q=Lindt%2CLacta%2CGaroto%2CNestl%C3%A9%2CFerrero%20Rocher)
-4. [Set B — Brazil, last 12 months](https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&q=Lindt%2CLacta%2CGaroto%2CNestl%C3%A9%2CFerrero%20Rocher)
+1. [Set A — Brazil, last 5 years](https://trends.google.com/trends/explore?date=today%205-y&geo=BR&cat=0&q=chocolate%2Cbarra%20de%20chocolate%2Cchocolate%20amargo%2Cchocolate%20ao%20leite%2Cchocolate%20sem%20a%C3%A7%C3%BAcar)
+2. [Set A — Brazil, last 12 months](https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&cat=0&q=chocolate%2Cbarra%20de%20chocolate%2Cchocolate%20amargo%2Cchocolate%20ao%20leite%2Cchocolate%20sem%20a%C3%A7%C3%BAcar)
+3. [Set B — Brazil, last 5 years](https://trends.google.com/trends/explore?date=today%205-y&geo=BR&cat=0&q=Lindt%2CLacta%2CGaroto%2CNestl%C3%A9%2CFerrero%20Rocher)
+4. [Set B — Brazil, last 12 months](https://trends.google.com/trends/explore?date=today%2012-m&geo=BR&cat=0&q=Lindt%2CLacta%2CGaroto%2CNestl%C3%A9%2CFerrero%20Rocher)
 
 ## For each comparison
 
 - [ ] Open the registered link and verify all five query terms and their order.
-- [ ] Verify geography is Brazil; select the same available category setting for all terms in that set; record the actual setting.
+- [ ] Verify geography is Brazil and category is **All categories (`cat=0`)** for every export. If the interface does not reflect this exact setting, stop and record the mismatch rather than exporting under a different category.
 - [ ] Confirm every item is a **Search term**, not a Topic. If Google interprets a term as a Topic, stop and record the discrepancy rather than silently mixing query types.
 - [ ] Confirm the requested time window and Web Search.
 - [ ] Use the chart download menu to export CSV. Preserve the downloaded original byte-for-byte; do not edit the original or infer missing values.
