@@ -34,12 +34,12 @@ Deno.test("two complete runs must share the same scope before absence can be inf
     responseValidated: true, parserValidated: true, persistenceSucceeded: true,
     paginationExhausted: true, finiteScopeProven: true,
   };
-  const first = await assessSnapshotCompleteness(input);
-  const second = await assessSnapshotCompleteness(input);
+  const first = await assessSnapshotCompleteness({ ...input, runId: "run-1", previousRunId: "run-0" });
+  const second = await assessSnapshotCompleteness({ ...input, runId: "run-2", previousRunId: "run-1" });
   if (!mayInferAbsence(first, second)) throw new Error("matching complete runs should permit absence evaluation");
-  const changedScope = await assessSnapshotCompleteness({ ...input, url: "https://example.test/other" });
+  const changedScope = await assessSnapshotCompleteness({ ...input, url: "https://example.test/other", runId: "run-3", previousRunId: "run-2" });
   if (mayInferAbsence(first, changedScope)) throw new Error("scope change must reset consecutive-run rule");
-  const incomplete = await assessSnapshotCompleteness({ ...input, paginationExhausted: false });
+  const incomplete = await assessSnapshotCompleteness({ ...input, paginationExhausted: false, runId: "run-3", previousRunId: "run-2" });
   if (mayInferAbsence(first, incomplete)) throw new Error("incomplete run must never confirm absence");
 });
 
@@ -69,5 +69,18 @@ Deno.test("failure classification distinguishes access, rate limit, parsing, inc
     if (classifySourceFailure(message) !== expected) {
       throw new Error(`failure classification mismatch for ${message}`);
     }
+  }
+});
+
+Deno.test("a failed or skipped run breaks the adjacent-run absence rule", async () => {
+  const base = {
+    sourceId: "source-1", sourceType: "json", url: "https://example.test/catalog",
+    responseValidated: true, parserValidated: true, persistenceSucceeded: true,
+    paginationExhausted: true, finiteScopeProven: true,
+  };
+  const previous = await assessSnapshotCompleteness({ ...base, runId: "run-10", previousRunId: "run-9" });
+  const nonAdjacent = await assessSnapshotCompleteness({ ...base, runId: "run-12", previousRunId: "run-11" });
+  if (mayInferAbsence(previous, nonAdjacent)) {
+    throw new Error("a non-adjacent complete run must not authorize absence inference");
   }
 });
