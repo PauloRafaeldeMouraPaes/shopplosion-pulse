@@ -17,3 +17,23 @@ Status: **schema and protocol only**. This directory contains no collected obser
 5. Four-week baseline starts only after the first authorized, reproducible capture is accepted.
 
 No scraper, credentials, external API calls, production writes or recurring capture are included in this kit.
+
+## Baseline status record
+
+**Current status: `not_started`.** This is a documentation/preparation kit, not a collected dataset.
+
+| Gate | Status | Evidence required to change status |
+|---|---|---|
+| Google Trends capture | Pending | Original CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
+| Retail source authorization | Pending | Written license/terms confirming permitted collection, retention and commercial analytical use |
+| Retail coverage | Pending | Authorized sample proving exact EAN × retailer/store coverage, including Lindt where available, plus comparable products; no inferred coverage |
+| Reproducibility and QA | Pending | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |
+| Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
+| Four-week baseline | **Not started** | All prerequisite gates accepted and fixed query/EAN sets, sampling schedule and coverage documented |
+
+No source has been authorized or connected by this kit, no supplier request has been sent, no CSV observations have been collected, and no coverage or matching threshold has been measured. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
+
+### First weekly review record
+
+For the first review, retain both accepted and rejected candidates. For each candidate record: stable signal ID; capture artifact/hash; source family and publication/observation dates; universe and method; observed fact; separate hypothesis; alternative explanations (seasonality, promotion, distribution, source coverage, sampling and syndicated reporting); independence/corroboration status; confidence; reviewer; decision and rationale. Contradictory signals remain visible. A single-source signal is labeled preliminary, not consolidated.
+
