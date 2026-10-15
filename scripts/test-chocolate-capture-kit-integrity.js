@@ -173,10 +173,10 @@ if (captureIds.length !== capture.records.length) errors.push(`${capturePath}: b
 if (new Set(captureIds).size !== captureIds.length) errors.push(`${capturePath}: duplicate capture_id`);
 const capturedUrls = new Set();
 for (const [index, row] of capture.records.entries()) {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(row.captured_on_utc || "") || Number.isNaN(Date.parse(row.captured_on_utc))) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(row.captured_on_utc || "") || Number.isNaN(Date.parse(row.captured_on_utc))) {
     errors.push(`${capturePath}: row ${index + 2} has invalid captured_on_utc`);
   }
-  if (!/^https?:\\/\\//.test(row.source_url || "")) errors.push(`${capturePath}: row ${index + 2} has invalid source_url`);
+  if (!(row.source_url || "").startsWith("https://") && !(row.source_url || "").startsWith("http://")) errors.push(`${capturePath}: row ${index + 2} has invalid source_url`);
   if (!row.observed_fact.trim() || !row.represents.trim() || !row.does_not_represent.trim()) {
     errors.push(`${capturePath}: row ${index + 2} must separate observed fact, represents and does_not_represent`);
   }
@@ -195,7 +195,7 @@ for (const [index, row] of capture.records.entries()) {
   }
 }
 for (const [index, row] of review.records.entries()) {
-  const citedUrls = (row.source_url || "").split(/;\\s*/).map(url => url.trim()).filter(Boolean);
+  const citedUrls = (row.source_url || "").split(";").map(url => url.trim()).filter(Boolean);
   if (!citedUrls.length || !citedUrls.some(url => capturedUrls.has(url))) {
     errors.push(`${reviewPath}: row ${index + 2} must cite at least one URL present in the dated capture register`);
   }
