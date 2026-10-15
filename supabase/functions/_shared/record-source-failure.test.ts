@@ -8,7 +8,7 @@ Deno.test("failure bookkeeping records source and run failure", async () => {
     "run-test",
     "HTTP 403",
     async () => { writes.push("source"); return { data: { id: "persisted" }, error: null }; },
-    async () => { writes.push("run"); return { error: null }; },
+    async () => { writes.push("run"); return { data: { id: "persisted" }, error: null }; },
     (message) => reports.push(message),
   );
 
@@ -41,5 +41,23 @@ Deno.test("failure bookkeeping errors are observable and do not escape", async (
   }
   if (!reports.some((message) => message.includes('"target":"fetch_run"'))) {
     throw new Error("Fetch-run status write failure was not reported");
+  }
+});
+
+Deno.test("failure bookkeeping treats a zero-row update as not persisted", async () => {
+  const reports: string[] = [];
+  const result = await recordSourceFailure(
+    "source-test",
+    "run-test",
+    "http_403",
+    async () => ({ data: null, error: null }),
+    async () => ({ data: { id: "run-test" }, error: null }),
+    (message) => reports.push(message),
+  );
+  if (result.sourceStatusPersisted || !result.runStatusPersisted) {
+    throw new Error("A missing source row must not be reported as persisted");
+  }
+  if (!reports.some((message) => message.includes("no_row"))) {
+    throw new Error("A zero-row source update must emit a reconciliation warning");
   }
 });
