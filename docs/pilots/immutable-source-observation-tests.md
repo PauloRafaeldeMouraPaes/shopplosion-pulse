@@ -60,3 +60,12 @@ A mudança não deve ser considerada pronta até que H01–H15 passem em ambient
 
 
 Recent regression guard: RSS responses must contain a channel and closing RSS/channel tags; Atom responses must close the feed root. This prevents some malformed responses from being interpreted as empty successful captures. It is a structural sanity check only, not a complete XML parser or a positive completeness guarantee.
+
+
+## H13 incremental implementation — scope metadata and conservative absence policy
+
+The worker now computes a SHA-256 scope_fingerprint from the source ID, source type, URL scope, and parser version. The raw URL is not emitted by the helper. The observation metadata records this fingerprint, parser_version, completeness_status: incomplete, and absence_inference_eligible: false; a structured operational-completion log also states that collection succeeded operationally without proving source completeness.
+
+A new pure helper and regression suite cover stable scope fingerprints, scope/parser changes, failures in response/parser/persistence validation, and the rule that absence evaluation requires two complete, eligible runs with the same scope. This policy is deliberately conservative: **the current adapters do not set finite-scope proof or pagination exhaustion to true**, so no current RSS/Atom, generic JSON, or single-page HTML adapter can authorize absence inference. An empty response is not evidence of absence.
+
+Important remaining gap: the current fetch-run schema has no reviewed persistent completeness-metadata columns, so run-level metadata is not yet durably stored for empty runs; structured logs alone are not durable evidence. The new per-observation metadata helps trace non-empty captures but does not close H13. A schema change should be considered only after reviewing the existing intelligence_source_fetch_runs contract and adding isolated PostgreSQL migration coverage. Do not change the operational completed status semantics until callers and constraints are reconciled; it currently means the worker finished its operational path, not that source absence is proven.
