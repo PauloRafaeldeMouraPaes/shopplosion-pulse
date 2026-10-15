@@ -171,3 +171,17 @@ This materially broadens the negative search evidence, but it is not proof about
 ## Latest verification
 
 On commit `de15f7702b066739bf89894d26e2ca364f4735f9`, all Pulse CI checks have now completed successfully, including Browser Smoke, Regression, Evidence Contract, Private AI Audit, Multi-Tenant Audit and Validate. Netlify redirect processing succeeded; header/pages checks were neutral because that commit did not include those rule files. These checks validate this documentation-only branch; they do not establish production migration lineage or production database correctness.
+
+
+## Targeted signal-worker ACL cross-check (2026-10-15)
+
+A fresh read-only inspection of production confirms the following current grants:
+
+- `public.capture_intelligence_signal_event()`: `SECURITY DEFINER`, owner `postgres`, direct EXECUTE for `PUBLIC`, `anon`, `authenticated`, and `service_role`; `search_path=public`.
+- `public.pulse_external_backstop_schedule_tick()`: `SECURITY DEFINER`, owner `postgres`, direct EXECUTE for `anon`, `authenticated`, and `service_role`; `search_path=public, extensions, vault, pg_catalog`.
+- `public.pulse_external_intelligence_fallback_candidate(uuid)`: `SECURITY DEFINER`, owner `postgres`, direct EXECUTE for `PUBLIC`, `anon`, `authenticated`, and `service_role`.
+- `public.pulse_intelligence_worker_token()` is not directly executable by `anon` or `authenticated`; `service_role` can execute it.
+
+The active cron job `pulse-external-backstop-hourly` runs as `postgres` on schedule `15 * * * *` and invokes `select public.pulse_external_backstop_schedule_tick();`. This means direct API grants on the scheduler are not required for the current cron owner, but any revocation must be validated against the real scheduled execution and its Vault-to-Edge-Function token path before release.
+
+The latest Security Advisor read still reports 11 SECURITY DEFINER routines executable by `anon` and 12 executable by `authenticated`. No ACL, trigger, function, cron definition, or production data was changed during this read-only check. The signal-trigger draft in PR #89 proposes narrowly revoking direct API execution from the trigger, scheduler, and internal fallback-candidate lookup while preserving `service_role` access where required; this remains a candidate, not an applied production change. Other Advisor findings require call-graph classification and must not be bulk-revoked.
