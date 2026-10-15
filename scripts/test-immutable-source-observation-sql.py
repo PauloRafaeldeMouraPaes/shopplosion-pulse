@@ -537,33 +537,46 @@ $pulse_schema_contract$;
 -- H07/H08: exercise real SET ROLE queries for both client roles.
 -- The intended architecture is worker-only history, so deny direct reads of
 -- both tables rather than exposing tenant-filtered history through the API.
-DO $pulse_client_history_access$
+SET LOCAL ROLE anon;
+DO $pulse_anon_history_access$
 DECLARE
-  v_role text;
-  v_table text;
   v_denied boolean;
 BEGIN
-  FOREACH v_role IN ARRAY ARRAY['anon', 'authenticated'] LOOP
-    EXECUTE format('SET LOCAL ROLE %I', v_role);
-    FOREACH v_table IN ARRAY ARRAY[
-      'intelligence_source_item_versions',
-      'intelligence_source_item_observations'
-    ] LOOP
-      v_denied := false;
-      BEGIN
-        EXECUTE format('SELECT 1 FROM public.%I LIMIT 1', v_table);
-      EXCEPTION WHEN insufficient_privilege THEN
-        v_denied := true;
-      END;
-      IF NOT v_denied THEN
-        RAISE EXCEPTION 'H07/H08 client role % unexpectedly read protected table %',
-          v_role, v_table;
-      END IF;
-    END LOOP;
-    RESET ROLE;
-  END LOOP;
+  v_denied := false;
+  BEGIN
+    PERFORM 1 FROM public.intelligence_source_item_versions LIMIT 1;
+  EXCEPTION WHEN insufficient_privilege THEN v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'H07 anon unexpectedly read source versions'; END IF;
+  v_denied := false;
+  BEGIN
+    PERFORM 1 FROM public.intelligence_source_item_observations LIMIT 1;
+  EXCEPTION WHEN insufficient_privilege THEN v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'H07 anon unexpectedly read source observations'; END IF;
 END;
-$pulse_client_history_access$;
+$pulse_anon_history_access$;
+RESET ROLE;
+
+SET LOCAL ROLE authenticated;
+DO $pulse_authenticated_history_access$
+DECLARE
+  v_denied boolean;
+BEGIN
+  v_denied := false;
+  BEGIN
+    PERFORM 1 FROM public.intelligence_source_item_versions LIMIT 1;
+  EXCEPTION WHEN insufficient_privilege THEN v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'H07 authenticated unexpectedly read source versions'; END IF;
+  v_denied := false;
+  BEGIN
+    PERFORM 1 FROM public.intelligence_source_item_observations LIMIT 1;
+  EXCEPTION WHEN insufficient_privilege THEN v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'H07 authenticated unexpectedly read source observations'; END IF;
+END;
+$pulse_authenticated_history_access$;
 RESET ROLE;
 """
 
