@@ -20,6 +20,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `public-source-review-2026-10-14.csv`: eleven preliminary signal candidates, alternative explanations and follow-up decisions.
 - `public-retail-snapshot-2026-10-14.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
+- `shopper-context-follow-up-2026-10-15.md`: supplemental Worldpanel by Numerator context on cross-category budget, promotion and channel behavior; explicitly `context_only`, not chocolate-specific evidence.
 - `product-universe-initial-2026-10-14.csv`: initial seven-row exploratory product × retailer register with inclusion rationale and coverage gaps; EAN gaps are explicit, not treated as approval gates.
 - `product-universe.template.csv`: blank schema for future product-sample additions.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
