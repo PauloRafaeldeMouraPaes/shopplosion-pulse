@@ -21,3 +21,39 @@ Status: investigation only. No production schema, data, grants, or migration his
 ## Release gate
 
 **Do not run `supabase db push`, apply DDL, alter grants, or merge the database fix until the complete lineage is reconciled and reviewed.** The current branch is documentation only; no migration or production change is included.
+
+
+## Additional read-only production findings (2026-10-15)
+
+The live trigger/function definition was retrieved read-only:
+
+- Trigger: `AFTER INSERT OR UPDATE OF confidence, status, evidence, observed_at` on `public.intelligence_signals`.
+- The trigger function inserts an event on every invocation and does not compare `OLD` and `NEW` semantically. The update branch classifies confidence movement below 0.05 as `stable`, but still inserts the event.
+- The `ON CONFLICT DO NOTHING` clause does not provide semantic deduplication: the event table's only unique index observed is the UUID primary key on `id`; the signal/time indexes are non-unique.
+- Current read-only counts: 2,156 events for 33 signals. These counts are diagnostic, not proof that all rows are duplicates.
+- The cron-facing `pulse_external_backstop_schedule_tick()` reads a token from Vault and sends it in `x-pulse-cron` to the deterministic-backstop Edge Function. The Edge Function independently checks that header against `pulse_intelligence_worker_token` before doing work. Keep this internal path working when tightening direct RPC privileges.
+
+## Trigger behavior acceptance matrix
+
+The staging migration/test suite should establish the following observable behavior before production rollout:
+
+| Operation | Expected event behavior |
+|---|---|
+| Insert a signal | Exactly one initial event |
+| Update only `observed_at` / `updated_at` | No new event |
+| Reapply identical confidence, status, fingerprint and evidence | No new event |
+| Change confidence by less than 0.05 with no material fingerprint/status change | No new event |
+| Change confidence by at least 0.05 | One event, direction matches confidence delta |
+| Change fingerprint materially | One event, direction not incorrectly labelled `up` solely because evidence changed |
+| Change evidence while fingerprint is unchanged | No event unless the approved contract explicitly treats the evidence change as material |
+| Transition active to resolved | Exactly one `resolved` event |
+| Update an already resolved signal without another resolution transition | No repeated resolution event |
+| Run scheduler as trusted database role | Scheduler continues to invoke the authenticated Edge Function |
+| Attempt direct invocation as `anon` or `authenticated` | Denied for internal-only routines |
+| Invoke internal path with valid token | Continues to work; invalid/missing token denied |
+
+The fingerprint/evidence materiality rule must be agreed in the reviewed migration, because the current worker code fingerprints evidence payloads. Tests must use deterministic timestamps and verify both event count and row values.
+
+## Security review note
+
+The current Security Advisor reports 11 functions executable by `anon` and 12 by `authenticated` among the exposed `SECURITY DEFINER` functions. Do not bulk-revoke without call-graph analysis: distinguish trigger-only functions, user-facing context RPCs, and internal worker/scheduler functions. The scheduler/Edge Function path above is a required regression case. No ACLs were changed during this audit.
