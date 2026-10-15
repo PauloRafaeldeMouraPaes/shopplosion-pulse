@@ -30,8 +30,20 @@ CREATE FUNCTION public.pulse_external_backstop_schedule_tick()
 RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
 CREATE FUNCTION public.pulse_external_intelligence_fallback_candidate(p_item_id uuid)
 RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT '{}'::jsonb $stub$;
+CREATE FUNCTION public.pulse_capture_document_version(p_document_id uuid)
+RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
+CREATE FUNCTION public.pulse_external_intelligence_self_test()
+RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
+CREATE FUNCTION public.pulse_external_signal_deterministic_backstop()
+RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
+CREATE FUNCTION public.pulse_resolve_stale_intelligence_signals()
+RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
 GRANT EXECUTE ON FUNCTION public.pulse_external_backstop_schedule_tick() TO service_role;
 GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.pulse_capture_document_version(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_self_test() TO service_role;
+GRANT EXECUTE ON FUNCTION public.pulse_external_signal_deterministic_backstop() TO service_role;
+GRANT EXECUTE ON FUNCTION public.pulse_resolve_stale_intelligence_signals() TO service_role;
 
 CREATE TABLE public.intelligence_signal_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -74,6 +86,22 @@ BEGIN
   END IF;
   IF NOT has_function_privilege('service_role', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE') THEN
     RAISE EXCEPTION 'trusted worker role lost candidate lookup execution';
+  END IF;
+  IF NOT has_function_privilege('service_role', 'public.pulse_capture_document_version(uuid)', 'EXECUTE')
+     OR NOT has_function_privilege('service_role', 'public.pulse_external_intelligence_self_test()', 'EXECUTE')
+     OR NOT has_function_privilege('service_role', 'public.pulse_external_signal_deterministic_backstop()', 'EXECUTE')
+     OR NOT has_function_privilege('service_role', 'public.pulse_resolve_stale_intelligence_signals()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'an internal service-role path lost its explicit EXECUTE grant';
+  END IF;
+  IF has_function_privilege('anon', 'public.pulse_capture_document_version(uuid)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_capture_document_version(uuid)', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.pulse_external_intelligence_self_test()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_external_intelligence_self_test()', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.pulse_external_signal_deterministic_backstop()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_external_signal_deterministic_backstop()', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.pulse_resolve_stale_intelligence_signals()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_resolve_stale_intelligence_signals()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'an internal-only SECURITY DEFINER routine remains directly executable by API roles';
   END IF;
 
   INSERT INTO public.intelligence_signals
