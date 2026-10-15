@@ -61,6 +61,8 @@ def main() -> int:
             "Test status must not imply H01-H15 have already run")
     require("Nunca executar fixtures destrutivas na produção" in cases,
             "Test contract must explicitly prohibit destructive production fixtures")
+    require("R01" in cases and "status='rejected'" in cases.lower(),
+            "Test contract must cover preservation of rejected moderation state")
 
     # The SQL is a review-only draft: require an explicit rollback and the
     # core tenant-aware constraints before it can be considered for migration.
