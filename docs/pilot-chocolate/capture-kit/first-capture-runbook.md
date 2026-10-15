@@ -1,6 +1,6 @@
 # First capture runbook — Chocolate pilot
 
-Status: **prepared, not executed**. No real observations are included in this runbook.
+Status: **exploratory public-source capture executed; repeatable baseline not yet executed**. See the dated capture CSVs and report in this directory.
 
 ## Hard stop conditions
 
@@ -20,8 +20,8 @@ A public marketing page, green CI, a draft email, a preview deployment or a plan
 Keep a restricted working directory outside production code. Use a run identifier such as `chocolate-YYYYMMDD-run01` and store:
 
 - `raw/trends/`: original Google Trends CSV exports, unchanged.
-- `raw/retail/`: authorized provider sample/export, unchanged and subject to license restrictions.
-- `manifests/`: completed export manifest, source permission register and sample acceptance scorecard.
+- `raw/retail/`: public listing snapshots and, only if used, optional provider exports subject to the provider's specific license.
+- `manifests/`: completed export manifest, source provenance register and sample acceptance scorecard.
 - `normalized/`: derived tables, with transformation version and source-row reference.
 - `qa/`: validation report, duplicate/gap report and reviewer decision.
 - `sha256sums.txt`: SHA-256 hashes for files where hashing/storage is permitted.
