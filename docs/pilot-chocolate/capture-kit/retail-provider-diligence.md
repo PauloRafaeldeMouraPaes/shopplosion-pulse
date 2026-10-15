@@ -39,3 +39,29 @@ Accept the source for a limited proof of concept only if the sample supports all
 ## Decision record
 
 Record supplier response date, contact/reference, permitted sample identifier, license version, coverage table, failed checks, cost and reviewer decision. Until approved, status is `not_evaluated` and no API call, paid plan, production integration or four-week retail baseline may begin.
+
+## Public-source desk review — Cnova Tech Data Market (candidate only)
+
+**Review status: `public_claims_only`; not evaluated or approved.** This is a desk review of the provider's own public page, not a test of the API, sample, license or actual coverage. No account was created, no trial quota was consumed, and no supplier was contacted.
+
+Public page reviewed: https://datamarket.cnovatech.com.br/conectar
+
+Claims relevant to the pilot, as stated by the provider:
+- Product lookup by EAN and dimensions for brand, retailer/store, state and channel.
+- Daily collection with a capture date on each price, and historical price series described as up to 180 days.
+- Coverage described as 250+ stores, with e-commerce and delivery channels.
+- Brand examples include Lacta and Garoto; the page does **not** establish Lindt coverage for the requested EANs.
+- Public plan page advertises a 14-day test with 50 requests and no credit card; the listed Starter plan is R$ 999/month. These are provider-published terms and must be rechecked before any decision.
+
+Preliminary fit: **worth requesting a written sample and coverage statement**, because the advertised EAN-level daily history is aligned with the intended price baseline. This is not a recommendation to sign up or buy.
+
+Unresolved diligence questions before any account/trial/API use:
+1. Confirm in writing the exact EAN × retailer/store coverage for 5–10 buyer-approved chocolate products, including Lindt if available and at least four comparable products.
+2. Confirm the actual historical start date and whether 180 days are available for each exact EAN/store, not just as a general product feature.
+3. Obtain a permitted sample or written approval for a sample, including price, promotion mechanics, net weight, availability semantics, source URL, capture timestamp and repeat-observation behavior.
+4. Obtain the applicable license/terms version and written confirmation of retention of raw observations, derived analytics, citations, and display inside a commercial analytics product. The public page describes allowed product display but also restricts reselling the API or replicating the base as a competing data service; clarify that Pulse's proposed use is permitted.
+5. Confirm whether data are store-level or only network-level for the selected products, and document gaps/coverage separately from zero price or out-of-stock.
+6. Reconfirm all fees, tax, overages, trial restrictions and cancellation terms before using the trial.
+
+Decision remains `not_evaluated` until a human reviewer records the supplier response, license version, sample ID/hash, per-EAN coverage and acceptance-test results. The published claims are not observed pilot data and must not be entered into the baseline.
+
