@@ -1,7 +1,7 @@
 import { createSourceWorkerHandler } from "./index.ts";
 import { fetchSourceWithRetry } from "../_shared/fetch-source.ts";
 
-type Scenario = "http_403" | "observation_rpc_failure";
+type Scenario = "http_403" | "observation_rpc_failure" | "source_failure_write_zero_rows" | "run_failure_write_zero_rows";
 type FakeState = {
   source: Record<string, unknown>;
   run: Record<string, unknown> | null;
@@ -17,7 +17,7 @@ function fakeAdmin(state: FakeState, scenario: Scenario) {
       if (name === "pulse_intelligence_worker_token") return { data: "cron-secret", error: null };
       if (name === "pulse_record_source_item_observation") {
         state.observationCalls++;
-        if (scenario === "observation_rpc_failure") {
+        if (scenario !== "http_403") {
           return { data: null, error: { message: "injected observation persistence failure" } };
         }
         throw new Error("Observation RPC should not run for a 403 response");
@@ -60,11 +60,17 @@ function fakeAdmin(state: FakeState, scenario: Scenario) {
     }
     if (query.table === "intelligence_sources" && query.action === "update") {
       state.sourceUpdates.push(query.payload);
+      if (scenario === "source_failure_write_zero_rows" && query.payload.last_error) {
+        return { data: null, error: null };
+      }
       Object.assign(state.source, query.payload);
       return { data: { id: "source-test" }, error: null };
     }
     if (query.table === "intelligence_source_fetch_runs" && query.action === "update") {
       state.runUpdates.push(query.payload);
+      if (scenario === "run_failure_write_zero_rows" && query.payload.status === "failed") {
+        return { data: null, error: null };
+      }
       if (state.run) Object.assign(state.run, query.payload);
       return { data: { id: "fetch-run-test" }, error: null };
     }
@@ -168,4 +174,31 @@ Deno.test("worker reconciles source and fetch run when observation RPC persisten
   if (state.sourceUpdates.length !== 1 || state.runUpdates.length !== 1) {
     throw new Error("Both source and fetch-run failure writes must be attempted exactly once");
   }
+});
+Deno.test("worker reports incomplete reconciliation when source failure update affects zero rows", async () => {
+  const state = makeState();
+  const response = await invoke(makeHandler(state, "source_failure_write_zero_rows"));
+  const body = await response.json();
+  if (body.status !== "reconciliation_incomplete" || body.failure_bookkeeping_failed !== 1) {
+    throw new Error("A zero-row source update must be visible as incomplete reconciliation");
+  }
+  if (state.source.last_error !== undefined) throw new Error("A zero-row update must not be treated as persisted");
+  if (state.run?.status !== "failed") throw new Error("The independent fetch-run failure update should still be attempted");
+  if (state.sourceUpdates.length !== 1 || state.runUpdates.length !== 1) {
+    throw new Error("Both failure writes must be attempted even when one affects zero rows");
+  }
+});
+
+Deno.test("worker reports incomplete reconciliation when fetch-run failure update affects zero rows", async () => {
+  const state = makeState();
+  const response = await invoke(makeHandler(state, "run_failure_write_zero_rows"));
+  const body = await response.json();
+  if (body.status !== "reconciliation_incomplete" || body.failure_bookkeeping_failed !== 1) {
+    throw new Error("A zero-row fetch-run update must be visible as incomplete reconciliation");
+  }
+  if (!String(state.source.last_error).includes("source_item_history_persist_failed")) {
+    throw new Error("Source failure should persist independently when fetch-run update returns zero rows");
+  }
+  if (state.run?.status !== "running") throw new Error("Zero-row fetch-run update must not be treated as persisted");
+  if (state.runUpdates.length !== 1) throw new Error("Fetch-run failure write was not attempted exactly once");
 });
