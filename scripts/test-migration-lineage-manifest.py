@@ -29,7 +29,7 @@ EXPECTED_MAPPINGS = {
 ALLOWED_STATUSES = {"unmapped", "confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim"}
 
 def git_blob_sha(data: bytes) -> str:
-    header = f"blob {len(data)}\\0".encode("ascii")
+    header = f"blob {len(data)}\0".encode("ascii")
     return hashlib.sha1(header + data).hexdigest()
 
 def main() -> int:
@@ -49,7 +49,7 @@ def main() -> int:
     versions = [row["production_version"] for row in rows]
     if len(set(versions)) != len(versions):
         raise AssertionError("Duplicate production migration version")
-    if any(not re.fullmatch(r"\\d{14}", version) for version in versions):
+    if any(not re.fullmatch(r"\d{14}", version) for version in versions):
         raise AssertionError("Every production version must be a 14-digit timestamp")
     if any(row["mapping_status"] not in ALLOWED_STATUSES for row in rows):
         raise AssertionError("Unknown mapping_status in production manifest")
