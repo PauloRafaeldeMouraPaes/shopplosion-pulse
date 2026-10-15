@@ -120,10 +120,10 @@ if (providerFallbackStart < 0 || !askFnText.slice(providerFallbackStart, provide
   failures.push('Deterministic fallback must preserve canonical evidence source URLs');
 }
 
-for (const field of ['public_universe','public_represents','public_verification']) {
+for (const field of ['public_nature','public_universe','public_represents','public_limits','public_primary_source','public_verification','public_scope']) {
   if (!canonicalEdge.includes(field)) failures.push(`Public Ask AI context missing qualification metadata ${field}`);
 }
-for (const label of ['universo observado:', 'representa:', 'verificação na fonte:']) {
+for (const label of ['natureza:', 'universo observado:', 'representa:', 'limites:', 'fonte primária declarada:', 'verificação na fonte:', 'alcance:']) {
   if (!canonicalEdge.toLowerCase().includes(label)) failures.push(`Public Ask AI prompt missing ${label}`);
 }
 if (!ask.includes('<strong>Representa:</strong>') || !ask.includes('<strong>Verificação na fonte:</strong>')) failures.push('Ask AI UI must display representativeness and source verification metadata');
