@@ -4,9 +4,9 @@ Status: **exploratory capture completed; not a four-week baseline**.
 
 ## What was captured
 
-- `public-source-capture-2026-10-14.csv`: twelve dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
+- `public-source-capture-2026-10-14.csv`: sixteen dated public-source records across shopper survey reporting, price context, macro retail, cocoa supply, historical retail observations and recipe content.
 - `public-retail-snapshot-2026-10-14.csv`: seven publicly visible 80g product listing snapshots across Pão de Açúcar and Super Muffato, covering Lacta, Garoto and Nestlé.
-- `public-source-review-2026-10-14.csv`: seven preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
+- `public-source-review-2026-10-14.csv`: eight preliminary signal candidates with facts, hypotheses, alternative explanations, independence assessment and follow-up actions.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse caveats for the sources used or planned.
 - `product-universe-initial-2026-10-14.csv`: seven product × retailer records, all exploratory because EANs are not visible and exact timestamps/regions are incomplete.
 - `retail-sample-acceptance-2026-10-14.csv`: seven row-level QA decisions; none is baseline-accepted. They remain exploratory pending exact timestamps, product identity and source-use review.
@@ -15,6 +15,8 @@ Status: **exploratory capture completed; not a four-week baseline**.
 Capture date is 2026-10-14 UTC at date precision; exact clock time was not recorded. This was a manual desk capture of public webpages/search results, not an automated scrape or direct survey collection. No raw Google Trends export, repeated Pulse multi-retailer panel or social listening corpus was collected. The direct retail snapshot spans two online retailers but has no delivery ZIP selected and no EAN displayed; exact SKU equivalence across retailers is unverified.
 
 ## Preliminary signals
+
+- **Expanded secondary price benchmark (one source family).** Four additional product pages extend the CustoPorPrato set: Lacta Laka Oreo 80g (6 observations, São Paulo mean R$7.99; page reports -29.2% between August and September), Lacta Ao Leite bar 80g (12 observations across 5 states; regional means from R$8.99 in PE to R$12.29 in SP), Garoto Ao Leite 80g (10 markets in 4 states; national median R$8.74; SP mean R$7.99, +5.8% since August), and Classic 40% cocoa 80g (51 markets in 5 states; national median R$11.08; state averages from R$7.98 in SC to R$12.34 in SP). The Laka Oreo sample is very small, and these product pages are not independent sources. Treat reported monthly movement as a monitoring hypothesis only; sample composition, promotions and coverage can explain differences.
 
 - **Cross-SKU price monitoring candidate (one source family).** The aggregator reports +1.1% between August and September monthly averages for Lacta milk 80g, +1.5% since August for Lacta Diamante Negro 80g, and +9.3% between August and September for Suflair Duo 80g. Suflair's São Paulo subset is small (9 observations across 9 markets/cities), and coverage/date windows differ across products. This is a candidate for repeat capture of retail prices, not an emerging shopper trend or evidence of a brand pricing strategy.
 
