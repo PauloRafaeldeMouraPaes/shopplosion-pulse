@@ -5,15 +5,15 @@ Status: investigation only. No production schema, data, grants, or migration his
 ## Verified state
 
 - Supabase production reports **72 timestamped migrations**, from `20260907035807` through `20260922041853`.
-- The repository contains 10 numbered SQL files. Hash comparison against the SQL stored in production confirms four mappings in the recent knowledge-layer set: three byte-for-byte matches and one match after trimming only terminal CR/LF. This is not proof of complete lineage.
-- The production history also includes entries such as `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary`. The corresponding files were not found at the expected `supabase/migrations/<name>.sql` paths on the default branch. This does not establish whether they were renamed, squashed, stored elsewhere, or applied out of band.
-- The live signal-event trigger/function and the current SECURITY DEFINER grants require a separate reviewed migration. Do not infer its original migration from current production state alone.
+- The active repository migration directory still contains 10 SQL files. Four production versions map to current files by SQL Git-blob SHA (three exact and one after trimming only terminal CR/LF).
+- The remaining 68 SQL bodies have now been retrieved read-only from `supabase_migrations.schema_migrations.statements[1]` and archived verbatim under `docs/database/recovered-production-migrations/*.sql.txt`; each archive's Git-blob SHA-1 matches the production-stored statement SHA-1. The original Git authoring paths, reviews and commit provenance for these 68 entries remain unproven.
+- The live signal-event trigger/function and SECURITY DEFINER grant fixes still require separately reviewed forward migrations. Recovering exact SQL bodies does not make them safe to replay or make `supabase db push` safe.
 
 ## Per-version reconciliation manifest (2026-10-15)
 
-The read-only production migration listing is now preserved row-by-row in `docs/database/production-migration-lineage-manifest.csv`. It contains all 72 production versions and names. Four versions have source mappings supported by SQL Git-blob hashes (three exact byte-for-byte matches and one match after trimming only terminal CR/LF); the other 68 are explicitly `unresolved`. For unresolved rows, an empty repository path is intentional and means no authoritative mapping has been established—not that the migration is safe to recreate or that it never existed.
+The read-only production migration listing is preserved row-by-row in `docs/database/production-migration-lineage-manifest.csv`. It contains all 72 production versions. Four rows map to existing active migration files by Git-blob SHA; the other 68 map to new, verbatim audit archives recovered from the production migration ledger. An archive mapping establishes the exact SQL body, not its original Git authoring path or review provenance.
 
-The manifest is an auditable snapshot, not a live drift detector and not authorization to reconcile Supabase migration history. In particular, the legacy production names `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary` still have no proven source file. Git history, renamed/deleted files, previous commits and external deployment records remain to be investigated before classification.
+The manifest is an auditable snapshot, not a live drift detector and not authorization to replay migrations. The legacy production names `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary` do not match current active filenames; their SQL bodies are available in the archive using their production version/name. Git authoring history and the reason the original files are absent remain unclassified.
 
 ## Required reconciliation
 
@@ -85,9 +85,9 @@ These four mappings are supported by SQL Git-blob hashes, not just names. The ch
 - Current tracked SQL files: **10**.
 - Production migration-history rows: **72**.
 - Four mappings are confirmed by SQL Git-blob SHA-1: three exact matches and one match after trimming terminal CR/LF only.
-- The other production entries still need evidence-backed mapping to SQL/history, or an explicit disposition (for example, older baseline already present before timestamped history, squashed into a later file, out-of-band change, or unrecoverable source).
+- The other 68 statements are now recoverable exactly from the production ledger and archived outside the active migration directory. Their original Git path/approval provenance is still unresolved, so they must not be treated as reviewed current migrations.
 
-The historical commit/tree inspection also did not find the three exact production-named files under those paths. It does not prove that no equivalent SQL ever existed; Git history and the actual SQL bodies still need to be compared.
+The historical commit/tree inspection did not find the three exact production-named files under those paths. The SQL archive closes the exact-body gap but does not prove where the statements were authored, reviewed, or why their original files are absent.
 
 ## Next safe technical step
 
@@ -103,12 +103,12 @@ A read-only comparison of production columns, indexes and RLS policies against t
 - `009_shopper_knowledge_layer.sql`: production `shopper_knowledge` has the expected claim/source/segment/category/mission/period/confidence/status/evidence/payload fields and investigation indexes.
 - `010_knowledge_updates_saved_evidence.sql`: production `knowledge_updates`, `saved_evidence`, scope column and their indexes/policies match the checked-in feature definitions.
 
-The live schema cross-check corroborates the four hash-based mappings. The other 68 production history rows remain unresolved. Production schema state can have been modified by later migrations, so it cannot substitute for original historical SQL.
+The live schema cross-check corroborates the four mappings to current active files. For the other 68 rows, exact SQL is now archived directly from the production ledger, but the live schema still cannot establish original authoring/review history or explain why the original files are absent.
 
 
 ## Machine-readable inventory
 
-The full read-only production migration listing is recorded in [production-migration-lineage-manifest.csv](production-migration-lineage-manifest.csv): **72 rows**, one per production version. Each row has an explicit mapping status and evidence note. Four recent feature migrations are mapped by SQL hash; the other 68 rows remain unresolved and must not be guessed. This manifest is a working audit artifact, not a declaration that lineage is reconciled.
+The full read-only production listing is recorded in [production-migration-lineage-manifest.csv](production-migration-lineage-manifest.csv): **72 rows**, one per production version. Four rows map to existing active migrations and 68 map to exact SQL archives recovered from production. Original authoring provenance remains unresolved, and this manifest is not authorization to replay or push migrations.
 
 
 ## Exact SQL identity checks (2026-10-15)
@@ -117,7 +117,7 @@ The production migration table stores the SQL statement payloads. I computed the
 
 - **3 exact byte-for-byte matches:** production `20260922030641 / complete_analysis_artifact_metadata` ↔ `008_analysis_artifact_metadata.sql`; `20260922031240 / create_shopper_knowledge_layer` ↔ `009_shopper_knowledge_layer.sql`; and `20260922032516 / 010_knowledge_updates_saved_evidence` ↔ `010_knowledge_updates_saved_evidence.sql`.
 - **1 match after trimming terminal CR/LF only:** production `20260922030555 / create_investigations_and_link_analyses` ↔ `007_investigations_and_analysis_link.sql`. The stored statement is one character longer; the trimmed Git blob SHA matches exactly.
-- The other **68 production versions** do not exactly match any of the 10 current files, even after terminal CR/LF trimming. They remain unmapped and require historical-baseline/squash/out-of-band classification.
+- The other **68 production versions** do not match the 10 current active files, even after terminal CR/LF trimming. Their exact production SQL bodies are now archived under `docs/database/recovered-production-migrations/`; their original Git paths and review provenance still require classification.
 - This also proves the numeric prefix is not an identity: production `005_performance_indexes`, `007_document_search_vector`, and `008_document_indexing_summary` do not match current files with the same numeric prefixes.
 
 The manifest now records statement length, production Git blob SHA-1, trimmed SHA-1, checked-in file SHA, and mapping status for every one of the 72 production versions. This is a stronger, reproducible comparison than filename matching. No SQL payload was copied into the active migration directory, and no production changes were made.
@@ -148,7 +148,7 @@ The timeline narrows the search but does not classify the 68 unmatched productio
 
 I retrieved the nine commits returned by GitHub's history endpoint for `supabase/migrations` (from 2026-09-04 through 2026-09-22), then recursively inspected each commit tree. Across those nine snapshots, the only tracked `.sql` files found anywhere in the repository are the same cumulative set of ten files under `supabase/migrations/`. No additional SQL file path was found in any of those snapshots, and the per-file history endpoints did not return rename/deletion history for the ten current paths.
 
-This is stronger evidence that the 68 unmatched production statements are not recoverable as tracked SQL files in the inspected Git history snapshots. It still does **not** prove they were never present in another branch, repository, unreachable commit, manual SQL session, or external backup. The responsible disposition is therefore still `unmapped` pending independent provenance, rather than asserting `out_of_band` as a fact.
+This is evidence that the 68 production statements are not present as matching SQL blobs in the inspected Git branch-tip snapshots. Their exact bodies have since been recovered from the live production migration ledger into non-executable `.sql.txt` audit archives. This still does **not** prove where they were originally authored or whether they were ever present in unreachable commits, another repository, manual SQL sessions or external backups; do not assert `out_of_band` solely from the branch-tip sweep.
 
 The latest PR #93 documentation commit has all repository CI checks complete: regression, browser smoke, evidence contract, private AI audit, multi-tenant audit, and validate passed; Netlify redirect processing passed, while header/pages checks concluded neutral. This validates the documentation change only, not production lineage or database behavior.
 
@@ -170,9 +170,9 @@ This candidate may help the future Chocolate capture system preserve history, bu
 
 The repository exposes 113 branch names across its two paginated branch listings. I inspected the recursive Git tree for all 93 distinct commit SHAs at those branch tips (duplicate branch names pointing to the same commit were counted once). For each tree, I compared tracked SQL blob SHAs with the 72 production statement blob hashes and terminal-CR/LF-trimmed hashes in the manifest.
 
-Result: no additional SQL blob in those accessible branch-tip snapshots maps to the 68 unresolved production statements. The only positive production-hash mappings remain the same four recent feature migrations; the other SQL files in older branch tips are the cumulative 001–006 set, or the same current 001–010 set. One separate candidate migration for immutable source history exists on `docs/cross-signal-market-human-behavior`, but its content hash does not match any production statement and its timestamp follows the latest production migration version. It is a future proposal, not historical recovery.
+Result: no additional SQL blob in those accessible branch-tip snapshots maps to the 68 bodies missing from the current active migration files. The four positive mappings to active files remain unchanged; the other SQL files in older branch tips are the cumulative 001–006 set, or the same current 001–010 set. The missing bodies are now archived from production-ledger source, but this still does not recover their original Git provenance. The separate immutable-source-history migration remains a future proposal, not historical source for any production version.
 
-This materially broadens the negative search evidence, but it is not proof about non-tip/unreachable Git objects, deleted remote refs not exposed by the current branch listing, another repository, manual SQL, or backups. Accordingly, keep the 68 rows labelled `unmapped`; do not infer `out_of_band` solely from absence in the inspected branch tips.
+This materially broadens the negative Git-history evidence, but it is not proof about non-tip/unreachable Git objects, deleted remote refs, another repository, manual SQL or backups. The manifest now labels those 68 bodies `recovered_from_production_history` rather than `unmapped`; the original authoring provenance remains unknown and must not be inferred to be `out_of_band` solely from absence in the inspected branch tips.
 
 ## Latest verification
 
