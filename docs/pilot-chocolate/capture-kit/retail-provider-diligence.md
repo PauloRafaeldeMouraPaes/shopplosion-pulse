@@ -1,14 +1,16 @@
 # Retail data provider — pilot diligence request
 
-Use this checklist to request a written answer and a small authorized sample before creating an account, accepting terms, consuming trial quota, or signing a contract. No request has been sent by this document.
+Optional paid-data diligence only. No request has been sent. Do not block the public-source pilot on a supplier response.
 
-## Pilot scope
+## Optional paid-feed scope
+
+This document is an optional diligence checklist only; it is not a prerequisite to category discovery. Start with public, directly accessible retail listings and broader category signals. Consider a paid feed only if it materially improves historical depth or coverage.
 
 - Category: chocolate in Brazil.
 - Intended analysis: historical shelf/online offer observations, price per 100 g, pack size, promotion and availability over time.
-- Initial sample: 5–10 verified EANs, including Lindt products available in Brazil and at least four comparable products from Lacta, Garoto and/or Nestlé. The buyer/operator must supply or approve the actual EAN list; do not invent EANs.
-- Geography: at least two retailer networks and specified São Paulo stores/regions, subject to actual coverage.
-- Desired time series: daily observations where available, including the full available historical window and explicit gaps.
+- If evaluating a provider, use a transparent multi-brand basket selected by format, pack size, price tier and retailer coverage. Lindt may be included where available but is not required, and no brand's approval defines the category universe.
+- Geography: record actual coverage; use at least two retailer networks where feasible.
+- Desired time series: daily observations where available, with full available history and explicit gaps.
 
 ## Questions requiring written answers
 
@@ -38,7 +40,7 @@ Accept the source for a limited proof of concept only if the sample supports all
 
 ## Decision record
 
-Record supplier response date, contact/reference, permitted sample identifier, license version, coverage table, failed checks, cost and reviewer decision. Until approved, status is `not_evaluated` and no API call, paid plan, production integration or four-week retail baseline may begin.
+Record supplier response date, contact/reference, permitted sample identifier, license version, coverage table, failed checks, cost and reviewer decision. Until evaluated, status is `not_evaluated`; the public-source category baseline may proceed independently. Do not initiate paid plans, supplier contact or production integration without a separate decision.
 
 ## Public-source desk review — Cnova Tech Data Market (candidate only)
 
