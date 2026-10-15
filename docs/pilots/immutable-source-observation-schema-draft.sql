@@ -290,7 +290,7 @@ begin
     raise exception 'could not resolve immutable version after insert' using errcode = '23503';
   end if;
 
-  insert into public.intelligence_source_items
+  insert into public.intelligence_source_items as current_item
     (source_id, industry_id, external_id, title, url, published_at, content,
      content_fingerprint, fetched_at, status)
   values
@@ -304,7 +304,9 @@ begin
     content = excluded.content,
     content_fingerprint = excluded.content_fingerprint,
     fetched_at = excluded.fetched_at,
-    status = 'active'
+    -- Re-fetching is not authorization to undo an explicit moderation decision.
+    -- A rejected item stays rejected until a separate review action changes it.
+    status = case when current_item.status = 'rejected' then 'rejected' else 'active' end
   returning id into v_current_item_id;
 
   v_outcome := case when v_current_item_changed then 'captured' else 'unchanged' end;
