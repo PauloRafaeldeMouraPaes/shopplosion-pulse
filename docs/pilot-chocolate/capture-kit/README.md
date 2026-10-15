@@ -10,6 +10,9 @@ Status: **schema and protocol only**. This directory contains no collected obser
 - `retail-sample-acceptance.template.csv`: coverage, missing-day, field, matching and rights acceptance checks by sample/product.
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
+- `public-source-capture-2026-10-15.csv`: first dated secondary-source desk capture; preliminary evidence only.
+- `public-source-review-2026-10-15.csv`: preliminary signal candidates, alternative explanations and follow-up decisions.
+- `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
 - `product-universe.template.csv`: transparent record of the representative multi-brand product/retailer sample, inclusion rationale and coverage gaps; it is not an approval request.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
 - `weekly-signal-review.template.csv`: log observed facts separately from hypotheses, alternatives, corroboration, confidence and human accept/reject decisions.
@@ -32,14 +35,14 @@ No private API, paid provider, account creation or supplier response is a prereq
 
 | Gate | Status | Evidence required to change status |
 |---|---|---|
-| Google Trends capture | Pending | Original CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
+| Google Trends capture | Pending | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
 | Source provenance | Pending | Public URL, access method, timestamps, attribution and relevant reuse limits documented; no bespoke permission gate for ordinary public-source discovery |
 | Retail coverage | Pending | Multi-brand/category sample with documented EAN × retailer/store coverage and gaps; Lindt is optional, not a prerequisite |
 | Reproducibility and QA | Pending | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |
 | Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
 | Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
 
-No restricted source has been connected by this kit, no supplier request has been sent, no CSV observations have been collected, and no coverage or matching threshold has been measured. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
+No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no raw Google Trends export, current multi-retailer observation panel, or longitudinal retail time series has been collected. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
 
 ### First weekly review record
 
