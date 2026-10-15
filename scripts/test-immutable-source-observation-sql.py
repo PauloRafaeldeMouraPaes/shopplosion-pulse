@@ -534,23 +534,36 @@ BEGIN
 END;
 $pulse_schema_contract$;
 
--- H07: exercise a real SET ROLE authenticated query. Direct access is denied
--- entirely, which is stricter than returning zero rows for another tenant.
-SET LOCAL ROLE authenticated;
-DO $pulse_authenticated_access$
+-- H07/H08: exercise real SET ROLE queries for both client roles.
+-- The intended architecture is worker-only history, so deny direct reads of
+-- both tables rather than exposing tenant-filtered history through the API.
+DO $pulse_client_history_access$
 DECLARE
-  v_denied boolean := false;
+  v_role text;
+  v_table text;
+  v_denied boolean;
 BEGIN
-  BEGIN
-    PERFORM 1 FROM public.intelligence_source_item_observations LIMIT 1;
-  EXCEPTION WHEN insufficient_privilege THEN
-    v_denied := true;
-  END;
-  IF NOT v_denied THEN
-    RAISE EXCEPTION 'H07 authenticated role unexpectedly read protected history';
-  END IF;
+  FOREACH v_role IN ARRAY ARRAY['anon', 'authenticated'] LOOP
+    EXECUTE format('SET LOCAL ROLE %I', v_role);
+    FOREACH v_table IN ARRAY ARRAY[
+      'intelligence_source_item_versions',
+      'intelligence_source_item_observations'
+    ] LOOP
+      v_denied := false;
+      BEGIN
+        EXECUTE format('SELECT 1 FROM public.%I LIMIT 1', v_table);
+      EXCEPTION WHEN insufficient_privilege THEN
+        v_denied := true;
+      END;
+      IF NOT v_denied THEN
+        RAISE EXCEPTION 'H07/H08 client role % unexpectedly read protected table %',
+          v_role, v_table;
+      END IF;
+    END LOOP;
+    RESET ROLE;
+  END LOOP;
 END;
-$pulse_authenticated_access$;
+$pulse_client_history_access$;
 RESET ROLE;
 """
 
