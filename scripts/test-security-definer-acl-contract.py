@@ -132,9 +132,12 @@ def main() -> int:
     if not DRAFT.is_file():
         raise SystemExit("ACL design draft is missing")
     lines = DRAFT.read_text(encoding="utf-8").splitlines()
-    if not lines or lines[0].strip().upper() != "BEGIN;" or lines[-1].strip().upper() != "ROLLBACK;":
+    executable = [(index, line.strip().upper()) for index, line in enumerate(lines)
+                  if line.strip() and not line.lstrip().startswith("--")]
+    if not executable or executable[0][1] != "BEGIN;" or executable[-1][1] != "ROLLBACK;":
         raise SystemExit("ACL draft must be transaction-wrapped and end in ROLLBACK")
-    draft_body = "\n".join(lines[1:-1])
+    begin_line, rollback_line = executable[0][0], executable[-1][0]
+    draft_body = "\n".join(lines[:begin_line] + lines[begin_line + 1:rollback_line] + lines[rollback_line + 1:])
     sql = "BEGIN;\n" + FIXTURE + "\n" + draft_body + "\n" + ASSERTIONS + "\nROLLBACK;\n"
     subprocess.run(["psql", raw_url, "-v", "ON_ERROR_STOP=1"], input=sql, text=True, check=True)
     print("PASS: ACL draft denies client execution, preserves the authenticated context/internal contracts, and trigger invocation.")
