@@ -11,10 +11,10 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `retail-sample-acceptance.template.csv`: blank schema for future QA runs.
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
-- `public-source-capture-2026-10-14.csv`: seventeen dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
+- `public-source-capture-2026-10-14.csv`: nineteen dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
 - `trends-query-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
-- `public-source-review-2026-10-14.csv`: eight preliminary signal candidates, alternative explanations and follow-up decisions.
+- `public-source-review-2026-10-14.csv`: nine preliminary signal candidates, alternative explanations and follow-up decisions.
 - `public-retail-snapshot-2026-10-14.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
 - `product-universe-initial-2026-10-14.csv`: initial seven-row exploratory product × retailer register with inclusion rationale and coverage gaps; EAN gaps are explicit, not treated as approval gates.
