@@ -14,7 +14,7 @@ function countBlocks(body: string, tag: string): number {
 
 export function sourceCollectionLimitError(sourceType: string, body: string): string | null {
   if (sourceType === "rss") {
-    const count = /<feed\\b/i.test(body)
+    const count = /<feed\b/i.test(body)
       ? countBlocks(body, "entry")
       : countBlocks(body, "item");
     return count > SOURCE_ITEM_LIMIT ? "source_snapshot_incomplete:collection_limit_exceeded" : null;
