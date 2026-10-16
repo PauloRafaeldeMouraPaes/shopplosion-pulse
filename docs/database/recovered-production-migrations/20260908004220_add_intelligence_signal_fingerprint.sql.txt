@@ -1,0 +1,1 @@
+ALTER TABLE public.intelligence_signals ADD COLUMN IF NOT EXISTS fingerprint text; CREATE UNIQUE INDEX IF NOT EXISTS intelligence_signals_fingerprint_unique_idx ON public.intelligence_signals(industry_id,fingerprint) WHERE fingerprint IS NOT NULL;

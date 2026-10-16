@@ -1,0 +1,11 @@
+select cron.alter_job(
+  job_id := 2,
+  command := $$
+  select net.http_post(
+    url := 'https://ppfuygnpgywfpiqxsfys.supabase.co/functions/v1/pulse-index-worker',
+    headers := jsonb_build_object('Content-Type','application/json','x-pulse-cron','1'),
+    body := jsonb_build_object('source','cron','requested_at',now()),
+    timeout_milliseconds := 10000
+  );
+  $$
+);

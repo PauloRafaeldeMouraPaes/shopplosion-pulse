@@ -27,3 +27,7 @@ jobs:
         run: python3 scripts/audit_pulse_single_file.py
       - name: Run accessibility and UX audit
         run: python3 scripts/audit_pulse_accessibility.py
+      - name: Validate read-only SECURITY DEFINER ACL inventory
+        run: python3 scripts/test-security-definer-acl-manifest.py
+      - name: Validate production migration lineage manifest
+        run: python3 scripts/test-migration-lineage-manifest.py

@@ -1,0 +1,17 @@
+revoke execute on function public.auth_industry_context() from anon;
+grant execute on function public.auth_industry_context() to authenticated;
+create or replace function public.auth_industry_context()
+returns table(industry_id uuid, industry_name text, industry_slug text, industry_status text, role text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select i.id, i.name, i.slug, i.status, p.role
+  from public.profiles p
+  join public.industries i on i.id = p.industry_id
+  where p.id = auth.uid()
+  limit 1;
+$$;
+revoke execute on function public.auth_industry_context() from anon;
+grant execute on function public.auth_industry_context() to authenticated;

@@ -1,0 +1,33 @@
+create schema if not exists private;
+
+create table if not exists private.pulse_internal_tokens (
+  name text primary key,
+  token_sha256 text not null,
+  created_at timestamptz not null default now(),
+  active boolean not null default true
+);
+
+insert into private.pulse_internal_tokens(name, token_sha256)
+values ('index_worker', 'efe467521fa7201f01d0747dcde15a64a0fda7d0e84d94c6079f34546b4bf2cd')
+on conflict (name) do update set token_sha256=excluded.token_sha256, active=true;
+
+create or replace function public.verify_pulse_internal_token(p_token text, p_name text default 'index_worker')
+returns boolean
+language sql
+security definer
+set search_path = public, private, extensions
+as $$
+  select exists (
+    select 1
+    from private.pulse_internal_tokens
+    where name = p_name
+      and active
+      and encode(digest(coalesce(p_token,''), 'sha256'), 'hex') = token_sha256
+  );
+$$;
+
+revoke all on function public.verify_pulse_internal_token(text,text) from public, anon, authenticated;
+grant execute on function public.verify_pulse_internal_token(text,text) to service_role;
+revoke all on private.pulse_internal_tokens from public, anon, authenticated, service_role;
+
+select vault.create_secret('np5Syzel8pZF8SAAZA5trpmV2DS8R2JU7a6_OsIyDaH-Y7ddojf9u4WGcv9d89V1','pulse_index_worker_token','Internal authentication token for the scheduled Pulse index worker');

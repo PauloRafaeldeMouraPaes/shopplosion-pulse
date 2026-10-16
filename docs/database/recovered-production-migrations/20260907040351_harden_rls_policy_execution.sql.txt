@@ -1,0 +1,90 @@
+CREATE SCHEMA IF NOT EXISTS private;
+
+CREATE OR REPLACE FUNCTION private.current_industry_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT p.industry_id
+  FROM public.profiles p
+  JOIN public.industries i ON i.id = p.industry_id
+  WHERE p.id = auth.uid()
+    AND i.status = 'active'
+$$;
+
+REVOKE ALL ON FUNCTION private.current_industry_id() FROM PUBLIC, anon, authenticated;
+
+DROP POLICY IF EXISTS profiles_self_select ON public.profiles;
+CREATE POLICY profiles_self_select ON public.profiles
+FOR SELECT TO authenticated
+USING (id = (SELECT auth.uid()));
+
+DROP POLICY IF EXISTS industries_member_select ON public.industries;
+CREATE POLICY industries_member_select ON public.industries
+FOR SELECT TO authenticated
+USING (id = (SELECT private.current_industry_id()));
+
+DROP POLICY IF EXISTS documents_industry_select ON public.documents;
+CREATE POLICY documents_industry_select ON public.documents
+FOR SELECT TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()));
+DROP POLICY IF EXISTS documents_industry_insert ON public.documents;
+CREATE POLICY documents_industry_insert ON public.documents
+FOR INSERT TO authenticated
+WITH CHECK (industry_id = (SELECT private.current_industry_id()) AND uploaded_by = (SELECT auth.uid()));
+DROP POLICY IF EXISTS documents_industry_update ON public.documents;
+CREATE POLICY documents_industry_update ON public.documents
+FOR UPDATE TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()))
+WITH CHECK (industry_id = (SELECT private.current_industry_id()));
+DROP POLICY IF EXISTS documents_industry_delete ON public.documents;
+CREATE POLICY documents_industry_delete ON public.documents
+FOR DELETE TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()));
+
+DROP POLICY IF EXISTS document_chunks_industry_select ON public.document_chunks;
+CREATE POLICY document_chunks_industry_select ON public.document_chunks
+FOR SELECT TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()));
+DROP POLICY IF EXISTS document_chunks_industry_insert ON public.document_chunks;
+CREATE POLICY document_chunks_industry_insert ON public.document_chunks
+FOR INSERT TO authenticated
+WITH CHECK (
+  industry_id = (SELECT private.current_industry_id())
+  AND EXISTS (
+    SELECT 1 FROM public.documents d
+    WHERE d.id = document_chunks.document_id
+      AND d.industry_id = (SELECT private.current_industry_id())
+  )
+);
+DROP POLICY IF EXISTS document_chunks_industry_update ON public.document_chunks;
+CREATE POLICY document_chunks_industry_update ON public.document_chunks
+FOR UPDATE TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()))
+WITH CHECK (industry_id = (SELECT private.current_industry_id()));
+DROP POLICY IF EXISTS document_chunks_industry_delete ON public.document_chunks;
+CREATE POLICY document_chunks_industry_delete ON public.document_chunks
+FOR DELETE TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()));
+
+DROP POLICY IF EXISTS analyses_industry_select ON public.analyses;
+CREATE POLICY analyses_industry_select ON public.analyses
+FOR SELECT TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()));
+DROP POLICY IF EXISTS analyses_industry_insert ON public.analyses;
+CREATE POLICY analyses_industry_insert ON public.analyses
+FOR INSERT TO authenticated
+WITH CHECK (industry_id = (SELECT private.current_industry_id()) AND created_by = (SELECT auth.uid()));
+DROP POLICY IF EXISTS analyses_industry_update ON public.analyses;
+CREATE POLICY analyses_industry_update ON public.analyses
+FOR UPDATE TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()))
+WITH CHECK (industry_id = (SELECT private.current_industry_id()));
+DROP POLICY IF EXISTS analyses_industry_delete ON public.analyses;
+CREATE POLICY analyses_industry_delete ON public.analyses
+FOR DELETE TO authenticated
+USING (industry_id = (SELECT private.current_industry_id()));
+
+REVOKE EXECUTE ON FUNCTION public.current_industry_id() FROM PUBLIC, anon, authenticated;

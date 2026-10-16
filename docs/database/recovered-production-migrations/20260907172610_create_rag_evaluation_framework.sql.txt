@@ -1,0 +1,57 @@
+CREATE TABLE IF NOT EXISTS public.rag_eval_cases (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  industry_id uuid NOT NULL REFERENCES public.industries(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  query text NOT NULL CHECK (char_length(trim(query)) BETWEEN 1 AND 500),
+  expected_document_ids uuid[] NOT NULL DEFAULT '{}',
+  expected_terms text[] NOT NULL DEFAULT '{}',
+  expected_outcome text NOT NULL CHECK (expected_outcome IN ('evidence','no_evidence','scope_rejected')),
+  expected_citation_count integer CHECK (expected_citation_count IS NULL OR expected_citation_count >= 0),
+  active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(industry_id, name)
+);
+CREATE INDEX IF NOT EXISTS rag_eval_cases_industry_idx ON public.rag_eval_cases(industry_id, active);
+CREATE TABLE IF NOT EXISTS public.rag_eval_runs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id uuid NOT NULL REFERENCES public.rag_eval_cases(id) ON DELETE CASCADE,
+  industry_id uuid NOT NULL REFERENCES public.industries(id) ON DELETE CASCADE,
+  query text NOT NULL,
+  retrieved_count integer NOT NULL DEFAULT 0 CHECK (retrieved_count >= 0),
+  top_score integer,
+  unique_documents integer NOT NULL DEFAULT 0 CHECK (unique_documents >= 0),
+  expected_outcome text NOT NULL CHECK (expected_outcome IN ('evidence','no_evidence','scope_rejected')),
+  actual_outcome text NOT NULL CHECK (actual_outcome IN ('evidence','no_evidence','scope_rejected','retrieval_error')),
+  expected_terms_found integer NOT NULL DEFAULT 0 CHECK (expected_terms_found >= 0),
+  expected_terms_total integer NOT NULL DEFAULT 0 CHECK (expected_terms_total >= 0),
+  expected_documents_found integer NOT NULL DEFAULT 0 CHECK (expected_documents_found >= 0),
+  expected_documents_total integer NOT NULL DEFAULT 0 CHECK (expected_documents_total >= 0),
+  passed boolean NOT NULL DEFAULT false,
+  latency_ms integer CHECK (latency_ms IS NULL OR latency_ms >= 0),
+  created_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS rag_eval_runs_industry_created_idx ON public.rag_eval_runs(industry_id, created_at DESC);
+ALTER TABLE public.rag_eval_cases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rag_eval_runs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS rag_eval_cases_select_own_industry ON public.rag_eval_cases;
+CREATE POLICY rag_eval_cases_select_own_industry ON public.rag_eval_cases FOR SELECT TO authenticated USING (industry_id = private.current_industry_id());
+DROP POLICY IF EXISTS rag_eval_cases_insert_own_industry ON public.rag_eval_cases;
+CREATE POLICY rag_eval_cases_insert_own_industry ON public.rag_eval_cases FOR INSERT TO authenticated WITH CHECK (industry_id = private.current_industry_id());
+DROP POLICY IF EXISTS rag_eval_cases_update_own_industry ON public.rag_eval_cases;
+CREATE POLICY rag_eval_cases_update_own_industry ON public.rag_eval_cases FOR UPDATE TO authenticated USING (industry_id = private.current_industry_id()) WITH CHECK (industry_id = private.current_industry_id());
+DROP POLICY IF EXISTS rag_eval_cases_delete_own_industry ON public.rag_eval_cases;
+CREATE POLICY rag_eval_cases_delete_own_industry ON public.rag_eval_cases FOR DELETE TO authenticated USING (industry_id = private.current_industry_id());
+DROP POLICY IF EXISTS rag_eval_runs_select_own_industry ON public.rag_eval_runs;
+CREATE POLICY rag_eval_runs_select_own_industry ON public.rag_eval_runs FOR SELECT TO authenticated USING (industry_id = private.current_industry_id());
+DROP POLICY IF EXISTS rag_eval_runs_insert_own_industry ON public.rag_eval_runs;
+CREATE POLICY rag_eval_runs_insert_own_industry ON public.rag_eval_runs FOR INSERT TO authenticated WITH CHECK (industry_id = private.current_industry_id() AND created_by = (select auth.uid()));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.rag_eval_cases TO authenticated;
+GRANT SELECT, INSERT ON public.rag_eval_runs TO authenticated;
+REVOKE ALL ON public.rag_eval_cases FROM anon;
+REVOKE ALL ON public.rag_eval_runs FROM anon;
+CREATE OR REPLACE VIEW public.rag_eval_daily_metrics WITH (security_invoker = true) AS
+SELECT industry_id, date_trunc('day', created_at) AS day, COUNT(*)::integer AS runs, COUNT(*) FILTER (WHERE passed)::integer AS passed, COUNT(*) FILTER (WHERE NOT passed)::integer AS failed, ROUND(AVG(retrieved_count))::numeric AS avg_retrieved, ROUND(AVG(expected_terms_found::numeric / NULLIF(expected_terms_total,0)),3) AS avg_term_recall, ROUND(AVG(expected_documents_found::numeric / NULLIF(expected_documents_total,0)),3) AS avg_document_recall, ROUND(AVG(latency_ms))::integer AS avg_latency_ms
+FROM public.rag_eval_runs GROUP BY industry_id, date_trunc('day', created_at);
+GRANT SELECT ON public.rag_eval_daily_metrics TO authenticated;
+REVOKE ALL ON public.rag_eval_daily_metrics FROM anon;
