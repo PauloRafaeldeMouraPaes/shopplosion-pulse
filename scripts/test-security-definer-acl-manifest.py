@@ -25,6 +25,19 @@ EXPECTED_EXPOSED = {
     "pulse_intelligence_external_quality_check",
     "pulse_resolve_stale_intelligence_signals",
 }
+EXPECTED_DISPOSITIONS = {
+    "auth_industry_context": "authenticated_user_context",
+    "capture_document_version": "internal_only",
+    "capture_intelligence_signal_event": "trigger_only",
+    "pulse_capture_document_version": "internal_only",
+    "pulse_external_backstop_schedule_tick": "internal_only",
+    "pulse_external_intelligence_contract_check": "internal_only",
+    "pulse_external_intelligence_fallback_candidate": "internal_only",
+    "pulse_external_intelligence_self_test": "internal_only",
+    "pulse_external_signal_deterministic_backstop": "internal_only",
+    "pulse_intelligence_external_quality_check": "internal_only",
+    "pulse_resolve_stale_intelligence_signals": "internal_only",
+}
 
 def main() -> int:
     with MANIFEST.open(newline="", encoding="utf-8") as handle:
@@ -41,6 +54,12 @@ def main() -> int:
     missing = EXPECTED_EXPOSED - set(names)
     if missing:
         raise AssertionError(f"Missing client-executable routine(s): {sorted(missing)}")
+    by_name = {row["routine"]: row for row in rows}
+    for routine, expected in EXPECTED_DISPOSITIONS.items():
+        if by_name[routine]["initial_disposition"] != expected:
+            raise AssertionError(
+                f"Disposition drift for {routine}: expected {expected}, got {by_name[routine]['initial_disposition']}"
+            )
     for row in rows:
         if row["security_definer"].lower() != "true":
             raise AssertionError(f"Manifest row is not SECURITY DEFINER: {row['routine']}")
