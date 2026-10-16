@@ -99,7 +99,13 @@
     const qv=String(document.getElementById('query')?.value||'').trim();
     const terms=qv.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').split(/[^a-z0-9]+/).filter(t=>t.length>=2).slice(0,10);
     if(!terms.length){show('Digite uma pergunta válida.','error');return false}
-    const items=Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[];
+    const requiredPublicEvidenceFields=['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
+    const isQualifiedPublicEvidence=e=>requiredPublicEvidenceFields.every(field=>{
+      const value=String(e?.[field]??'').trim();
+      return value.length>0&&!value.toUpperCase().includes('[A DEFINIR]');
+    })&&String(e?.fato_verificado_na_fonte??'').trim().toUpperCase().startsWith('SIM');
+    // Keep the raw registry intact for audit, but never display or pass quarantined records to Ask AI.
+    const items=(Array.isArray(window.PULSE_EVIDENCE)?window.PULSE_EVIDENCE:[]).filter(isQualifiedPublicEvidence);
     const fixedId=new URLSearchParams(location.search).get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
     const rows=items.map(e=>{
       const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,e.fonte,e.tipo,(e.keywords||[]).join(' ')].filter(Boolean).join(' ').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
@@ -116,11 +122,24 @@
     if(scope)scope.textContent='Universo (público)';
     if(title)title.textContent=rows.length?rows.length+' evidência(s) encontrada(s)':'Nenhuma evidência encontrada';
     const escLocal=v=>String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+    const sourceFamily=e=>{
+      const source=String(e.fonte_primaria||e.fonte||'').toLowerCase();
+      // Numerator is a distinct organization; "Worldpanel" alone does not prove Kantar ownership.
+      if(source.includes('numerator')) return 'Numerator / Worldpanel';
+      if(source.includes('kantar')&&source.includes('worldpanel')) return 'Kantar / Worldpanel';
+      if(source.includes('kantar')) return 'Kantar';
+      if(source.includes('worldpanel')) return 'Worldpanel (operador não confirmado)';
+      if(source.includes('locomotiva')) return 'Instituto Locomotiva';
+      if(source.includes('rico connect')) return 'Rico Connect';
+      if(source.includes('abicab')) return 'Abicab';
+      if(source.includes('nielsen')||source.includes('niq')) return 'NielsenIQ';
+      return String(e.fonte_primaria||e.fonte||'Família de fonte não classificada').trim();
+    };
     if(results)results.innerHTML=rows.length?
       '<div class="evidenceSelectionBar"><span id="selectionCount"><strong>0</strong> evidência(s) selecionada(s)</span><span>Selecione as evidências que realmente sustentam sua pergunta. O Pulse não escolhe automaticamente o primeiro resultado.</span></div>'+
       rows.map(({e,score})=>{
         const key=String(e.id||''),isOrigin=String(e.id)===String(fixedId);
-        return '<article class="result'+(selectedEvidenceIds.has(key)?' selected':'')+'"><div class="resultHead"><div class="resultSelect"><input name="selectedEvidence" type="checkbox" data-evidence-key="'+escLocal(key)+'" '+(selectedEvidenceIds.has(key)?'checked':'')+' aria-label="Selecionar evidência"><div><div class="resultTitle">'+escLocal(e.fonte||e.id||'Evidência pública')+(isOrigin?'<span class="resultOrigin">EVIDÊNCIA DE ORIGEM</span>':'')+'</div><div class="muted">'+escLocal(e.tipo||'Evidência')+'. '+escLocal(e.periodo||'')+'</div></div></div><span class="badge">Acesso: público; Relevância: '+score+'</span></div><div class="snippet">'+escLocal(e.fato||'')+'</div>'+(e.natureza||e.universo_observado||e.nao_representa||e.alcance_para_pergunta?'<div class="muted evidenceScopeNote" style="margin-top:8px"><div><strong>Natureza:</strong> '+escLocal(e.natureza&&e.natureza!=='[A DEFINIR]'?e.natureza:'Não informada')+'</div><div><strong>Universo observado:</strong> '+escLocal(e.universo_observado&&e.universo_observado!=='[A DEFINIR]'?e.universo_observado:'Não informado')+'</div><div><strong>Limite da evidência:</strong> '+escLocal(e.nao_representa&&e.nao_representa!=='[A DEFINIR]'?e.nao_representa:'Não informado')+'</div><div><strong>Alcance para a pergunta:</strong> '+escLocal(e.alcance_para_pergunta&&e.alcance_para_pergunta!=='[A DEFINIR]'?e.alcance_para_pergunta:'Não classificado')+'</div></div>':'')+'</article>';
+        return '<article class="result'+(selectedEvidenceIds.has(key)?' selected':'')+'"><div class="resultHead"><div class="resultSelect"><input name="selectedEvidence" type="checkbox" data-evidence-key="'+escLocal(key)+'" '+(selectedEvidenceIds.has(key)?'checked':'')+' aria-label="Selecionar evidência"><div><div class="resultTitle">'+escLocal(e.fonte||e.id||'Evidência pública')+(isOrigin?'<span class="resultOrigin">EVIDÊNCIA DE ORIGEM</span>':'')+'</div><div class="muted">'+escLocal(e.tipo||'Evidência')+'. '+escLocal(e.periodo||'não informado')+'</div><div class="muted">Família de fonte: '+escLocal(sourceFamily(e))+' · Família igual não equivale a confirmação independente</div></div></div><span class="badge">Acesso: público; Relevância: '+score+'</span></div><div class="snippet">'+escLocal(e.fato||'')+'</div>'+(e.natureza||e.universo_observado||e.representa||e.fato_verificado_na_fonte||e.nao_representa||e.alcance_para_pergunta?'<div class="muted evidenceScopeNote" style="margin-top:8px"><div><strong>Natureza:</strong> '+escLocal(e.natureza||'Não informada')+'</div><div><strong>Universo observado:</strong> '+escLocal(e.universo_observado||'Não informado')+'</div><div><strong>Representa:</strong> '+escLocal(e.representa||'Não informado')+'</div><div><strong>Verificação na fonte:</strong> '+escLocal(e.fato_verificado_na_fonte||'Não informada')+'</div><div><strong>Limite da evidência:</strong> '+escLocal(e.nao_representa||'Não informado')+'</div><div><strong>Alcance para a pergunta:</strong> '+escLocal(e.alcance_para_pergunta||'Não classificado')+'</div></div>':'')+'</article>';
       }).join('')
       :'<div class="empty">Nenhuma evidência pública contém os termos pesquisados.</div>';
     if(fixedId&&rows.some(x=>String(x.e.id)===String(fixedId)))selectedEvidenceIds.add(String(fixedId));

@@ -88,6 +88,14 @@ if (!canonicalEdge.includes('selected_public_evidence_ids?: string[]') || !canon
 if (ask.includes('public_evidence:') || ask.includes('public_evidence:selected')) failures.push('Client must not send mutable public evidence payloads to Ask AI');
 if (!ask.includes('id="questionBuilder"') || !ask.includes('questionExample')) failures.push('Guided question builder missing');
 if (!ask.includes('data-evidence-key') || !ask.includes('selectedEvidenceIds')) failures.push('Explicit evidence selection contract missing');
+const familyClassifierStart = ask.indexOf('const sourceFamily=e=>{');
+const familyClassifierEnd = familyClassifierStart < 0 ? -1 : ask.indexOf('};', familyClassifierStart);
+const familyClassifier = familyClassifierStart < 0 || familyClassifierEnd < 0 ? '' : ask.slice(familyClassifierStart, familyClassifierEnd + 2);
+const numeratorRule = familyClassifier.indexOf("source.includes('numerator')");
+const kantarWorldpanelRule = familyClassifier.indexOf("source.includes('kantar')&&source.includes('worldpanel')");
+const worldpanelFallbackRule = familyClassifier.indexOf("source.includes('worldpanel')");
+if (!familyClassifier || numeratorRule < 0 || kantarWorldpanelRule < 0 || worldpanelFallbackRule < 0 || numeratorRule > kantarWorldpanelRule || kantarWorldpanelRule > worldpanelFallbackRule) failures.push('Source-family classifier must distinguish Numerator before Kantar/Worldpanel and leave unverified Worldpanel ownership explicit');
+if (!familyClassifier.includes("return 'Numerator / Worldpanel'") || !familyClassifier.includes("return 'Worldpanel (operador não confirmado)'")) failures.push('Source-family classifier must preserve Numerator distinction and avoid inferring Kantar ownership from Worldpanel alone');
 if (!ask.includes('O Pulse não escolhe automaticamente o primeiro resultado.')) failures.push('Evidence auto-selection guard missing');
 if (!ask.includes('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.')) failures.push('Readiness guard before answer missing');
 for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler', '03 Escrever']) {
@@ -120,6 +128,25 @@ if (providerFallbackStart < 0 || !askFnText.slice(providerFallbackStart, provide
   failures.push('Deterministic fallback must preserve canonical evidence source URLs');
 }
 
+const requiredQualificationFields = ['natureza','universo_observado','representa','nao_representa','fonte_primaria','fato_verificado_na_fonte','alcance_para_pergunta'];
+for (const field of requiredQualificationFields) {
+  if (!canonicalEdge.includes(field)) failures.push(`Public evidence qualification gate missing required field ${field}`);
+}
+if (!canonicalEdge.includes("String(item.fato_verificado_na_fonte || '').trim().toUpperCase().startsWith('SIM')")) {
+  failures.push('Public evidence qualification must require explicit source verification');
+}
+for (const field of ['public_nature','public_universe','public_represents','public_limits','public_primary_source','public_verification','public_scope']) {
+  if (!canonicalEdge.includes(field)) failures.push(`Public Ask AI context missing qualification metadata ${field}`);
+}
+for (const label of ['natureza:', 'universo observado:', 'representa:', 'limites:', 'fonte primária declarada:', 'verificação na fonte:', 'alcance:']) {
+  if (!canonicalEdge.toLowerCase().includes(label)) failures.push(`Public Ask AI prompt missing ${label}`);
+}
+if (!ask.includes('<strong>Representa:</strong>') || !ask.includes('<strong>Verificação na fonte:</strong>')) failures.push('Ask AI UI must display representativeness and source verification metadata');
+
+// Scope filtering must happen before confidence is computed so confidence
+// cannot accidentally include evidence excluded by the selected scope.
+if (workspace.includes("function evidence(){") && workspace.indexOf("if(scope==='industry') return privateEvidence") < workspace.indexOf("function confidenceHigh")) failures.push('Scope filter ordering is invalid');
+
 if (failures.length) {
   console.error('Ask AI regression FAILED');
   failures.forEach(f => console.error(`- ${f}`));
@@ -130,9 +157,4 @@ console.log('Ask AI regression PASSED');
 console.log('Public evidence hygiene and three-layer parity contract passed.');
 
 // Persistent investigation and shopper knowledge contract verified.
-
-// Final validation marker: shared scope, saved evidence and knowledge update loop.
-
-if (workspace.includes("function evidence(){") && workspace.indexOf("if(scope==='industry') return privateEvidence") < workspace.indexOf("function confidenceHigh")) failures.push('Scope filter ordering is invalid');
-
-// Final scope regression marker.
+// Shared scope, saved evidence and knowledge update loop are covered above.
