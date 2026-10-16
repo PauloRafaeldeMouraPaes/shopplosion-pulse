@@ -88,6 +88,14 @@ if (!canonicalEdge.includes('selected_public_evidence_ids?: string[]') || !canon
 if (ask.includes('public_evidence:') || ask.includes('public_evidence:selected')) failures.push('Client must not send mutable public evidence payloads to Ask AI');
 if (!ask.includes('id="questionBuilder"') || !ask.includes('questionExample')) failures.push('Guided question builder missing');
 if (!ask.includes('data-evidence-key') || !ask.includes('selectedEvidenceIds')) failures.push('Explicit evidence selection contract missing');
+const familyClassifierStart = ask.indexOf('const sourceFamily=e=>{');
+const familyClassifierEnd = familyClassifierStart < 0 ? -1 : ask.indexOf('};', familyClassifierStart);
+const familyClassifier = familyClassifierStart < 0 || familyClassifierEnd < 0 ? '' : ask.slice(familyClassifierStart, familyClassifierEnd + 2);
+const numeratorRule = familyClassifier.indexOf("source.includes('numerator')");
+const kantarWorldpanelRule = familyClassifier.indexOf("source.includes('kantar')&&source.includes('worldpanel')");
+const worldpanelFallbackRule = familyClassifier.indexOf("source.includes('worldpanel')");
+if (!familyClassifier || numeratorRule < 0 || kantarWorldpanelRule < 0 || worldpanelFallbackRule < 0 || numeratorRule > kantarWorldpanelRule || kantarWorldpanelRule > worldpanelFallbackRule) failures.push('Source-family classifier must distinguish Numerator before Kantar/Worldpanel and leave unverified Worldpanel ownership explicit');
+if (!familyClassifier.includes("return 'Numerator / Worldpanel'") || !familyClassifier.includes("return 'Worldpanel (operador não confirmado)'")) failures.push('Source-family classifier must preserve Numerator distinction and avoid inferring Kantar ownership from Worldpanel alone');
 if (!ask.includes('O Pulse não escolhe automaticamente o primeiro resultado.')) failures.push('Evidence auto-selection guard missing');
 if (!ask.includes('As evidências foram exibidas. Selecione pelo menos uma antes de gerar a leitura.')) failures.push('Readiness guard before answer missing');
 for (const text of ['pv4-ask-context', 'pv4-progress', '01 Recuperar', '02 Ler', '03 Escrever']) {
