@@ -62,7 +62,8 @@ For each routine marked `internal_only` or `trigger_only` in the ACL manifest:
 - [ ] `authenticated` direct EXECUTE is denied.
 - [ ] Trigger execution continues for `capture_intelligence_signal_event()` when an authorized test statement updates a synthetic signal.
 - [ ] The internal caller that legitimately uses the routine still succeeds with its intended role.
-- [ ] User-context functions are tested with two distinct authenticated test users/industries; each receives only its own context.
+- [ ] `auth_industry_context()` is denied to `anon` but remains executable by `authenticated`; two distinct authenticated test users/industries each receive only their own context.
+- [ ] `current_industry_id()` remains inaccessible to `anon` and returns only the authenticated caller's active industry; any grant change requires a separate call-graph and RLS review.
 - [ ] `review_required` routines are not revoked until call-site and returned-data review is signed off.
 - [ ] No client-facing API can invoke a mutating routine indirectly without the expected authorization check.
 
