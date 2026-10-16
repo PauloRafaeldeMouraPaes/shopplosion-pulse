@@ -95,6 +95,19 @@ REVOKE ALL ON FUNCTION public.pulse_external_signal_deterministic_backstop()
   FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.pulse_resolve_stale_intelligence_signals()
   FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.pulse_external_intelligence_contract_check()
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.pulse_intelligence_external_quality_check()
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.capture_document_version()
+  FROM PUBLIC, anon, authenticated;
+
+-- This routine is part of the authenticated user-context contract. Remove
+-- anonymous/PUBLIC access while explicitly retaining authenticated EXECUTE.
+REVOKE ALL ON FUNCTION public.auth_industry_context()
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.auth_industry_context()
+  TO authenticated;
 
 DROP TRIGGER IF EXISTS intelligence_signal_event_capture
   ON public.intelligence_signals;
