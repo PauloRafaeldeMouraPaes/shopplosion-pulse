@@ -38,12 +38,28 @@ CREATE FUNCTION public.pulse_external_signal_deterministic_backstop()
 RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
 CREATE FUNCTION public.pulse_resolve_stale_intelligence_signals()
 RETURNS bigint LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT 0::bigint $stub$;
+CREATE FUNCTION public.pulse_external_intelligence_contract_check()
+RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT '{}'::jsonb $stub$;
+CREATE FUNCTION public.pulse_intelligence_external_quality_check()
+RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT '{}'::jsonb $stub$;
+CREATE FUNCTION public.capture_document_version()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $stub$
+BEGIN
+  RETURN NEW;
+END;
+$stub$;
+CREATE FUNCTION public.auth_industry_context()
+RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $stub$ SELECT '{}'::jsonb $stub$;
 GRANT EXECUTE ON FUNCTION public.pulse_external_backstop_schedule_tick() TO service_role;
 GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pulse_capture_document_version(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_self_test() TO service_role;
 GRANT EXECUTE ON FUNCTION public.pulse_external_signal_deterministic_backstop() TO service_role;
 GRANT EXECUTE ON FUNCTION public.pulse_resolve_stale_intelligence_signals() TO service_role;
+GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_contract_check() TO service_role;
+GRANT EXECUTE ON FUNCTION public.pulse_intelligence_external_quality_check() TO service_role;
+GRANT EXECUTE ON FUNCTION public.capture_document_version() TO service_role;
+GRANT EXECUTE ON FUNCTION public.auth_industry_context() TO anon, authenticated;
 
 CREATE TABLE public.intelligence_signal_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -92,6 +108,23 @@ BEGIN
      OR NOT has_function_privilege('service_role', 'public.pulse_external_signal_deterministic_backstop()', 'EXECUTE')
      OR NOT has_function_privilege('service_role', 'public.pulse_resolve_stale_intelligence_signals()', 'EXECUTE') THEN
     RAISE EXCEPTION 'an internal service-role path lost its explicit EXECUTE grant';
+  END IF;
+  IF NOT has_function_privilege('authenticated', 'public.auth_industry_context()', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.auth_industry_context()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'authenticated user-context access must remain while anonymous access is denied';
+  END IF;
+  IF has_function_privilege('anon', 'public.pulse_external_intelligence_contract_check()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_external_intelligence_contract_check()', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.pulse_intelligence_external_quality_check()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pulse_intelligence_external_quality_check()', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.capture_document_version()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.capture_document_version()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'internal diagnostics or unbound trigger function remain API-executable';
+  END IF;
+  IF NOT has_function_privilege('service_role', 'public.pulse_external_intelligence_contract_check()', 'EXECUTE')
+     OR NOT has_function_privilege('service_role', 'public.pulse_intelligence_external_quality_check()', 'EXECUTE')
+     OR NOT has_function_privilege('service_role', 'public.capture_document_version()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'trusted service-role access was lost for internal routines';
   END IF;
   IF has_function_privilege('anon', 'public.pulse_capture_document_version(uuid)', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.pulse_capture_document_version(uuid)', 'EXECUTE')
