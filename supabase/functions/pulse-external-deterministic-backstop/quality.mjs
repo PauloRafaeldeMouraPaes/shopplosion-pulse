@@ -1,3 +1,21 @@
+export function shouldRecordSignalEvent({ priorConfidence, existingFingerprint, fingerprint, confidence, priorStatus, status }) {
+  if (priorStatus === "resolved" && status === "resolved") return false;
+  if (priorStatus !== undefined && status !== undefined && priorStatus !== status) return true;
+  const hasPrior = priorConfidence !== null && priorConfidence !== undefined;
+  if (!hasPrior) return true;
+  if (existingFingerprint !== fingerprint) return true;
+  return Math.abs(Number(confidence) - Number(priorConfidence)) >= 0.05 - Number.EPSILON;
+}
+
+export function signalEventDirection({ priorConfidence, confidence, candidateDirection = "new" }) {
+  if (priorConfidence === null || priorConfidence === undefined) return "new";
+  const delta = Number(confidence) - Number(priorConfidence);
+  if (Math.abs(delta) >= 0.05 - Number.EPSILON) return delta > 0 ? "up" : "down";
+  return ["new", "up", "down", "stable", "resolved"].includes(String(candidateDirection))
+    ? String(candidateDirection)
+    : "new";
+}
+
 export function isGoodEvidenceQuote(quote, content) {
   const q = String(quote || "").trim();
   if (q.length < 35 || q.length > 500 || !String(content || "").includes(q)) return false;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
+import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary, shouldRecordSignalEvent, signalEventDirection } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
 
 const abicab = {
   id: "abicab-item",
@@ -63,6 +63,27 @@ const signalWorker = readFileSync(resolve(root, "supabase/functions/pulse-extern
 const backstopWorker = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/index.ts"), "utf8");
 assert.doesNotMatch(signalWorker, /\.upsert\(payload,\{onConflict:'industry_id,signal_key'\}\)/, "partial unique index must not be targeted by an invalid PostgREST upsert");
 assert.match(signalWorker, /isGoodEvidenceQuote/);
+assert.match(signalWorker, /shouldRecordSignalEvent\(/, "the main worker must use the shared event deduplication rule");
+assert.match(backstopWorker, /shouldRecordSignalEvent\(/, "the deterministic backstop must use the same event deduplication rule");
+assert.doesNotMatch(signalWorker, /from\(['"]intelligence_signal_events['"]\)\.insert/, "the main worker must rely on the database trigger as the sole event writer");
+assert.doesNotMatch(backstopWorker, /from\(['"]intelligence_signal_events['"]\)\.insert/, "the deterministic backstop must not duplicate trigger-generated events");
+assert.match(signalWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the main worker must preserve resolved signals");
+assert.match(backstopWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the backstop must preserve resolved signals");
+assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.65, candidateDirection: "new" }), "new", "evidence-only changes must not be mislabeled as confidence increases");
+assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.70, candidateDirection: "stable" }), "up", "a meaningful confidence increase should be up");
+assert.equal(signalEventDirection({ priorConfidence: 0.70, confidence: 0.65, candidateDirection: "stable" }), "down", "a meaningful confidence decrease should be down");
+assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.66, candidateDirection: "stable" }), "stable", "small confidence movement should preserve candidate direction");
+
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65 }), false, "same fingerprint and confidence must not create another event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.66 }), false, "small confidence movement below 0.05 must not create another event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.70 }), true, "confidence movement at the 0.05 threshold must create an event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "old", fingerprint: "new", confidence: 0.65 }), true, "changed evidence fingerprint must create an event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: null, existingFingerprint: undefined, fingerprint: "new", confidence: 0.65 }), true, "a first observation must create an event");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "old", fingerprint: "new", confidence: 0.65, priorStatus: "resolved", status: "resolved" }), false, "resolved signals must not emit repeated events");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65, priorStatus: "active", status: "resolved" }), true, "resolution transition must emit one event");
+assert.doesNotMatch(signalWorker, /changeScore>=\.1\|\|direction!==['"]stable['"]/, "a high model score or non-stable direction alone must not duplicate events on every worker run");
+assert.doesNotMatch(backstopWorker, /changeScore>=\.1\|\|direction!==['"]stable['"]/, "a high model score or non-stable direction alone must not duplicate events on every backstop run");
+
 assert.match(signalWorker, /const duplicateIndex=candidates\.findIndex/, "deterministic evidence must supplement, not be suppressed by, another valid LLM quote");
 assert.doesNotMatch(signalWorker, /const duplicate=candidates\.some/, "the obsolete exact-quote-only deduplication path must not return");
 assert.doesNotMatch(signalWorker, /validatedItemIds/, "one valid quote must not suppress distinct deterministic evidence from the same source item");
