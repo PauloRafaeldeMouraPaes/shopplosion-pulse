@@ -3,10 +3,47 @@
 /* Compatibility contract: legacy single-file consumers keep their public registries,
    while the canonical workspace owns all visible UI and navigation. */
 window.PULSE_LOCAL_EVIDENCE = Array.isArray(window.PULSE_LOCAL_EVIDENCE) ? window.PULSE_LOCAL_EVIDENCE : [];
-window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {
-  historicalSummary(){ return {status:'insufficient',message:'Use the canonical evidence workspace for historical comparison.'}; },
-  compareSeries(a,b){ const x=Number(a),y=Number(b); if(!Number.isFinite(x)||!Number.isFinite(y)) return {status:'unavailable',causal:false}; return {status:'observed_change',delta:x-y,deltaPct:y===0?null:(x-y)/Math.abs(y)*100,causal:false}; }
-};
+window.serie_historica = Array.isArray(window.serie_historica) ? window.serie_historica : [];
+window.papel_ideal = Array.isArray(window.papel_ideal) ? window.papel_ideal : [];
+window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
+(()=>{
+  const api=window.PULSE_NEXT_LEVEL, clean=v=>String(v??'').trim(), arr=v=>Array.isArray(v)?v:[];
+  const validPeriod=v=>/^\d{4}(-\d{2}(-\d{2})?)?$/.test(clean(v));
+  api.compareSeries=(a,b)=>{const x=Number(a),y=Number(b);if(!Number.isFinite(x)||!Number.isFinite(y))return{status:'unavailable',delta:null,deltaPct:null,causal:false};const delta=x-y;return{status:'observed_change',delta,deltaPct:y===0?null:delta/Math.abs(y)*100,causal:false};};
+  api.addHistoricalObservation=row=>{
+    if(!row||!validPeriod(row.period)||row.value===null||row.value===''||!Number.isFinite(Number(row.value))||!clean(row.source)||!clean(row.geography)||!clean(row.metric)||!clean(row.provenance))return{status:'rejected',reason:'period/value/source/geography/metric/provenance_required'};
+    const item={period:clean(row.period),value:Number(row.value),source:clean(row.source),geography:clean(row.geography),metric:clean(row.metric),provenance:clean(row.provenance)};
+    const duplicate=window.serie_historica.some(x=>x.period===item.period&&x.metric===item.metric&&x.geography===item.geography&&x.source===item.source);
+    if(duplicate)return{status:'duplicate',item};
+    window.serie_historica.push(item);return{status:'added',item};
+  };
+  api.historicalSummary=(metric,geography)=>{
+    const rows=window.serie_historica.filter(x=>(!metric||x.metric===metric)&&(!geography||x.geography===geography));
+    if(rows.length<2)return{status:'insufficient',message:'São necessários dois períodos com métrica e geografia comparáveis.',count:rows.length,causal:false};
+    const groups=new Map();rows.forEach(x=>{const k=x.metric+'|'+x.geography;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
+    const comparable=[...groups.values()].filter(g=>g.length>=2).sort((a,b)=>b.length-a.length)[0];
+    if(!comparable)return{status:'insufficient',message:'Não há dois períodos comparáveis para a mesma métrica e geografia.',count:rows.length,causal:false};
+    comparable.sort((a,b)=>a.period.localeCompare(b.period));const previous=comparable[comparable.length-2],current=comparable[comparable.length-1],delta=api.compareSeries(current.value,previous.value);
+    return{status:delta.status,current,previous,delta:delta.delta,deltaPct:delta.deltaPct,causal:false,count:comparable.length};
+  };
+  api.setCategoryRole=(category,role,evidence=[])=>{
+    if(!clean(category)||!clean(role))return{status:'rejected',reason:'category_and_role_required'};
+    const item={category:clean(category),role:clean(role),evidenceCount:arr(evidence).length,provenance:'heurística; não é fato de mercado',status:'heuristic'};
+    window.papel_ideal=window.papel_ideal.filter(x=>x.category!==item.category);window.papel_ideal.push(item);return{status:'added',item};
+  };
+  api.addLocalEvidence=row=>{
+    if(!row||!clean(row.claim)||!clean(row.source)||!clean(row.geography)||!clean(row.date)||!clean(row.provenance))return{status:'rejected',reason:'claim/source/geography/date/provenance_required'};
+    const item={id:clean(row.id)||'local-'+(window.PULSE_LOCAL_EVIDENCE.length+1),claim:clean(row.claim),source:clean(row.source),geography:clean(row.geography),date:clean(row.date),provenance:clean(row.provenance)};
+    if(window.PULSE_LOCAL_EVIDENCE.some(x=>x.id===item.id))return{status:'duplicate',item};
+    window.PULSE_LOCAL_EVIDENCE.push(item);return{status:'added',item};
+  };
+  api.executiveSummary=(items=[])=>{
+    const rows=arr(items),take=k=>rows.filter(x=>clean(x&&x.type)===k&&clean(x.text)).map(x=>clean(x.text)).slice(0,3);
+    const observed=take('observed'),interpretations=take('interpretation'),hypotheses=take('hypothesis'),actions=take('action');
+    if(!observed.length)return{status:'insufficient',observed:[],interpretations,hypotheses,actions,message:'Evidência observada insuficiente para síntese executiva.'};
+    return{status:'available',observed,interpretations,hypotheses,actions,causal:false};
+  };
+})();
 window.PULSE_SINGLE_FILE_READY = true;
 window.pulseMatchEvidence = window.pulseMatchEvidence || ((query,items)=>{const q=String(query||'').toLowerCase();return (Array.isArray(items)?items:[]).filter(x=>JSON.stringify(x).toLowerCase().includes(q));});
 window.pulseRankEvidence = window.pulseRankEvidence || ((items)=>Array.isArray(items)?items.slice():[]);
