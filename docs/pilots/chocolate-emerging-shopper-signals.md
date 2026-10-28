@@ -292,3 +292,34 @@ Consulta somente de leitura ao projeto `ppfuygnpgywfpiqxsfys`:
 **Piloto parcialmente validado — não declarar conclusão definitiva.** O código da PR foi integrado, os gates relevantes no commit atual de `main` passaram, a publicação geral do site foi concluída com verificação de identidade e as funções centrais estão ACTIVE. Ainda não foram demonstradas quatro semanas de observação longitudinal nem corroboração independente suficiente para os sinais prioritários, e a URL específica do painel não pôde ser testada diretamente nesta sessão.
 
 Próximos critérios objetivos: (1) observar e comparar snapshots datados durante quatro semanas; (2) verificar a página `pilot-chocolate.html` no endereço público; (3) revisar cada sinal ativo quanto a fonte primária, data, universo, período e independência; (4) manter como preliminar qualquer hipótese de comportamento que dependa de uma única fonte; (5) atualizar este protocolo somente após nova evidência material.
+
+
+## Auditoria operacional — 28/10/2026 (UTC−3)
+
+### Resultado da execução
+
+A consulta direta às tabelas de fontes, itens, execuções e sinais do tenant Chocolate confirmou:
+
+- **Fontes:** 9 cadastradas, 7 ativas e 2 inativas. As cinco páginas primárias pertinentes são Abicab, Agência Brasil/Instituto Locomotiva, Kantar/Worldpanel, IPEAD/UFMG e Procon Joinville. As duas fontes RSS de descoberta permanecem ativas; a fonte do IBGE continua inativa após HTTP 403, sem tentativa de contornar o bloqueio.
+- **Últimas capturas:** em 28/10, Abicab concluiu às 09h00 BRT; as outras fontes ativas concluíram por volta das 03h00 BRT. Não houve erro nas últimas execuções. Os feeds RSS retornaram zero itens na execução mais recente.
+- **Itens:** 7 itens estão ativos, mas somente 5 são páginas primárias relevantes para Chocolate. Dois itens RSS irrelevantes continuam ativos no banco: “Diretora é presa por desvio de alimentos em unidade prisional feminina” (publicado em 23/10/2026) e “Anvisa proíbe venda de picolé com melatonina e suplemento de proteína” (26/10/2026). Há 21 itens rejeitados.
+- **Sinais:** 16 ativos, 19 descartados e 1 resolvido. Três dos 16 ativos não devem ser tratados como evidência válida: dois sinais duplicados e fora de tema derivados do mesmo artigo sobre desvio de alimentos, e um candidato IPEAD que concatena trechos separados. O sinal resolvido também deriva daquele artigo fora de tema. Assim, 13 candidatos permanecem no conjunto temático após a exclusão desses três registros ativos, mas ainda não constituem tendências longitudinalmente validadas.
+- **Mudança editorial não comprovada:** a página da Agência Brasil sobre intenção de compra retornou `items_changed=1` em várias capturas recentes do mesmo URL/artigo. Como não há snapshots imutáveis por execução, não é possível distinguir alteração editorial real de instabilidade na extração/fingerprint.
+
+### Auditoria de citações e duplicatas
+
+As citações dos 17 registros ativos/resolvidos consultados aparecem literalmente no conteúdo armazenado de seus itens de origem. Essa verificação literal não garante validade semântica. O candidato IPEAD mistura o IPCA de 3,40%, uma frase sobre a variação anterior e o aumento da Lacta em uma única citação. No artigo da Kantar, algumas citações incluem cabeçalhos junto com a frase factual. Há dois sinais ativos e um sinal resolvido sobre o mesmo artigo irrelevante de RSS; títulos diferentes não os tornam evidências independentes.
+
+### Classificação que deve ser preservada
+
+- **Abicab:** fatos setoriais, produção e oferta sazonal; não comprovam compra, preferência ou comportamento do shopper.
+- **Agência Brasil/Instituto Locomotiva:** intenção declarada; não é compra observada ou sell-out.
+- **Kantar/Worldpanel:** consumo agregado observado no primeiro trimestre de 2025; evidência histórica de uma única publicação, não prova que a dinâmica persista em outubro de 2026.
+- **IPEAD/UFMG:** comparação temporal de preços em Belo Horizonte entre 2026 e 2025; descartar o candidato com citação composta.
+- **Procon Joinville:** diferenças de preços entre estabelecimentos em março de 2026; não classificar dispersão transversal como inflação ou variação temporal.
+
+### Decisão e próximos critérios
+
+**Piloto parcialmente validado; baseline de quatro semanas permanece `not_started`.** Antes de ampliar os sinais, corrigir o processamento de itens RSS antigos fora de tema, deduplicar candidatos derivados do mesmo artigo, impedir que recapturas reativem descartes e preservar snapshots imutáveis com timestamp e fingerprint. Os quatro exports reais do Google Trends continuam pendentes; as capturas varejistas existentes são exploratórias e não formam uma série temporal comparável. Não executar mudanças de produção sem CI aprovado e validação humana.
+
+Esta auditoria não alterou dados nem implantou funções de produção. Fontes primárias consultadas: Abicab (31/03/2026), Agência Brasil/Instituto Locomotiva (31/03/2026), Kantar/Worldpanel (17/07/2025), IPEAD/UFMG (30/03/2026) e Procon Joinville (26/03/2026).
