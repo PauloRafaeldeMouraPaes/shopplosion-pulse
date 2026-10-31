@@ -113,3 +113,8 @@ body .pv4-next small{color:var(--on-brand)}
 .pv4-nl-feedback[data-status="rejected"],.pv4-nl-feedback[data-status="conflict"]{color:var(--state-error)}
 @media(max-width:900px){.pv4-next-level{margin-top:16px;padding:24px;background:var(--surface-canvas);border:1px solid var(--line-1);border-radius:var(--radius-panel)}
 .pv4-next-level .pv4-nl-grid{grid-template-columns:1fr}}
+
+/* Press feedback on pointer-down (not on release): instant, 100ms, transform only. Under
+   prefers-reduced-motion the global rule above removes the transition; the state change stays. */
+body.pv3-active button:not(:disabled):active,body.pv3-active .pv4-primary:active,body.pv3-active .pv4-secondary:active,body.pv3-active .pv4-next:active{transform:scale(.97);transition:transform 100ms ease-out}
+body.pv3-active button:not(:disabled),body.pv3-active .pv4-primary,body.pv3-active .pv4-secondary,body.pv3-active .pv4-next{transition:transform 100ms ease-out}
