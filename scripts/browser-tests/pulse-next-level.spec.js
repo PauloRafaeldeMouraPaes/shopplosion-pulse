@@ -51,16 +51,42 @@ test.describe('Pulse next-level contracts — proposal workspace', () => {
 });
 test.describe('Pulse next-level contracts — painel Hoje', () => {
   const clearStore = async page => { await page.goto('/index.html'); await page.evaluate(() => { try { localStorage.removeItem('pulse:next-level:v1'); } catch (_) {} }); await page.reload(); };
-  test('painel existe na Hoje, mostra estado sem dados e não altera IDs existentes', async ({ page }) => {
+  test('painel existe na Hoje, carrega a série da evidência pública e não altera IDs existentes', async ({ page }) => {
     await clearStore(page);
     const section = page.locator('#pv4-next-level');
     await expect(section).toBeVisible();
     await expect(page.locator('#signals')).toBeVisible();
-    await expect(section.locator('[data-view="series"] .pv4-nl-state')).toHaveAttribute('data-state', 'empty');
+    /* The public dataset declares one serie_historica block (IBGE PMC, 13 months); it is the only series. */
+    const blocks = section.locator('[data-view="series"] .pv4-nl-series');
+    await expect(blocks).toHaveCount(1);
+    await expect(blocks.first()).toHaveAttribute('data-series-state', 'available');
+    await expect(blocks.first().locator('.pv4-nl-series-head')).toContainText('PMC');
+    await expect(blocks.first().locator('.pv4-nl-series-head')).toContainText('Brasil');
+    await expect(blocks.first()).toContainText('Variação observada');
+    await expect(blocks.first()).toContainText('Mesmo mês do ano anterior (2025-08)');
+    await expect(blocks.first()).toContainText('Observações comparáveis: 13');
+    await expect(blocks.first()).toContainText('Causalidade: não atribuída');
+    await expect(section).toHaveAttribute('data-from-evidence', '13');
+    await expect(section).toHaveAttribute('data-restore', 'empty');
+    await expect(page.locator('#pv4-nl-status')).toContainText('13 observações');
     await expect(section.locator('[data-view="role"] .pv4-nl-state')).toHaveAttribute('data-state', 'empty');
     await expect(section.locator('[data-view="local"] .pv4-nl-state')).toHaveAttribute('data-state', 'empty');
+    /* The series block links back to its evidence item, which opens in the existing Inspector. */
+    await blocks.first().locator('.pv4-nl-open-evidence').click();
+    const ins = page.locator('#pv3-inspector');
+    await expect(ins).toBeVisible();
+    await expect(ins).toContainText('agosto de 2026');
+    await expect(ins).toContainText('FONTE PRIMÁRIA');
+    await expect(ins).toContainText('SIDRA');
+    await ins.locator('button[aria-label="Fechar"]').click();
+    /* Nothing from the public series is written to the browser store: a reload rebuilds it from the dataset. */
+    await page.reload();
+    await expect(page.locator('#pv4-next-level')).toHaveAttribute('data-restore', 'empty');
+    await expect(page.locator('#pv4-next-level')).toHaveAttribute('data-from-evidence', '13');
+    /* Without any observation the block shows the explicit empty state. */
+    await page.evaluate(() => { window.PULSE_NEXT_LEVEL.reset(); window.PULSE_NEXT_LEVEL_UI.refresh(); });
+    await expect(section.locator('[data-view="series"] .pv4-nl-state')).toHaveAttribute('data-state', 'empty');
     await expect(section.locator('[data-view="series"]')).toContainText('não conectada');
-    await expect(section).toHaveAttribute('data-restore', 'empty');
     await expect(page.locator('#pv4-nl-status')).toContainText('0 observações');
   });
   test('registro rejeitado, insuficiente, sem comparabilidade e disponível aparecem como estados', async ({ page }) => {
@@ -72,7 +98,9 @@ test.describe('Pulse next-level contracts — painel Hoje', () => {
     await page.locator('#pv4-nl-series-form button[type="submit"]').click();
     await expect(page.locator('#pv4-nl-series-feedback')).toHaveAttribute('data-status', 'rejected');
     await expect(page.locator('#pv4-nl-series-feedback')).toContainText('incompleto');
-    await expect(section.locator('[data-view="series"] .pv4-nl-state')).toHaveAttribute('data-state', 'empty');
+    /* A rejected record adds nothing: only the public series block exists. */
+    await expect(section.locator('[data-view="series"] .pv4-nl-series')).toHaveCount(1);
+    const manual = section.locator('[data-view="series"] .pv4-nl-series[data-series-metric="volume"]');
     const fill = async (period, value, unit) => {
       await page.fill('#pv4-nl-period', period); await page.fill('#pv4-nl-value', value); await page.fill('#pv4-nl-unit', unit);
       await page.fill('#pv4-nl-metric', 'volume'); await page.fill('#pv4-nl-geography', 'BR'); await page.fill('#pv4-nl-source', 'fixture'); await page.fill('#pv4-nl-provenance', 'synthetic browser test');
@@ -80,18 +108,29 @@ test.describe('Pulse next-level contracts — painel Hoje', () => {
     };
     await fill('2026-01', '10', 'u');
     await expect(page.locator('#pv4-nl-series-feedback')).toHaveAttribute('data-status', 'added');
-    await expect(section.locator('[data-view="series"] .pv4-nl-state')).toHaveAttribute('data-state', 'insufficient');
+    /* The manual metric gets its own block and state; the public series keeps its own. */
+    await expect(section.locator('[data-view="series"] .pv4-nl-series')).toHaveCount(2);
+    await expect(manual.locator('.pv4-nl-state')).toHaveAttribute('data-state', 'insufficient');
+    await expect(manual).toContainText('1 observação registrada');
     await fill('2026-02', '12', 'outra-unidade');
-    await expect(section.locator('[data-view="series"] .pv4-nl-state')).toHaveAttribute('data-state', 'not_comparable');
+    await expect(manual.locator('.pv4-nl-state')).toHaveAttribute('data-state', 'not_comparable');
     await fill('2026-02', '12', 'u');
-    await expect(section.locator('[data-view="series"] .pv4-nl-state')).toHaveAttribute('data-state', 'available');
-    await expect(section.locator('[data-view="series"]')).toContainText('Variação observada');
-    await expect(section.locator('[data-view="series"]')).toContainText('Causalidade: não atribuída');
+    await expect(manual.locator('.pv4-nl-state')).toHaveAttribute('data-state', 'available');
+    await expect(manual).toContainText('Variação observada');
+    await expect(manual).toContainText('Causalidade: não atribuída');
+    await expect(manual.locator('.pv4-nl-open-evidence')).toHaveCount(0);
+    await expect(section.locator('[data-view="series"] .pv4-nl-series[data-series-state="available"]')).toHaveCount(2);
     await fill('2026-02', '99', 'u');
     await expect(page.locator('#pv4-nl-series-feedback')).toHaveAttribute('data-status', 'conflict');
     await page.reload();
     await expect(page.locator('#pv4-next-level')).toHaveAttribute('data-restore', 'restored');
-    await expect(page.locator('#pv4-next-level [data-view="series"] .pv4-nl-state')).toHaveAttribute('data-state', 'available');
+    const restoredManual = page.locator('#pv4-next-level [data-view="series"] .pv4-nl-series[data-series-metric="volume"]');
+    await expect(restoredManual.locator('.pv4-nl-state')).toHaveAttribute('data-state', 'available');
+    /* Only the three manual rows were persisted; the 13 public rows came back from the dataset. */
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pulse:next-level:v1')).serie_historica.length);
+    expect(stored).toBe(3);
+    await expect(page.locator('#pv4-nl-status')).toContainText('16 observações');
+    await page.evaluate(() => { localStorage.removeItem('pulse:next-level:v1'); });
   });
   test('registro local corrompido vira erro de origem explícito', async ({ page }) => {
     await page.goto('/index.html');
