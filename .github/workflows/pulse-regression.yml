@@ -19,6 +19,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate Chocolate capture-kit artifact integrity
         run: node scripts/test-chocolate-capture-kit-integrity.js
+      - name: Test Google Trends export parser (synthetic fixtures only)
+        run: node scripts/test-parse-google-trends-export.js
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
       - name: Run semantic data integrity checks

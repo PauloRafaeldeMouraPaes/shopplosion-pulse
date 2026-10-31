@@ -21,6 +21,7 @@ Status: **execution guide only; no export is implied by this file**. Use this ch
 - [ ] Store the original file in the approved raw-data location. Before committing it to a public repository, confirm the repository's data-retention policy and applicable terms; otherwise retain it locally and commit only metadata/hash.
 - [ ] Inspect the CSV header, date coverage, expected series and empty/low-volume values. Document missing/low-volume results as limitations, not zeros.
 - [ ] Update the matching status row from `not_captured` only when the file exists, its settings are verified and its hash is recorded. Set QA to `pending_review` until a reviewer accepts it.
+- [ ] Run `node scripts/parse-google-trends-export.js --export-id <slot> --file <original.csv> --out <observations.csv> --report <report.json>`. The parser validates the multiTimeline structure (metadata header, time header, one column per term, index 0..100 or `<1`, peak = 100), rejects a file whose terms or category differ from the registered slot or whose SHA-256 differs from the recorded hash, and writes rows in the `trends-observations` template with `<1` preserved as low volume. It never changes the status file. Attach the JSON report to the review.
 
 ## Interpretation controls
 
