@@ -6,44 +6,198 @@ window.PULSE_LOCAL_EVIDENCE = Array.isArray(window.PULSE_LOCAL_EVIDENCE) ? windo
 window.serie_historica = Array.isArray(window.serie_historica) ? window.serie_historica : [];
 window.papel_ideal = Array.isArray(window.papel_ideal) ? window.papel_ideal : [];
 window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
+/* PULSE_NEXT_LEVEL_CONTRACT_START
+   Next-level data contract (serie_historica, papel_ideal, PULSE_LOCAL_EVIDENCE, executive synthesis).
+   Dependency-free: no DOM access inside this block, so scripts/test-pulse-next-level-contract.js can
+   evaluate it under Node. Rules: never invent values, keep provenance, separate observation from
+   interpretation, never declare causality (every comparison carries causal:false). */
 (()=>{
-  const api=window.PULSE_NEXT_LEVEL, clean=v=>String(v??'').trim(), arr=v=>Array.isArray(v)?v:[];
-  const validPeriod=v=>/^\d{4}(-\d{2}(-\d{2})?)?$/.test(clean(v));
-  api.compareSeries=(a,b)=>{const x=Number(a),y=Number(b);if(!Number.isFinite(x)||!Number.isFinite(y))return{status:'unavailable',delta:null,deltaPct:null,causal:false};const delta=x-y;return{status:'observed_change',delta,deltaPct:y===0?null:delta/Math.abs(y)*100,causal:false};};
+  const api=window.PULSE_NEXT_LEVEL;
+  const clean=v=>String(v??'').trim();
+  const arr=v=>Array.isArray(v)?v:[];
+  const norm=v=>clean(v).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ');
+  const UNDECLARED='[A DEFINIR]';
+  const CONTRACT_VERSION='2026-10-31';
+  const PERIOD_RE=/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/;
+  const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
+  const fingerprint=s=>{let h=5381;const t=norm(s);for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return (h>>>0).toString(36)};
+  /* Period parsing: granularity is explicit so a year is never compared with a month. */
+  const parsePeriod=v=>{const m=PERIOD_RE.exec(clean(v));if(!m)return null;const y=+m[1],mo=m[2]?+m[2]:null,d=m[3]?+m[3]:null;if(mo!==null&&(mo<1||mo>12))return null;if(d!==null){const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==mo-1||dt.getUTCDate()!==d)return null}return {text:clean(v),year:y,month:mo,day:d,granularity:d!==null?'day':mo!==null?'month':'year'}};
+  const periodIndex=p=>p.granularity==='year'?p.year:p.granularity==='month'?p.year*12+(p.month-1):Math.round(Date.UTC(p.year,p.month-1,p.day)/86400000);
+  const numberValue=v=>{if(v===null||v===undefined||v==='')return null;if(typeof v==='boolean')return null;const n=typeof v==='number'?v:Number(String(v).replace(',','.'));return Number.isFinite(n)?n:null};
+  const requireFields=(row,fields)=>fields.filter(f=>!clean(row&&row[f]));
+  const rejected=(reason,extra)=>Object.assign({status:'rejected',reason,causal:false},extra||{});
+
+  /* Pure comparison of two numeric values. Zero is a value; null/undefined/NaN is an absence. */
+  api.compareSeries=(current,previous)=>{
+    const x=numberValue(current),y=numberValue(previous);
+    if(x===null||y===null)return {status:'unavailable',reason:x===null&&y===null?'both_values_missing':x===null?'current_value_missing':'previous_value_missing',delta:null,deltaPct:null,direction:null,causal:false};
+    const delta=x-y;
+    return {status:'observed_change',delta,deltaPct:y===0?null:delta/Math.abs(y)*100,deltaPctReason:y===0?'previous_value_is_zero':null,direction:delta>0?'up':delta<0?'down':'no_change',causal:false};
+  };
+
+  /* B.1 Historical series */
+  api.validateHistoricalObservation=row=>{
+    if(!row||typeof row!=='object')return rejected('invalid',{missing:[],invalid:['row']});
+    const missing=requireFields(row,['period','source','geography','metric','provenance']);
+    const invalid=[];
+    const period=parsePeriod(row.period);
+    if(clean(row.period)&&!period)invalid.push('period');
+    const hasValue=!(row.value===null||row.value===undefined||row.value==='');
+    if(!hasValue)missing.push('value');else if(numberValue(row.value)===null)invalid.push('value');
+    if(missing.length)return rejected('incomplete',{missing,invalid});
+    if(invalid.length)return rejected('invalid',{missing,invalid});
+    return {status:'valid',period,value:numberValue(row.value)};
+  };
+  const observationKey=i=>[i.metric,i.geography,i.unit,i.source,i.period].map(norm).join('|');
   api.addHistoricalObservation=row=>{
-    if(!row||!validPeriod(row.period)||row.value===null||row.value===''||!Number.isFinite(Number(row.value))||!clean(row.source)||!clean(row.geography)||!clean(row.metric)||!clean(row.provenance))return{status:'rejected',reason:'period/value/source/geography/metric/provenance_required'};
-    const item={period:clean(row.period),value:Number(row.value),source:clean(row.source),geography:clean(row.geography),metric:clean(row.metric),provenance:clean(row.provenance)};
-    const duplicate=window.serie_historica.some(x=>x.period===item.period&&x.metric===item.metric&&x.geography===item.geography&&x.source===item.source);
-    if(duplicate)return{status:'duplicate',item};
-    window.serie_historica.push(item);return{status:'added',item};
+    const check=api.validateHistoricalObservation(row);
+    if(check.status!=='valid')return check;
+    const item={
+      id:'',period:check.period.text,granularity:check.period.granularity,value:check.value,
+      metric:clean(row.metric),unit:clean(row.unit)||UNDECLARED,geography:clean(row.geography),
+      source:clean(row.source),methodology:clean(row.methodology)||UNDECLARED,provenance:clean(row.provenance),
+      url:clean(row.url)||null,limitations:arr(row.limitations).map(clean).filter(Boolean),status:'valid'
+    };
+    item.id='sh-'+fingerprint(observationKey(item));
+    const existing=window.serie_historica.find(x=>observationKey(x)===observationKey(item));
+    if(existing){
+      if(existing.value===item.value)return {status:'duplicate',item:existing,causal:false};
+      return {status:'conflict',reason:'same_period_metric_geography_source_unit_with_different_value',item,existing,causal:false};
+    }
+    window.serie_historica.push(item);
+    return {status:'added',item,causal:false};
   };
-  api.historicalSummary=(metric,geography)=>{
-    const rows=window.serie_historica.filter(x=>(!metric||x.metric===metric)&&(!geography||x.geography===geography));
-    if(rows.length<2)return{status:'insufficient',message:'São necessários dois períodos com métrica e geografia comparáveis.',count:rows.length,causal:false};
-    const groups=new Map();rows.forEach(x=>{const k=x.metric+'|'+x.geography;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
+  const comparabilityKey=i=>[i.metric,i.geography,i.unit,i.source,i.methodology,i.granularity].map(norm).join('|');
+  const periodsAdjacent=(a,b)=>periodIndex(b)-periodIndex(a)===1;
+  const sameMonthPreviousYear=(cur,rows)=>{if(cur.granularity!=='month')return null;const p=parsePeriod(cur.period);return rows.find(r=>{const q=parsePeriod(r.period);return q&&q.month===p.month&&q.year===p.year-1})||null};
+  api.historicalSummary=(metric,geography,options)=>{
+    const opt=options||{};
+    const rows=window.serie_historica.filter(x=>x&&x.status==='valid'&&(!metric||norm(x.metric)===norm(metric))&&(!geography||norm(x.geography)===norm(geography))&&(!opt.source||norm(x.source)===norm(opt.source))&&(!opt.unit||norm(x.unit)===norm(opt.unit)));
+    const base={metric:metric||null,geography:geography||null,count:rows.length,causal:false,interpretation:null};
+    if(rows.length<2)return Object.assign(base,{status:'insufficient',reason:'too_few_observations',message:'São necessários pelo menos dois períodos com a mesma métrica, geografia, unidade, fonte e granularidade.'});
+    const groups=new Map();rows.forEach(x=>{const k=comparabilityKey(x);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
     const comparable=[...groups.values()].filter(g=>g.length>=2).sort((a,b)=>b.length-a.length)[0];
-    if(!comparable)return{status:'insufficient',message:'Não há dois períodos comparáveis para a mesma métrica e geografia.',count:rows.length,causal:false};
-    comparable.sort((a,b)=>a.period.localeCompare(b.period));const previous=comparable[comparable.length-2],current=comparable[comparable.length-1],delta=api.compareSeries(current.value,previous.value);
-    return{status:delta.status,current,previous,delta:delta.delta,deltaPct:delta.deltaPct,causal:false,count:comparable.length};
+    if(!comparable){
+      const dims=['unit','source','methodology','granularity'].filter(d=>new Set(rows.map(r=>norm(r[d]))).size>1);
+      return Object.assign(base,{status:'not_comparable',reason:'mixed_'+(dims[0]||'dimensions'),mixedDimensions:dims,groups:groups.size,message:'As observações existem, mas diferem em '+(dims.length?dims.join(', '):'dimensões de comparabilidade')+'. O Pulse não compara séries com unidade, fonte, metodologia ou granularidade diferentes.'});
+    }
+    comparable.sort((a,b)=>periodIndex(parsePeriod(a.period))-periodIndex(parsePeriod(b.period)));
+    const current=comparable[comparable.length-1],previous=comparable[comparable.length-2];
+    const cmp=api.compareSeries(current.value,previous.value);
+    const pa=parsePeriod(previous.period),pc=parsePeriod(current.period);
+    const consecutive=periodsAdjacent(pa,pc);
+    const limitations=[];
+    if(!consecutive)limitations.push('Os períodos comparados não são consecutivos ('+previous.period+' → '+current.period+'); há lacuna na série.');
+    if(current.unit===UNDECLARED)limitations.push('Unidade não declarada na série; a comparação assume a mesma unidade em todas as observações.');
+    if(current.methodology===UNDECLARED)limitations.push('Metodologia não declarada; mudanças de método entre períodos não podem ser excluídas.');
+    if(comparable.length<3)limitations.push('Apenas '+comparable.length+' observações comparáveis; não há base para falar em tendência.');
+    limitations.push('Fonte única ('+current.source+'); a variação não foi corroborada por fonte independente.');
+    const yoyRow=sameMonthPreviousYear(current,comparable.slice(0,-1));
+    const yearOverYear=yoyRow?Object.assign({previous:yoyRow},api.compareSeries(current.value,yoyRow.value)):null;
+    const fmt=v=>String(v).replace('.',',');
+    const observation=cmp.direction==='no_change'
+      ?'Sem variação observada em '+current.metric+' ('+current.geography+'): '+fmt(previous.value)+' em '+previous.period+' e '+fmt(current.value)+' em '+current.period+(current.unit!==UNDECLARED?' '+current.unit:'')+'.'
+      :'Variação observada em '+current.metric+' ('+current.geography+'): de '+fmt(previous.value)+' em '+previous.period+' para '+fmt(current.value)+' em '+current.period+(current.unit!==UNDECLARED?' '+current.unit:'')+(cmp.deltaPct!==null?' ('+(cmp.deltaPct>0?'+':'')+fmt(cmp.deltaPct.toFixed(1))+'%)':'')+'.';
+    return Object.assign(base,{status:cmp.status,current,previous,delta:cmp.delta,deltaPct:cmp.deltaPct,deltaPctReason:cmp.deltaPctReason,direction:cmp.direction,consecutive,comparedAgainst:'previous_period',yearOverYear,count:comparable.length,source:current.source,unit:current.unit,granularity:current.granularity,limitations,observation,message:'Variação observada, não explicada. O contrato não atribui causa.'});
   };
-  api.setCategoryRole=(category,role,evidence=[])=>{
-    if(!clean(category)||!clean(role))return{status:'rejected',reason:'category_and_role_required'};
-    const item={category:clean(category),role:clean(role),evidenceCount:arr(evidence).length,provenance:'heurística; não é fato de mercado',status:'heuristic'};
-    window.papel_ideal=window.papel_ideal.filter(x=>x.category!==item.category);window.papel_ideal.push(item);return{status:'added',item};
+
+  /* B.2 Category role: always a heuristic. */
+  api.setCategoryRole=(category,role,evidence,options)=>{
+    const opt=options||{};
+    if(!clean(category)||!clean(role))return rejected('incomplete',{missing:['category','role'].filter(f=>!clean(f==='category'?category:role))});
+    const refs=arr(evidence).map(e=>typeof e==='object'&&e?{id:clean(e.id)||null,source:clean(e.source||e.fonte)||null,provenance:clean(e.provenance||e.fonte_primaria)||null,quality:clean(e.quality)||null}:{id:clean(e)||null,source:null,provenance:null,quality:null}).filter(e=>e.id||e.source);
+    const withProvenance=refs.filter(e=>e.provenance).length;
+    const AUTO=/^(Nenhuma evidência registrada para este papel|\d+ de \d+ evidências sem proveniência declarada)/;
+    const limitations=arr(opt.limitations).map(clean).filter(x=>x&&!AUTO.test(x));
+    if(!refs.length)limitations.unshift('Nenhuma evidência registrada para este papel; trata-se de hipótese sem sustentação.');
+    else if(withProvenance<refs.length)limitations.unshift((refs.length-withProvenance)+' de '+refs.length+' evidências sem proveniência declarada.');
+    const confIn=opt.confidence&&typeof opt.confidence==='object'?opt.confidence:{level:opt.confidence,basis:opt.confidenceBasis};
+    const confidenceBasis=clean(confIn.basis);
+    const declared=clean(confIn.level)&&clean(confIn.level)!=='não declarada'&&confidenceBasis&&!/^Grau de confiança só é registrado/.test(confidenceBasis);
+    const confidence=declared?{level:clean(confIn.level),basis:confidenceBasis}:{level:'não declarada',basis:'Grau de confiança só é registrado quando acompanhado da justificativa metodológica.'};
+    const item={
+      category:clean(category),role:clean(role),status:'heuristic',
+      provenance:'heurística; não é fato de mercado',
+      evidence:refs,evidenceCount:refs.length,evidenceWithProvenance:withProvenance,
+      evidenceQuality:refs.length?(withProvenance===refs.length?'proveniência completa':withProvenance?'proveniência parcial':'sem proveniência'):'sem evidência',
+      confidence,limitations,
+      competingHypotheses:arr(opt.competingHypotheses).map(clean).filter(Boolean),
+      reviewConditions:arr(opt.reviewConditions).map(clean).filter(Boolean),
+      recordedAt:clean(opt.recordedAt)||null
+    };
+    if(!item.reviewConditions.length)item.reviewConditions.push('Revisar quando surgir evidência específica da categoria que contradiga o papel proposto.');
+    window.papel_ideal=window.papel_ideal.filter(x=>norm(x.category)!==norm(item.category));
+    window.papel_ideal.push(item);
+    return {status:'added',item,causal:false};
+  };
+
+  /* B.3 Local evidence: same vocabulary as PULSE_EVIDENCE so the Inspector can read it. */
+  const localFingerprint=r=>fingerprint([r.claim,r.source,r.geography,r.date].map(clean).join('|'));
+  api.validateLocalEvidence=row=>{
+    if(!row||typeof row!=='object')return {status:'rejected',reason:'invalid',missing:[],invalid:['row']};
+    const missing=requireFields(row,['claim','source','geography','date','provenance']);
+    const invalid=[];
+    if(clean(row.date)&&!DATE_RE.test(clean(row.date))&&!PERIOD_RE.test(clean(row.date)))invalid.push('date');
+    if(missing.length)return {status:'incomplete',missing,invalid};
+    if(invalid.length)return {status:'rejected',reason:'invalid',missing,invalid};
+    return {status:'valid',missing:[],invalid:[]};
   };
   api.addLocalEvidence=row=>{
-    if(!row||!clean(row.claim)||!clean(row.source)||!clean(row.geography)||!clean(row.date)||!clean(row.provenance))return{status:'rejected',reason:'claim/source/geography/date/provenance_required'};
-    const item={id:clean(row.id)||'local-'+(window.PULSE_LOCAL_EVIDENCE.length+1),claim:clean(row.claim),source:clean(row.source),geography:clean(row.geography),date:clean(row.date),provenance:clean(row.provenance)};
-    if(window.PULSE_LOCAL_EVIDENCE.some(x=>x.id===item.id))return{status:'duplicate',item};
-    window.PULSE_LOCAL_EVIDENCE.push(item);return{status:'added',item};
+    const check=api.validateLocalEvidence(row);
+    if(check.status!=='valid')return Object.assign({status:'rejected',reason:check.status==='incomplete'?'incomplete':check.reason},{missing:check.missing,invalid:check.invalid});
+    const fp=localFingerprint(row);
+    const item={
+      id:clean(row.id)||'local-'+fp,fingerprint:fp,claim:clean(row.claim),source:clean(row.source),geography:clean(row.geography),date:clean(row.date),
+      provenance:clean(row.provenance),url:clean(row.url)||null,natureza:clean(row.natureza)||UNDECLARED,universo_observado:clean(row.universo_observado)||clean(row.geography),
+      limitations:arr(row.limitations).map(clean).filter(Boolean),status:'valid',evidenceType:'local'
+    };
+    const existing=window.PULSE_LOCAL_EVIDENCE.find(x=>x&&(x.id===item.id||x.fingerprint===fp));
+    if(existing)return {status:'duplicate',item:existing,matchedBy:existing.id===item.id?'id':'fingerprint'};
+    window.PULSE_LOCAL_EVIDENCE.push(item);
+    return {status:'added',item};
   };
-  api.executiveSummary=(items=[])=>{
-    const rows=arr(items),take=k=>rows.filter(x=>clean(x&&x.type)===k&&clean(x.text)).map(x=>clean(x.text)).slice(0,3);
-    const observed=take('observed'),interpretations=take('interpretation'),hypotheses=take('hypothesis'),actions=take('action');
-    if(!observed.length)return{status:'insufficient',observed:[],interpretations,hypotheses,actions,message:'Evidência observada insuficiente para síntese executiva.'};
-    return{status:'available',observed,interpretations,hypotheses,actions,causal:false};
+  api.localEvidenceAsEvidence=item=>({
+    id:item.id,categoria:clean(item.categoria)||'evidência local',tipo:'evidência local',fato:item.claim,contexto:'Evidência local registrada pelo workspace. Limitações: '+(arr(item.limitations).length?item.limitations.join('; '):'não declaradas')+'.',
+    interpretacao:'',hipotese:'',acao:'Validar a evidência local contra uma fonte independente antes de usá-la em decisão.',fonte:item.source,url:item.url||'',periodo:item.date,
+    natureza:item.natureza,universo_observado:item.universo_observado,fonte_primaria:item.provenance,fato_verificado_na_fonte:UNDECLARED,representa:UNDECLARED,nao_representa:'Não representa o mercado fora do universo local observado.',alcance_para_pergunta:UNDECLARED
+  });
+  api.loadLocalEvidence=rows=>{const r={added:0,duplicate:0,rejected:0,results:[]};arr(rows).forEach(x=>{const out=api.addLocalEvidence(x);r[out.status==='added'?'added':out.status==='duplicate'?'duplicate':'rejected']++;r.results.push(out)});return r};
+  api.loadHistoricalObservations=rows=>{const r={added:0,duplicate:0,conflict:0,rejected:0,results:[]};arr(rows).forEach(x=>{const out=api.addHistoricalObservation(x);r[out.status in r?out.status:'rejected']++;r.results.push(out)});return r};
+  /* Public evidence items may declare an explicit numeric series block; free-text periods are never parsed. */
+  api.loadFromEvidence=items=>api.loadHistoricalObservations(arr(items).flatMap(e=>arr(e&&e.serie_historica).map(s=>Object.assign({source:e.fonte,url:e.url,provenance:e.fonte_primaria&&e.fonte_primaria!==UNDECLARED?e.fonte_primaria:e.fonte,geography:e.universo_observado||e.universo},s,{evidenceId:e.id}))));
+
+  /* B.4 Executive synthesis: five explicit sections, recommendations tied to observed evidence. */
+  const SECTIONS=['observed','interpretation','hypothesis','implication','action'];
+  api.executiveSummary=(items,options)=>{
+    const opt=options||{},limit=Number(opt.limit)||3;
+    const rows=arr(items).filter(x=>x&&typeof x==='object'&&clean(x.text)).map(x=>({id:clean(x.id)||null,type:clean(x.type),text:clean(x.text),basis:arr(x.basis).map(clean).filter(Boolean),confidence:clean(x.confidence)||null}));
+    const take=k=>rows.filter(x=>x.type===k);
+    const observed=take('observed'),interpretations=take('interpretation'),hypotheses=take('hypothesis'),implications=take('implication');
+    const observedIds=new Set(observed.flatMap(x=>x.basis.concat(x.id?[x.id]:[])));
+    const warnings=[];
+    rows.filter(x=>!SECTIONS.includes(x.type)).forEach(x=>warnings.push('Item ignorado: tipo desconhecido "'+x.type+'".'));
+    const actions=take('action').map(a=>{const supported=a.basis.length>0&&(observedIds.size===0||a.basis.some(b=>observedIds.has(b)));if(!a.basis.length)warnings.push('Ação sem evidência vinculada: "'+a.text+'".');return Object.assign({},a,{supported})});
+    const pick=l=>l.slice(0,limit).map(x=>x.text);
+    const out={status:observed.length?'available':'insufficient',contractVersion:CONTRACT_VERSION,causal:false,
+      evidence:pick(observed),interpretations:pick(interpretations),hypotheses:pick(hypotheses),implications:pick(implications),
+      actions:observed.length?pick(actions.filter(a=>a.supported)):[],unsupportedActions:actions.filter(a=>!a.supported||!observed.length).map(a=>a.text),
+      counts:{observed:observed.length,interpretations:interpretations.length,hypotheses:hypotheses.length,implications:implications.length,actions:actions.length},warnings};
+    out.observed=out.evidence;
+    if(!observed.length){out.message='Evidência observada insuficiente para síntese executiva. Nenhuma recomendação é emitida sem evidência.';out.confidence='insufficient';}
+    else{out.confidence=observed.length>=2?'limited':'single_observation';out.message=observed.length>=2?'Síntese baseada em '+observed.length+' observações; interpretações e hipóteses permanecem separadas da evidência.':'Síntese baseada em uma única observação; confiança limitada.';}
+    return out;
   };
+
+  /* Persistence is opt-in and never silent about failures. */
+  const STORAGE_KEY='pulse:next-level:v1';
+  api.persist=storage=>{try{const s=storage||window.localStorage;s.setItem(STORAGE_KEY,JSON.stringify({version:CONTRACT_VERSION,serie_historica:window.serie_historica,papel_ideal:window.papel_ideal,local_evidence:window.PULSE_LOCAL_EVIDENCE}));return {status:'saved'}}catch(e){return {status:'storage_error',message:String(e&&e.message||e)}}};
+  api.restore=storage=>{let raw=null;try{raw=(storage||window.localStorage).getItem(STORAGE_KEY)}catch(e){return {status:'storage_error',message:String(e&&e.message||e)}}if(!raw)return {status:'empty'};let data=null;try{data=JSON.parse(raw)}catch(e){return {status:'source_error',message:'Registro local corrompido; nada foi restaurado.'}}if(!data||typeof data!=='object')return {status:'source_error',message:'Registro local inválido; nada foi restaurado.'};const h=api.loadHistoricalObservations(data.serie_historica),l=api.loadLocalEvidence(data.local_evidence);arr(data.papel_ideal).forEach(r=>r&&api.setCategoryRole(r.category,r.role,r.evidence,r));return {status:'restored',historical:h,local:l,roles:arr(data.papel_ideal).length}};
+  api.reset=()=>{window.serie_historica.length=0;window.papel_ideal.length=0;window.PULSE_LOCAL_EVIDENCE.length=0;return {status:'reset'}};
+  api.state=()=>({contractVersion:CONTRACT_VERSION,historical:window.serie_historica.length,roles:window.papel_ideal.length,local:window.PULSE_LOCAL_EVIDENCE.length});
+  api.CONTRACT_VERSION=CONTRACT_VERSION;api.UNDECLARED=UNDECLARED;api.parsePeriod=parsePeriod;
 })();
+/* PULSE_NEXT_LEVEL_CONTRACT_END */
 window.PULSE_SINGLE_FILE_READY = true;
 window.pulseMatchEvidence = window.pulseMatchEvidence || ((query,items)=>{const q=String(query||'').toLowerCase();return (Array.isArray(items)?items:[]).filter(x=>JSON.stringify(x).toLowerCase().includes(q));});
 window.pulseRankEvidence = window.pulseRankEvidence || ((items)=>Array.isArray(items)?items.slice():[]);
