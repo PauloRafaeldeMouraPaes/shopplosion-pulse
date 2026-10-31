@@ -10,10 +10,12 @@ contratos em PostgreSQL 16 (o CI usa PostgreSQL 17).
 |---|---|---|---|
 | PR #86 quarentena de evidência pública não qualificada | Draft, `clean`, 13 commits à frente de `main`, 1 atrás | 5 workflows PASS | main |
 | PR #88 independência de fontes na leitura de evidência | Draft, `clean`, empilhada sobre #86 | 5 workflows PASS | #86 |
-| PR #89 deduplicação de eventos de sinal (trigger draft + ACL) | Draft, `clean` | 5 workflows + Signal Event Trigger Contract PASS | main |
+| PR #89 deduplicação de eventos de sinal (trigger draft + ACL consolidada da #99, HEAD `e802720`) | Draft, `clean` | 5 workflows + Signal Event Trigger Contract PASS | main |
 | PR #93 linhagem de migrations (manifesto, 68 corpos recuperados) | Draft, `clean` | 5 workflows PASS | main |
-| PR #99 contrato de ACL mínimo para SECURITY DEFINER | Draft, `clean` | 5 workflows + ACL Contract PASS | main |
-| Issues #90, #91, #92 | Abertas; últimos comentários de 16/10 registram o mesmo estado | | |
+| PR #99 contrato de ACL mínimo para SECURITY DEFINER | Draft, `clean`; disposições absorvidas pela #89 (ver item 5) | 5 workflows + ACL Contract PASS | main |
+| PR #103 remoção das cópias aninhadas de Edge Functions | Draft, `clean` | 5 workflows PASS | main |
+| Issues #90, #91 | Abertas; comentários de 31/10 apontam para a consolidação na #89 | | |
+| Issue #92 | Aberta; linhagem inalterada desde 16/10 (72 versões, 4 mapeadas, 68 recuperadas) | | |
 
 ## 2. Reexecução local (31/10)
 
@@ -50,10 +52,15 @@ contratos em PostgreSQL 16 (o CI usa PostgreSQL 17).
    repositório: o front não chama `rpc()`; o broker chama `auth_industry_context()` com o JWT do usuário
    (papel `authenticated`), que permanece concedido; os workers chamam `pulse_capture_document_version` e
    `pulse_external_intelligence_fallback_candidate` com chave de serviço, cujo `GRANT ... TO service_role`
-   é mantido; `pulse_external_backstop_schedule_tick()` fica só com o owner/cron. **Risco a resolver antes da
-   migração**: #99 e #89 revogam os mesmos objetos com diferenças (por exemplo, #99 também revoga
-   `capture_intelligence_signal_event()` de `service_role`; #89 não). Precisam virar uma única migração
-   forward, ordenada, para não depender da ordem de aplicação.
+   é mantido; `pulse_external_backstop_schedule_tick()` fica só com o owner/cron. **Risco identificado e
+   tratado no mesmo dia**: #99 e #89 revogavam os mesmos objetos com diferenças (por exemplo, #99 também
+   revogava `capture_intelligence_signal_event()` de `service_role`; #89 não). O draft da #89 (`e802720`)
+   passou a conter as disposições da #99 como uma única migração forward: funções de trigger, scheduler e
+   self-test sem EXECUTE para nenhum papel de API (inclusive `service_role`); seis rotinas internas de worker
+   com REVOKE dos papéis de API e `GRANT ... TO service_role` explícito; `auth_industry_context()` mantém
+   `authenticated`. `scripts/test-signal-event-trigger.sql` foi ajustado para exigir essas negações e passou
+   em PostgreSQL 16 local e no CI (Signal Event Trigger Contract). A #99 fica como referência do contrato de
+   ACL; a aplicação, quando houver, deve partir da #89.
 6. **Testes que ainda dependem de produção/staging**: caminho cron → Vault → Edge Function com o token real;
    negação via PostgREST para `anon`/`authenticated` nos endpoints reais; Security Advisor após a migração;
    contagem de eventos duplicados antes e depois (2.156 eventos para 33 sinais no levantamento de 15/10 são
@@ -65,9 +72,10 @@ contratos em PostgreSQL 16 (o CI usa PostgreSQL 17).
    como edição manual; (e) janela sem execução do worker/cron durante a aplicação; (f) comparação do
    Security Advisor antes e depois.
 
-## 4. Limpeza segura pendente (fora deste branch)
+## 4. Limpeza segura (PR #103)
 
 `supabase/functions/pulse-ask-ai/pulse-ask-ai/index.ts` (divergente do deployado) e
-`supabase/functions/pulse-rag-eval/pulse-rag-eval/index.ts` (idêntica) são cópias aninhadas não referenciadas
-pelo `DEPLOYMENT_MANIFEST.json` nem pelos workflows. O deploy de Edge Functions é manual (`workflow_dispatch`
-com confirmação), então removê-las não dispara deploy. Fica para uma PR própria de Edge Functions.
+`supabase/functions/pulse-rag-eval/pulse-rag-eval/index.ts` (idêntica) eram cópias aninhadas não referenciadas
+pelo `DEPLOYMENT_MANIFEST.json` nem pelos workflows. A remoção está na PR Draft #103 (`fa70551`), separada
+desta linhagem. O deploy de Edge Functions é manual (`workflow_dispatch` com confirmação), então o merge da
+#103 não dispara deploy nem altera a função publicada.
