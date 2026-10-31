@@ -3,7 +3,7 @@
 ## Status (2026-10-31)
 - Implemented and tested: historical series, category role, local evidence and executive synthesis contracts (`docs/NEXT_LEVEL_IMPLEMENTATION.md`), integrated into the Hoje canvas with explicit states.
 - Reconciled separately: published-artifact identity, external scripts, duplicate listeners and invisible characters (`docs/PUBLISHED_ARTIFACT_RECONCILIATION.md`).
-- Still open: study extraction UX copy audit; server-side source for historical series.
+- Historical series: first real public source connected on 2026-10-31 (IBGE PMC, SIDRA table 8882, 13 seasonally adjusted months embedded in evidence item `ibge-pmc-super-agosto-2026`, refreshed by `scripts/fetch-ibge-pmc-series.py`). Still open: study extraction UX copy audit; server-side (Supabase) source for historical series.
 
 ## Scope
 - Historical series (`serie_historica`) with explicit period comparability and no causal inference.
