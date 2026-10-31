@@ -20,7 +20,7 @@ contratos em PostgreSQL 16 (o CI usa PostgreSQL 17).
 ## 2. Reexecução local (31/10)
 
 - `scripts/test-signal-event-trigger.sql` (PR #89): aplicado em PostgreSQL 16 local com `ON_ERROR_STOP`;
-  o bloco `DO` com as oito asserções (API roles negados no trigger e no scheduler, cron e worker preservados,
+  o bloco `DO` com 21 asserções (`RAISE EXCEPTION`) (API roles negados no trigger e no scheduler, cron e worker preservados,
   contexto autenticado mantido, diagnósticos não executáveis pela API) concluiu sem exceção e a transação
   terminou em `ROLLBACK`. Exit 0.
 - `scripts/test-security-definer-acl-contract.py` (PR #99): `PASS: ACL draft denies client execution,
@@ -67,12 +67,39 @@ contratos em PostgreSQL 16 (o CI usa PostgreSQL 17).
    diagnóstico, não prova). Nenhum teste sintético substitui esses gates.
 7. **Pré-condições, riscos e rollback de qualquer migração futura**: ver `staging-signal-event-acl-acceptance.md`.
    Resumo: (a) linhagem reconciliada e revisada; (b) uma única migração forward combinando trigger + ACL;
-   (c) aplicação em staging com a matriz de aceitação; (d) rollback preparado como migração inversa
+   (c) aplicação em staging com a matriz de aceitação; (d) rollback a preparar como migração inversa
    (recriar a função do trigger anterior e restaurar os grants observados no manifesto ACL de 15/10), nunca
-   como edição manual; (e) janela sem execução do worker/cron durante a aplicação; (f) comparação do
+   como edição manual; o corpo atual de `capture_intelligence_signal_event()` e o DDL do trigger não constam em
+   nenhum dos 72 corpos do ledger nem em `supabase/migrations`, logo precisam ser capturados em staging com
+   `pg_get_functiondef`/`pg_get_triggerdef` antes de qualquer aplicação; (e) janela sem execução do worker/cron durante a aplicação; (f) comparação do
    Security Advisor antes e depois.
 
-## 4. Limpeza segura (PR #103)
+## 4. Incidente de segredo em arquivo de auditoria (31/10, noite)
+
+Revisão adversarial independente encontrou o valor em texto puro do segredo do Vault `pulse_index_worker_token` no corpo recuperado `20260907230216_harden_internal_worker_auth_vault.sql.txt` (commit de 15/10 neste branch; repositório público; nunca esteve em `main`). O `pulse-index-worker` autentica apenas por esse token (`verify_jwt=false`). Medidas no repositório: literal redigido, histórico do branch reescrito para removê-lo de todos os commits, manifesto com status `recovered_from_production_history_redacted` e validador que rejeita qualquer corpo com literal de segredo. Medida fora do repositório, obrigatória e pendente do operador: rotacionar o segredo no Vault e o hash em `private.pulse_internal_tokens`, tratando o token anterior como comprometido desde 15/10 (commits antigos podem permanecer acessíveis por SHA até a limpeza do GitHub).
+
+## 5. Inconsistências e lacunas apontadas pela revisão independente de 31/10
+
+- Objetos vivos fora do ledger: a função do trigger `capture_intelligence_signal_event()` e o trigger
+  `intelligence_signal_event_capture`, o job cron das 06:45 (`pulse_intelligence_quality_check`, ausente das sete
+  chamadas `cron.schedule` recuperadas) e, a confirmar, a coluna `latest_direction` que `intelligence.html` seleciona de
+  `intelligence_signals` (no ledger ela só existe na view). "72/72 corpos recuperáveis" não significa que o esquema de
+  produção seja inteiramente derivável do ledger.
+- `capture_document_version()`: `migration-lineage-reconciliation.md` registra disposição `review_required`, o manifesto
+  CSV e `test-security-definer-acl-manifest.py` impõem `internal_only`. O CSV validado em CI é a referência; o texto
+  precisa ser alinhado.
+- `pulse_intelligence_quality_check()`: o mesmo documento diz que não é SECURITY DEFINER; o CSV a lista como
+  `security_definer=true`. Divergência só resolvível contra o catálogo de produção (`pg_proc.prosecdef`); até lá,
+  considerar a disposição do CSV como hipótese, não como fato.
+- O audit de 15/10 descreve o contrato da #89 como preservação de EXECUTE para `service_role`; o draft consolidado
+  (`e802720`) preserva `service_role` só nas seis rotinas de worker e revoga nas funções de trigger, no scheduler e no
+  self-test. Vale o draft e o contrato atuais.
+- Nomes de colunas: o texto de reconciliação prescreve `mapping_type`/`review_status`; o CSV usa `mapping_status`
+  (sem `review_status`). O CSV é a referência.
+- Afirmações não verificáveis sem produção (2.156 eventos para 33 sinais, contagens do Security Advisor, estado do
+  CI na data): registradas como leitura da época, não como prova reproduzível a partir do repositório.
+
+## 6. Limpeza segura (PR #103)
 
 `supabase/functions/pulse-ask-ai/pulse-ask-ai/index.ts` (divergente do deployado) e
 `supabase/functions/pulse-rag-eval/pulse-rag-eval/index.ts` (idêntica) eram cópias aninhadas não referenciadas

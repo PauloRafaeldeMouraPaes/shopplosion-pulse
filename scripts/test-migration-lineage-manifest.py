@@ -26,7 +26,11 @@ EXPECTED_MAPPINGS = {
     "20260922031240": ("supabase/migrations/009_shopper_knowledge_layer.sql", "confirmed_exact_blob_match"),
     "20260922032516": ("supabase/migrations/010_knowledge_updates_saved_evidence.sql", "confirmed_exact_blob_match"),
 }
-ALLOWED_STATUSES = {"unmapped", "confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim", "recovered_from_production_history"}
+ALLOWED_STATUSES = {"unmapped", "confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim", "recovered_from_production_history", "recovered_from_production_history_redacted"}
+REDACTION_MARKER = "[REDIGIDO "
+# Versions whose archived body had a secret literal removed from this public repository on 2026-10-31. Their
+# production hash is kept for the record, but the archived file is intentionally different from the ledger.
+EXPECTED_REDACTED = {"20260907230216"}
 
 def git_blob_sha(data: bytes) -> str:
     header = f"blob {len(data)}\0".encode("ascii")
@@ -76,13 +80,37 @@ def main() -> int:
 
     current_mappings = [row for row in rows if row["mapping_status"] in {"confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim"}]
     recovered = [row for row in rows if row["mapping_status"] == "recovered_from_production_history"]
+    redacted = [row for row in rows if row["mapping_status"] == "recovered_from_production_history_redacted"]
     unmapped = [row for row in rows if row["mapping_status"] == "unmapped"]
-    if len(current_mappings) != 4 or len(recovered) != 68 or len(unmapped) != 0:
+    if len(current_mappings) != 4 or len(recovered) + len(redacted) != 68 or len(unmapped) != 0:
         raise AssertionError(
-            f"Expected 4 current-file mappings, 68 exact production-body archives, and 0 unmapped rows; "
-            f"found {len(current_mappings)} / {len(recovered)} / {len(unmapped)}"
+            f"Expected 4 current-file mappings, 68 production-body archives (exact or redacted), and 0 unmapped rows; "
+            f"found {len(current_mappings)} / {len(recovered) + len(redacted)} / {len(unmapped)}"
         )
+    if {row["production_version"] for row in redacted} != EXPECTED_REDACTED:
+        raise AssertionError("The set of redacted archives drifted from the documented incident list")
+    for row in redacted:
+        if not row["repo_path"].startswith("docs/database/recovered-production-migrations/") or not row["repo_path"].endswith(".sql.txt"):
+            raise AssertionError(f"Redacted body must stay a non-executable .sql.txt archive: {row['production_version']}")
+        path = ROOT / row["repo_path"]
+        if not path.is_file():
+            raise AssertionError(f"Redacted archive missing: {row['repo_path']}")
+        actual_bytes = path.read_bytes()
+        text = path.read_text(encoding="utf-8")
+        if REDACTION_MARKER not in text:
+            raise AssertionError(f"Redacted archive lost its redaction marker: {row['production_version']}")
+        if re.search(r"create_secret\(\s*'[A-Za-z0-9+/=_-]{24,}'", text):
+            raise AssertionError(f"Redacted archive still carries a secret-looking literal: {row['production_version']}")
+        if git_blob_sha(actual_bytes) != row["repo_blob_sha"]:
+            raise AssertionError(f"Redacted archive Git blob hash mismatch for {row['production_version']}")
+        if git_blob_sha(actual_bytes) == row["production_git_blob_sha1"]:
+            raise AssertionError(f"Redacted archive still matches the unredacted production body: {row['production_version']}")
+        if "redacted" not in row["evidence"]:
+            raise AssertionError(f"Redacted row must document the incident in its evidence note: {row['production_version']}")
     for row in recovered:
+        text = row["repo_path"] and (ROOT / row["repo_path"]).read_text(encoding="utf-8") if (ROOT / row["repo_path"]).is_file() else ""
+        if re.search(r"create_secret\(\s*'[A-Za-z0-9+/=_-]{24,}'", text):
+            raise AssertionError(f"Archived body carries a secret-looking literal; redact it: {row['production_version']}")
         if not row["repo_path"].startswith("docs/database/recovered-production-migrations/") or not row["repo_path"].endswith(".sql.txt"):
             raise AssertionError(f"Recovered body must be a non-executable .sql.txt archive: {row['production_version']}")
         if row["repo_blob_sha"] != row["production_git_blob_sha1"]:
@@ -114,7 +142,7 @@ def main() -> int:
         unexpected = sorted(actual_paths - EXPECTED_REPOSITORY_MIGRATIONS)
         raise AssertionError(f"Repository migration inventory changed; missing={missing}, unexpected={unexpected}. Reconcile the manifest before release.")
 
-    print("Validated 72 production SQL bodies with UTF-8 byte-accurate Git blob hashes, 4 current migration-file mappings, 68 exact archived SQL bodies, 0 unmapped versions, and 10 active migration files.")
+    print(f"Validated 72 production SQL bodies with UTF-8 byte-accurate Git blob hashes, 4 current migration-file mappings, {len(recovered)} exact archived SQL bodies, {len(redacted)} redacted archive(s) with the production hash on record, 0 unmapped versions, and 10 active migration files.")
     print("Archived bodies are exact read-only copies from the production ledger; original Git authoring context and safe forward-only release strategy remain separate gates. No database connection was made by this validator.")
     return 0
 
