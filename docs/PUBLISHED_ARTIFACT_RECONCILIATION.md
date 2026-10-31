@@ -27,14 +27,17 @@ em vez de declarar identidade quando a rede não alcança o Pages.
 |---|---|---|
 | auth, app | `@supabase/supabase-js@2.116.0` (jsDelivr) | já fixada |
 | index, intelligence, ask, sources, documento | eram `@supabase/supabase-js@2` (flutuante; resolvia para 2.118.0 em 2026-10-31) | **fixadas em 2.116.0** nesta reconciliação, a mesma versão que cria a sessão em `auth.html` |
+| todas as sete | tag apontando para o caminho explícito e imutável `@2.116.0/dist/umd/supabase.min.js` (os mesmos bytes que a tag curta servia: SHA-256 `fbde52aa…`), com `integrity="sha384-JBR+x8bl…"` e `crossorigin="anonymous"` | **SRI aplicado**; `pulse-sdk-integrity.spec.js` prova com rede real que o cliente carrega em cada página, e um controle negativo com hash errado confirma o bloqueio |
 | app | `pdf.js 3.11.174` (cdnjs) para extração de PDF | mantida |
 | pulse-config | `pdfjs-dist@4.10.38` (jsDelivr, import dinâmico) | mantida |
 | todas | Google Fonts (Inter, Source Serif 4) | mantida |
 
 O SDK do Supabase não foi removido: autenticação (`auth.html`), broker de indústria, consultas privadas e
 persistência de investigações dependem dele. Removê-lo exige empacotar uma cópia local verificada e
-repetir o fluxo de login real. Próximo passo possível, fora desta rodada: adicionar `integrity` (SRI) às
-tags fixadas e testar o login manualmente antes do merge.
+repetir o fluxo de login real. Com o SRI, o navegador bloqueia o script se o CDN servir bytes diferentes
+dos registrados; nesse caso o sintoma é "mecanismo de busca não inicializado" e a correção é recalcular
+o hash do arquivo imutável, nunca remover o atributo. Recomendado: um login manual no deploy de
+homologação antes do merge, já que o teste de navegador não autentica.
 
 Duplicações eliminadas: `ask.html` carregava `pulse-public-evidence.js` três vezes (head, meio e fim);
 ficou uma carga, no head, antes de qualquer consumidor.
