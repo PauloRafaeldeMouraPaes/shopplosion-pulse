@@ -1,0 +1,163 @@
+{
+  "checked_at_utc": "2026-10-31T17:21:26Z",
+  "ref": "origin/main",
+  "ref_sha": "4a591add462e6d73aaf227e38bde37fb848a90e0",
+  "base_url": "https://paulorafaeldemourapaes.github.io/shopplosion-pulse/",
+  "files": [
+    {
+      "path": "index.html",
+      "repo_sha256": "796b3493433ba134058c391887483669569cdaaea50ac8229acefc396511c50d",
+      "live_sha256": "796b3493433ba134058c391887483669569cdaaea50ac8229acefc396511c50d",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "intelligence.html",
+      "repo_sha256": "5bbe485077bab80d49b04ecb84569fffd3e0a02b2b524977e82e2e27186f28f1",
+      "live_sha256": "5bbe485077bab80d49b04ecb84569fffd3e0a02b2b524977e82e2e27186f28f1",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "app.html",
+      "repo_sha256": "3bf9226a88ae047ad2c12798bb05dfd6f916961a578eee6ed694d3d569573e19",
+      "live_sha256": "3bf9226a88ae047ad2c12798bb05dfd6f916961a578eee6ed694d3d569573e19",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "ask.html",
+      "repo_sha256": "ae0a388477741e5d2bdae731ae32e161b352bb60d3af6de736e51e5a0083b51a",
+      "live_sha256": "ae0a388477741e5d2bdae731ae32e161b352bb60d3af6de736e51e5a0083b51a",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "sources.html",
+      "repo_sha256": "2c52a90c03e0a2cfe642d23eebf85c59df933d42a53ae168d038c5e01b8e0d30",
+      "live_sha256": "2c52a90c03e0a2cfe642d23eebf85c59df933d42a53ae168d038c5e01b8e0d30",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "base.html",
+      "repo_sha256": "dc8effd5a1468b5731e8d53e293d1205ee7e996b503e9c6ab948ec14e3ba1644",
+      "live_sha256": "dc8effd5a1468b5731e8d53e293d1205ee7e996b503e9c6ab948ec14e3ba1644",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "auth.html",
+      "repo_sha256": "6c84174e762b6c45f17192a0f6fb56798c49fb45f2476bd93b330103bf481857",
+      "live_sha256": "6c84174e762b6c45f17192a0f6fb56798c49fb45f2476bd93b330103bf481857",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "documento.html",
+      "repo_sha256": "a7f6bf0bb7cd604c6d7bcfa20e0c12f2f437086fa06a8a7e64cae74153dffb39",
+      "live_sha256": "a7f6bf0bb7cd604c6d7bcfa20e0c12f2f437086fa06a8a7e64cae74153dffb39",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pilot-chocolate.html",
+      "repo_sha256": "2a3341b2b6ce6caf8e39b027152602f88837961185c78f73e9d09dd21e9653a6",
+      "live_sha256": "2a3341b2b6ce6caf8e39b027152602f88837961185c78f73e9d09dd21e9653a6",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-workspace-v3.js",
+      "repo_sha256": "731df7c9d27e2bf963cba67dcf26d19462171b18f06adbbdc6614f2a8be9eb85",
+      "live_sha256": "731df7c9d27e2bf963cba67dcf26d19462171b18f06adbbdc6614f2a8be9eb85",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-config.js",
+      "repo_sha256": "3137a6ac03879cb7ce1f177339f615e89bc1239f996260be11d4d0be11ff1585",
+      "live_sha256": "3137a6ac03879cb7ce1f177339f615e89bc1239f996260be11d4d0be11ff1585",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-public-evidence.js",
+      "repo_sha256": "019821c0461c891c48efc19ee5c3b9530eed2eb3b82877d1e860d7dcc44d6273",
+      "live_sha256": "019821c0461c891c48efc19ee5c3b9530eed2eb3b82877d1e860d7dcc44d6273",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-workspace-v3.css",
+      "repo_sha256": "eb3787eff3647f4ea9ee73b1e00cc2382ce9811fa71878b1032e822a5d4ffc1a",
+      "live_sha256": "eb3787eff3647f4ea9ee73b1e00cc2382ce9811fa71878b1032e822a5d4ffc1a",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-tokens.css",
+      "repo_sha256": "e3774d9dad7945d629df38dd84f54d2aef89764dcb43c6f03231b1f403ed0b53",
+      "live_sha256": "e3774d9dad7945d629df38dd84f54d2aef89764dcb43c6f03231b1f403ed0b53",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-shell.css",
+      "repo_sha256": "a9f43cd447ed941665fed68d11e968fc58ff9513a8dd3c0788de3d3a4c9aa781",
+      "live_sha256": "a9f43cd447ed941665fed68d11e968fc58ff9513a8dd3c0788de3d3a4c9aa781",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-v2.css",
+      "repo_sha256": "ab168fee802dde7ebb44c283c6c89a998d489bf69a93bd0203edaa5475142a90",
+      "live_sha256": "ab168fee802dde7ebb44c283c6c89a998d489bf69a93bd0203edaa5475142a90",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-market-updates-20260921.js",
+      "repo_sha256": "48f38ef3c3b3295137f9590d68cec4a8fc5185ef2c06d66b542c2dd35ad71d85",
+      "live_sha256": "48f38ef3c3b3295137f9590d68cec4a8fc5185ef2c06d66b542c2dd35ad71d85",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "pulse-conducao.js",
+      "repo_sha256": "6ecf1be6970dd9e20646b6e5412c0081c4ffa3ba0e65f6b6f52c1d288af4cad0",
+      "live_sha256": "6ecf1be6970dd9e20646b6e5412c0081c4ffa3ba0e65f6b6f52c1d288af4cad0",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "scripts/pulse-aprofundamento-escopo.js",
+      "repo_sha256": "d084dd54396b55501d4d57a17a122f80a226ea453f871160ddf2314c9699d25c",
+      "live_sha256": "d084dd54396b55501d4d57a17a122f80a226ea453f871160ddf2314c9699d25c",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "scripts/pulse-aprofundamento-ui.js",
+      "repo_sha256": "7f6627ad97fe54de5b70f8cabe3a048fa3b0465d4289d40b4eae532f8bd6116a",
+      "live_sha256": "7f6627ad97fe54de5b70f8cabe3a048fa3b0465d4289d40b4eae532f8bd6116a",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "shopplosion-logo.png",
+      "repo_sha256": "9cf5105cac6eca4da72416fba70bb37ad748aa8bc1b6335408f0fe8e7441e878",
+      "live_sha256": "9cf5105cac6eca4da72416fba70bb37ad748aa8bc1b6335408f0fe8e7441e878",
+      "live_http": 200,
+      "result": "identical"
+    },
+    {
+      "path": "_redirects",
+      "repo_sha256": "745f3cbbb445be454a05d502fe5f31d4285ea97a4c764104b35a6ff2ee18704b",
+      "live_sha256": "745f3cbbb445be454a05d502fe5f31d4285ea97a4c764104b35a6ff2ee18704b",
+      "live_http": 200,
+      "result": "identical"
+    }
+  ],
+  "verdict": "identical"
+}

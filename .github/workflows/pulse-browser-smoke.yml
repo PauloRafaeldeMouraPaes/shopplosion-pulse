@@ -65,6 +65,9 @@ jobs:
       - name: Run Ask AI interaction smoke tests
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-ask-interaction.spec.js
+      - name: Run listener integrity gate (one handler per suggestion, no duplicate click/keydown)
+        if: ${{ !cancelled() }}
+        run: npx playwright test scripts/browser-tests/pulse-listener-integrity.spec.js
       - name: Run chocolate evidence retrieval regression
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-ask-interaction.spec.js --grep "Busca de chocolate"
