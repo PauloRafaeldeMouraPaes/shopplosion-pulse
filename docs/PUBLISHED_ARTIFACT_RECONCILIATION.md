@@ -64,7 +64,15 @@ largura zero, controles bidirecionais, outros caracteres de formato (Cf), caract
 dentro de sintaxe de tag ou em arquivos de código. Resultado em `main`: 182 arquivos, nenhuma anomalia.
 A verificação roda no workflow Pulse Regression.
 
-## 5. O que esta reconciliação não cobre
+## 5. Specs obsoletos
+
+Quatro specs fora do CI (`pulse-attachment`, `pulse-filters`, `pulse-ux`, `pulse-study-intelligence`) testavam
+a interface single-file antiga (`#pulse-files`, `#pulse-category-select`, `aside .nav[href="#signals"]`), que não
+existe em nenhuma página canônica; falhavam em `main` e foram removidos. `pulse-auth.spec.js` (verificação
+pós-deploy contra o Pages) passou a apontar para `input#password`, porque `auth.html` tem três campos de senha
+(login, nova senha e confirmação) e o seletor genérico violava o modo estrito do Playwright.
+
+## 6. O que esta reconciliação não cobre
 
 - Comparação com o artefato Netlify (inacessível, 401).
 - Remoção do SDK do Supabase ou do pdf.js.
