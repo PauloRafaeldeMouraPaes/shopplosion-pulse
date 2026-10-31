@@ -79,5 +79,7 @@ pós-deploy contra o Pages) passou a apontar para `input#password`, porque `auth
 
 - Comparação com o artefato Netlify (inacessível, 401).
 - Remoção do SDK do Supabase ou do pdf.js.
-- Verificação da identidade de versões futuras: rodar o script de novo após cada deploy e guardar o JSON em
-  `docs/releases/`.
+- Verificação contínua: o workflow `Pulse Published Artifact Identity` roda após cada deployment bem-sucedido
+  do ambiente `github-pages` (evento `deployment_status`), com até seis tentativas espaçadas de 60 s para a
+  propagação do CDN, e falha se qualquer arquivo diferir do commit deployado. O JSON fica como artefato do run;
+  nada é commitado. Também pode ser disparado manualmente contra qualquer ref.
