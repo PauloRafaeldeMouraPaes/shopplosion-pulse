@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Textual integrity gate for the Pulse repository.
 
+This file is kept pure ASCII on purpose: every scanned character is written as a \\u escape so the
+gate can scan its own source without tripping.
+
 Rejects, in every tracked text file:
 - a UTF-8 BOM at the start of the file;
 - zero-width, word-joiner, soft-hyphen and bidirectional control characters;
@@ -22,13 +25,13 @@ import sys
 import unicodedata
 
 INVISIBLE = {
-    '​': 'ZERO WIDTH SPACE', '‌': 'ZERO WIDTH NON-JOINER', '‍': 'ZERO WIDTH JOINER',
-    '⁠': 'WORD JOINER', '﻿': 'BOM / ZERO WIDTH NO-BREAK SPACE', '­': 'SOFT HYPHEN',
-    '‎': 'LEFT-TO-RIGHT MARK', '‏': 'RIGHT-TO-LEFT MARK', '᠎': 'MONGOLIAN VOWEL SEPARATOR',
-    '‪': 'LRE', '‫': 'RLE', '‬': 'PDF', '‭': 'LRO', '‮': 'RLO',
-    '⁦': 'LRI', '⁧': 'RLI', '⁨': 'FSI', '⁩': 'PDI',
-    '￹': 'INTERLINEAR ANNOTATION ANCHOR', '￺': 'INTERLINEAR ANNOTATION SEPARATOR',
-    '￻': 'INTERLINEAR ANNOTATION TERMINATOR', '￼': 'OBJECT REPLACEMENT CHARACTER',
+    '\u200b': 'ZERO WIDTH SPACE', '\u200c': 'ZERO WIDTH NON-JOINER', '\u200d': 'ZERO WIDTH JOINER',
+    '\u2060': 'WORD JOINER', '\ufeff': 'BOM / ZERO WIDTH NO-BREAK SPACE', '\u00ad': 'SOFT HYPHEN',
+    '\u200e': 'LEFT-TO-RIGHT MARK', '\u200f': 'RIGHT-TO-LEFT MARK', '\u180e': 'MONGOLIAN VOWEL SEPARATOR',
+    '\u202a': 'LRE', '\u202b': 'RLE', '\u202c': 'PDF', '\u202d': 'LRO', '\u202e': 'RLO',
+    '\u2066': 'LRI', '\u2067': 'RLI', '\u2068': 'FSI', '\u2069': 'PDI',
+    '\ufff9': 'INTERLINEAR ANNOTATION ANCHOR', '\ufffa': 'INTERLINEAR ANNOTATION SEPARATOR',
+    '\ufffb': 'INTERLINEAR ANNOTATION TERMINATOR', '\ufffc': 'OBJECT REPLACEMENT CHARACTER',
 }
 BINARY_EXT = ('.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.pdf', '.zip', '.webp')
 CODE_EXT = ('.html', '.js', '.mjs', '.cjs', '.ts', '.css', '.json', '.yml', '.yaml', '.py', '.sql', '.toml')
@@ -69,11 +72,11 @@ def main():
             elif cat == 'Cf' and ch not in INVISIBLE:
                 failures.append(f'{path}: format character U+{ord(ch):04X}')
         if path.endswith(CODE_EXT):
-            for match in re.finditer(r'<[^>\n]* [^>\n]*>', text):
+            for match in re.finditer(r'<[^>\n]*\u00a0[^>\n]*>', text):
                 line = text[:match.start()].count('\n') + 1
                 failures.append(f'{path}:{line}: NBSP inside tag syntax')
-            if not path.endswith('.html') and ' ' in text:
-                line = text[:text.index(' ')].count('\n') + 1
+            if not path.endswith('.html') and '\u00a0' in text:
+                line = text[:text.index('\u00a0')].count('\n') + 1
                 failures.append(f'{path}:{line}: NBSP in code file')
     notes = []
     for left, right in MIRRORS:
