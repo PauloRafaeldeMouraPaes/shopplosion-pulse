@@ -323,3 +323,12 @@ As citações dos 17 registros ativos/resolvidos consultados aparecem literalmen
 **Piloto parcialmente validado; baseline de quatro semanas permanece `not_started`.** Antes de ampliar os sinais, corrigir o processamento de itens RSS antigos fora de tema, deduplicar candidatos derivados do mesmo artigo, impedir que recapturas reativem descartes e preservar snapshots imutáveis com timestamp e fingerprint. Os quatro exports reais do Google Trends continuam pendentes; as capturas varejistas existentes são exploratórias e não formam uma série temporal comparável. Não executar mudanças de produção sem CI aprovado e validação humana.
 
 Esta auditoria não alterou dados nem implantou funções de produção. Fontes primárias consultadas: Abicab (31/03/2026), Agência Brasil/Instituto Locomotiva (31/03/2026), Kantar/Worldpanel (17/07/2025), IPEAD/UFMG (30/03/2026) e Procon Joinville (26/03/2026).
+
+## Atualização de execução — 31/10/2026 (UTC−3)
+
+Sessão sem acesso ao banco de produção e sem exportação manual do Google Trends; nada foi capturado nem fabricado.
+
+- **Google Trends:** os quatro slots registrados continuam `not_captured`. A exportação é etapa manual na interface; a API oficial segue em alpha com acesso por candidatura e a biblioteca não oficial mais usada foi arquivada em 2025. Para que a etapa seja concluída sem retrabalho, `scripts/parse-google-trends-export.js` valida o CSV original (estrutura multiTimeline, termos e categoria iguais ao slot registrado, hash igual ao registrado, pico = 100, valores `<1` preservados como baixo volume) e gera as linhas do template `trends-observations`. Testes com fixtures sintéticas rodam no workflow Regression.
+- **Observações repetíveis de varejo e baseline de quatro semanas:** dependem de capturas humanas semanais conforme `repeatable-capture-cadence.md`; o status permanece `not_started` até a aceitação do primeiro ciclo reproduzível por um revisor.
+- **Correções de backend apontadas em 28/10** (itens RSS fora de tema, deduplicação de candidatos do mesmo artigo, recapturas que reativam descartes, snapshots imutáveis com timestamp e fingerprint): exigem alteração de funções e migrations em produção; não executadas nesta sessão. A deduplicação de eventos está proposta na PR #89 e a linhagem de migrations na PR #93, ambas em Draft.
+- **Contexto FMCG versus evidência de Chocolate:** mantida a classificação da auditoria de 28/10; o material da Worldpanel permanece `context_only` e nenhum sinal amplo de FMCG foi promovido a sinal de Chocolate.
