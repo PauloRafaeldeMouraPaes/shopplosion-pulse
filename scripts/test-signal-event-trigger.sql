@@ -104,10 +104,17 @@ BEGIN
     RAISE EXCEPTION 'trusted worker role lost candidate lookup execution';
   END IF;
   IF NOT has_function_privilege('service_role', 'public.pulse_capture_document_version(uuid)', 'EXECUTE')
-     OR NOT has_function_privilege('service_role', 'public.pulse_external_intelligence_self_test()', 'EXECUTE')
      OR NOT has_function_privilege('service_role', 'public.pulse_external_signal_deterministic_backstop()', 'EXECUTE')
      OR NOT has_function_privilege('service_role', 'public.pulse_resolve_stale_intelligence_signals()', 'EXECUTE') THEN
     RAISE EXCEPTION 'an internal service-role path lost its explicit EXECUTE grant';
+  END IF;
+  -- Consolidated with PR #99: trigger functions, the cron scheduler and the fixture self-test are
+  -- owner/trigger-only. service_role must not keep direct EXECUTE on them.
+  IF has_function_privilege('service_role', 'public.capture_intelligence_signal_event()', 'EXECUTE')
+     OR has_function_privilege('service_role', 'public.capture_document_version()', 'EXECUTE')
+     OR has_function_privilege('service_role', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE')
+     OR has_function_privilege('service_role', 'public.pulse_external_intelligence_self_test()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'service_role must not directly execute trigger functions, the cron scheduler or the fixture self-test';
   END IF;
   IF NOT has_function_privilege('authenticated', 'public.auth_industry_context()', 'EXECUTE')
      OR has_function_privilege('anon', 'public.auth_industry_context()', 'EXECUTE') THEN
@@ -122,8 +129,7 @@ BEGIN
     RAISE EXCEPTION 'internal diagnostics or unbound trigger function remain API-executable';
   END IF;
   IF NOT has_function_privilege('service_role', 'public.pulse_external_intelligence_contract_check()', 'EXECUTE')
-     OR NOT has_function_privilege('service_role', 'public.pulse_intelligence_external_quality_check()', 'EXECUTE')
-     OR NOT has_function_privilege('service_role', 'public.capture_document_version()', 'EXECUTE') THEN
+     OR NOT has_function_privilege('service_role', 'public.pulse_intelligence_external_quality_check()', 'EXECUTE') THEN
     RAISE EXCEPTION 'trusted service-role access was lost for internal routines';
   END IF;
   IF has_function_privilege('anon', 'public.pulse_capture_document_version(uuid)', 'EXECUTE')

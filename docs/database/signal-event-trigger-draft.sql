@@ -73,37 +73,54 @@ BEGIN
 END;
 $signal_event_capture$;
 
--- Trigger functions are not a direct RPC API. Trigger invocation continues to
--- work; direct execution by API roles is unnecessary.
-REVOKE ALL ON FUNCTION public.capture_intelligence_signal_event()
-  FROM PUBLIC, anon, authenticated;
+-- ACL dispositions consolidated from PR #99 (least-privilege SECURITY DEFINER contract)
+-- so that trigger deduplication and grant hardening ship as ONE forward migration.
+-- Every GRANT is explicit; nothing relies on grants that may or may not exist in production.
 
--- The hourly pg_cron job runs as postgres; API clients must not be able to
--- invoke the scheduler or internal candidate lookup directly.
+-- Trigger-only functions: PostgreSQL invokes them through their triggers. No role needs
+-- direct EXECUTE, including service_role. The contract below proves the trigger still fires.
+REVOKE ALL ON FUNCTION public.capture_intelligence_signal_event()
+  FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.capture_document_version()
+  FROM PUBLIC, anon, authenticated, service_role;
+
+-- Scheduler runs from pg_cron as the owner (postgres); it must not be callable through
+-- PostgREST with any API key, including service_role.
 REVOKE ALL ON FUNCTION public.pulse_external_backstop_schedule_tick()
-  FROM PUBLIC, anon, authenticated;
+  FROM PUBLIC, anon, authenticated, service_role;
+
+-- Fixture-inserting self test: no caller in the repository; owner-only until its body and
+-- cleanup guarantees are reviewed (issue #90).
+REVOKE ALL ON FUNCTION public.pulse_external_intelligence_self_test()
+  FROM PUBLIC, anon, authenticated, service_role;
+
+-- Worker-facing internal routines: service_role only (Edge Functions use the service key).
 REVOKE ALL ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid)
   FROM PUBLIC, anon, authenticated;
-
--- Additional routines classified internal_only by the read-only ACL manifest.
--- Existing explicit grants to service_role and execution by owner/cron remain.
+GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid)
+  TO service_role;
 REVOKE ALL ON FUNCTION public.pulse_capture_document_version(uuid)
   FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.pulse_external_intelligence_self_test()
-  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.pulse_capture_document_version(uuid)
+  TO service_role;
 REVOKE ALL ON FUNCTION public.pulse_external_signal_deterministic_backstop()
   FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.pulse_external_signal_deterministic_backstop()
+  TO service_role;
 REVOKE ALL ON FUNCTION public.pulse_resolve_stale_intelligence_signals()
   FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.pulse_resolve_stale_intelligence_signals()
+  TO service_role;
 REVOKE ALL ON FUNCTION public.pulse_external_intelligence_contract_check()
   FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_contract_check()
+  TO service_role;
 REVOKE ALL ON FUNCTION public.pulse_intelligence_external_quality_check()
   FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.capture_document_version()
-  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.pulse_intelligence_external_quality_check()
+  TO service_role;
 
--- This routine is part of the authenticated user-context contract. Remove
--- anonymous/PUBLIC access while explicitly retaining authenticated EXECUTE.
+-- Authenticated user-context contract: deny anonymous/PUBLIC, keep authenticated.
 REVOKE ALL ON FUNCTION public.auth_industry_context()
   FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.auth_industry_context()
