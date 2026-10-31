@@ -57,7 +57,8 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
       id:'',period:check.period.text,granularity:check.period.granularity,value:check.value,
       metric:clean(row.metric),unit:clean(row.unit)||UNDECLARED,geography:clean(row.geography),
       source:clean(row.source),methodology:clean(row.methodology)||UNDECLARED,provenance:clean(row.provenance),
-      url:clean(row.url)||null,limitations:arr(row.limitations).map(clean).filter(Boolean),status:'valid'
+      url:clean(row.url)||null,limitations:arr(row.limitations).map(clean).filter(Boolean),status:'valid',
+      evidenceId:clean(row.evidenceId)||null
     };
     item.id='sh-'+fingerprint(observationKey(item));
     const existing=window.serie_historica.find(x=>observationKey(x)===observationKey(item));
@@ -189,9 +190,11 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     return out;
   };
 
-  /* Persistence is opt-in and never silent about failures. */
+  /* Persistence is opt-in and never silent about failures. Observations that came from a public evidence
+     item (evidenceId) are not persisted: they are rebuilt from the dataset on every load, so a revised
+     series replaces the previous values instead of colliding with a stale local copy. */
   const STORAGE_KEY='pulse:next-level:v1';
-  api.persist=storage=>{try{const s=storage||window.localStorage;s.setItem(STORAGE_KEY,JSON.stringify({version:CONTRACT_VERSION,serie_historica:window.serie_historica,papel_ideal:window.papel_ideal,local_evidence:window.PULSE_LOCAL_EVIDENCE}));return {status:'saved'}}catch(e){return {status:'storage_error',message:String(e&&e.message||e)}}};
+  api.persist=storage=>{try{const s=storage||window.localStorage;s.setItem(STORAGE_KEY,JSON.stringify({version:CONTRACT_VERSION,serie_historica:window.serie_historica.filter(x=>x&&!x.evidenceId),papel_ideal:window.papel_ideal,local_evidence:window.PULSE_LOCAL_EVIDENCE}));return {status:'saved'}}catch(e){return {status:'storage_error',message:String(e&&e.message||e)}}};
   api.restore=storage=>{let raw=null;try{raw=(storage||window.localStorage).getItem(STORAGE_KEY)}catch(e){return {status:'storage_error',message:String(e&&e.message||e)}}if(!raw)return {status:'empty'};let data=null;try{data=JSON.parse(raw)}catch(e){return {status:'source_error',message:'Registro local corrompido; nada foi restaurado.'}}if(!data||typeof data!=='object')return {status:'source_error',message:'Registro local inválido; nada foi restaurado.'};const h=api.loadHistoricalObservations(data.serie_historica),l=api.loadLocalEvidence(data.local_evidence);arr(data.papel_ideal).forEach(r=>r&&api.setCategoryRole(r.category,r.role,r.evidence,r));return {status:'restored',historical:h,local:l,roles:arr(data.papel_ideal).length}};
   api.reset=()=>{window.serie_historica.length=0;window.papel_ideal.length=0;window.PULSE_LOCAL_EVIDENCE.length=0;return {status:'reset'}};
   api.state=()=>({contractVersion:CONTRACT_VERSION,historical:window.serie_historica.length,roles:window.papel_ideal.length,local:window.PULSE_LOCAL_EVIDENCE.length});
@@ -272,20 +275,32 @@ function seriesCard(s){const e=s.latest||{},periods=s.rows.map(x=>x.periodo).fil
 const NL_SOURCE_NOTE='Fonte de série histórica não conectada: as observações vêm de registro manual neste navegador ou de evidências públicas que declarem um bloco serie_historica.';
 function nlApi(){return window.PULSE_NEXT_LEVEL||null}
 function nlFmt(v){return typeof v==='number'?String(Math.round(v*100)/100).replace('.',','):esc(v)}
+function nlPct(v){return (v>0?'+':'')+String(Math.round(v*10)/10).replace('.',',')+'%'}
 function nlList(items,empty){const rows=(Array.isArray(items)?items:[]).filter(Boolean);return rows.length?'<ul class="pv4-nl-list">'+rows.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p class="pv4-nl-muted">'+esc(empty)+'</p>'}
 function nlState(kind,title,body){return '<div class="pv4-nl-state" data-state="'+esc(kind)+'"><b>'+esc(title)+'</b><span>'+esc(body)+'</span></div>'}
+/* One block per metric and geography, each with its own explicit state, so a series that came from public
+   evidence never hides the state of a series the user registered by hand (and vice versa). */
+function nlSeriesBlock(api,metric,geography){
+  const s=api.historicalSummary(metric,geography);
+  const head='<div class="pv4-nl-series-head"><b>'+esc(metric)+'</b><span>'+esc(geography)+'</span></div>';
+  let body;
+  if(s.status==='insufficient')body=nlState('insufficient','Dados insuficientes',s.count+(s.count===1?' observação registrada. ':' observações registradas. ')+s.message);
+  else if(s.status==='not_comparable')body=nlState('not_comparable','Sem comparabilidade suficiente',s.message);
+  else if(s.status!=='observed_change')body=nlState('unavailable','Comparação indisponível',s.message||'Valores ausentes impedem a comparação.');
+  else{
+    const yoy=s.yearOverYear&&s.yearOverYear.status==='observed_change'?'<p class="pv4-nl-muted">Mesmo mês do ano anterior ('+esc(s.yearOverYear.previous.period)+'): '+nlFmt(s.yearOverYear.previous.value)+' → '+nlFmt(s.current.value)+(s.yearOverYear.deltaPct!==null?' ('+nlPct(s.yearOverYear.deltaPct)+')':'')+'.</p>':'';
+    const origin=s.current.evidenceId?' <button type="button" class="pv4-nl-open-evidence" data-evidence-id="'+esc(s.current.evidenceId)+'">Ver evidência de origem</button>':'';
+    body='<div class="pv4-nl-state" data-state="available"><b>Variação observada, não explicada</b><span>'+esc(s.observation)+'</span></div>'+yoy+'<p class="pv4-nl-muted">Fonte: '+esc(s.source)+'. Observações comparáveis: '+s.count+'. Causalidade: não atribuída.'+origin+'</p><details class="pv4-nl-details"><summary>Limitações ('+s.limitations.length+')</summary>'+nlList(s.limitations,'Sem limitações declaradas.')+'</details>';
+  }
+  return '<div class="pv4-nl-series" data-series-metric="'+esc(metric)+'" data-series-geography="'+esc(geography)+'" data-series-state="'+esc(s.status==='observed_change'?'available':s.status)+'">'+head+body+'</div>';
+}
 function nlSeriesView(){
   const api=nlApi();if(!api)return nlState('unavailable','Contrato indisponível','O runtime não expôs PULSE_NEXT_LEVEL.');
   const rows=window.serie_historica||[];
   if(!rows.length)return nlState('empty','Nenhuma observação registrada',NL_SOURCE_NOTE);
-  const metrics=[...new Set(rows.map(r=>r.metric))];
-  const geos=[...new Set(rows.map(r=>r.geography))];
-  const s=api.historicalSummary(metrics.length===1?metrics[0]:'',geos.length===1?geos[0]:'');
-  if(s.status==='insufficient')return nlState('insufficient','Dados insuficientes',rows.length+' observação registrada. '+s.message);
-  if(s.status==='not_comparable')return nlState('not_comparable','Sem comparabilidade suficiente',s.message);
-  if(s.status!=='observed_change')return nlState('unavailable','Comparação indisponível',s.message||'Valores ausentes impedem a comparação.');
-  const yoy=s.yearOverYear&&s.yearOverYear.status==='observed_change'?'<p class="pv4-nl-muted">Mesmo mês do ano anterior ('+esc(s.yearOverYear.previous.period)+'): '+nlFmt(s.yearOverYear.previous.value)+' → '+nlFmt(s.current.value)+(s.yearOverYear.deltaPct!==null?' ('+(s.yearOverYear.deltaPct>0?'+':'')+nlFmt(s.yearOverYear.deltaPct)+'%)':'')+'.</p>':'';
-  return '<div class="pv4-nl-state" data-state="available"><b>Variação observada, não explicada</b><span>'+esc(s.observation)+'</span></div>'+yoy+'<p class="pv4-nl-muted">Fonte: '+esc(s.source)+'. Observações comparáveis: '+s.count+'. Causalidade: não atribuída.</p><details class="pv4-nl-details"><summary>Limitações ('+s.limitations.length+')</summary>'+nlList(s.limitations,'Sem limitações declaradas.')+'</details>';
+  const groups=new Map();
+  rows.forEach(r=>{const k=String(r.metric).toLocaleLowerCase('pt-BR')+'|'+String(r.geography).toLocaleLowerCase('pt-BR');if(!groups.has(k))groups.set(k,{metric:r.metric,geography:r.geography})});
+  return [...groups.values()].map(g=>nlSeriesBlock(api,g.metric,g.geography)).join('');
 }
 function nlRoleView(){
   const rows=window.papel_ideal||[];
@@ -325,11 +340,12 @@ function nlRefresh(root){
   const status=q('#pv4-nl-status',root);
   if(status&&api){const st=api.state();status.textContent=st.historical+' observações. '+st.roles+' papéis. '+st.local+' evidências locais.'}
   qa('.pv4-nl-open',root).forEach(b=>b.onclick=()=>{const item=(window.PULSE_LOCAL_EVIDENCE||[]).find(x=>x.id===b.dataset.localId);if(item&&api)inspector(api.localEvidenceAsEvidence(item))});
+  qa('.pv4-nl-open-evidence',root).forEach(b=>b.onclick=()=>{const e=evidence().find(x=>String(x.id)===b.dataset.evidenceId);if(e)inspector(e)});
 }
 function bindNextLevel(root){
   const api=nlApi();const section=q('#pv4-next-level',root);if(!section||!api)return;
-  const restored=api.restore();
   const fromEvidence=api.loadFromEvidence(publicEvidence());
+  const restored=api.restore();
   if(restored.status==='source_error'||restored.status==='storage_error'){
     const el=q('.pv4-nl-body[data-view="series"]',section);
     if(el)el.insertAdjacentHTML('afterbegin',nlState('source_error','Erro de origem',restored.message+' Os registros abaixo refletem apenas esta sessão.'));

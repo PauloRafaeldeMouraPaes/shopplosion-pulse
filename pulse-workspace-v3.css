@@ -100,6 +100,12 @@ body .pv4-next small{color:var(--on-brand)}
 .pv4-nl-local li{display:grid;gap:3px;padding:10px 12px;border-radius:var(--radius-card);background:var(--surface-canvas);border:1px solid var(--line-1)}
 .pv4-nl-local span{font-size:12px;line-height:17px;color:var(--ink-2)}
 .pv4-nl-open{text-align:left;border:0;background:transparent;padding:0;font:600 13px/18px var(--font-sans);color:var(--brand-pulse-strong);cursor:pointer}
+.pv4-nl-series{display:grid;gap:8px}
+.pv4-nl-series+.pv4-nl-series{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-1)}
+.pv4-nl-series-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;line-height:16px;color:var(--ink-2)}
+.pv4-nl-series-head b{color:var(--ink-1);font-weight:600}
+.pv4-nl-series-head span{flex:none}
+.pv4-nl-open-evidence{border:0;background:transparent;padding:0;font:600 12px/17px var(--font-sans);color:var(--brand-pulse-strong);cursor:pointer}
 .pv4-nl-details summary,.pv4-nl-form summary{cursor:pointer;font-size:12px;line-height:17px;font-weight:600;color:var(--ink-2)}
 .pv4-nl-form{margin-top:auto;padding-top:6px;border-top:1px solid var(--line-1)}
 .pv4-nl-fields{display:grid;gap:8px;margin-top:10px}
