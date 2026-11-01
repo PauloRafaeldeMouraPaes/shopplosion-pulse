@@ -218,6 +218,23 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
   document.getElementById('userEmail').textContent=user.email||'';
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+/* PULSE_PUBLIC_RANK_START */
+/* Public-evidence ranking shared by ask.html (browser) and pulse-ask-ai (server). Kept textually identical in both
+   (type annotations aside) and checked by scripts/test-pulse-public-rank.js: Portuguese stopwords are not search
+   terms, and each term is weighted by how rare it is in the public base (IDF), counting at most 3 hits per item. */
+const PULSE_RANK_STOPWORDS = new Set(['de','da','do','das','dos','em','no','na','nos','nas','ao','aos','um','uma','uns','umas','os','as','e','ou','o','a','para','pra','por','pelo','pela','pelos','pelas','com','sem','que','qual','quais','como','quanto','quantos','quanta','quantas','se','mais','menos','muito','muita','sobre','entre','segundo','isso','esse','essa','este','esta','isto','aquele','aquela','ha','foi','sao','ser','esta','estao','tem','ter','teve','ate','desde','me','meu','minha','nosso','nossa','seu','sua','ja','tambem','ainda','vale','pena','mostram','mostra','diz','dizem','evidencias','evidencia','dados','dado','segundo','frente','ante','vs','quando','onde','porque','pois','entao','mesmo','cada','todo','toda','todos','todas','outro','outra','sim','nao']);
+const pulseRankNormalize = (value) => String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const pulseRankTerms = (value) => Array.from(new Set(pulseRankNormalize(value).split(/[^a-z0-9]+/).filter((t) => t.length >= 2 && !PULSE_RANK_STOPWORDS.has(t)))).slice(0, 10)
+const pulsePublicText = (e) => [e.fato, e.contexto, e.interpretacao, e.hipotese, e.acao, ...(Array.isArray(e.keywords) ? e.keywords : [])].filter(Boolean).join(' ')
+const pulseRankPublic = (query, items) => {
+  const terms = pulseRankTerms(query)
+  const docs = (Array.isArray(items) ? items : []).map((item) => ({ item, text: pulseRankNormalize(pulsePublicText(item)) }))
+  const n = docs.length || 1
+  const idf = Object.fromEntries(terms.map((t) => [t, Math.log(1 + n / (1 + docs.filter((d) => d.text.includes(t)).length))]))
+  return docs.map((d) => ({ item: d.item, score: Math.round(terms.reduce((s, t) => s + idf[t] * Math.min(3, d.text.split(t).length - 1), 0) * 1000) / 1000 }))
+    .filter((r) => r.score > 0).sort((a, b) => b.score - a.score)
+}
+/* PULSE_PUBLIC_RANK_END */
   const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
   const evidenceKey=r=>String(r?.id||r?.publicEvidence?.id||((r?.document_id||'')+':'+(r?.chunk_index??'')));
   function syncSelectionUI(){
@@ -252,7 +269,7 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
       const publicEvidence=await loadPublicEvidence();
       const params=new URLSearchParams(location.search);
       const fixedId=params.get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
-      publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:score(text,terms),publicEvidence:e}}).filter(r=>r.score>0 || String(r.id)===String(fixedId)).sort((a,b)=>String(a.id)===String(fixedId)?-1:String(b.id)===String(fixedId)?1:b.score-a.score).slice(0,12);
+      const publicScores=new Map(pulseRankPublic(raw,publicEvidence).map(r=>[String(r.item.id),r.score]));publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:publicScores.get(String(e.id))||0,publicEvidence:e}}).filter(r=>r.score>0 || String(r.id)===String(fixedId)).sort((a,b)=>String(a.id)===String(fixedId)?-1:String(b.id)===String(fixedId)?1:b.score-a.score).slice(0,12);
     }
     const rows=(scope==='industry'?privateRows:scope==='universe'?publicRows:[...privateRows,...publicRows].sort((a,b)=>b.score-a.score)).slice(0,20);
     const docIds=Array.from(new Set(rows.map(r=>r.document_id).filter(Boolean)));let docs=[];
