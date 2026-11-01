@@ -42,8 +42,6 @@ function args(argv) {
 }
 
 /* ---------- mirror of the Edge Function ---------- */
-const normalize = (v) => String(v || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-const termsFor = (v) => Array.from(new Set(normalize(v).split(/[^a-z0-9]+/).filter((t) => t.length >= 2))).slice(0, 8);
 
 export function loadPublicEvidence() {
   const s = readFileSync(EVIDENCE_TS, "utf8");
@@ -63,14 +61,25 @@ export function extractPrompts() {
   return { system, render };
 }
 
+let rankPublic = null;
+function productionRanker() {
+  // The ranking block is read from the Edge Function itself (type annotations stripped), so the eval always
+  // retrieves exactly what production retrieves.
+  if (rankPublic) return rankPublic;
+  const s = readFileSync(INDEX_TS, "utf8");
+  const a = s.indexOf("/* PULSE_PUBLIC_RANK_START */"), b = s.indexOf("/* PULSE_PUBLIC_RANK_END */");
+  if (a < 0 || b < 0) throw new Error("ranking block not found in pulse-ask-ai/index.ts");
+  const js = s.slice(a, b).replace(/\(idf as any\)/g, "idf").replace(/Object\.fromEntries<number>/g, "Object.fromEntries").replace(/: (any|string|number)\b/g, "");
+  rankPublic = new Function(js + "\nreturn pulseRankPublic;")();
+  return rankPublic;
+}
+
 export function retrieve(query, evidenceItems) {
-  const terms = termsFor(query);
-  const score = (content) => { const text = normalize(content); return terms.reduce((t, term) => t + Math.max(0, text.split(term).length - 1), 0); };
-  return evidenceItems.map((item) => {
+  return productionRanker()(query, evidenceItems).slice(0, 8).map((r, i) => {
+    const item = r.item;
     const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(" ");
-    return { id: item.id, content, score: score(content), source: item.fonte || "Mercado publicado" };
-  }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 8)
-    .map((x, i) => ({ ref: `E${i + 1}`, id: x.id, document: x.source, content: String(x.content).slice(0, 5000) }));
+    return { ref: `E${i + 1}`, id: item.id, document: item.fonte || "Mercado publicado", content: String(content).slice(0, 5000) };
+  });
 }
 
 export function buildPrompt(query, retrieved, prompts) {
