@@ -80,7 +80,9 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     const base={metric:metric||null,geography:geography||null,count:rows.length,causal:false,interpretation:null};
     if(rows.length<2)return Object.assign(base,{status:'insufficient',reason:'too_few_observations',message:'São necessários pelo menos dois períodos com a mesma métrica, geografia, unidade, fonte e granularidade.'});
     const groups=new Map();rows.forEach(x=>{const k=comparabilityKey(x);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
-    const latestIndex=g=>Math.max(...g.map(x=>periodIndex(parsePeriod(x.period))));
+    /* Ties are broken by the real end date of the latest period (UTC), comparable across granularities. */
+    const periodEnd=p=>p.granularity==='year'?Date.UTC(p.year,11,31):p.granularity==='month'?Date.UTC(p.year,p.month,0):Date.UTC(p.year,p.month-1,p.day);
+    const latestIndex=g=>Math.max(...g.map(x=>periodEnd(parsePeriod(x.period))));
     const candidates=[...groups.values()].filter(g=>g.length>=2).sort((a,b)=>b.length-a.length||latestIndex(b)-latestIndex(a));
     const comparable=candidates[0];
     if(!comparable){
@@ -161,8 +163,11 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     };
     /* Duplicates are decided by the normalised content, not by the 32-bit fingerprint, which only names the id. */
     const sameContent=x=>['claim','source','geography','date'].every(f=>norm(x[f])===norm(item[f]));
-    const existing=window.PULSE_LOCAL_EVIDENCE.find(x=>x&&(x.id===item.id||sameContent(x)));
-    if(existing)return {status:'duplicate',item:existing,matchedBy:existing.id===item.id?'id':'content'};
+    /* An id match only counts when the caller supplied the id; the default id is derived from a 32-bit hash and can collide. */
+    const explicitId=clean(row.id);
+    const existing=window.PULSE_LOCAL_EVIDENCE.find(x=>x&&((explicitId&&x.id===explicitId)||sameContent(x)));
+    if(existing)return {status:'duplicate',item:existing,matchedBy:explicitId&&existing.id===explicitId?'id':'content'};
+    if(!explicitId&&window.PULSE_LOCAL_EVIDENCE.some(x=>x&&x.id===item.id))item.id=item.id+'-'+window.PULSE_LOCAL_EVIDENCE.length;
     window.PULSE_LOCAL_EVIDENCE.push(item);
     return {status:'added',item};
   };

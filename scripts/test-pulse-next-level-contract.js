@@ -409,6 +409,24 @@ test('reset limpa o armazenamento só quando pedido e persist reporta a falha', 
   assert.strictEqual(api.norm('  Índice  de Volume '), 'indice de volume');
 });
 
+test('desempate entre granularidades usa a data real e colisão de hash não vira duplicata', () => {
+  const w = freshWindow();
+  const api = w.PULSE_NEXT_LEVEL;
+  const add = (period, value, unit) => api.addHistoricalObservation({ ...base, period, value, unit });
+  add('2026-09-01', 1, 'dia'); add('2026-09-02', 2, 'dia');
+  add('1990-01', 1, 'mes'); add('1990-02', 2, 'mes');
+  const s = api.historicalSummary('volume', 'Brasil');
+  assert.strictEqual(s.unit, 'dia', 'the 2026 daily group is the most recent, not the 1990 monthly one');
+  const w2 = freshWindow();
+  const api2 = w2.PULSE_NEXT_LEVEL;
+  const row = claim => ({ claim, source: 's', geography: 'g', date: '2026-10-31', provenance: 'p' });
+  const a = api2.addLocalEvidence(row('x a~'));
+  const b = api2.addLocalEvidence(row('x b]'));
+  assert.strictEqual(a.status, 'added');
+  assert.strictEqual(b.status, 'added', 'different content must not be treated as duplicate even if the 32-bit default ids collide');
+  assert.notStrictEqual(a.item.id, b.item.id);
+});
+
 let failed = 0;
 for (const { name, fn } of checks) {
   try { fn(); console.log('PASS ' + name); }
