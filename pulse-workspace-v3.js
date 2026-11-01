@@ -24,7 +24,10 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
   /* Period parsing: granularity is explicit so a year is never compared with a month. */
   const parsePeriod=v=>{const m=PERIOD_RE.exec(clean(v));if(!m)return null;const y=+m[1],mo=m[2]?+m[2]:null,d=m[3]?+m[3]:null;if(mo!==null&&(mo<1||mo>12))return null;if(d!==null){const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==mo-1||dt.getUTCDate()!==d)return null}return {text:clean(v),year:y,month:mo,day:d,granularity:d!==null?'day':mo!==null?'month':'year'}};
   const periodIndex=p=>p.granularity==='year'?p.year:p.granularity==='month'?p.year*12+(p.month-1):Math.round(Date.UTC(p.year,p.month-1,p.day)/86400000);
-  const numberValue=v=>{if(v===null||v===undefined||v==='')return null;if(typeof v==='boolean')return null;const n=typeof v==='number'?v:Number(String(v).replace(',','.'));return Number.isFinite(n)?n:null};
+  /* Strict numeric parsing: a number, or a plain decimal string with '.' or ',' as separator. Whitespace-only,
+     booleans, arrays, hex, exponents and anything else are not values (absent or invalid, never zero). */
+  const NUMBER_RE=/^[+-]?(?:\d+(?:[.,]\d+)?|[.,]\d+)$/;
+  const numberValue=v=>{if(typeof v==='number')return Number.isFinite(v)?v:null;if(typeof v!=='string')return null;const t=v.trim();if(!NUMBER_RE.test(t))return null;const n=Number(t.replace(',','.'));return Number.isFinite(n)?n:null};
   const requireFields=(row,fields)=>fields.filter(f=>!clean(row&&row[f]));
   const rejected=(reason,extra)=>Object.assign({status:'rejected',reason,causal:false},extra||{});
 
@@ -43,13 +46,13 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     const invalid=[];
     const period=parsePeriod(row.period);
     if(clean(row.period)&&!period)invalid.push('period');
-    const hasValue=!(row.value===null||row.value===undefined||row.value==='');
+    const hasValue=typeof row.value==='number'||(typeof row.value==='string'&&clean(row.value)!=='');
     if(!hasValue)missing.push('value');else if(numberValue(row.value)===null)invalid.push('value');
     if(missing.length)return rejected('incomplete',{missing,invalid});
     if(invalid.length)return rejected('invalid',{missing,invalid});
     return {status:'valid',period,value:numberValue(row.value)};
   };
-  const observationKey=i=>[i.metric,i.geography,i.unit,i.source,i.period].map(norm).join('|');
+  const observationKey=i=>[i.metric,i.geography,i.unit,i.source,i.methodology||UNDECLARED,i.period].map(norm).join('|');
   api.addHistoricalObservation=row=>{
     const check=api.validateHistoricalObservation(row);
     if(check.status!=='valid')return check;
@@ -63,7 +66,7 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     const existing=window.serie_historica.find(x=>observationKey(x)===observationKey(item));
     if(existing){
       if(existing.value===item.value)return {status:'duplicate',item:existing,causal:false};
-      return {status:'conflict',reason:'same_period_metric_geography_source_unit_with_different_value',item,existing,causal:false};
+      return {status:'conflict',reason:'same_period_metric_geography_source_unit_methodology_with_different_value',item,existing,causal:false};
     }
     window.serie_historica.push(item);
     return {status:'added',item,causal:false};
@@ -77,7 +80,9 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     const base={metric:metric||null,geography:geography||null,count:rows.length,causal:false,interpretation:null};
     if(rows.length<2)return Object.assign(base,{status:'insufficient',reason:'too_few_observations',message:'São necessários pelo menos dois períodos com a mesma métrica, geografia, unidade, fonte e granularidade.'});
     const groups=new Map();rows.forEach(x=>{const k=comparabilityKey(x);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
-    const comparable=[...groups.values()].filter(g=>g.length>=2).sort((a,b)=>b.length-a.length)[0];
+    const latestIndex=g=>Math.max(...g.map(x=>periodIndex(parsePeriod(x.period))));
+    const candidates=[...groups.values()].filter(g=>g.length>=2).sort((a,b)=>b.length-a.length||latestIndex(b)-latestIndex(a));
+    const comparable=candidates[0];
     if(!comparable){
       const dims=['unit','source','methodology','granularity'].filter(d=>new Set(rows.map(r=>norm(r[d]))).size>1);
       return Object.assign(base,{status:'not_comparable',reason:'mixed_'+(dims[0]||'dimensions'),mixedDimensions:dims,groups:groups.size,message:'As observações existem, mas diferem em '+(dims.length?dims.join(', '):'dimensões de comparabilidade')+'. O Pulse não compara séries com unidade, fonte, metodologia ou granularidade diferentes.'});
@@ -92,6 +97,8 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     if(current.unit===UNDECLARED)limitations.push('Unidade não declarada na série; a comparação assume a mesma unidade em todas as observações.');
     if(current.methodology===UNDECLARED)limitations.push('Metodologia não declarada; mudanças de método entre períodos não podem ser excluídas.');
     if(comparable.length<3)limitations.push('Apenas '+comparable.length+' observações comparáveis; não há base para falar em tendência.');
+    const excluded=rows.length-comparable.length;
+    if(excluded>0){const dims=['unit','source','methodology','granularity'].filter(d=>new Set(rows.map(r=>norm(r[d]))).size>1);limitations.push(excluded+(excluded===1?' observação':' observações')+' com outra '+(dims.length?dims.map(d=>({unit:'unidade',source:'fonte',methodology:'metodologia',granularity:'granularidade'})[d]).join('/'):'dimensão')+' não entram nesta comparação; o maior grupo comparável foi usado'+(candidates.length>1&&candidates[1].length===comparable.length?' (empate resolvido pelo período mais recente)':'')+'.')}
     limitations.push('Fonte única ('+current.source+'); a variação não foi corroborada por fonte independente.');
     const yoyRow=sameMonthPreviousYear(current,comparable.slice(0,-1));
     const yearOverYear=yoyRow?Object.assign({previous:yoyRow},api.compareSeries(current.value,yoyRow.value)):null;
@@ -99,7 +106,7 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     const observation=cmp.direction==='no_change'
       ?'Sem variação observada em '+current.metric+' ('+current.geography+'): '+fmt(previous.value)+' em '+previous.period+' e '+fmt(current.value)+' em '+current.period+(current.unit!==UNDECLARED?' '+current.unit:'')+'.'
       :'Variação observada em '+current.metric+' ('+current.geography+'): de '+fmt(previous.value)+' em '+previous.period+' para '+fmt(current.value)+' em '+current.period+(current.unit!==UNDECLARED?' '+current.unit:'')+(cmp.deltaPct!==null?' ('+(cmp.deltaPct>0?'+':'')+fmt(cmp.deltaPct.toFixed(1))+'%)':'')+'.';
-    return Object.assign(base,{status:cmp.status,current,previous,delta:cmp.delta,deltaPct:cmp.deltaPct,deltaPctReason:cmp.deltaPctReason,direction:cmp.direction,consecutive,comparedAgainst:'previous_period',yearOverYear,count:comparable.length,source:current.source,unit:current.unit,granularity:current.granularity,limitations,observation,message:'Variação observada, não explicada. O contrato não atribui causa.'});
+    return Object.assign(base,{status:cmp.status,current,previous,delta:cmp.delta,deltaPct:cmp.deltaPct,deltaPctReason:cmp.deltaPctReason,direction:cmp.direction,consecutive,comparedAgainst:'previous_period',yearOverYear,count:comparable.length,excluded,groups:groups.size,source:current.source,unit:current.unit,methodology:current.methodology,granularity:current.granularity,limitations,observation,message:'Variação observada, não explicada. O contrato não atribui causa.'});
   };
 
   /* B.2 Category role: always a heuristic. */
@@ -152,8 +159,10 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
       provenance:clean(row.provenance),url:clean(row.url)||null,natureza:clean(row.natureza)||UNDECLARED,universo_observado:clean(row.universo_observado)||clean(row.geography),
       limitations:arr(row.limitations).map(clean).filter(Boolean),status:'valid',evidenceType:'local'
     };
-    const existing=window.PULSE_LOCAL_EVIDENCE.find(x=>x&&(x.id===item.id||x.fingerprint===fp));
-    if(existing)return {status:'duplicate',item:existing,matchedBy:existing.id===item.id?'id':'fingerprint'};
+    /* Duplicates are decided by the normalised content, not by the 32-bit fingerprint, which only names the id. */
+    const sameContent=x=>['claim','source','geography','date'].every(f=>norm(x[f])===norm(item[f]));
+    const existing=window.PULSE_LOCAL_EVIDENCE.find(x=>x&&(x.id===item.id||sameContent(x)));
+    if(existing)return {status:'duplicate',item:existing,matchedBy:existing.id===item.id?'id':'content'};
     window.PULSE_LOCAL_EVIDENCE.push(item);
     return {status:'added',item};
   };
@@ -177,7 +186,7 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
     const observedIds=new Set(observed.flatMap(x=>x.basis.concat(x.id?[x.id]:[])));
     const warnings=[];
     rows.filter(x=>!SECTIONS.includes(x.type)).forEach(x=>warnings.push('Item ignorado: tipo desconhecido "'+x.type+'".'));
-    const actions=take('action').map(a=>{const supported=a.basis.length>0&&(observedIds.size===0||a.basis.some(b=>observedIds.has(b)));if(!a.basis.length)warnings.push('Ação sem evidência vinculada: "'+a.text+'".');return Object.assign({},a,{supported})});
+    const actions=take('action').map(a=>{const supported=a.basis.length>0&&a.basis.some(b=>observedIds.has(b));if(!a.basis.length)warnings.push('Ação sem evidência vinculada: "'+a.text+'".');else if(!supported)warnings.push('Ação com base que não aponta para evidência observada: "'+a.text+'".');return Object.assign({},a,{supported})});
     const pick=l=>l.slice(0,limit).map(x=>x.text);
     const out={status:observed.length?'available':'insufficient',contractVersion:CONTRACT_VERSION,causal:false,
       evidence:pick(observed),interpretations:pick(interpretations),hypotheses:pick(hypotheses),implications:pick(implications),
@@ -193,9 +202,9 @@ window.PULSE_NEXT_LEVEL = window.PULSE_NEXT_LEVEL || {};
   const STORAGE_KEY='pulse:next-level:v1';
   api.persist=storage=>{try{const s=storage||window.localStorage;s.setItem(STORAGE_KEY,JSON.stringify({version:CONTRACT_VERSION,serie_historica:window.serie_historica,papel_ideal:window.papel_ideal,local_evidence:window.PULSE_LOCAL_EVIDENCE}));return {status:'saved'}}catch(e){return {status:'storage_error',message:String(e&&e.message||e)}}};
   api.restore=storage=>{let raw=null;try{raw=(storage||window.localStorage).getItem(STORAGE_KEY)}catch(e){return {status:'storage_error',message:String(e&&e.message||e)}}if(!raw)return {status:'empty'};let data=null;try{data=JSON.parse(raw)}catch(e){return {status:'source_error',message:'Registro local corrompido; nada foi restaurado.'}}if(!data||typeof data!=='object')return {status:'source_error',message:'Registro local inválido; nada foi restaurado.'};const h=api.loadHistoricalObservations(data.serie_historica),l=api.loadLocalEvidence(data.local_evidence);arr(data.papel_ideal).forEach(r=>r&&api.setCategoryRole(r.category,r.role,r.evidence,r));return {status:'restored',historical:h,local:l,roles:arr(data.papel_ideal).length}};
-  api.reset=()=>{window.serie_historica.length=0;window.papel_ideal.length=0;window.PULSE_LOCAL_EVIDENCE.length=0;return {status:'reset'}};
+  api.reset=options=>{window.serie_historica.length=0;window.papel_ideal.length=0;window.PULSE_LOCAL_EVIDENCE.length=0;const opt=options||{};if(opt.storage||opt.clearStorage){try{(opt.storage||window.localStorage).removeItem(STORAGE_KEY);return {status:'reset',storage:'cleared'}}catch(e){return {status:'reset',storage:'storage_error',message:String(e&&e.message||e)}}}return {status:'reset',storage:'kept'}};
   api.state=()=>({contractVersion:CONTRACT_VERSION,historical:window.serie_historica.length,roles:window.papel_ideal.length,local:window.PULSE_LOCAL_EVIDENCE.length});
-  api.CONTRACT_VERSION=CONTRACT_VERSION;api.UNDECLARED=UNDECLARED;api.parsePeriod=parsePeriod;
+  api.CONTRACT_VERSION=CONTRACT_VERSION;api.UNDECLARED=UNDECLARED;api.parsePeriod=parsePeriod;api.norm=norm;
 })();
 /* PULSE_NEXT_LEVEL_CONTRACT_END */
 window.PULSE_SINGLE_FILE_READY = true;
@@ -335,9 +344,9 @@ function bindNextLevel(root){
     if(el)el.insertAdjacentHTML('afterbegin',nlState('source_error','Erro de origem',restored.message+' Os registros abaixo refletem apenas esta sessão.'));
   }
   section.dataset.restore=restored.status;section.dataset.fromEvidence=String(fromEvidence.added);
-  const persist=()=>{const r=api.persist();if(r.status!=='saved')section.dataset.persist=r.status};
+  const persist=()=>{const r=api.persist();section.dataset.persist=r.status;return r};
   const value=id=>{const el=q('#'+id,section);return el?el.value:''};
-  const form=(id,handler)=>{const f=q('#'+id,section);if(!f)return;f.addEventListener('submit',ev=>{ev.preventDefault();const result=handler();nlFeedback(section,id.replace('-form','-feedback'),result);if(result.status==='added'){persist();nlRefresh(section);f.reset()}})};
+  const form=(id,handler)=>{const f=q('#'+id,section);if(!f)return;f.addEventListener('submit',ev=>{ev.preventDefault();const result=handler();const feedbackId=id.replace('-form','-feedback');nlFeedback(section,feedbackId,result);if(result.status==='added'){const saved=persist();if(saved.status!=='saved'){const box=q('#'+feedbackId,section);if(box){box.textContent+=' Não foi salvo neste navegador ('+saved.status+'): o registro vale só para esta sessão.';box.dataset.persist=saved.status}}nlRefresh(section);f.reset()}})};
   form('pv4-nl-series-form',()=>api.addHistoricalObservation({period:value('pv4-nl-period'),value:value('pv4-nl-value'),unit:value('pv4-nl-unit'),metric:value('pv4-nl-metric'),geography:value('pv4-nl-geography'),source:value('pv4-nl-source'),provenance:value('pv4-nl-provenance')}));
   form('pv4-nl-role-form',()=>api.setCategoryRole(value('pv4-nl-role-category'),value('pv4-nl-role-role'),[],{limitations:[value('pv4-nl-role-limitation')],competingHypotheses:[value('pv4-nl-role-competing')]}));
   form('pv4-nl-local-form',()=>api.addLocalEvidence({claim:value('pv4-nl-local-claim'),source:value('pv4-nl-local-source'),geography:value('pv4-nl-local-geography'),date:value('pv4-nl-local-date'),provenance:value('pv4-nl-local-provenance')}));

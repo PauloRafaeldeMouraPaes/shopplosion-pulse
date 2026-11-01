@@ -136,4 +136,18 @@ test.describe('Pulse next-level contracts — painel Hoje', () => {
     await expect(section.locator('[data-view="role"]')).toContainText('Nenhuma evidência registrada');
     await page.evaluate(() => { localStorage.removeItem('pulse:next-level:v1'); });
   });
+  test('falha de persistência aparece no feedback em vez de ficar silenciosa', async ({ page }) => {
+    await page.addInitScript(() => { const proto = Object.getPrototypeOf(window.localStorage); const original = proto.setItem; proto.setItem = function (key, value) { if (key === 'pulse:next-level:v1') throw new Error('quota exceeded (synthetic)'); return original.call(this, key, value); }; });
+    await page.goto('/index.html');
+    const section = page.locator('#pv4-next-level');
+    await section.locator('#pv4-nl-series details.pv4-nl-form summary').click();
+    await page.fill('#pv4-nl-period', '2026-01'); await page.fill('#pv4-nl-value', '10'); await page.fill('#pv4-nl-unit', 'u');
+    await page.fill('#pv4-nl-metric', 'volume'); await page.fill('#pv4-nl-geography', 'BR'); await page.fill('#pv4-nl-source', 'fixture'); await page.fill('#pv4-nl-provenance', 'synthetic browser test');
+    await page.locator('#pv4-nl-series-form button[type="submit"]').click();
+    const feedback = page.locator('#pv4-nl-series-feedback');
+    await expect(feedback).toHaveAttribute('data-status', 'added');
+    await expect(feedback).toHaveAttribute('data-persist', 'storage_error');
+    await expect(feedback).toContainText('Não foi salvo neste navegador');
+    await expect(section).toHaveAttribute('data-persist', 'storage_error');
+  });
 });
