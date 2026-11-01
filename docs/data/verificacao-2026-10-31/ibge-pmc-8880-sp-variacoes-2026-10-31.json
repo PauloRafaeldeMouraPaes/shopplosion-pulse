@@ -1,0 +1,32 @@
+[
+  {
+    "NC": "Nível Territorial (Código)",
+    "NN": "Nível Territorial",
+    "MC": "Unidade de Medida (Código)",
+    "MN": "Unidade de Medida",
+    "V": "Valor",
+    "D1C": "Unidade da Federação (Código)",
+    "D1N": "Unidade da Federação",
+    "D2C": "Variável (Código)",
+    "D2N": "Variável",
+    "D3C": "Mês (Código)",
+    "D3N": "Mês",
+    "D4C": "Tipos de índice (Código)",
+    "D4N": "Tipos de índice"
+  },
+  {
+    "NC": "3",
+    "NN": "Unidade da Federação",
+    "MC": "2",
+    "MN": "%",
+    "V": "1.2",
+    "D1C": "35",
+    "D1N": "São Paulo",
+    "D2C": "11708",
+    "D2N": "PMC - Variação mês/mês imediatamente anterior, com ajuste sazonal (M/M-1)",
+    "D3C": "202604",
+    "D3N": "abril 2026",
+    "D4C": "56734",
+    "D4N": "Índice de volume de vendas no comércio varejista"
+  }
+]

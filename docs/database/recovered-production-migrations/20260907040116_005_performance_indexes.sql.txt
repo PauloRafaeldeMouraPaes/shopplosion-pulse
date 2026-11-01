@@ -1,0 +1,2 @@
+create index if not exists analyses_created_by_idx on public.analyses(created_by);
+create index if not exists documents_uploaded_by_idx on public.documents(uploaded_by);

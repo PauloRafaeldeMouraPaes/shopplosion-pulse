@@ -1,0 +1,15 @@
+create or replace function public.auth_industry_context()
+returns table(industry_id uuid, industry_name text, industry_slug text, industry_status text, user_role text)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select i.id, i.name, i.slug, i.status, p.role
+  from public.profiles p
+  join public.industries i on i.id = p.industry_id
+  where p.id = auth.uid()
+  limit 1;
+$$;
+
+grant execute on function public.auth_industry_context() to authenticated;

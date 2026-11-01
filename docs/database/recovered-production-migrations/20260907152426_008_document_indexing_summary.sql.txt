@@ -1,0 +1,12 @@
+CREATE OR REPLACE VIEW public.document_indexing_summary WITH (security_invoker = true) AS
+SELECT
+  industry_id,
+  COUNT(*)::integer AS documents,
+  COUNT(*) FILTER (WHERE indexing_status='indexed')::integer AS indexed_documents,
+  COUNT(*) FILTER (WHERE indexing_status='pending')::integer AS pending_documents,
+  COUNT(*) FILTER (WHERE indexing_status='stored_only')::integer AS stored_only_documents,
+  COALESCE(SUM(chunk_count),0)::integer AS chunks
+FROM public.document_indexing_status
+GROUP BY industry_id;
+GRANT SELECT ON public.document_indexing_summary TO authenticated;
+REVOKE ALL ON public.document_indexing_summary FROM anon;
