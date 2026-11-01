@@ -1,10 +1,16 @@
+/* Mirrors the database trigger rule (docs/database/signal-event-trigger-draft.sql): an event is expected on a first
+   observation, on the transition to resolved, on a fingerprint change, or on a confidence move of at least 0.05
+   measured on the stored numeric(5,4) precision. A status change that is not a resolution is not an event by
+   itself, and nothing is emitted for a signal that stays resolved. The trigger is the only writer; this predicate
+   only predicts what it will do. */
+const round4 = (value) => Math.round(Number(value) * 10000) / 10000;
 export function shouldRecordSignalEvent({ priorConfidence, existingFingerprint, fingerprint, confidence, priorStatus, status }) {
   if (priorStatus === "resolved" && status === "resolved") return false;
-  if (priorStatus !== undefined && status !== undefined && priorStatus !== status) return true;
+  if (status === "resolved" && priorStatus !== "resolved" && priorStatus !== undefined) return true;
   const hasPrior = priorConfidence !== null && priorConfidence !== undefined;
   if (!hasPrior) return true;
   if (existingFingerprint !== fingerprint) return true;
-  return Math.abs(Number(confidence) - Number(priorConfidence)) >= 0.05 - Number.EPSILON;
+  return Math.abs(round4(confidence) - round4(priorConfidence)) >= 0.05 - Number.EPSILON;
 }
 
 export function signalEventDirection({ priorConfidence, confidence, candidateDirection = "new" }) {

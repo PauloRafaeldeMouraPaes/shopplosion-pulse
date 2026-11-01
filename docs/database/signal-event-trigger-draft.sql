@@ -2,8 +2,42 @@
 -- This draft must be tested in isolated PostgreSQL and reviewed against the live
 -- cron/Vault -> Edge Function path before any release. Do not apply directly.
 --
--- The trigger is the sole event writer. Worker-side duplicate INSERTs into
--- intelligence_signal_events must be removed in the same reviewed release.
+-- The trigger is the sole event writer. Worker-side INSERTs into intelligence_signal_events
+-- were removed from pulse-external-signal-worker, pulse-external-deterministic-backstop and
+-- pulse-intelligence-worker; those three Edge Functions must be redeployed in the same
+-- reviewed release (scripts/validate-external-signal-quality.mjs enforces the absence).
+--
+-- Precondition: every routine named in the ACL block below must already exist. The check
+-- fails fast with the full list instead of aborting half-way through the REVOKEs.
+DO $precondition$
+DECLARE
+  v_missing text[] := ARRAY[]::text[];
+  v_sig text;
+BEGIN
+  FOREACH v_sig IN ARRAY ARRAY[
+    'public.capture_intelligence_signal_event()',
+    'public.capture_document_version()',
+    'public.pulse_external_backstop_schedule_tick()',
+    'public.pulse_external_intelligence_self_test()',
+    'public.pulse_external_intelligence_fallback_candidate(uuid)',
+    'public.pulse_capture_document_version(uuid)',
+    'public.pulse_external_signal_deterministic_backstop()',
+    'public.pulse_resolve_stale_intelligence_signals()',
+    'public.pulse_external_intelligence_contract_check()',
+    'public.pulse_intelligence_external_quality_check()',
+    'public.auth_industry_context()'
+  ] LOOP
+    -- The trigger function is created by this very script; every other routine must pre-exist.
+    IF v_sig <> 'public.capture_intelligence_signal_event()' AND to_regprocedure(v_sig) IS NULL THEN
+      v_missing := v_missing || v_sig;
+    END IF;
+  END LOOP;
+  IF array_length(v_missing, 1) > 0 THEN
+    RAISE EXCEPTION 'signal-event migration precondition failed; missing routines: %', array_to_string(v_missing, ', ');
+  END IF;
+END
+$precondition$;
+
 CREATE OR REPLACE FUNCTION public.capture_intelligence_signal_event()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -35,6 +69,10 @@ BEGIN
       -- Non-resolution status changes alone are not signal events. If the same
       -- update also changes confidence materially or the fingerprint, the
       -- corresponding semantic change below still emits one event.
+      -- NULL confidence counts as 0 on both sides (the column is nullable in production): 0.5 -> NULL
+      -- emits a 'down' event with confidence 0, NULL -> 0.03 emits nothing. The comparison is against
+      -- the previously STORED confidence, not the last event's, so a slow drift in steps below 0.05
+      -- never emits (documented limitation; see staging-signal-event-acl-acceptance.md).
       v_delta := COALESCE(NEW.confidence, 0) - COALESCE(OLD.confidence, 0);
       v_fingerprint_changed :=
         COALESCE(NEW.fingerprint, NEW.id::text)
@@ -64,7 +102,14 @@ BEGIN
        direction, change_score, evidence)
     VALUES
       (NEW.id, NEW.industry_id, COALESCE(NEW.fingerprint, NEW.id::text),
-       COALESCE(NEW.observed_at, pg_catalog.now()),
+       -- The event's observed_at is when the event happened, never earlier than the signal's own
+       -- observed_at: an UPDATE that leaves observed_at untouched (confidence-only change, the
+       -- stale-signal resolver) must not produce an event stamped in the past or equal to the
+       -- previous event, which would make timeline ordering non-deterministic.
+       CASE WHEN TG_OP = 'INSERT'
+            THEN COALESCE(NEW.observed_at, pg_catalog.clock_timestamp())
+            ELSE GREATEST(COALESCE(NEW.observed_at, pg_catalog.clock_timestamp()), pg_catalog.clock_timestamp())
+       END,
        LEAST(1, GREATEST(0, COALESCE(NEW.confidence, 0))),
        v_direction, v_change, COALESCE(NEW.evidence, '[]'::jsonb));
   END IF;

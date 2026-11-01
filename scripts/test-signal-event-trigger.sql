@@ -20,7 +20,7 @@ CREATE TABLE public.intelligence_signals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   industry_id uuid NOT NULL,
   confidence numeric,
-  status text NOT NULL DEFAULT 'active',
+  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'dismissed', 'resolved')),
   evidence jsonb NOT NULL DEFAULT '[]'::jsonb,
   observed_at timestamptz NOT NULL DEFAULT now(),
   fingerprint text
@@ -83,6 +83,8 @@ DECLARE
   v_direction text;
   v_score numeric;
   v_resolved_signal uuid;
+  v_drift_signal uuid;
+  v_distinct integer;
 BEGIN
   IF has_function_privilege('anon', 'public.capture_intelligence_signal_event()', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.capture_intelligence_signal_event()', 'EXECUTE') THEN
@@ -93,8 +95,9 @@ BEGIN
      OR has_function_privilege('authenticated', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE') THEN
     RAISE EXCEPTION 'API roles must not directly execute the cron scheduler';
   END IF;
-  IF NOT has_function_privilege('postgres', 'public.pulse_external_backstop_schedule_tick()', 'EXECUTE') THEN
-    RAISE EXCEPTION 'cron owner lost scheduler execution';
+  -- The scheduler runs from pg_cron as the function owner; ownership, not a grant, is what keeps it callable.
+  IF (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid = 'public.pulse_external_backstop_schedule_tick()'::regprocedure) <> current_user THEN
+    RAISE EXCEPTION 'scheduler owner changed; pg_cron would lose execution';
   END IF;
   IF has_function_privilege('anon', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.pulse_external_intelligence_fallback_candidate(uuid)', 'EXECUTE') THEN
@@ -151,7 +154,7 @@ BEGIN
   SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
   IF v_count <> 1 THEN RAISE EXCEPTION 'insert must create exactly one initial event'; END IF;
 
-  UPDATE public.intelligence_signals SET status = 'paused' WHERE id = v_signal;
+  UPDATE public.intelligence_signals SET status = 'dismissed' WHERE id = v_signal;
   UPDATE public.intelligence_signals SET status = 'active' WHERE id = v_signal;
   SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
   IF v_count <> 1 THEN RAISE EXCEPTION 'non-resolution status-only changes must not create events'; END IF;
@@ -200,7 +203,66 @@ BEGIN
   IF v_count <> 6 OR (SELECT direction FROM public.intelligence_signal_events WHERE signal_id = v_resolved_signal LIMIT 1) <> 'resolved' THEN
     RAISE EXCEPTION 'initial resolved signal must emit a resolved event';
   END IF;
+
+  -- Review cases (2026-10-31): resolved stays terminal even with new evidence; a 0.049 move is below the
+  -- threshold; NULL confidence is treated as 0; events are stamped no earlier than the previous one even
+  -- when the update leaves observed_at untouched.
+  UPDATE public.intelligence_signals SET fingerprint = 'fp-3', confidence = 0.9 WHERE id = v_signal;
+  SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_signal;
+  IF v_count <> 5 THEN RAISE EXCEPTION 'a resolved signal must not emit even when fingerprint and confidence change'; END IF;
+
+  INSERT INTO public.intelligence_signals (industry_id, confidence, status, evidence, fingerprint)
+  VALUES (v_industry, 0.50, 'active', '[]'::jsonb, 'fp-drift') RETURNING id INTO v_drift_signal;
+  UPDATE public.intelligence_signals SET confidence = 0.549 WHERE id = v_drift_signal;
+  SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_drift_signal;
+  IF v_count <> 1 THEN RAISE EXCEPTION 'a 0.049 confidence move must not emit'; END IF;
+  UPDATE public.intelligence_signals SET confidence = NULL WHERE id = v_drift_signal;
+  SELECT count(*), max(confidence) INTO v_count, v_score FROM public.intelligence_signal_events WHERE signal_id = v_drift_signal AND direction = 'down';
+  IF v_count <> 1 OR v_score <> 0 THEN RAISE EXCEPTION 'confidence set to NULL counts as 0 and emits one down event with confidence 0'; END IF;
+  UPDATE public.intelligence_signals SET confidence = 0.03 WHERE id = v_drift_signal;
+  SELECT count(*) INTO v_count FROM public.intelligence_signal_events WHERE signal_id = v_drift_signal;
+  IF v_count <> 2 THEN RAISE EXCEPTION 'NULL to 0.03 is a sub-threshold move and must not emit'; END IF;
+  UPDATE public.intelligence_signals SET confidence = 0.40 WHERE id = v_drift_signal;
+  SELECT count(DISTINCT observed_at), count(*) INTO v_distinct, v_count FROM public.intelligence_signal_events WHERE signal_id = v_drift_signal;
+  IF v_count <> 3 OR v_distinct <> 3 THEN RAISE EXCEPTION 'events of one signal must carry distinct, increasing observed_at even when the signal row keeps its observed_at (count %, distinct %)', v_count, v_distinct; END IF;
+  IF (SELECT bool_and(observed_at >= (SELECT observed_at FROM public.intelligence_signals WHERE id = v_drift_signal)) FROM public.intelligence_signal_events WHERE signal_id = v_drift_signal) IS DISTINCT FROM true THEN
+    RAISE EXCEPTION 'an event must never be stamped earlier than its signal observed_at';
+  END IF;
 END;
 $contract$;
+
+-- Proof with the API roles themselves (the DO block above runs as the superuser, which proves nothing
+-- about grants): DML through service_role and authenticated still fires the trigger, and a direct call
+-- to the trigger function by service_role is refused.
+GRANT USAGE ON SCHEMA public TO service_role, authenticated;
+GRANT INSERT, UPDATE, SELECT ON public.intelligence_signals TO service_role, authenticated;
+GRANT SELECT ON public.intelligence_signal_events TO service_role, authenticated;
+SET ROLE service_role;
+INSERT INTO public.intelligence_signals (industry_id, confidence, status, evidence, fingerprint)
+VALUES ('00000000-0000-0000-0000-00000000aa01', 0.6, 'active', '[]'::jsonb, 'fp-role-service');
+UPDATE public.intelligence_signals SET confidence = 0.7 WHERE fingerprint = 'fp-role-service';
+RESET ROLE;
+SET ROLE authenticated;
+INSERT INTO public.intelligence_signals (industry_id, confidence, status, evidence, fingerprint)
+VALUES ('00000000-0000-0000-0000-00000000aa02', 0.6, 'active', '[]'::jsonb, 'fp-role-auth');
+RESET ROLE;
+DO $roleproof$
+DECLARE
+  v_count integer;
+BEGIN
+  SELECT count(*) INTO v_count FROM public.intelligence_signal_events e JOIN public.intelligence_signals s ON s.id = e.signal_id WHERE s.fingerprint = 'fp-role-service';
+  IF v_count <> 2 THEN RAISE EXCEPTION 'trigger must fire for DML executed by service_role after the REVOKE (got % events)', v_count; END IF;
+  SELECT count(*) INTO v_count FROM public.intelligence_signal_events e JOIN public.intelligence_signals s ON s.id = e.signal_id WHERE s.fingerprint = 'fp-role-auth';
+  IF v_count <> 1 THEN RAISE EXCEPTION 'trigger must fire for DML executed by authenticated after the REVOKE (got % events)', v_count; END IF;
+  BEGIN
+    SET LOCAL ROLE service_role;
+    PERFORM public.capture_intelligence_signal_event();
+    RAISE EXCEPTION 'service_role must not be able to call the trigger function directly';
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      RESET ROLE;
+  END;
+END
+$roleproof$;
 
 ROLLBACK;

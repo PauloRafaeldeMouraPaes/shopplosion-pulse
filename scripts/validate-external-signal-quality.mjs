@@ -67,6 +67,19 @@ assert.match(signalWorker, /shouldRecordSignalEvent\(/, "the main worker must us
 assert.match(backstopWorker, /shouldRecordSignalEvent\(/, "the deterministic backstop must use the same event deduplication rule");
 assert.doesNotMatch(signalWorker, /from\(['"]intelligence_signal_events['"]\)\.insert/, "the main worker must rely on the database trigger as the sole event writer");
 assert.doesNotMatch(backstopWorker, /from\(['"]intelligence_signal_events['"]\)\.insert/, "the deterministic backstop must not duplicate trigger-generated events");
+import { readdirSync, statSync } from "node:fs";
+for (const fn of readdirSync(resolve(root, "supabase/functions"))) {
+  const entry = resolve(root, "supabase/functions", fn, "index.ts");
+  let text = "";
+  try { if (statSync(entry).isFile()) text = readFileSync(entry, "utf8"); } catch { continue; }
+  assert.doesNotMatch(text, /from\(['"]intelligence_signal_events['"]\)\.(insert|upsert)/, `${fn} must not write intelligence_signal_events directly; the trigger is the sole event writer`);
+}
+const intelligenceWorker = readFileSync(resolve(root, "supabase/functions/pulse-intelligence-worker/index.ts"), "utf8");
+assert.match(intelligenceWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the private intelligence worker must preserve resolved signals");
+assert.match(intelligenceWorker, /select\('id,confidence,fingerprint,status'\)/, "the private intelligence worker must read the prior status");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65, priorStatus: "dismissed", status: "active" }), false, "a status change that is not a resolution is not an event by itself (same rule as the trigger)");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.69996, priorStatus: "active", status: "active" }), true, "confidence is compared on the stored numeric(5,4) precision, as the trigger sees it");
+assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.6999, priorStatus: "active", status: "active" }), false, "0.0499 on the stored precision stays below the threshold");
 assert.match(signalWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the main worker must preserve resolved signals");
 assert.match(backstopWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the backstop must preserve resolved signals");
 assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.65, candidateDirection: "new" }), "new", "evidence-only changes must not be mislabeled as confidence increases");
