@@ -14,7 +14,7 @@ aplicado a produção.
    `pulse-external-deterministic-backstop` e `pulse-intelligence-worker`. Os três passaram a confiar no trigger
    como único escritor; `scripts/validate-external-signal-quality.mjs` varre todas as funções e rejeita qualquer
    `insert`/`upsert` direto em `intelligence_signal_events`. `pulse-intelligence-worker` também passou a
-   preservar `status = 'resolved'` no upsert (antes reativava sinais resolvidos).
+   preservar `status = 'resolved'` e `'dismissed'` no upsert (antes reativava esses sinais).
 3. `DEPLOYMENT_MANIFEST.json` deve ser atualizado com o commit de registro do deploy, como a convenção do
    repositório; até lá os hashes do manifesto descrevem bundles anteriores a esta mudança.
 
@@ -29,7 +29,9 @@ aplicado a produção.
   não emite. Coberto pelo contrato.
 - A comparação é contra a confiança armazenada, não contra a do último evento: deriva lenta em passos
   < 0,05 nunca emite. Limitação documentada, não corrigida.
-- `observed_at` do evento: no INSERT, o `observed_at` do sinal; no UPDATE, nunca anterior ao evento anterior
+- `observed_at` do evento: no INSERT, o `observed_at` do sinal (se esse valor vier no futuro, os eventos
+  seguintes podem ficar com carimbo anterior a ele; os workers gravam `now()`, então o caso só ocorre com
+  escrita manual); no UPDATE, nunca anterior ao evento anterior
   nem ao `observed_at` do sinal (`GREATEST(..., clock_timestamp())`), para que `intelligence_signal_timeline`
   e `intelligence_change_digest` ordenem de forma determinística mesmo quando o worker ou o resolvedor de
   sinais antigos não tocam em `observed_at`. Coberto pelo contrato.
