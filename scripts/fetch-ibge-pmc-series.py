@@ -31,7 +31,7 @@ raw provenance for the figures quoted in an item's text.
 
 Usage:
   python3 scripts/fetch-ibge-pmc-series.py --out docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json
-  python3 scripts/fetch-ibge-pmc-series.py --variable 11708,11709,11710,11711 --periods 202605,202606,202607,202608 --out docs/data/ibge-pmc-8882-a90672-variacoes-2026-10-31.json
+  python3 scripts/fetch-ibge-pmc-series.py --variable 11708,11709,11710,11711 --periods 202508,202605,202606,202607,202608 --out docs/data/ibge-pmc-8882-a90672-variacoes-2026-10-31.json
   python3 scripts/fetch-ibge-pmc-series.py --months 25 --variable 7169   # unadjusted series
 """
 import argparse

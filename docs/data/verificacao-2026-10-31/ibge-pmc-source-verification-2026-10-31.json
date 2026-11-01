@@ -2,7 +2,7 @@
  "purpose": "Conferencia na fonte (API SIDRA) dos itens PMC publicados no Pulse; respostas brutas byte a byte, sem transformacao. Os releases originais do IBGE usados na comparacao estao em biblioteca.ibge.gov.br/visualizacao/periodicos/230/ (pmc_2026_abr.pdf, pmc_2026_jul.pdf, pmc_2025_out.pdf).",
  "captures": [
   {
-   "file": "docs/data/verificacao-2026-10-31/ibge-pmc-8882-a90672-variacoes-2026-10-31.json",
+   "file": "docs/data/verificacao-2026-10-31/ibge-pmc-8882-a90672-conferencia-2025-10-a-2026-07.json",
    "url": "https://apisidra.ibge.gov.br/values/t/8882/n1/all/v/11708,11709,11710/p/202510,202511,202512,202601,202602,202603,202604,202607/c11046/56734/c85/90672",
    "captured_at_utc": "2026-10-31T23:29:19Z",
    "http_status": 200,
