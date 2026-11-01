@@ -1,0 +1,36 @@
+CREATE OR REPLACE VIEW public.rag_eval_quality_status
+WITH (security_invoker = true) AS
+SELECT
+  industry_id,
+  COUNT(*)::integer AS runs,
+  COUNT(*) FILTER (WHERE passed)::integer AS passed,
+  COUNT(*) FILTER (WHERE NOT passed)::integer AS failed,
+  ROUND(AVG(expected_terms_found::numeric / NULLIF(expected_terms_total,0)),3) AS avg_term_recall,
+  ROUND(AVG(expected_documents_found::numeric / NULLIF(expected_documents_total,0)),3) AS avg_document_recall,
+  MAX(created_at) AS last_run_at,
+  CASE
+    WHEN COUNT(*) = 0 THEN 'NO_DATA'
+    WHEN COUNT(*) FILTER (WHERE NOT passed) = 0 THEN 'PASS'
+    ELSE 'FAIL'
+  END AS gate_status
+FROM public.rag_eval_runs
+GROUP BY industry_id;
+GRANT SELECT ON public.rag_eval_quality_status TO authenticated;
+REVOKE ALL ON public.rag_eval_quality_status FROM anon;
+
+CREATE OR REPLACE VIEW public.pulse_operational_status
+WITH (security_invoker = true) AS
+SELECT
+  d.industry_id,
+  COUNT(DISTINCT d.id)::integer AS documents,
+  COUNT(dc.id)::integer AS chunks,
+  COUNT(*) FILTER (WHERE dc.id IS NULL AND lower(COALESCE(d.mime_type,'')) IN ('application/pdf','text/plain','text/csv','application/json','text/markdown'))::integer AS pending_compatible,
+  (SELECT COUNT(*) FROM public.ask_ai_events a WHERE a.industry_id=d.industry_id)::integer AS ask_ai_requests,
+  (SELECT COUNT(*) FROM public.ask_ai_events a WHERE a.industry_id=d.industry_id AND a.outcome='answered')::integer AS ask_ai_answered,
+  (SELECT COUNT(*) FROM public.rag_eval_runs r WHERE r.industry_id=d.industry_id)::integer AS rag_runs,
+  (SELECT COUNT(*) FROM public.rag_eval_runs r WHERE r.industry_id=d.industry_id AND r.passed)::integer AS rag_passed
+FROM public.documents d
+LEFT JOIN public.document_chunks dc ON dc.document_id=d.id
+GROUP BY d.industry_id;
+GRANT SELECT ON public.pulse_operational_status TO authenticated;
+REVOKE ALL ON public.pulse_operational_status FROM anon;
