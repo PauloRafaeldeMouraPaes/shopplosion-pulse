@@ -82,7 +82,9 @@ Three inputs exist today; none of them is a live server source.
    rebuilt from the dataset on every load and never written to the local store, so a revised release
    replaces the values instead of conflicting with a stale copy. A local row left in the store that collides
    with a public row (same identity, different value) is not restored; the panel says so in an explicit
-   `conflict` note instead of dropping it silently. The panel renders one block per metric and geography
+   `conflict` note instead of dropping it silently. Because methodology is part of an observation's identity and the Hoje form does not ask for it, a
+   row typed in the form (methodology `[A DEFINIR]`) never collides with a public row; the conflict note covers
+   stored rows that carry the same methodology, such as copies left by an older version of the store. The panel renders one block per metric and geography
    (grouped with the contract's own normalisation); the block of an evidence-derived series links back to
    its item in the Inspector, and its year-over-year line states that it is a Pulse calculation over that
    series (for the IBGE block, the seasonally adjusted index), not the source's published year-over-year
