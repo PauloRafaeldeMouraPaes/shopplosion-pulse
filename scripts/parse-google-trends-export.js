@@ -55,7 +55,7 @@ function args(argv) {
 }
 
 function parseExport(text) {
-  const rows = parseCsv(text.replace(/^﻿/, ""));
+  const rows = parseCsv(text.replace(/^\uFEFF/, ""));
   const errors = []; const limitations = [];
   let category = null; let headerIndex = -1; let granularity = null;
   for (let i = 0; i < rows.length; i++) {
