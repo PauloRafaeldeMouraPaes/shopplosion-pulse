@@ -136,8 +136,8 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "universo_observado": "[A DEFINIR]",
     "representa": "[A DEFINIR]",
     "nao_representa": "[A DEFINIR]",
-    "fonte_primaria": "[A DEFINIR]",
-    "fato_verificado_na_fonte": "[A DEFINIR]",
+    "fonte_primaria": "IBGE, PMC: release de abril de 2026 (biblioteca.ibge.gov.br/visualizacao/periodicos/230/pmc_2026_abr.pdf, publicado em 16/06/2026) e tabela 8882 do SIDRA (índice de volume, atividade 90672), variáveis 11708 e 11710",
+    "fato_verificado_na_fonte": "SIM, conferido no release original e na API SIDRA em 31/10/2026: acumulado no ano até abril de 2026 confirmado em 1,6%; a variação na margem com ajuste sazonal de abril consta hoje como 1,4% (1,3% na divulgação original). A série com ajuste sazonal e os meses recentes são revisados pelo IBGE a cada divulgação; o fato preserva o número da divulgação original e esta conferência registra o valor vigente. Registro bruto: docs/data/verificacao-2026-10-31/ibge-pmc-8882-a90672-conferencia-2025-10-a-2026-07.json (consulta de 2026-10-31T23:29:19Z, SHA-256 7d629c312b43bee35e640aefbf8ec330a9d46647c0527e99bfebc7dc4821f581).",
     "alcance_para_pergunta": "[A DEFINIR]"
   },
   {
@@ -156,8 +156,8 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "universo_observado": "[A DEFINIR]",
     "representa": "[A DEFINIR]",
     "nao_representa": "[A DEFINIR]",
-    "fonte_primaria": "[A DEFINIR]",
-    "fato_verificado_na_fonte": "[A DEFINIR]",
+    "fonte_primaria": "IBGE, PMC: release de abril de 2026 (biblioteca.ibge.gov.br/visualizacao/periodicos/230/pmc_2026_abr.pdf, publicado em 16/06/2026) e tabela 8882 do SIDRA (índice de volume, atividade 90672), variável 11709",
+    "fato_verificado_na_fonte": "PARCIALMENTE: 0,9% em abril de 2026 ante abril de 2025 confirmado no release original e na API SIDRA em 31/10/2026. A interpretação deste item diz \"sexto resultado consecutivo positivo\"; o release original diz sétimo, porque outubro de 2025 foi divulgado como +0,3% (release de outubro de 2025) e consta hoje como 0,0% no vintage atual, o que reduz a sequência a seis (novembro de 2025 a abril de 2026). Resumo: sete resultados consecutivos na divulgação original, seis no vintage atual; a interpretação do item corresponde ao vintage atual, não ao release. Registro bruto: docs/data/verificacao-2026-10-31/ibge-pmc-8882-a90672-conferencia-2025-10-a-2026-07.json (consulta de 2026-10-31T23:29:19Z, SHA-256 7d629c312b43bee35e640aefbf8ec330a9d46647c0527e99bfebc7dc4821f581).",
     "alcance_para_pergunta": "[A DEFINIR]"
   },
   {
@@ -176,8 +176,8 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "universo_observado": "[A DEFINIR]",
     "representa": "[A DEFINIR]",
     "nao_representa": "[A DEFINIR]",
-    "fonte_primaria": "[A DEFINIR]",
-    "fato_verificado_na_fonte": "[A DEFINIR]",
+    "fonte_primaria": "IBGE, PMC: release de abril de 2026 (biblioteca.ibge.gov.br/visualizacao/periodicos/230/pmc_2026_abr.pdf, publicado em 16/06/2026) e tabela 8883 do SIDRA (comércio varejista ampliado, índice de volume 56736, atividade 56741), variáveis 11709 e 11710",
+    "fato_verificado_na_fonte": "SIM, conferido no release original e na API SIDRA em 31/10/2026: a variação interanual de abril de 2026 consta hoje como 2,1% (2,0% na divulgação original) e o acumulado no ano como 3,2% (3,1% na divulgação original). A série com ajuste sazonal e os meses recentes são revisados pelo IBGE a cada divulgação; o fato preserva o número da divulgação original e esta conferência registra o valor vigente. Registro bruto: docs/data/verificacao-2026-10-31/ibge-pmc-8883-a56741-variacoes-2026-10-31.json (consulta de 2026-10-31T23:29:20Z, SHA-256 9c35b72e1cfd6d1c40b948df9d110bf89f256f137b45f8ab64b12e9a943dc5b3).",
     "alcance_para_pergunta": "[A DEFINIR]"
   },
   {
@@ -196,8 +196,8 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "universo_observado": "[A DEFINIR]",
     "representa": "[A DEFINIR]",
     "nao_representa": "[A DEFINIR]",
-    "fonte_primaria": "[A DEFINIR]",
-    "fato_verificado_na_fonte": "[A DEFINIR]",
+    "fonte_primaria": "IBGE, PMC: release de abril de 2026 (biblioteca.ibge.gov.br/visualizacao/periodicos/230/pmc_2026_abr.pdf, publicado em 16/06/2026) e tabela 8880 do SIDRA (índice de volume, Unidade da Federação São Paulo), variável 11708",
+    "fato_verificado_na_fonte": "SIM, conferido no release original e na API SIDRA em 31/10/2026: a variação de abril ante março com ajuste sazonal em São Paulo consta hoje como 1,2% (1,3% na divulgação original). A série com ajuste sazonal e os meses recentes são revisados pelo IBGE a cada divulgação; o fato preserva o número da divulgação original e esta conferência registra o valor vigente. Registro bruto: docs/data/verificacao-2026-10-31/ibge-pmc-8880-sp-variacoes-2026-10-31.json (consulta de 2026-10-31T23:29:20Z, SHA-256 3bd3312c5b594a61741335482ce544672a2c2d1c41c4ee53e0c80d40971f13e8).",
     "alcance_para_pergunta": "[A DEFINIR]"
   },
   {
@@ -476,8 +476,8 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "universo_observado": "[A DEFINIR]",
     "representa": "[A DEFINIR]",
     "nao_representa": "[A DEFINIR]",
-    "fonte_primaria": "[A DEFINIR]",
-    "fato_verificado_na_fonte": "[A DEFINIR]",
+    "fonte_primaria": "IBGE, PMC: divulgação de julho de 2026 (biblioteca.ibge.gov.br/visualizacao/periodicos/230/pmc_2026_jul.pdf, 15/09/2026) e tabela 8880 do SIDRA (índice de volume do comércio varejista, Brasil), variáveis 11708, 11709 e 11710",
+    "fato_verificado_na_fonte": "SIM, conferido no release original e na API SIDRA em 31/10/2026: -0,8% em julho ante junho (com ajuste sazonal) e 1,8% acumulado no ano confirmados; a variação ante julho de 2025 consta hoje como 1,3% (1,2% na divulgação original). A série com ajuste sazonal e os meses recentes são revisados pelo IBGE a cada divulgação; o fato preserva o número da divulgação original e esta conferência registra o valor vigente. Registro bruto: docs/data/verificacao-2026-10-31/ibge-pmc-8880-brasil-variacoes-2026-10-31.json (consulta de 2026-10-31T23:29:19Z, SHA-256 0e3e7c49e4745fffd13362eb060217eacb3000900d342a151f7b61ede8a51e1e).",
     "alcance_para_pergunta": "[A DEFINIR]"
   },
   {
@@ -496,8 +496,8 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "universo_observado": "[A DEFINIR]",
     "representa": "[A DEFINIR]",
     "nao_representa": "[A DEFINIR]",
-    "fonte_primaria": "[A DEFINIR]",
-    "fato_verificado_na_fonte": "[A DEFINIR]",
+    "fonte_primaria": "IBGE, PMC: divulgação de julho de 2026 (biblioteca.ibge.gov.br/visualizacao/periodicos/230/pmc_2026_jul.pdf, 15/09/2026); tabela 8882 do SIDRA (atividade 90672, variável 11709) e tabela 8880 (comércio varejista, Brasil, variável 11708)",
+    "fato_verificado_na_fonte": "SIM, conferido no release original e na API SIDRA em 31/10/2026: 2,9% ante julho de 2025 para hipermercados, supermercados, produtos alimentícios, bebidas e fumo e -0,8% na margem para o varejo restrito, ambos confirmados no vintage atual. Registros brutos: docs/data/verificacao-2026-10-31/ibge-pmc-8882-a90672-conferencia-2025-10-a-2026-07.json (consulta de 2026-10-31T23:29:19Z, SHA-256 7d629c312b43bee35e640aefbf8ec330a9d46647c0527e99bfebc7dc4821f581); docs/data/verificacao-2026-10-31/ibge-pmc-8880-brasil-variacoes-2026-10-31.json (consulta de 2026-10-31T23:29:19Z, SHA-256 0e3e7c49e4745fffd13362eb060217eacb3000900d342a151f7b61ede8a51e1e).",
     "alcance_para_pergunta": "[A DEFINIR]"
   },
   {
