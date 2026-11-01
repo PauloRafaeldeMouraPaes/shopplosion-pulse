@@ -1,0 +1,1 @@
+export_id,query_set_id,query_label,query_type,query_text,geo,region,category,search_type,date_range_start,date_range_end,exported_at_utc,source_url,raw_filename,raw_file_sha256,comparison_export_id,review_status,reviewer,notes
