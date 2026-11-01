@@ -40,7 +40,7 @@
     return new Promise(function (resolve, reject) {
       if (!window.pdfjsLib) return reject(new Error('PDF.js não carregado.'));
       var reader = new FileReader();
-      reader.onload = function () { var data = new Uint8Array(reader.result); window.pdfjsLib.getDocument({ data: data }).promise.then(function (pdf) { var pages = []; var p = Promise.resolve(); for (var i = 1; i <= pdf.numPages; i++) (function (n) { p = p.then(function () { return pdf.getPage(n).then(function (page) { return page.getTextContent().then(function (c) { pages.push(c.items.map(function (x) { return x.str; }).join(' ')); }); }); }); })(i); p.then(function () { resolve(pages.join('\n')); }).catch(reject); }).catch(reject); };
+      reader.onload = function () { var data = new Uint8Array(reader.result); window.pdfjsLib.getDocument({ data: data, isEvalSupported: false }).promise.then(function (pdf) { var pages = []; var p = Promise.resolve(); for (var i = 1; i <= pdf.numPages; i++) (function (n) { p = p.then(function () { return pdf.getPage(n).then(function (page) { return page.getTextContent().then(function (c) { pages.push(c.items.map(function (x) { return x.str; }).join(' ')); }); }); }); })(i); p.then(function () { resolve(pages.join('\n')); }).catch(reject); }).catch(reject); };
       reader.onerror = function () { reject(reader.error); };
       reader.readAsArrayBuffer(file);
     });

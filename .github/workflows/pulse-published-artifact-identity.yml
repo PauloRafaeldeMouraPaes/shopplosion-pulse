@@ -1,0 +1,63 @@
+name: Pulse Published Artifact Identity
+
+# Issue #19 gate, automated: after every successful GitHub Pages deployment, download the published
+# files and compare their SHA-256 with the deployed commit. Fails when any file differs or cannot be
+# fetched. Read-only: never commits, never deploys. The JSON record is kept as a run artifact.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to compare the live artifact against (default main)
+        required: false
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pulse-artifact-identity-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'github-pages')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout the deployed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.deployment.sha }}
+          fetch-depth: 1
+      - name: Compare the live GitHub Pages artifact with the deployed commit (waits for the release to propagate)
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p artifact-identity
+          # The Pages CDN caches responses for 10 minutes and ignores request cache directives; the script
+          # busts the cache with a per-ref query string and first checks pulse-release.json, so a run right
+          # after a deploy retries (exit 2) until the live release names this commit, then compares every
+          # tracked file (exit 1 on any difference). 15 attempts of 60 s cover the cache TTL with margin.
+          for attempt in $(seq 1 15); do
+            python3 scripts/verify_published_artifact.py --ref HEAD --require-release --cache-key "attempt-$attempt" --out artifact-identity/artifact-identity.json
+            rc=$?
+            if [ "$rc" -eq 0 ]; then
+              echo "Published artifact identical to $(git rev-parse HEAD) on attempt $attempt."
+              exit 0
+            fi
+            echo "Attempt $attempt: exit $rc (2 = live release still points elsewhere, 1 = some file differs); waiting 60s."
+            sleep 60
+          done
+          echo "::error::Published artifact not verified as identical to the deployed commit after 15 attempts."
+          exit 1
+      - name: Keep the identity record
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-identity-${{ github.run_id }}
+          path: artifact-identity/artifact-identity.json
+          if-no-files-found: ignore
