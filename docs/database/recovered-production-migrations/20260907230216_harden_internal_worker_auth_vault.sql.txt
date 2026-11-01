@@ -8,7 +8,7 @@ create table if not exists private.pulse_internal_tokens (
 );
 
 insert into private.pulse_internal_tokens(name, token_sha256)
-values ('index_worker', 'efe467521fa7201f01d0747dcde15a64a0fda7d0e84d94c6079f34546b4bf2cd')
+values ('index_worker', '[REDIGIDO 2026-10-31: hash do token removido]')
 on conflict (name) do update set token_sha256=excluded.token_sha256, active=true;
 
 create or replace function public.verify_pulse_internal_token(p_token text, p_name text default 'index_worker')

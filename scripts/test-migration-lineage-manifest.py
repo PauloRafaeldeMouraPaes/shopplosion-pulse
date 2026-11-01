@@ -99,7 +99,7 @@ def main() -> int:
         text = path.read_text(encoding="utf-8")
         if REDACTION_MARKER not in text:
             raise AssertionError(f"Redacted archive lost its redaction marker: {row['production_version']}")
-        if re.search(r"create_secret\(\s*'[A-Za-z0-9+/=_-]{24,}'", text):
+        if re.search(r"create_secret\(\s*'[A-Za-z0-9+/=_-]{24,}'|'[0-9a-f]{64}'|'[A-Za-z0-9+/]{40,}={0,2}'", text):
             raise AssertionError(f"Redacted archive still carries a secret-looking literal: {row['production_version']}")
         if git_blob_sha(actual_bytes) != row["repo_blob_sha"]:
             raise AssertionError(f"Redacted archive Git blob hash mismatch for {row['production_version']}")
@@ -109,7 +109,7 @@ def main() -> int:
             raise AssertionError(f"Redacted row must document the incident in its evidence note: {row['production_version']}")
     for row in recovered:
         text = row["repo_path"] and (ROOT / row["repo_path"]).read_text(encoding="utf-8") if (ROOT / row["repo_path"]).is_file() else ""
-        if re.search(r"create_secret\(\s*'[A-Za-z0-9+/=_-]{24,}'", text):
+        if re.search(r"create_secret\(\s*'[A-Za-z0-9+/=_-]{24,}'|'[0-9a-f]{64}'|'[A-Za-z0-9+/]{40,}={0,2}'", text):
             raise AssertionError(f"Archived body carries a secret-looking literal; redact it: {row['production_version']}")
         if not row["repo_path"].startswith("docs/database/recovered-production-migrations/") or not row["repo_path"].endswith(".sql.txt"):
             raise AssertionError(f"Recovered body must be a non-executable .sql.txt archive: {row['production_version']}")
