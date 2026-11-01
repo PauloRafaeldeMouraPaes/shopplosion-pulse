@@ -57,7 +57,7 @@ pdf.js: a versão 3.11.174 é anterior à correção de CVE-2024-4367 (execuçã
 malicioso pela via de fontes com `eval`; corrigida em 4.2.67). Em `app.html` a tag estática define
 `window.pdfjsLib`, então `pulse-config.js` usa essa versão para extrair texto de uploads e de PDFs do storage
 da indústria, não a 4.10.38. Mitigação aplicada nesta reconciliação: todas as chamadas `getDocument` do
-repositório passam `isEvalSupported: false`, que é o contorno indicado no aviso da vulnerabilidade e não
+front passam `isEvalSupported: false` (a Edge Function `pulse-index-worker` usa a 4.10.38, já corrigida), que é o contorno indicado no aviso da vulnerabilidade e não
 afeta a extração de texto. A atualização da tag para uma versão corrigida (ou a remoção da tag estática,
 deixando o import dinâmico 4.10.38 atuar) fica para PR própria, porque muda o caminho de ingestão de PDF e
 precisa de teste com login real.
@@ -89,7 +89,8 @@ script da página e conta handlers por elemento. Resultado em `main`:
 extensão ou byte nulo são pulados, não reprovados): BOM, caracteres de largura zero, controles bidirecionais,
 outros caracteres de formato (Cf) e de controle (Cc). O joiner de largura zero é aceito dentro de sequências
 de emoji; NBSP e hífen suave são aceitos em prosa (`.md`, `.txt`) e dentro de literais de string em código, e
-rejeitados em sintaxe de tag HTML e em código fora de strings. `--self-test` exercita 11 casos sintéticos
+rejeitados em sintaxe de tag HTML e, em arquivos de código que não sejam HTML, fora de strings. O joiner de
+largura zero só é aceito entre dois pictogramas de emoji. `--self-test` exercita 11 casos sintéticos
 (rejeições e tolerâncias) e roda no CI antes da varredura real. Resultado em `main`: nenhuma anomalia.
 
 ## 5. Specs obsoletos
@@ -104,7 +105,7 @@ pós-deploy contra o Pages) passou a apontar para `input#password`, porque `auth
 
 - O workflow `Pulse Published Artifact Identity` roda após cada deployment bem-sucedido do ambiente
   `github-pages` (evento `deployment_status`) e repete o script acima com `--require-release` em até 15
-  tentativas de 60 s (cobre o TTL de 10 min do CDN), falhando se algum arquivo diferir do commit deployado. O
+  tentativas de 60 s com chave de cache diferente a cada tentativa (cobre o TTL de 10 min do CDN; timeout do job em 30 min), falhando se algum arquivo diferir do commit deployado. O
   JSON fica como artefato do run; nada é commitado. O GitHub só registra workflows novos a partir de `main`,
   então a primeira execução real acontece no deploy que seguir o merge desta PR; até lá a evidência é a
   execução local do mesmo script registrada em `docs/releases/`.

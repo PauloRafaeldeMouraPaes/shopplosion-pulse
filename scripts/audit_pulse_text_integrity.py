@@ -63,12 +63,13 @@ def looks_binary(path, raw):
 
 
 def is_emoji_neighbour(ch):
-    if not ch:
+    """True for a pictographic emoji or the emoji variation selector; never for another ZWJ."""
+    if not ch or ch == ZWJ:
         return False
-    if ch == VARIATION_SELECTOR or ch == ZWJ:
+    if ch == VARIATION_SELECTOR:
         return True
     code = ord(ch)
-    return unicodedata.category(ch) == 'So' or 0x1F000 <= code <= 0x1FAFF or 0x2600 <= code <= 0x27BF
+    return 0x1F300 <= code <= 0x1FAFF or 0x2600 <= code <= 0x27BF or 0x1F000 <= code <= 0x1F2FF
 
 
 def string_spans(text):
@@ -109,7 +110,7 @@ def scan_text(path, text):
         i = match.start()
         prev_ch = text[i - 1] if i > 0 else ''
         next_ch = text[i + 1] if i + 1 < len(text) else ''
-        if not (is_emoji_neighbour(prev_ch) or is_emoji_neighbour(next_ch)):
+        if not (is_emoji_neighbour(prev_ch) and is_emoji_neighbour(next_ch)):
             failures.append(f'{path}:{line_of(text, i)}: ZERO WIDTH JOINER (U+200D) outside an emoji sequence')
     for ch in sorted(set(text)):
         cat = unicodedata.category(ch)
@@ -173,6 +174,8 @@ def self_test():
         'bad_bom.css': ('\ufeffbody{margin:0}\n', 1),
         'bad_control.py': ('x = 1\u0007\n', 1),
         'bad_cf.md': ('a\u2061b\n', 1),
+        'bad_double_zwj.txt': ('a\u200d\u200db\n', 1),
+        'bad_symbol_zwj.txt': ('\u00b0\u200dx\n', 1),
     }
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.check_call(['git', 'init', '-q', tmp])

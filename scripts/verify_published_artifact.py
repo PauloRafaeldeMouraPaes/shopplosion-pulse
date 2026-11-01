@@ -96,10 +96,11 @@ def main():
     ap.add_argument('--out', default=None)
     ap.add_argument('--require-release', action='store_true',
                     help='exit 2 without comparing files unless the live pulse-release.json names the ref commit')
+    ap.add_argument('--cache-key', default='', help='extra token appended to the cache-busting query (use a different one per retry)')
     ap.add_argument('--core-only', action='store_true', help='check only the pages and runtime files (quick look, not a gate)')
     args = ap.parse_args()
     ref_sha = subprocess.check_output(['git', 'rev-parse', args.ref], text=True).strip()
-    token = ref_sha[:12]
+    token = ref_sha[:12] + (('-' + args.cache_key) if args.cache_key else '')
     record = {
         'checked_at_utc': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'ref': args.ref, 'ref_sha': ref_sha, 'base_url': args.base,

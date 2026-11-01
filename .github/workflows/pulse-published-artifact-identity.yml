@@ -26,7 +26,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'github-pages')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout the deployed commit
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
           # after a deploy retries (exit 2) until the live release names this commit, then compares every
           # tracked file (exit 1 on any difference). 15 attempts of 60 s cover the cache TTL with margin.
           for attempt in $(seq 1 15); do
-            python3 scripts/verify_published_artifact.py --ref HEAD --require-release --out artifact-identity/artifact-identity.json
+            python3 scripts/verify_published_artifact.py --ref HEAD --require-release --cache-key "attempt-$attempt" --out artifact-identity/artifact-identity.json
             rc=$?
             if [ "$rc" -eq 0 ]; then
               echo "Published artifact identical to $(git rev-parse HEAD) on attempt $attempt."
