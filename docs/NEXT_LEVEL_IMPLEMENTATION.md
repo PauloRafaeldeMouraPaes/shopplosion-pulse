@@ -13,21 +13,25 @@ registries: `window.serie_historica`, `window.papel_ideal`, `window.PULSE_LOCAL_
 | Field | Rule |
 |---|---|
 | `period` | `AAAA`, `AAAA-MM` or `AAAA-MM-DD`; the granularity is recorded and never mixed in a comparison |
-| `value` | finite number; `0` is a value, `null`/`''`/`undefined`/NaN is an absence and is rejected |
+| `value` | a number, or a plain decimal string (`.` or `,` separator); `0` is a value; `null`/`''`/whitespace-only/`undefined` are absences (`incomplete`); booleans, arrays, hex, exponents, NaN and any other text are `invalid` |
 | `metric`, `geography`, `source`, `provenance` | required, non-empty |
 | `unit`, `methodology` | optional; stored as `[A DEFINIR]` when absent and reported as a limitation |
 | `url`, `limitations[]` | optional |
 
-Outcomes of `addHistoricalObservation`: `added`, `duplicate` (same period/metric/geography/source/unit and
-same value), `conflict` (same key, different value: nothing is overwritten), `rejected` with
-`reason: incomplete` (+`missing[]`) or `reason: invalid` (+`invalid[]`).
+Outcomes of `addHistoricalObservation`: `added`, `duplicate` (same period/metric/geography/source/unit/methodology
+and same value), `conflict` (same key, different value: nothing is overwritten), `rejected` with
+`reason: incomplete` (+`missing[]`) or `reason: invalid` (+`invalid[]`). Methodology is part of the identity, so the
+same period can hold one observation per methodology (for example with and without seasonal adjustment).
 
 `historicalSummary(metric, geography, {source, unit})` compares the two most recent observations of the
-largest group that shares metric, geography, unit, source, methodology and granularity. Statuses:
-`insufficient` (fewer than two), `not_comparable` (+`mixedDimensions`), `observed_change` (with `delta`,
-`deltaPct`, `direction`, `consecutive`, `yearOverYear` when the same month of the previous year exists,
-`limitations[]`, `observation` text). Every result carries `causal: false` and `interpretation: null`:
-the contract reports variation, never explanation.
+largest group that shares metric, geography, unit, source, methodology and granularity; between groups of equal
+size the one with the most recent period wins, and the result says so. Statuses: `insufficient` (fewer than two),
+`not_comparable` (+`mixedDimensions`, when no group has two), `observed_change` (with `delta`, `deltaPct`,
+`direction`, `consecutive`, `yearOverYear` when the same month of the previous year exists, `count`, `excluded`
+and `groups`, `limitations[]`, `observation` text). Observations left out because they belong to another
+unit/source/methodology/granularity are counted in `excluded` and named in `limitations`, so a competing series
+is never silently discarded. Every result carries `causal: false` and `interpretation: null`: the contract
+reports variation, never explanation.
 
 ### papel_ideal (category role)
 
@@ -40,8 +44,8 @@ the contract reports variation, never explanation.
 ### PULSE_LOCAL_EVIDENCE (local evidence)
 
 Required: `claim`, `source`, `geography`, `date` (ISO), `provenance`. `validateLocalEvidence` answers
-`valid`, `incomplete` (+`missing[]`) or `rejected` (+`invalid[]`). Deduplication by `id` or by content
-fingerprint (claim, source, geography, date). `localEvidenceAsEvidence(item)` projects a record into the
+`valid`, `incomplete` (+`missing[]`) or `rejected` (+`invalid[]`). Deduplication by `id` or by normalised
+content (claim, source, geography, date); the 32-bit fingerprint only names the default id. `localEvidenceAsEvidence(item)` projects a record into the
 `PULSE_EVIDENCE` vocabulary (fato, fonte, periodo, natureza, universo_observado, fonte_primaria,
 fato_verificado_na_fonte = `[A DEFINIR]`) so the Inspector and `PULSE_EVIDENCE_MODEL.assess` read it.
 Local evidence is never merged into the public `PULSE_EVIDENCE` array.
@@ -49,9 +53,10 @@ Local evidence is never merged into the public `PULSE_EVIDENCE` array.
 ### Executive synthesis
 
 `executiveSummary(items)` separates `evidence` (type `observed`), `interpretations`, `hypotheses`,
-`implications` and `actions`. An action is emitted only when observed evidence exists and the action's
-`basis` points to it; otherwise it is listed under `unsupportedActions`. Without observed evidence the
-status is `insufficient` and no action is emitted. `observed` remains as an alias of `evidence`.
+`implications` and `actions`. An action is emitted only when its `basis` names the `id` of an observed item;
+otherwise it is listed under `unsupportedActions` with a warning. Observed items without `id` therefore
+cannot support actions. Without observed evidence the status is `insufficient` and no action is emitted.
+`observed` remains as an alias of `evidence`.
 
 ## Integration (Hoje canvas)
 
@@ -59,7 +64,9 @@ Section `#pv4-next-level` on the canonical Hoje view (`intelligence.html` and `i
 after `#signals` and before the Opportunity Canvas. States rendered per block: `loading`, `empty`,
 `insufficient`, `not_comparable`, `available`, `heuristic`, `source_error`; form feedback: `added`,
 `duplicate`, `conflict`, `rejected`. Records persist per browser in `localStorage` key `pulse:next-level:v1`
-and restore on load (`restore()` reports `empty`, `restored`, `source_error`, `storage_error`).
+and restore on load (`restore()` reports `empty`, `restored`, `source_error`, `storage_error`). When `persist()`
+fails after a successful registration the form feedback says so (`data-persist="storage_error"`), the record
+stays valid for the session only. `reset({storage})` also removes the stored key; plain `reset()` keeps it.
 
 ## Integration contract for real sources
 

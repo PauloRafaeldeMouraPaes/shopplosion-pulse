@@ -249,7 +249,7 @@ test('evidência local deduplica por id e por impressão digital do conteúdo', 
   assert.strictEqual(api.addLocalEvidence({ ...local, id: 'loc-1', claim: 'outra' }).matchedBy, 'id');
   const b = api.addLocalEvidence({ ...local, id: 'loc-2' });
   assert.strictEqual(b.status, 'duplicate');
-  assert.strictEqual(b.matchedBy, 'fingerprint');
+  assert.strictEqual(b.matchedBy, 'content');
   assert.strictEqual(w.PULSE_LOCAL_EVIDENCE.length, 1);
   assert.strictEqual(w.PULSE_LOCAL_EVIDENCE[0].status, 'valid');
 });
@@ -389,6 +389,90 @@ test('a série da evidência pública ibge-pmc-super-agosto-2026 carrega no cont
   assert.ok(s.yearOverYear && s.yearOverYear.status === 'observed_change', 'thirteen months give a same-month comparison');
   assert.strictEqual(s.interpretation, null);
   assert.strictEqual(s.causal, false);
+});
+
+/* ---------- fixes from the independent review of 2026-10-31 ---------- */
+test('valor só com espaços, booleano, array, hexadecimal e expoente nunca viram número', () => {
+  const w = freshWindow();
+  const api = w.PULSE_NEXT_LEVEL;
+  const blank = api.addHistoricalObservation({ ...base, value: '   ' });
+  assert.strictEqual(blank.status, 'rejected');
+  assert.strictEqual(blank.reason, 'incomplete', 'whitespace-only is an absence, not zero');
+  assert.ok(blank.missing.includes('value'));
+  for (const bad of [true, [], ['1'], {}, '0x10', '1e3', 'NaN', 'Infinity', '1.2.3', '10 unidades']) {
+    const out = api.addHistoricalObservation({ ...base, value: bad });
+    assert.notStrictEqual(out.status, 'added', 'must not accept ' + JSON.stringify(bad));
+    assert.strictEqual(w.serie_historica.length, 0);
+  }
+  assert.strictEqual(api.addHistoricalObservation({ ...base, value: ' 1,5 ' }).item.value, 1.5, 'decimal comma with surrounding spaces is a value');
+  assert.strictEqual(api.addHistoricalObservation({ ...base, period: '2026-02', value: '-0.25' }).item.value, -0.25);
+  assert.strictEqual(api.addHistoricalObservation({ ...base, period: '2026-03', value: 0 }).item.value, 0, 'zero is a value');
+});
+
+test('metodologia faz parte da identidade da observação, como faz parte da comparabilidade', () => {
+  const w = freshWindow();
+  const api = w.PULSE_NEXT_LEVEL;
+  assert.strictEqual(api.addHistoricalObservation({ ...base, methodology: 'com ajuste' }).status, 'added');
+  assert.strictEqual(api.addHistoricalObservation({ ...base, value: 90, methodology: 'sem ajuste' }).status, 'added', 'same period, different methodology: two observations');
+  assert.strictEqual(api.addHistoricalObservation({ ...base, value: 90, methodology: 'com ajuste' }).status, 'conflict');
+  assert.strictEqual(api.addHistoricalObservation({ ...base, value: 90 }).status, 'added', 'undeclared methodology is its own identity');
+});
+
+test('grupos concorrentes são declarados como limitação, com contagem e critério de empate', () => {
+  const w = freshWindow();
+  const api = w.PULSE_NEXT_LEVEL;
+  const row = (period, value, unit) => api.addHistoricalObservation({ ...base, period, value, unit });
+  row('2026-01', 10, 'a'); row('2026-02', 11, 'a'); row('2026-03', 12, 'a');
+  row('2026-01', 10, 'b'); row('2026-02', 13, 'b');
+  const s = api.historicalSummary('volume', 'Brasil');
+  assert.strictEqual(s.status, 'observed_change');
+  assert.strictEqual(s.count, 3);
+  assert.strictEqual(s.excluded, 2);
+  assert.strictEqual(s.groups, 2);
+  assert.ok(s.limitations.some(l => /2 observações com outra unidade/.test(l)), 'the ignored group is named in the limitations: ' + JSON.stringify(s.limitations));
+  const w2 = freshWindow();
+  const api2 = w2.PULSE_NEXT_LEVEL;
+  const row2 = (period, value, unit) => api2.addHistoricalObservation({ ...base, period, value, unit });
+  row2('2026-01', 10, 'old'); row2('2026-02', 11, 'old');
+  row2('2026-05', 10, 'new'); row2('2026-06', 11, 'new');
+  const tie = api2.historicalSummary('volume', 'Brasil');
+  assert.strictEqual(tie.unit, 'new', 'equal-sized groups: the one with the most recent period wins');
+  assert.ok(tie.limitations.some(l => /empate resolvido pelo período mais recente/.test(l)));
+});
+
+test('síntese executiva só sustenta ação cujo basis aponta para evidência observada identificada', () => {
+  const w = freshWindow();
+  const api = w.PULSE_NEXT_LEVEL;
+  const out = api.executiveSummary([
+    { type: 'observed', text: 'observação sem id' },
+    { type: 'action', text: 'ação com base inexistente', basis: ['nonexistent-id'] },
+  ]);
+  assert.strictEqual(out.status, 'available');
+  assert.deepStrictEqual(out.actions, []);
+  assert.deepStrictEqual(out.unsupportedActions, ['ação com base inexistente']);
+  assert.ok(out.warnings.some(x => /não aponta para evidência observada/.test(x)));
+  const ok = api.executiveSummary([
+    { id: 'obs-1', type: 'observed', text: 'observação com id' },
+    { type: 'action', text: 'ação sustentada', basis: ['obs-1'] },
+  ]);
+  assert.deepStrictEqual(ok.actions, ['ação sustentada']);
+});
+
+test('reset limpa o armazenamento só quando pedido e persist reporta a falha', () => {
+  const w = freshWindow();
+  const api = w.PULSE_NEXT_LEVEL;
+  const mem = new Map();
+  const storage = { getItem: k => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, v), removeItem: k => mem.delete(k) };
+  api.addHistoricalObservation(base);
+  assert.strictEqual(api.persist(storage).status, 'saved');
+  assert.deepStrictEqual(api.reset(), { status: 'reset', storage: 'kept' });
+  assert.ok(mem.has('pulse:next-level:v1'));
+  assert.deepStrictEqual(api.reset({ storage }), { status: 'reset', storage: 'cleared' });
+  assert.ok(!mem.has('pulse:next-level:v1'));
+  const broken = { setItem: () => { throw new Error('quota'); } };
+  assert.strictEqual(api.persist(broken).status, 'storage_error');
+  assert.strictEqual(typeof api.norm, 'function');
+  assert.strictEqual(api.norm('  Índice  de Volume '), 'indice de volume');
 });
 
 let failed = 0;
