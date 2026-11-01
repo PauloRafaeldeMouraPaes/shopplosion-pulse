@@ -175,6 +175,34 @@ test.describe('Pulse next-level contracts — painel Hoje', () => {
     await expect(section.locator('[data-view="role"]')).toContainText('Nenhuma evidência registrada');
     await page.evaluate(() => { localStorage.removeItem('pulse:next-level:v1'); });
   });
+  test('observação local que conflita com a série pública é mostrada, não descartada em silêncio', async ({ page }) => {
+    await page.goto('/index.html');
+    /* A stale local copy of a public row with a different value, as an older browser store could hold. */
+    const seeded = await page.evaluate(() => {
+      const row = window.serie_historica.find(x => x.evidenceId);
+      const stale = Object.assign({}, row, { value: row.value + 5 }); delete stale.evidenceId; delete stale.id;
+      localStorage.setItem('pulse:next-level:v1', JSON.stringify({ version: window.PULSE_NEXT_LEVEL.CONTRACT_VERSION, serie_historica: [stale], papel_ideal: [], local_evidence: [] }));
+      return { period: row.period, value: row.value };
+    });
+    await page.reload();
+    const section = page.locator('#pv4-next-level');
+    await expect(section).toHaveAttribute('data-restore', 'restored');
+    await expect(section).toHaveAttribute('data-not-restored', '1');
+    const note = section.locator('[data-view="series"] .pv4-nl-state[data-state="conflict"]');
+    await expect(note).toHaveCount(1);
+    await expect(note).toContainText(seeded.period);
+    await expect(note).toContainText('do dataset público');
+    await expect(section.locator('[data-view="series"] .pv4-nl-series')).toHaveCount(1);
+    await expect(page.locator('#pv4-nl-status')).toContainText('13 do dataset público, 0 registradas neste navegador');
+    await page.evaluate(() => { localStorage.removeItem('pulse:next-level:v1'); });
+  });
+  test('a comparação interanual do bloco público declara que é cálculo sobre a série, não o número oficial', async ({ page }) => {
+    await page.goto('/index.html');
+    const block = page.locator('#pv4-next-level [data-view="series"] .pv4-nl-series').first();
+    await expect(block).toContainText('Cálculo do Pulse sobre esta série');
+    await expect(block).toContainText('com ajuste sazonal');
+    await expect(block).toContainText('não é a variação interanual publicada pela fonte');
+  });
   test('falha de persistência aparece no feedback em vez de ficar silenciosa', async ({ page }) => {
     await page.addInitScript(() => { const proto = Object.getPrototypeOf(window.localStorage); const original = proto.setItem; proto.setItem = function (key, value) { if (key === 'pulse:next-level:v1') throw new Error('quota exceeded (synthetic)'); return original.call(this, key, value); }; });
     await page.goto('/index.html');

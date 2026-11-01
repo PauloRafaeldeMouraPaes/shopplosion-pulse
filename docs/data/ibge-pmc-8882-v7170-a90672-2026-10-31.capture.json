@@ -1,0 +1,248 @@
+{
+ "captured_at_utc": "2026-11-01T00:07:55Z",
+ "url": "https://apisidra.ibge.gov.br/values/t/8882/n1/all/v/7170/p/last%2013/c11046/56734/c85/90672",
+ "http_status": 200,
+ "raw_file": "docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json",
+ "raw_sha256": "cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a",
+ "raw_bytes": 6780,
+ "table": "8882",
+ "variables": [
+  "7170"
+ ],
+ "index_type": "56734",
+ "activity": "90672",
+ "labels": {
+  "variable": "PMC - Número-índice com ajuste sazonal (2022=100)",
+  "index_type": "Índice de volume de vendas no comércio varejista",
+  "activity": "Hipermercados, supermercados, produtos alimentícios, bebidas e fumo",
+  "unit": "Número-índice"
+ },
+ "periods_requested": "last 13",
+ "periods_with_value": 13,
+ "absences": [],
+ "values": [
+  {
+   "variable": "7170",
+   "period": "2025-08",
+   "value": 109.41291,
+   "raw": "109.41291"
+  },
+  {
+   "variable": "7170",
+   "period": "2025-09",
+   "value": 108.9764,
+   "raw": "108.97640"
+  },
+  {
+   "variable": "7170",
+   "period": "2025-10",
+   "value": 109.02998,
+   "raw": "109.02998"
+  },
+  {
+   "variable": "7170",
+   "period": "2025-11",
+   "value": 110.27578,
+   "raw": "110.27578"
+  },
+  {
+   "variable": "7170",
+   "period": "2025-12",
+   "value": 109.89199,
+   "raw": "109.89199"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-01",
+   "value": 110.23593,
+   "raw": "110.23593"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-02",
+   "value": 111.76286,
+   "raw": "111.76286"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-03",
+   "value": 110.29864,
+   "raw": "110.29864"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-04",
+   "value": 111.8001,
+   "raw": "111.80010"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-05",
+   "value": 110.23224,
+   "raw": "110.23224"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-06",
+   "value": 111.31723,
+   "raw": "111.31723"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-07",
+   "value": 111.14972,
+   "raw": "111.14972"
+  },
+  {
+   "variable": "7170",
+   "period": "2026-08",
+   "value": 110.86129,
+   "raw": "110.86129"
+  }
+ ],
+ "serie_historica": [
+  {
+   "period": "2025-08",
+   "value": 109.41,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2025-09",
+   "value": 108.98,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2025-10",
+   "value": 109.03,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2025-11",
+   "value": 110.28,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2025-12",
+   "value": 109.89,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-01",
+   "value": 110.24,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-02",
+   "value": 111.76,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-03",
+   "value": 110.3,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-04",
+   "value": 111.8,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-05",
+   "value": 110.23,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-06",
+   "value": 111.32,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-07",
+   "value": 111.15,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  },
+  {
+   "period": "2026-08",
+   "value": 110.86,
+   "metric": "PMC: índice de volume de vendas, hipermercados, supermercados, produtos alimentícios, bebidas e fumo, com ajuste sazonal",
+   "unit": "número-índice (2022=100)",
+   "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
+   "geography": "Brasil",
+   "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
+   "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+   "url": "https://sidra.ibge.gov.br/tabela/8882"
+  }
+ ]
+}

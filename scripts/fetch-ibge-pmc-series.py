@@ -22,8 +22,16 @@ What is validated before anything is printed:
 Values are rounded to two decimals in the emitted block (the raw capture keeps the API's
 precision) and that rounding is declared in the block's methodology field.
 
+Outputs with --out X.json: X.json holds the HTTP response body byte for byte (so its SHA-256 is
+the hash of what the API answered) and X.capture.json holds the metadata (URL, UTC timestamp, HTTP
+status, SHA-256 of X.json, labels, absences) plus the emitted block. --variable accepts a
+comma-separated list; the serie_historica block is only emitted for a single index variable
+(7169 or 7170), while multi-variable captures (for example 11708,11709,11710,11711) are kept as
+raw provenance for the figures quoted in an item's text.
+
 Usage:
   python3 scripts/fetch-ibge-pmc-series.py --out docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json
+  python3 scripts/fetch-ibge-pmc-series.py --variable 11708,11709,11710,11711 --periods 202605,202606,202607,202608 --out docs/data/ibge-pmc-8882-a90672-variacoes-2026-10-31.json
   python3 scripts/fetch-ibge-pmc-series.py --months 25 --variable 7169   # unadjusted series
 """
 import argparse
@@ -31,6 +39,7 @@ import datetime as dt
 import hashlib
 import json
 import math
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -51,8 +60,9 @@ MONTHS_PT = {
 }
 
 
-def build_url(table, variable, index_type, activity, months):
-    return (f"{API}/t/{table}/n1/all/v/{variable}/p/last%20{months}"
+def build_url(table, variable, index_type, activity, months, periods=None):
+    period = ",".join(periods) if periods else f"last%20{months}"
+    return (f"{API}/t/{table}/n1/all/v/{variable}/p/{period}"
             f"/c11046/{index_type}/c85/{activity}")
 
 
@@ -83,15 +93,18 @@ def main():
     ap.add_argument("--index-type", default="56734", help="56734 = volume de vendas; 56733 = receita nominal")
     ap.add_argument("--activity", default="90672", help="codigo c85 da atividade (90672 = hiper/super, alimentos, bebidas e fumo)")
     ap.add_argument("--months", type=int, default=13)
+    ap.add_argument("--periods", help="lista AAAAMM separada por virgula; substitui --months")
     ap.add_argument("--geography", default="Brasil")
-    ap.add_argument("--source", default="IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-                    help="texto do campo fonte do item de evidencia que recebera o bloco")
+    ap.add_argument("--source", default=None,
+                    help="texto do campo fonte do item de evidencia; por padrao 'IBGE: PMC, tabela <t> do SIDRA (<ultimo mes>)'")
     ap.add_argument("--out", help="arquivo JSON do registro bruto (recomendado: docs/data/...)")
     ap.add_argument("--allow-gaps", action="store_true")
     ap.add_argument("--timeout", type=int, default=60)
     args = ap.parse_args()
 
-    url = build_url(args.table, args.variable, args.index_type, args.activity, args.months)
+    variables = [v.strip() for v in args.variable.split(",") if v.strip()]
+    periods = [x.strip() for x in args.periods.split(",") if x.strip()] if args.periods else None
+    url = build_url(args.table, ",".join(variables), args.index_type, args.activity, args.months, periods)
     captured_at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     try:
         body, status = fetch(url, args.timeout)
@@ -116,7 +129,7 @@ def main():
     observations = []
     absences = []
     for row in data:
-        if row.get("D2C") != args.variable:
+        if row.get("D2C") not in variables:
             problems.append(f"variavel inesperada {row.get('D2C')} em {row.get('D3C')}")
         if row.get("D4C") != args.index_type:
             problems.append(f"tipo de indice inesperado {row.get('D4C')} em {row.get('D3C')}")
@@ -131,13 +144,15 @@ def main():
         if value is None:
             absences.append({"period": period, "raw": text})
             continue
-        observations.append({"period": period, "value": value, "raw": text, "label": row.get("D3N")})
+        observations.append({"period": period, "value": value, "raw": text, "label": row.get("D3N"), "variable": row.get("D2C")})
 
-    periods = sorted({o["period"] for o in observations})
-    if len(periods) != len(observations):
+    single = len(variables) == 1
+    seen_periods = sorted({o["period"] for o in observations})
+    if single and len(seen_periods) != len(observations):
         problems.append("periodos repetidos na resposta")
-    if len(periods) != args.months and not args.allow_gaps:
-        problems.append(f"{len(periods)} periodos com valor, {args.months} solicitados (use --allow-gaps para aceitar)")
+    expected_periods = len(periods) if periods else args.months
+    if single and len(seen_periods) != expected_periods and not args.allow_gaps:
+        problems.append(f"{len(seen_periods)} periodos com valor, {expected_periods} solicitados (use --allow-gaps para aceitar)")
     if problems:
         print("ERRO: a resposta nao passou nas validacoes:", file=sys.stderr)
         for p in problems:
@@ -148,43 +163,51 @@ def main():
     index_label = data[0].get("D4N", "")
     activity_label = data[0].get("D5N", "")
     unit = "número-índice (2022=100)" if data[0].get("MN", "").lower().startswith("n") else data[0].get("MN", "")
-    metric = f"PMC: {INDEX_TYPE_LABEL.get(args.index_type, index_label.lower())}, {activity_label.lower()}, " + (
-        "com ajuste sazonal" if args.variable == "7170" else "sem ajuste sazonal" if args.variable == "7169" else variable_label)
-    methodology = (f"{VARIABLE_METHODOLOGY.get(args.variable, variable_label)}, tabela {args.table} do SIDRA, variável {args.variable}, "
-                   f"tipo de índice {args.index_type}, atividade {args.activity}; valores arredondados a duas casas decimais a partir da API")
-    provenance = (f"API SIDRA, consulta de {captured_at}, tabela {args.table}; registro bruto"
-                  + (f" em {args.out}" if args.out else "") + f" (SHA-256 {sha256}); URL completa no campo fonte_primaria do item")
-    series = [{
-        "period": o["period"],
-        "value": round(o["value"], 2),
-        "metric": metric,
-        "unit": unit,
-        "methodology": methodology,
-        "geography": args.geography,
-        "source": args.source,
-        "provenance": provenance,
-        "url": TABLE_URL.format(table=args.table),
-    } for o in sorted(observations, key=lambda o: o["period"])]
-
+    last_label = max(observations, key=lambda o: o["period"])["label"] if observations else ""
+    source = args.source or f"IBGE: PMC, tabela {args.table} do SIDRA ({last_label})"
+    raw_path = args.out
+    meta_path = re.sub(r"\.json$", "", args.out) + ".capture.json" if args.out else None
+    series = []
+    if single and variables[0] in VARIABLE_METHODOLOGY:
+        metric = f"PMC: {INDEX_TYPE_LABEL.get(args.index_type, index_label.lower())}, {activity_label.lower()}, " + (
+            "com ajuste sazonal" if variables[0] == "7170" else "sem ajuste sazonal")
+        methodology = (f"{VARIABLE_METHODOLOGY[variables[0]]}, tabela {args.table} do SIDRA, variável {variables[0]}, "
+                       f"tipo de índice {args.index_type}, atividade {args.activity}; valores arredondados a duas casas decimais a partir da API")
+        provenance = (f"API SIDRA, consulta de {captured_at}, tabela {args.table}; resposta bruta"
+                      + (f" em {raw_path}" if raw_path else "") + f" (SHA-256 {sha256}); URL completa no campo fonte_primaria do item")
+        series = [{
+            "period": o["period"],
+            "value": round(o["value"], 2),
+            "metric": metric,
+            "unit": unit,
+            "methodology": methodology,
+            "geography": args.geography,
+            "source": source,
+            "provenance": provenance,
+            "url": TABLE_URL.format(table=args.table),
+        } for o in sorted(observations, key=lambda o: o["period"])]
     record = {
         "captured_at_utc": captured_at,
         "url": url,
         "http_status": status,
-        "sha256": sha256,
-        "table": args.table, "variable": args.variable, "index_type": args.index_type, "activity": args.activity,
+        "raw_file": raw_path,
+        "raw_sha256": sha256,
+        "raw_bytes": len(body),
+        "table": args.table, "variables": variables, "index_type": args.index_type, "activity": args.activity,
         "labels": {"variable": variable_label, "index_type": index_label, "activity": activity_label, "unit": data[0].get("MN", "")},
-        "months_requested": args.months,
-        "periods_with_value": len(periods),
+        "periods_requested": periods or f"last {args.months}",
+        "periods_with_value": len(seen_periods),
         "absences": absences,
-        "header": header,
-        "rows": data,
+        "values": [{"variable": o["variable"], "period": o["period"], "value": o["value"], "raw": o["raw"]} for o in sorted(observations, key=lambda o: (o["variable"], o["period"]))],
         "serie_historica": series,
     }
     if args.out:
-        with open(args.out, "w", encoding="utf-8") as fh:
+        with open(raw_path, "wb") as fh:
+            fh.write(body)
+        with open(meta_path, "w", encoding="utf-8") as fh:
             json.dump(record, fh, ensure_ascii=False, indent=1)
             fh.write("\n")
-        print(f"Registro bruto gravado em {args.out} ({len(body)} bytes, SHA-256 {sha256})", file=sys.stderr)
+        print(f"Resposta bruta gravada em {raw_path} ({len(body)} bytes, SHA-256 {sha256}); metadados em {meta_path}", file=sys.stderr)
     print(json.dumps(series, ensure_ascii=False, indent=1))
     if absences:
         print(f"AVISO: {len(absences)} periodo(s) sem valor na fonte: " + ", ".join(a['period'] for a in absences), file=sys.stderr)

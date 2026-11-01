@@ -92,7 +92,7 @@ body .pv4-next small{color:var(--on-brand)}
 .pv4-nl-state span{font-size:12px;line-height:17px;color:var(--ink-2)}
 .pv4-nl-state[data-state="available"]{border-left:3px solid var(--state-ok)}
 .pv4-nl-state[data-state="not_comparable"],.pv4-nl-state[data-state="insufficient"]{border-left:3px solid var(--state-attention)}
-.pv4-nl-state[data-state="source_error"]{border-left:3px solid var(--state-error)}
+.pv4-nl-state[data-state="source_error"],.pv4-nl-state[data-state="conflict"]{border-left:3px solid var(--state-error)}
 .pv4-nl-state[data-state="heuristic"]{border-left:3px solid var(--state-processing)}
 .pv4-nl-muted{margin:0;font-size:12px;line-height:17px;color:var(--ink-2)}
 .pv4-nl-list{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:17px;color:var(--ink-2)}

@@ -722,13 +722,13 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "categoria": "varejo alimentar",
     "tipo": "PMC",
     "fato": "Em agosto de 2026, o volume de vendas de hipermercados, supermercados, produtos alimentícios, bebidas e fumo caiu 0,3% ante julho, na série com ajuste sazonal, e cresceu 0,5% ante agosto de 2025, na série sem ajuste; no ano, acumula alta de 1,4% e, em 12 meses, de 1,0%.",
-    "contexto": "IBGE; Pesquisa Mensal de Comércio; Brasil; tabela 8882 do SIDRA, índice de volume de vendas (2022=100). A série com ajuste sazonal é revisada a cada divulgação; os valores refletem a consulta de 31/10/2026.",
-    "interpretacao": "A atividade segue em patamar estável: o índice com ajuste sazonal oscilou entre 109,0 e 111,8 nos 13 meses até agosto de 2026, e agosto (110,9) ficou 1,3% acima de agosto de 2025 nessa série. A variação interanual de 0,5% na série sem ajuste é a menor desde maio de 2026 (-0,4%).",
-    "hipotese": "Verificar se a desaceleração interanual de agosto reflete a base de comparação: na série sem ajuste, agosto de 2025 (110,7) foi 3,4% superior a julho de 2025 (107,1). Isso precisa ser medido, não presumido.",
+    "contexto": "IBGE; Pesquisa Mensal de Comércio; Brasil; tabela 8882 do SIDRA, índice de volume de vendas (2022=100). A série com ajuste sazonal é revisada a cada divulgação; os valores refletem a consulta à API SIDRA de 31/10/2026 (horário de Brasília; registros brutos em docs/data).",
+    "interpretacao": "A atividade segue em patamar estável: o índice com ajuste sazonal oscilou entre 108,98 e 111,80 nos 13 meses até agosto de 2026, e agosto (110,86) ficou 1,3% acima de agosto de 2025 nessa série. A variação interanual de 0,5% na série sem ajuste é a menor desde maio de 2026 (-0,4%).",
+    "hipotese": "Verificar se a desaceleração interanual de agosto reflete a base de comparação: agosto de 2025 havia caído 0,5% ante agosto de 2024 na série sem ajuste, o que faria da base de 2025 um mês fraco, não forte. Isso precisa ser medido, não presumido.",
     "acao": "Acompanhar a divulgação de setembro de 2026; usar a série histórica deste registro apenas como variação observada e cruzar com IPCA Alimentação e bebidas, Abras e Scanntech sem misturar universos.",
     "fonte": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
     "url": "https://sidra.ibge.gov.br/tabela/8882",
-    "periodo": "Agosto/2026; série de agosto/2025 a agosto/2026 consultada na API SIDRA em 31/10/2026",
+    "periodo": "2026-08",
     "indicador": "Índice de volume de vendas (2022=100), séries com e sem ajuste sazonal",
     "valor": "110,86 (agosto/2026, com ajuste sazonal)",
     "comparacao": "-0,3% vs julho/2026 (com ajuste sazonal); +0,5% vs agosto/2025 (sem ajuste); +1,4% no ano; +1,0% em 12 meses",
@@ -737,8 +737,8 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "universo_observado": "Empresas do comércio varejista pesquisadas pela PMC do IBGE na atividade hipermercados, supermercados, produtos alimentícios, bebidas e fumo; Brasil; índice de volume de vendas (2022=100)",
     "representa": "Variação agregada do volume de vendas da atividade no Brasil, nas séries com e sem ajuste sazonal publicadas pelo IBGE",
     "nao_representa": "Não representa categorias específicas, canais fora do comércio varejista formal, regiões isoladas, marcas, unidades vendidas ou motivação de compra; não permite atribuir causa à variação",
-    "fonte_primaria": "IBGE, SIDRA, tabela 8882; API consultada em 2026-10-31T22:48:51Z: https://apisidra.ibge.gov.br/values/t/8882/n1/all/v/7170/p/last%2013/c11046/56734/c85/90672 (registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json, SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a)",
-    "fato_verificado_na_fonte": "SIM: valores lidos diretamente da API SIDRA em 31/10/2026 (variáveis 11708, 11709, 11710 e 11711 para agosto de 2026: -0,3, 0,5, 1,4 e 1,0); os 13 índices com ajuste sazonal de agosto/2025 a agosto/2026 estão em serie_historica",
+    "fonte_primaria": "IBGE, SIDRA, tabela 8882. Respostas brutas da API gravadas em docs/data: série com ajuste sazonal, variável 7170, 2025-08 a 2026-08: docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (consulta 2026-11-01T00:07:55Z, SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a, https://apisidra.ibge.gov.br/values/t/8882/n1/all/v/7170/p/last%2013/c11046/56734/c85/90672); variações 11708 a 11711 para 2025-08 e 2026-05 a 2026-08: docs/data/ibge-pmc-8882-a90672-variacoes-2026-10-31.json (consulta 2026-11-01T00:07:46Z, SHA-256 20d19c0f519c8a3e4d166cf8beb4d374860b4c85700d999682d7cf4fae6fa587, https://apisidra.ibge.gov.br/values/t/8882/n1/all/v/11708,11709,11710,11711/p/202508,202605,202606,202607,202608/c11046/56734/c85/90672)",
+    "fato_verificado_na_fonte": "SIM: -0,3% (11708), 0,5% (11709), 1,4% (11710) e 1,0% (11711) para agosto de 2026, -0,5% (11709) para agosto de 2025 e as variações interanuais de maio a julho de 2026 lidos da resposta bruta docs/data/ibge-pmc-8882-a90672-variacoes-2026-10-31.json; os 13 índices com ajuste sazonal de agosto/2025 a agosto/2026 lidos da resposta bruta docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json e registrados em serie_historica com arredondamento a duas casas",
     "alcance_para_pergunta": "DIRETO para volume do varejo alimentar no Brasil; CONTEXTUAL para categorias, canais ou shoppers específicos",
     "keywords": [
       "PMC",
@@ -761,7 +761,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -772,7 +772,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -783,7 +783,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -794,7 +794,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -805,7 +805,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -816,7 +816,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -827,7 +827,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -838,7 +838,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -849,7 +849,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -860,7 +860,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -871,7 +871,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -882,7 +882,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       },
       {
@@ -893,7 +893,7 @@ export const PULSE_PUBLIC_EVIDENCE = [
         "methodology": "Índice de base fixa com ajuste sazonal (2022=100), tabela 8882 do SIDRA, variável 7170, tipo de índice 56734, atividade 90672; valores arredondados a duas casas decimais a partir da API",
         "geography": "Brasil",
         "source": "IBGE: PMC, tabela 8882 do SIDRA (agosto de 2026)",
-        "provenance": "API SIDRA, consulta de 2026-10-31T22:48:51Z, tabela 8882; registro bruto em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
+        "provenance": "API SIDRA, consulta de 2026-11-01T00:07:55Z, tabela 8882; resposta bruta em docs/data/ibge-pmc-8882-v7170-a90672-2026-10-31.json (SHA-256 cfe81b9b6b02172ecfbbf1d2c7f77fe7467cbed61826fcb2ac3ae9a709701f0a); URL completa no campo fonte_primaria do item",
         "url": "https://sidra.ibge.gov.br/tabela/8882"
       }
     ]
