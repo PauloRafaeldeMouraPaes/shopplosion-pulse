@@ -1,0 +1,53 @@
+[
+  {
+    "NC": "Nível Territorial (Código)",
+    "NN": "Nível Territorial",
+    "MC": "Unidade de Medida (Código)",
+    "MN": "Unidade de Medida",
+    "V": "Valor",
+    "D1C": "Brasil (Código)",
+    "D1N": "Brasil",
+    "D2C": "Variável (Código)",
+    "D2N": "Variável",
+    "D3C": "Mês (Código)",
+    "D3N": "Mês",
+    "D4C": "Tipos de índice (Código)",
+    "D4N": "Tipos de índice",
+    "D5C": "Atividades (Código)",
+    "D5N": "Atividades"
+  },
+  {
+    "NC": "1",
+    "NN": "Brasil",
+    "MC": "2",
+    "MN": "%",
+    "V": "2.1",
+    "D1C": "1",
+    "D1N": "Brasil",
+    "D2C": "11709",
+    "D2N": "PMC - Variação mês/mesmo mês do ano anterior (M/M-12)",
+    "D3C": "202604",
+    "D3N": "abril 2026",
+    "D4C": "56736",
+    "D4N": "Índice de volume de vendas no comércio varejista ampliado",
+    "D5C": "56741",
+    "D5N": "Atacado especializado em produtos alimentícios, bebidas e fumo"
+  },
+  {
+    "NC": "1",
+    "NN": "Brasil",
+    "MC": "2",
+    "MN": "%",
+    "V": "3.2",
+    "D1C": "1",
+    "D1N": "Brasil",
+    "D2C": "11710",
+    "D2N": "PMC - Variação acumulada no ano (em relação ao mesmo período do ano anterior)",
+    "D3C": "202604",
+    "D3N": "abril 2026",
+    "D4C": "56736",
+    "D4N": "Índice de volume de vendas no comércio varejista ampliado",
+    "D5C": "56741",
+    "D5N": "Atacado especializado em produtos alimentícios, bebidas e fumo"
+  }
+]
