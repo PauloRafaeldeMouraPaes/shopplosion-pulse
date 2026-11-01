@@ -6,7 +6,11 @@ const { test, expect } = require('@playwright/test');
    working client. It needs outbound HTTPS to cdn.jsdelivr.net; when the CDN is unreachable the test
    reports that instead of claiming the integrity check passed. */
 const pages = ['/auth.html', '/index.html', '/app.html', '/ask.html', '/sources.html', '/intelligence.html', '/documento.html'];
-const expectedSrc = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js';
+/* dist/umd/supabase.js is the file shipped inside the npm tarball (already minified; SHA-256 84ee9bf4...). The
+   .min.js path on jsDelivr is generated on demand with a banner that says "Do NOT use SRI with dynamically
+   generated files", so it must never be the integrity-checked target. */
+const expectedSrc = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js';
+const expectedIntegrity = 'sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP';
 
 test.describe('Supabase SDK pin and Subresource Integrity', () => {
   for (const path of pages) {
@@ -24,7 +28,7 @@ test.describe('Supabase SDK pin and Subresource Integrity', () => {
       });
       expect(tag, 'exactly one SDK tag per page').toHaveLength(1);
       expect(tag[0].src).toBe(expectedSrc);
-      expect(tag[0].integrity).toMatch(/^sha384-[A-Za-z0-9+/=]{64}$/);
+      expect(tag[0].integrity).toBe(expectedIntegrity);
       expect(tag[0].crossorigin).toBe('anonymous');
       const sdkReachable = failed.length === 0 && !/ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION)/.test(failed.join(' '));
       test.skip(!sdkReachable && failed.some(f => /ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED|ERR_CONNECTION/.test(f)), 'CDN unreachable from this runner: integrity not verified here');
