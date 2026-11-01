@@ -325,6 +325,72 @@ test('restore distingue armazenamento vazio, corrompido e válido', () => {
   assert.strictEqual(freshWindow().PULSE_NEXT_LEVEL.restore(broken).status, 'storage_error');
 });
 
+/* ---------- public evidence as a series source ---------- */
+test('série vinda de evidência pública guarda evidenceId, herda proveniência e não é persistida', () => {
+  const w = freshWindow();
+  const api = w.PULSE_NEXT_LEVEL;
+  const evidenceItem = {
+    id: 'ev-fixture', fonte: 'Fonte fixture', url: 'https://example.invalid/tabela', fonte_primaria: 'API fixture consultada em teste', universo_observado: 'BR',
+    serie_historica: [
+      { period: '2026-01', value: 100, metric: 'm', unit: 'u', methodology: 'método fixture' },
+      { period: '2026-02', value: 101, metric: 'm', unit: 'u', methodology: 'método fixture' },
+      { period: '2026-03', value: 'não numérico', metric: 'm', unit: 'u' }
+    ]
+  };
+  const loaded = api.loadFromEvidence([evidenceItem, { id: 'sem-serie', fonte: 'x' }, null]);
+  assert.strictEqual(loaded.added, 2);
+  assert.strictEqual(loaded.rejected, 1, 'a non-numeric value in an evidence block is rejected, never coerced');
+  assert.ok(w.serie_historica.every(x => x.evidenceId === 'ev-fixture'));
+  assert.strictEqual(w.serie_historica[0].source, 'Fonte fixture');
+  assert.strictEqual(w.serie_historica[0].provenance, 'API fixture consultada em teste', 'row provenance defaults to fonte_primaria');
+  assert.strictEqual(w.serie_historica[0].geography, 'BR', 'row geography defaults to universo_observado');
+  assert.strictEqual(w.serie_historica[0].url, 'https://example.invalid/tabela');
+  /* Rows a person registers by hand keep no evidenceId and are the only ones persisted. */
+  const manual = api.addHistoricalObservation({ ...base, metric: 'manual' });
+  assert.strictEqual(manual.item.evidenceId, null);
+  const mem = new Map();
+  const storage = { getItem: k => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, v) };
+  assert.strictEqual(api.persist(storage).status, 'saved');
+  const stored = JSON.parse(mem.get('pulse:next-level:v1'));
+  assert.strictEqual(stored.serie_historica.length, 1);
+  assert.strictEqual(stored.serie_historica[0].metric, 'manual');
+  /* A later load with revised evidence values replaces the series instead of conflicting with a stale copy. */
+  const w2 = freshWindow();
+  const revised = JSON.parse(JSON.stringify(evidenceItem)); revised.serie_historica[1].value = 102;
+  assert.strictEqual(w2.PULSE_NEXT_LEVEL.loadFromEvidence([revised]).added, 2);
+  assert.strictEqual(w2.PULSE_NEXT_LEVEL.restore(storage).status, 'restored');
+  assert.strictEqual(w2.serie_historica.length, 3);
+  const summary = w2.PULSE_NEXT_LEVEL.historicalSummary('m', 'BR');
+  assert.strictEqual(summary.status, 'observed_change');
+  assert.strictEqual(summary.current.value, 102);
+  assert.strictEqual(summary.current.evidenceId, 'ev-fixture');
+  assert.strictEqual(summary.causal, false);
+});
+
+test('a série da evidência pública ibge-pmc-super-agosto-2026 carrega no contrato sem rejeições', () => {
+  /* Reads the real public dataset: this is the only check that touches market data, and it only asserts
+     structural acceptance (13 valid rows, one comparable group), never a market conclusion. */
+  const source = fs.readFileSync(path.join(__dirname, '..', 'pulse-public-evidence.js'), 'utf8');
+  const marker = 'window.PULSE_EVIDENCE=';
+  const startIdx = source.indexOf('[', source.indexOf(marker));
+  const dataset = vm.runInThisContext(source.slice(startIdx, source.lastIndexOf(']') + 1));
+  const item = dataset.find(x => x.id === 'ibge-pmc-super-agosto-2026');
+  assert.ok(item && Array.isArray(item.serie_historica), 'evidence item with serie_historica must exist');
+  const w = freshWindow();
+  const loaded = w.PULSE_NEXT_LEVEL.loadFromEvidence(dataset);
+  assert.strictEqual(loaded.rejected, 0, 'every declared series row must satisfy the contract');
+  assert.strictEqual(loaded.conflict, 0);
+  assert.strictEqual(loaded.added, item.serie_historica.length);
+  assert.ok(w.serie_historica.every(x => x.methodology !== '[A DEFINIR]' && x.unit !== '[A DEFINIR]' && x.provenance && x.url), 'methodology, unit, provenance and url are declared on every row');
+  const s = w.PULSE_NEXT_LEVEL.historicalSummary(item.serie_historica[0].metric, 'Brasil');
+  assert.strictEqual(s.status, 'observed_change');
+  assert.strictEqual(s.count, item.serie_historica.length);
+  assert.strictEqual(s.consecutive, true, 'the embedded series has no gaps');
+  assert.ok(s.yearOverYear && s.yearOverYear.status === 'observed_change', 'thirteen months give a same-month comparison');
+  assert.strictEqual(s.interpretation, null);
+  assert.strictEqual(s.causal, false);
+});
+
 /* ---------- fixes from the independent review of 2026-10-31 ---------- */
 test('valor só com espaços, booleano, array, hexadecimal e expoente nunca viram número', () => {
   const w = freshWindow();
