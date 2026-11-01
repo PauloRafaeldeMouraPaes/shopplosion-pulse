@@ -84,8 +84,7 @@
   </section>
 </main>
 <script src="./pulse-config.js?v=20260922.17"></script>
-<script src="./pulse-public-evidence.js?v=20260922.17"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js" integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous"></script>
 <script>
 (async function(){
   const cfg=window.PULSE_SUPABASE_CONFIG||{};
@@ -381,11 +380,9 @@ async function loadPriorKnowledge(scope,query){
   document.querySelectorAll('.questionExample').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('query').value=btn.dataset.question||'';document.getElementById('query').focus();show('Exemplo carregado. Ajuste a pergunta se quiser e depois recupere as evidências.','ok')}));
   document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer();});
   askReadyResolve(true);
-  document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer()});
   document.getElementById('logout').addEventListener('click',async()=>{try{await client.auth.signOut()}finally{redirect()}});
 })().catch(()=>{const el=document.getElementById('message');el.textContent='Não foi possível inicializar o Ask AI privado.';el.className='msg show error'});
 </script>
-<script src="./pulse-public-evidence.js?v=20260922.17"></script>
 <script src="./pulse-workspace-v3.js?v=20260922.17"></script>
 <script src="./scripts/pulse-aprofundamento-escopo.js?v=20260925.aprofundamento"></script>
 <script src="./scripts/pulse-aprofundamento-ui.js?v=20260925.aprofundamento"></script></body>

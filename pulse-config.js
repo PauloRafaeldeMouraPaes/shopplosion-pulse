@@ -6,7 +6,7 @@ window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',ano
 (function(){
   let pdfjsPromise=null;
   const loadPdfJs=()=>{if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(!pdfjsPromise)pdfjsPromise=import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs');return pdfjsPromise};
-  const extractPdfText=async file=>{const pdfjs=await loadPdfJs();const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),disableWorker:true}).promise;const pages=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n);const content=await page.getTextContent();const text=content.items.map(item=>String(item?.str||'')).join(' ').replace(/\s+/g,' ').trim();if(text)pages.push('[Página '+n+']\n'+text)}return pages.join('\n\n').trim()};
+  const extractPdfText=async file=>{const pdfjs=await loadPdfJs();const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),disableWorker:true,isEvalSupported:false}).promise;const pages=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n);const content=await page.getTextContent();const text=content.items.map(item=>String(item?.str||'')).join(' ').replace(/\s+/g,' ').trim();if(text)pages.push('[Página '+n+']\n'+text)}return pages.join('\n\n').trim()};
   window.PULSE_PDF_TEXT_EXTRACTION={enabled:true,library:'pdfjs-dist',version:'4.10.38',mode:'explicit'};
   window.PULSE_EXTRACT_PDF_TEXT=extractPdfText;
 })();
