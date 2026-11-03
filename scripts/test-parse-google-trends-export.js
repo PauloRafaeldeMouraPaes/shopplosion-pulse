@@ -87,11 +87,25 @@ function weeklyFixture({ weeks = 52, geo = "Brasil", terms = REGISTERED_TERMS, c
   }
   return lines.join("\n") + "\n";
 }
-function runCli(content, extra = []) {
+/* Synthetic fixtures are checked against a copy of the registered slots with the capture fields cleared, so the
+   hash registered for the real exports does not reject them before the structural checks run. */
+const UNREGISTERED_STATUS = (() => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gt-status-"));
+  const lines = fs.readFileSync(path.join(KIT, "trends-export-status-2026-10-15.csv"), "utf8").split(/\r?\n/);
+  const head = lines[0].split(",");
+  const idx = ["exported_at_utc", "raw_filename", "raw_file_sha256"].map(h => head.indexOf(h));
+  const out = [lines[0]].concat(lines.slice(1).filter(Boolean).map(l => {
+    const cells = []; let cell = "", q = false;
+    for (let i = 0; i < l.length; i++) { const c = l[i]; if (q) { if (c === '"' && l[i + 1] === '"') { cell += '""'; i++; } else if (c === '"') { q = false; cell += c; } else cell += c; } else if (c === '"') { q = true; cell += c; } else if (c === ",") { cells.push(cell); cell = ""; } else cell += c; }
+    cells.push(cell); idx.forEach(i => { cells[i] = ""; }); return cells.join(",");
+  }));
+  const file = path.join(dir, "status.csv"); fs.writeFileSync(file, out.join("\n") + "\n"); return file;
+})();
+function runCli(content, extra = [], env = { PULSE_TRENDS_STATUS_FILE: UNREGISTERED_STATUS }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gt-export-"));
   const file = path.join(dir, "multiTimeline.csv");
   fs.writeFileSync(file, content);
-  const r = spawnSync(process.execPath, [PARSER, "--file", file, ...extra], { encoding: "utf8" });
+  const r = spawnSync(process.execPath, [PARSER, "--file", file, ...extra], { encoding: "utf8", env: { ...process.env, ...env } });
   return { status: r.status, out: r.stdout + r.stderr, dir };
 }
 test("CLI aceita um export sintético coerente com o slot GT-CHOC-A-12M e reporta hash não registrado", () => {
@@ -130,9 +144,21 @@ test("CLI recusa escrever dentro do capture kit", () => {
   assert.ok(!fs.existsSync(path.join(KIT, "should-never-exist.json")));
 });
 
+test("CLI aceita os exports reais registrados e rejeita um byte alterado pelo hash registrado", () => {
+  const status = fs.readFileSync(path.join(KIT, "trends-export-status-2026-10-15.csv"), "utf8");
+  if (!/GT-CHOC-A-12M,[^\n]*,captured,/.test(status)) return; // slot not captured yet: nothing real to check
+  const real = fs.readFileSync(path.join(KIT, "GT-CHOC-A-12M.csv"), "utf8");
+  const ok = runCli(real, ["--export-id", "GT-CHOC-A-12M"], {});
+  assert.strictEqual(ok.status, 0, ok.out);
+  assert.match(ok.out, /VALID .*53 weeks/);
+  const bad = runCli(real.replace("2025-11-02,40,", "2025-11-02,41,"), ["--export-id", "GT-CHOC-A-12M"], {});
+  assert.strictEqual(bad.status, 1, bad.out);
+  assert.match(bad.out, /REJECTED: SHA-256/);
+});
+
 let failed = 0;
 for (const { name, fn } of checks) {
   try { fn(); console.log("PASS " + name); } catch (err) { failed++; console.log("FAIL " + name + "\n  " + err.message); }
 }
-console.log(failed ? `Google Trends export parser: ${failed} failure(s)` : `Google Trends export parser: PASS (${checks.length} checks, synthetic fixtures only)`);
+console.log(failed ? `Google Trends export parser: ${failed} failure(s)` : `Google Trends export parser: PASS (${checks.length} checks: synthetic fixtures plus the registered real export)`);
 process.exit(failed ? 1 : 0);
