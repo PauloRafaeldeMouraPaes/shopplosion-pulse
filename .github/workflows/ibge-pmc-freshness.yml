@@ -1,0 +1,45 @@
+name: IBGE PMC Freshness
+
+# Weekly read-only check of the IBGE PMC series shown in the Pulse against the SIDRA API.
+# It never edits evidence or deploys anything: when the API has a new month or revised values it opens
+# (or refreshes) one issue with what changed and how to update. Free: public repository, public API.
+
+on:
+  schedule:
+    - cron: "17 13 * * 1"   # Mondays 10:17 in São Paulo
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ibge-pmc-freshness
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare the published series with SIDRA
+        id: check
+        run: python3 scripts/check-ibge-pmc-freshness.py --report report.md
+      - name: Publish the report in the run summary
+        if: ${{ always() }}
+        run: test -f report.md && cat report.md >> "$GITHUB_STEP_SUMMARY" || echo "no report" >> "$GITHUB_STEP_SUMMARY"
+      - name: Open or refresh the update issue
+        if: ${{ steps.check.outputs.stale == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "Série IBGE PMC desatualizada no Pulse"
+        run: |
+          set -euo pipefail
+          number="$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == env.TITLE)) | .[0].number // empty")"
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file report.md
+            echo "Issue #$number refreshed."
+          else
+            gh issue create --title "$TITLE" --body-file report.md
+          fi
