@@ -19,7 +19,9 @@ const crypto = require("crypto");
 
 const ROOT = path.resolve(__dirname, "..");
 const KIT = path.join(ROOT, "docs", "pilot-chocolate", "capture-kit");
-const STATUS = path.join(KIT, "trends-export-status-2026-10-15.csv");
+/* PULSE_TRENDS_STATUS_FILE exists only so the parser tests can use synthetic slots without a registered hash;
+   the real status file is always the default. */
+const STATUS = process.env.PULSE_TRENDS_STATUS_FILE ? path.resolve(process.env.PULSE_TRENDS_STATUS_FILE) : path.join(KIT, "trends-export-status-2026-10-15.csv");
 const TIME_HEADERS = { week: ["week", "semana"], month: ["month", "mês", "mes"], day: ["day", "dia"] };
 const CATEGORY_LINES = /^(category|categoria)\s*:\s*(.+)$/i;
 

@@ -32,4 +32,4 @@ Status: **execution guide only; no export is implied by this file**. Use this ch
 
 ## Current state
 
-The four rows in `trends-export-status-2026-10-15.csv` remain `not_captured`. This checklist does not change that state. The interface download is a manual UI step; no export file has been fabricated or represented as captured.
+All four slots were captured on 2026-11-03 (UTC 05:17) and registered in `trends-export-status-2026-10-15.csv` as `captured`, QA `pending_review`. The original CSVs (`GT-CHOC-A-5Y.csv`, `GT-CHOC-A-12M.csv`, `GT-CHOC-B-5Y.csv`, `GT-CHOC-B-12M.csv`) are kept byte for byte in this folder and their SHA-256 is enforced by `scripts/test-chocolate-capture-kit-integrity.js`. Each passed `scripts/parse-google-trends-export.js` (VALID, weekly, peak 100, `<1` preserved). The last week of each file (2026-11-01) is partial. Data source: Google Trends. The four-week baseline still waits for a human reviewer to accept the exports and for the retail and source-provenance gates.
