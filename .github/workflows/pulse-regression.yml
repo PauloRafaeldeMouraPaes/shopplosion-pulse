@@ -25,6 +25,8 @@ jobs:
         run: node scripts/trends-term-screen.js --self-test
       - name: Chocolate pilot autonomy rules (check mode)
         run: node scripts/chocolate-pilot-autonomy.js --check
+      - name: Test the IBGE PMC evidence generator (offline, from the saved captures)
+        run: python3 scripts/test-update-ibge-pmc-evidence.py
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
       - name: Run semantic data integrity checks
