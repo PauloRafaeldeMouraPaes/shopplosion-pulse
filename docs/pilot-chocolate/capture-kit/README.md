@@ -44,14 +44,14 @@ No private API, paid provider, account creation or supplier response is a prereq
 
 | Gate | Status | Evidence required to change status |
 |---|---|---|
-| Google Trends capture | Pending | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
+| Google Trends capture | **Accepted** (2026-11-04, Paulo; limitations in `trends-export-status-2026-10-15.csv`) | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
 | Source provenance | Pending | Public URL, access method, timestamps, attribution and relevant reuse limits documented; no bespoke permission gate for ordinary public-source discovery |
 | Retail coverage | Pending | Multi-brand/category sample with documented EAN × retailer/store coverage and gaps; Lindt is optional, not a prerequisite |
 | Reproducibility and QA | Pending | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |
 | Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
 | Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
 
-No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no raw Google Trends export, multi-retailer observation panel, or longitudinal retail time series has been collected; the first direct retail snapshot covers two retailers; the secondary price aggregator is a separate benchmark and may overlap with the same underlying supermarket sites. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
+No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no multi-retailer observation panel or longitudinal retail time series has been collected; the first direct retail snapshot covers two retailers; the secondary price aggregator is a separate benchmark and may overlap with the same underlying supermarket sites. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
 
 ### First weekly review record
 
