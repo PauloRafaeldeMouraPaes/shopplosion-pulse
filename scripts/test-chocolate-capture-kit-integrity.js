@@ -127,10 +127,13 @@ const trendsPath = `${KIT}/trends-export-status-2026-10-15.csv`;
 const trends = readCsv(trendsPath);
 const requiredIds = ["GT-CHOC-A-5Y", "GT-CHOC-A-12M", "GT-CHOC-B-5Y", "GT-CHOC-B-12M"];
 const trendById = new Map(trends.records.map(row => [row.export_id, row]));
-if (trends.records.length !== requiredIds.length) errors.push(`${trendsPath}: expected exactly ${requiredIds.length} registered export slots`);
-for (const id of requiredIds) {
-  const row = trendById.get(id);
-  if (!row) { errors.push(`${trendsPath}: missing required export slot ${id}`); continue; }
+for (const id of requiredIds) if (!trendById.has(id)) errors.push(`${trendsPath}: missing required export slot ${id}`);
+const slotIds = trends.records.map(row => row.export_id);
+if (new Set(slotIds).size !== slotIds.length) errors.push(`${trendsPath}: duplicate export_id`);
+/* Every registered slot (the four version 1 slots and any later set registered under method v2) is validated the same way. */
+for (const row of trends.records) {
+  const id = row.export_id;
+  if (!id) { errors.push(`${trendsPath}: blank export_id`); continue; }
   if (row.geo !== "BR" || row.search_type !== "Web Search" || row.query_type !== "Search term") {
     errors.push(`${trendsPath}: ${id} has unexpected geography/search configuration`);
   }

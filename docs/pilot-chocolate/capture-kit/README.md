@@ -14,6 +14,8 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `public-source-capture-2026-10-14.csv`: twenty-four dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
 - `trends-query-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
+- `trends-method-v2.md`: method version 2 (2026-11-04): declared term screen (`scripts/trends-term-screen.js`), scoped unions for brands whose name is a common word or spans categories, single-term exports for compressed terms, Topic cross-check, comparability and reproducibility rules, pre-registration tests.
+- `tests/`: Google Trends test and repeat views used by method v2 (pre-registration tests and the reproducibility check), listed with hashes in `tests/trends-test-views-2026-11-04.csv`; evidence only, never baseline exports.
 - `trends-export-status-2026-10-15.csv`: four required exports and their explicit capture/QA states.
 - `google-trends-manual-export-checklist.md`: step-by-step manual export, hash, provenance and QA instructions; no export is implied.
 - `repeatable-capture-cadence.md`: weekly source-capture procedure and explicit gates before starting the four-week baseline.
@@ -44,7 +46,7 @@ No private API, paid provider, account creation or supplier response is a prereq
 
 | Gate | Status | Evidence required to change status |
 |---|---|---|
-| Google Trends capture | **Accepted** (2026-11-04, Paulo; limitations in `trends-export-status-2026-10-15.csv`) | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
+| Google Trends capture | **Accepted** for Sets A and B v1 (2026-11-04, Paulo; limitations in `trends-export-status-2026-10-15.csv`); Set B2 and the Set A single-term exports captured 2026-11-04 under method v2, QA pending review | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
 | Source provenance | Pending | Public URL, access method, timestamps, attribution and relevant reuse limits documented; no bespoke permission gate for ordinary public-source discovery |
 | Retail coverage | Pending | Multi-brand/category sample with documented EAN × retailer/store coverage and gaps; Lindt is optional, not a prerequisite |
 | Reproducibility and QA | Pending | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |

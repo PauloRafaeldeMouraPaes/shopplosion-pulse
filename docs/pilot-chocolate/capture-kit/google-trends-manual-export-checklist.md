@@ -33,3 +33,5 @@ Status: **execution guide only; no export is implied by this file**. Use this ch
 ## Current state
 
 All four slots were captured on 2026-11-03 (UTC 05:17) and registered in `trends-export-status-2026-10-15.csv` as `captured`; QA `accepted` by Paulo on 2026-11-04, with the limitations recorded in each row. The original CSVs (`GT-CHOC-A-5Y.csv`, `GT-CHOC-A-12M.csv`, `GT-CHOC-B-5Y.csv`, `GT-CHOC-B-12M.csv`) are kept byte for byte in this folder and their SHA-256 is enforced by `scripts/test-chocolate-capture-kit-integrity.js`. Each passed `scripts/parse-google-trends-export.js` (VALID, weekly, peak 100, `<1` preserved). The last week of each file (2026-11-01) is partial. Data source: Google Trends. The four-week baseline still waits for the source-provenance, retail coverage, reproducibility and human signal review gates.
+
+On 2026-11-04 method v2 (`trends-method-v2.md`) added Set B2 (`GT-CHOC-B2-5Y`, `GT-CHOC-B2-12M`) and three single-term Set A exports (`GT-CHOC-AS-*`), captured the same way, parser VALID, QA `pending_review`.
