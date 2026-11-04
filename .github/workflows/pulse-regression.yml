@@ -23,6 +23,8 @@ jobs:
         run: node scripts/test-parse-google-trends-export.js
       - name: Test Google Trends term screen (synthetic series)
         run: node scripts/trends-term-screen.js --self-test
+      - name: Chocolate pilot autonomy rules (check mode)
+        run: node scripts/chocolate-pilot-autonomy.js --check
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
       - name: Run semantic data integrity checks
