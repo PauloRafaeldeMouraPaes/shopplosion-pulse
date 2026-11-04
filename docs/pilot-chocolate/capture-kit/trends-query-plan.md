@@ -4,8 +4,8 @@
 > `trends-method-v2.md`: bare brand names only when they pass the declared screen, scoped unions
 > (`chocolate X + bombom X + barra X + ovo de páscoa X`) for brands flagged by it, single-term exports for terms
 > compressed to "<1" in a comparison, Topics only as a separate cross-check. Sets A and B below were captured on
-> 2026-11-03 and accepted on 2026-11-04 as version 1 and stay as they are; the proposed Set B2 and the Set A
-> single-term exports are listed in section 6 of the method document.
+> 2026-11-03 and accepted on 2026-11-04 as version 1 and stay as they are; Set B2 (brand set with scoped unions) and the Set A
+> single-term exports were registered and captured on 2026-11-04 under that method; see its sections 6 and 7.
 
 Status: **pre-registered plan (version 1 sets captured and accepted 2026-11-04)**. This document fixes the first query sets before viewing/exporting results, reducing the risk of choosing terms because they show an interesting curve.
 

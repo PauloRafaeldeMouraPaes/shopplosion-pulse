@@ -1,6 +1,6 @@
 # Google Trends method v2: term construction, screening and comparability
 
-Status: **registered method, 2026-11-04**. It governs every Google Trends set registered from this date. Sets A and B (version 1) stay exactly as captured on 2026-11-03 and accepted on 2026-11-04; their limitations are explained, not repaired, by this document. Tool: `scripts/trends-term-screen.js` (self-test in the regression workflow).
+Status: **registered method, 2026-11-04; amendments v2.1 of the same day are marked in place**. It governs every Google Trends set registered from this date. Sets A and B (version 1) stay exactly as captured on 2026-11-03 and accepted on 2026-11-04; their limitations are explained, not repaired, by this document. Tool: `scripts/trends-term-screen.js` (self-test in the regression workflow).
 
 ## 1. The problem this version fixes
 
@@ -16,7 +16,7 @@ The same failures apply to any brand whose name is a common word (Bis, Baton, Ta
 ## 2. Term construction rules
 
 - **R1. Bare name by default.** A brand is registered as its plain name when it passes the screen in section 3 (in version 1: Lindt, Lacta, Ferrero Rocher).
-- **R2. Scoped union when flagged.** A brand flagged by the screen is registered as one Google Trends search term made of chocolate-qualified forms joined with `+` (Trends reads `+` as "or"): `chocolate <marca> + bombom <marca> + barra <marca> + ovo de páscoa <marca>`. The four qualifiers are fixed and identical for every scoped brand, so scoped brands stay comparable with each other. `<marca>` is written exactly as the brand writes it; when the pre-registration test (section 4, T4) shows that searchers commonly drop a diacritic, the unaccented spelling is added to each form. Trends matches the words of a form in any order, so "bombom garoto" also captures "caixa de bombom garoto".
+- **R2. Scoped union when flagged.** A brand flagged by the screen is registered as one Google Trends search term made of chocolate-qualified forms joined with `+` (Trends reads `+` as "or"): `chocolate <marca> + bombom <marca> + barra <marca>`. The three qualifiers are fixed and identical for every scoped brand, so scoped brands stay comparable with each other. `<marca>` is written exactly as the brand writes it; when the pre-registration test (section 4, T4) shows that searchers commonly drop a diacritic, the unaccented spelling is added to each form (`chocolate nestlé + chocolate nestle + ...`). Trends matches the words of a form in any order, so "bombom garoto" also captures "caixa de bombom garoto". *Amendment v2.1 (2026-11-04, after the pre-registration tests):* the rule was first written with a fourth qualifier, `ovo de páscoa <marca>`; Google Trends rejects a search term longer than about 100 characters (HTTP 400 at 120 characters, accepted at 97), so a brand with two spellings cannot carry four qualifiers. The fourth form contributed at most 2 index points for Garoto in test view T_G and its Easter signal is already carried by the other forms, so it was dropped for every scoped brand, not only for Nestlé.
 - **R3. Constructions are not level-comparable.** A scoped union sums several query forms; a bare name captures everything at once. In a view that mixes both, compare timing, shape and each term's own change over time; rank levels only among terms built the same way. When a level ranking across all brands is needed, register two views (bare brands; scoped brands), each with up to five items.
 - **R4. Single-term exports for compressed terms.** A term that is "<1" in more than half of the weeks of a multi-term view is also exported alone (one term per view), which gives it its own 0-100 scale. Single-term exports support shape and seasonality analysis of that term only; their level means nothing outside the export.
 - **R5. Topic cross-check.** Google's knowledge-graph Topic for the company (for example "Garoto (Empresa)") disambiguates by meaning rather than by words. Topics are never mixed with search terms in one view (version 1 rule kept); a Topic is exported in a separate view and used only to validate a scoped union (T3 below).
@@ -59,7 +59,7 @@ Before a scoped set is registered, each scoped union is tested in the intended v
 
 - **T1. Volume.** In the intended 5-year view, the scoped union is "<1" in at most 10% of complete weeks.
 - **T2. Screen.** The scoped union passes the three criteria of section 3 in the 5-year view.
-- **T3. Agreement with the Topic.** Pearson correlation between the scoped union and the company Topic (separate view, same window) >= 0.70 over complete weeks. When Google offers no company Topic, T3 is recorded as not applicable.
+- **T3. Agreement with the Topic.** Pearson correlation between the scoped union and the company Topic (separate view, same window) >= 0.70 over complete weeks. When Google offers no company Topic, T3 is recorded as not applicable. *Amendment v2.1 (2026-11-04, decided after seeing the Nestlé result):* a Topic that itself fails the screen of section 3 is not a chocolate reference, so T3 is then recorded with its value but does not decide registration; T1 and T2 decide.
 - **T4. Spelling.** For a brand written with a diacritic, the unaccented spelling is tested alongside; it is added to the union when its median week is at least 20% of the accented spelling's.
 
 A union that fails T1 or T2 is not registered in that form; the brand is then exported alone (R4) and the failure is recorded. Test views are kept as evidence (URL, UTC timestamp, SHA-256) labelled `test`; they are not baseline exports and never enter the baseline.
@@ -77,10 +77,52 @@ A union that fails T1 or T2 is not registered in that form; the brand is then ex
 ## 6. Consequences for the pilot
 
 - Set B (version 1) stays the registered bare-name benchmark, accepted with the Garoto and Nestlé flags; it is not used to rank those two brands by level.
-- **Set B2 (proposed, pending section 4):** Lindt, Lacta, scoped Garoto, scoped Nestlé, Ferrero Rocher; Brazil, All categories (cat=0), Web Search, Search terms; last 5 years and last 12 months. Export ids `GT-CHOC-B2-5Y`, `GT-CHOC-B2-12M`.
-- **Set A single-term exports (proposed):** `chocolate amargo`, `chocolate ao leite`, `chocolate sem açúcar`, each alone, last 5 years, same settings. Export ids `GT-CHOC-AS-AMARGO-5Y`, `GT-CHOC-AS-LEITE-5Y`, `GT-CHOC-AS-SEMACUCAR-5Y`. Shape and seasonality only.
-- Registration of these slots, the test outcomes and the captures are recorded in `trends-export-status-2026-10-15.csv` and in section 7 of this document when they happen. Every new capture goes through the parser, the screen and human acceptance like version 1.
+- **Set B2 (registered and captured 2026-11-04, QA pending review):** Lindt, Lacta, `chocolate garoto + bombom garoto + barra garoto`, `chocolate nestlé + chocolate nestle + bombom nestlé + bombom nestle + barra nestlé + barra nestle`, Ferrero Rocher; Brazil, All categories (cat=0), Web Search, Search terms; last 5 years and last 12 months. Export ids `GT-CHOC-B2-5Y`, `GT-CHOC-B2-12M`.
+- **Set A single-term exports (registered and captured 2026-11-04, QA pending review):** `chocolate amargo`, `chocolate ao leite`, `chocolate sem açúcar`, each alone, last 5 years, same settings. Export ids `GT-CHOC-AS-AMARGO-5Y`, `GT-CHOC-AS-LEITE-5Y`, `GT-CHOC-AS-SEMACUCAR-5Y`. Shape and seasonality only.
+- The slots, hashes and notes are in `trends-export-status-2026-10-15.csv`; the test views are in `tests/` with `tests/trends-test-views-2026-11-04.csv`. Every new capture goes through the parser, the screen and human acceptance like version 1.
 
 ## 7. Test and capture log
 
-(empty until the pre-registration tests of section 4 are run)
+All views below: Brazil, All categories, Web Search, Search terms unless stated; captured in Paulo's personal Chrome on 2026-11-04 between 04:33 and 04:38 UTC as the byte-for-byte response of the chart-download CSV endpoint; the week of 2026-11-01 was partial and is excluded from every statistic. Files and SHA-256 in `tests/trends-test-views-2026-11-04.csv`.
+
+**Pre-registration tests (section 4)**
+
+| Test | View | Result | Verdict |
+|---|---|---|---|
+| T1 volume | Garoto union (4 qualifiers) in T_G and in the candidate B2 view | 0% of weeks "<1" | PASS |
+| T1 volume | Nestlé unions (accented, unaccented) in T_N and in the candidate B2 view | 0% of weeks "<1" | PASS |
+| T2 screen | Garoto union | Easter lift 7.13 (T_G) and 6.32 (candidate B2); 5/5 years; bare "Garoto" in the same view: lift 1.45, FLAGGED | PASS |
+| T2 screen | Nestlé unions | Easter lift 5.47 accented, 5.17 unaccented; 5/5 years; bare "Nestlé": 2026 maximum in August, FLAGGED; bare "nestle": lift 1.96, FLAGGED | PASS |
+| T3 Topic | Garoto union vs Topic "Garoto (Empresa)" (`/m/06nhwc`) | r = 0.93 (bare "Garoto" vs Topic: 0.76) | PASS |
+| T3 Topic | Nestlé union vs Topic "Nestlé (Empresa)" (`/m/01556g`) | r = 0.63 (4 qualifiers) and 0.57 (registered 3-qualifier union); the Topic itself fails the screen (lift 2.12, 2026 maximum in January) | below 0.70; recorded, amendment v2.1 applied |
+| T4 spelling | "Nestlé" vs "nestle"; accented vs unaccented union | unaccented median 2.87x the accented; unions 2.33x | both spellings included |
+| T4 spelling | "ovo de páscoa garoto" vs "ovo de pascoa garoto" | identical in 248 of 261 weeks | qualifier spelling irrelevant; brand token spelling matters |
+| limit | 8-form union (120 characters) | HTTP 400 from the explore API; 97 characters accepted | three qualifiers (amendment v2.1) |
+
+**Reproducibility (section 5), repeat export one day after the version 1 capture**
+
+| Set | Term | median abs. diff. | max abs. diff. | Verdict |
+|---|---|---|---|---|
+| A | chocolate / barra de chocolate / amargo / ao leite / sem açúcar | 1 / 0 / 0 / 0 / 0 | 5 / 1 / 0 / 0 / 0 | PASS |
+| B | Lindt / Lacta / Nestlé / Ferrero Rocher | 0 / 0 / 0 / 0 | 5 / 3 / 1 / 2 | PASS |
+| B | Garoto (bare) | 1 | 12 (week of 2021-10-31: 65 vs 53; thirteen other weeks differ by 4 to 6) | UNSTABLE |
+
+The bare "Garoto" column of Set B v1 is the only unstable series: a high-volume common word whose sampling noise is of the same size as the brand's own Easter signal. This adds to the version 1 flag; the column is kept for shape only.
+
+**Captures registered on 2026-11-04 (screen on complete weeks)**
+
+| Export | Term | easter_lift | peak_timing | low_volume | Verdict |
+|---|---|---|---|---|---|
+| GT-CHOC-B2-5Y | Lindt | 6.55 | 5/5 | 0% | PASS |
+| GT-CHOC-B2-5Y | Lacta | 9.10 | 5/5 | 0% | PASS (spike 2023-10-15 = 64 to review) |
+| GT-CHOC-B2-5Y | chocolate garoto + bombom garoto + barra garoto | 5.88 | 5/5 | 0% | PASS (spike 2022-10-16 = 18 to review) |
+| GT-CHOC-B2-5Y | Nestlé union (two spellings, three qualifiers) | 4.87 | 5/5 | 0% | PASS |
+| GT-CHOC-B2-5Y | Ferrero Rocher | 11.00 | 5/5 | 0% | PASS |
+| GT-CHOC-B2-12M | all five | 5.22 to 11.11 | 1/1 | 0% | PASS |
+| GT-CHOC-AS-AMARGO-5Y | chocolate amargo (alone) | 2.79 | 4/5: 2026 maximum on 2026-05-03 (100), 2026-04-12 at 59 | 0% | FLAGGED: unexplained 2026 spike, review before use |
+| GT-CHOC-AS-LEITE-5Y | chocolate ao leite (alone) | 4.58 | 5/5 | 0% | PASS |
+| GT-CHOC-AS-SEMACUCAR-5Y | chocolate sem açúcar (alone) | 2.39 | 5/5 | 0% | PASS |
+
+Exported alone, "chocolate ao leite" and "chocolate sem açúcar" show the chocolate seasonality cleanly (0% low-volume weeks against 90% and 100% inside the Set A comparison), which confirms that their Set A flags were a compression artefact, not absence of searches.
+
+**Leads for the spike review (not conclusions).** Google's "rising related queries" for Lacta over the five-year window include "lacta felipe neto", "felipe neto bis lacta" and "ações da lacta hoje", a candidate explanation for the week of 2023-10-15 to verify against dated sources. Nothing was found in the interface for the Nestlé 2026 spikes or for "chocolate amargo" in April and May 2026.
