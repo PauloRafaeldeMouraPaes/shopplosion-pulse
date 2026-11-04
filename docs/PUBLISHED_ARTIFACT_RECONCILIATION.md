@@ -37,8 +37,8 @@ assumido sobre ele.
 | auth, app | `@supabase/supabase-js@2.116.0` (jsDelivr) | já fixada |
 | index, intelligence, ask, sources, documento | eram `@supabase/supabase-js@2` (flutuante; resolvia para 2.118.0 em 2026-10-31) | **fixadas em 2.116.0**, a mesma versão que cria a sessão em `auth.html` |
 | todas as sete | tag apontando para `@2.116.0/dist/umd/supabase.js`, o arquivo que existe dentro do tarball npm (já minificado; SHA-256 `84ee9bf4…`; os mesmos bytes que o jsDelivr serve nesse caminho), com `integrity="sha384-iLddHTLo…"` e `crossorigin="anonymous"` | **SRI aplicado**; `pulse-sdk-integrity.spec.js` prova com rede real que o cliente carrega em cada página e fixa o hash esperado |
-| app | `pdf.js 3.11.174` (cdnjs), tag estática com SRI (`sha384-/1qUCSGw…`, conferido byte a byte contra `pdfjs-dist@3.11.174/build/pdf.min.js` do npm) | mantida com mitigação (ver abaixo) |
-| pulse-config | `pdfjs-dist@4.10.38` (jsDelivr, `import()` dinâmico; não aceita SRI) | usada nas páginas sem a tag estática |
+| app | `pdf.js 3.11.174` (cdnjs), tag estática com SRI (`sha384-/1qUCSGw…`, conferido byte a byte contra `pdfjs-dist@3.11.174/build/pdf.min.js` do npm) | mantida com mitigação em 2026-10-31; **atualizada em 2026-11-04 para `pdf.js 4.10.38`** (módulo ES de cdnjs com SRI `sha384-+0ti2moQ…`, conferido byte a byte contra `pdfjs-dist@4.10.38/build/pdf.min.mjs`; worker `pdf.worker.min.mjs` da mesma versão, só fixado por versão) |
+| pulse-config | `pdfjs-dist@4.10.38` (jsDelivr, `import()` dinâmico; não aceita SRI) | usada nas páginas sem a tag estática; desde 2026-11-04 o fallback importa o mesmo `pdf.min.mjs` 4.10.38 de cdnjs e fixa o worker |
 | todas | Google Fonts (Inter, Source Serif 4) | mantida |
 
 Por que `dist/umd/supabase.js` e não `supabase.min.js`: o pacote npm não contém `supabase.min.js`; o jsDelivr o
@@ -58,9 +58,15 @@ malicioso pela via de fontes com `eval`; corrigida em 4.2.67). Em `app.html` a t
 `window.pdfjsLib`, então `pulse-config.js` usa essa versão para extrair texto de uploads e de PDFs do storage
 da indústria, não a 4.10.38. Mitigação aplicada nesta reconciliação: todas as chamadas `getDocument` do
 front passam `isEvalSupported: false` (a Edge Function `pulse-index-worker` usa a 4.10.38, já corrigida), que é o contorno indicado no aviso da vulnerabilidade e não
-afeta a extração de texto. A atualização da tag para uma versão corrigida (ou a remoção da tag estática,
-deixando o import dinâmico 4.10.38 atuar) fica para PR própria, porque muda o caminho de ingestão de PDF e
-precisa de teste com login real.
+afeta a extração de texto.
+
+Atualização de 2026-11-04: `app.html` passou a carregar `pdf.js 4.10.38` como módulo ES de cdnjs com SRI (o módulo
+define `globalThis.pdfjsLib`; um segundo módulo inline fixa o worker 4.10.38), `pulse-config.js` importa o mesmo
+arquivo como fallback e `isEvalSupported: false` continua em toda chamada. O teste com login real foi substituído
+por um teste de navegador sem sessão: `pulse-sdk-integrity.spec.js` aborta a requisição do SDK Supabase para que
+`app.html` não redirecione, espera o módulo com integridade verificada, lê um PDF de uma página construído no
+próprio teste pelo extrator da página (`window.PULSE_EXTRACT_PDF_TEXT`, biblioteca mais worker) e prova, com um
+payload adulterado, que o navegador recusa o módulo quando o hash não confere.
 
 Duplicações eliminadas: `ask.html` carregava `pulse-public-evidence.js` três vezes (head, meio e fim);
 ficou uma carga, no head, antes de qualquer consumidor.
