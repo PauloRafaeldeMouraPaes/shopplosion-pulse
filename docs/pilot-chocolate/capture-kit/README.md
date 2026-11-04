@@ -61,6 +61,15 @@ Provenance gaps recorded on 2026-11-04 (`public-source-provenance-2026-10-14.csv
 
 No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no multi-retailer observation panel or longitudinal retail time series has been collected; the first direct retail snapshot covers two retailers; the secondary price aggregator is a separate benchmark and may overlap with the same underlying supermarket sites. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
 
+### Signals published to the public base
+
+A signal leaves the kit only after the rules decide it, and the public base never names a brand (contract in `scripts/test-pulse-ask-ai.js`). Published on 2026-11-04 (`scripts/sync-public-evidence.js`, three layers):
+
+| Kit signal | Public evidence id | What was published |
+|---|---|---|
+| SIG-CHOC-012 (consolidated, weekly review of 2026-11-02) | `google-trends-chocolate-sazonalidade-pascoa-2022-2026` | Easter week as the yearly search peak for the category (5 of 5 years) and for the five brands as "five brands followed by the pilot" (24 of 25 brand-years), ratios computed on `GT-CHOC-A-5Y` and `GT-CHOC-B2-5Y` |
+| SIG-CHOC-016 (context_only, explained by the labelling law) and the AS-AMARGO screen note | `lei-15404-2026-rotulagem-chocolate` | Lei 15.404/2026: names, minimum cocoa content, front-of-pack percentage, effective May 2027; the 2026 "chocolate amargo" peak dated to the law's news weeks |
+
 ### First weekly review record
 
 For the first review, retain both accepted and rejected candidates. For each candidate record: stable signal ID; capture artifact/hash; source family and publication/observation dates; universe and method; observed fact; separate hypothesis; alternative explanations (seasonality, promotion, distribution, source coverage, sampling and syndicated reporting); independence/corroboration status; confidence; reviewer; decision and rationale. Contradictory signals remain visible. A single-source signal is labeled preliminary, not consolidated.

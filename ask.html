@@ -221,17 +221,19 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
 /* PULSE_PUBLIC_RANK_START */
 /* Public-evidence ranking shared by ask.html (browser) and pulse-ask-ai (server). Kept textually identical in both
    (type annotations aside) and checked by scripts/test-pulse-public-rank.js: Portuguese stopwords are not search
-   terms, and each term is weighted by how rare it is in the public base (IDF), counting at most 3 hits per item. */
+   terms, a term counts only where it starts a word ("mes" hits "meses", not "semestre"), and each term is weighted by
+   how rare it is in the public base (IDF), counting at most 3 hits per item. */
 const PULSE_RANK_STOPWORDS = new Set(['de','da','do','das','dos','em','no','na','nos','nas','ao','aos','um','uma','uns','umas','os','as','e','ou','o','a','para','pra','por','pelo','pela','pelos','pelas','com','sem','que','qual','quais','como','quanto','quantos','quanta','quantas','se','mais','menos','muito','muita','sobre','entre','segundo','isso','esse','essa','este','esta','isto','aquele','aquela','ha','foi','sao','ser','esta','estao','tem','ter','teve','ate','desde','me','meu','minha','nosso','nossa','seu','sua','ja','tambem','ainda','vale','pena','mostram','mostra','diz','dizem','evidencias','evidencia','dados','dado','segundo','frente','ante','vs','quando','onde','porque','pois','entao','mesmo','cada','todo','toda','todos','todas','outro','outra','sim','nao']);
 const pulseRankNormalize = (value) => String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const pulseRankTerms = (value) => Array.from(new Set(pulseRankNormalize(value).split(/[^a-z0-9]+/).filter((t) => t.length >= 2 && !PULSE_RANK_STOPWORDS.has(t)))).slice(0, 10)
+const pulseRankHits = (text, term) => { let hits = 0, at = 0; while ((at = text.indexOf(term, at)) >= 0) { if (at === 0 || !/[a-z0-9]/.test(text[at - 1])) hits++; at += term.length } return hits }
 const pulsePublicText = (e) => [e.fato, e.contexto, e.interpretacao, e.hipotese, e.acao, ...(Array.isArray(e.keywords) ? e.keywords : [])].filter(Boolean).join(' ')
 const pulseRankPublic = (query, items) => {
   const terms = pulseRankTerms(query)
   const docs = (Array.isArray(items) ? items : []).map((item) => ({ item, text: pulseRankNormalize(pulsePublicText(item)) }))
   const n = docs.length || 1
-  const idf = Object.fromEntries(terms.map((t) => [t, Math.log(1 + n / (1 + docs.filter((d) => d.text.includes(t)).length))]))
-  return docs.map((d) => ({ item: d.item, score: Math.round(terms.reduce((s, t) => s + idf[t] * Math.min(3, d.text.split(t).length - 1), 0) * 1000) / 1000 }))
+  const idf = Object.fromEntries(terms.map((t) => [t, Math.log(1 + n / (1 + docs.filter((d) => pulseRankHits(d.text, t) > 0).length))]))
+  return docs.map((d) => ({ item: d.item, score: Math.round(terms.reduce((s, t) => s + idf[t] * Math.min(3, pulseRankHits(d.text, t)), 0) * 1000) / 1000 }))
     .filter((r) => r.score > 0).sort((a, b) => b.score - a.score)
 }
 /* PULSE_PUBLIC_RANK_END */
