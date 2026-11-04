@@ -193,31 +193,45 @@ for (const row of trends.records) {
 }
 checks.push(`four registered Google Trends slots checked without fabricating missing exports`);
 
-// Capture records must be traceable, dated, and linked to the same URLs cited by review rows.
+// Capture records must be traceable, dated, and linked to the same URLs cited by review rows. Each dated register
+// (public-source-capture-<date>.csv) is immutable once cited by a review, so later captures go to a new dated file;
+// every register is validated the same way and capture ids are unique across all of them.
 const capturePath = `${KIT}/public-source-capture-2026-10-14.csv`;
 const capture = readCsv(capturePath);
+const captureFiles = fs.readdirSync(path.resolve(ROOT, KIT)).filter(f => /^public-source-capture-\d{4}-\d{2}-\d{2}\.csv$/.test(f)).sort();
 const captureRequired = [
   "capture_id", "captured_on_utc", "source_published_on", "source_family",
   "source_name", "source_url", "universe_and_method", "observed_fact",
   "represents", "does_not_represent", "independence_group", "review_status",
 ];
-for (const column of captureRequired) {
-  if (!capture.headers.includes(column)) errors.push(`${capturePath}: required column missing: ${column}`);
-}
-const captureIds = capture.records.map(row => row.capture_id).filter(Boolean);
-if (captureIds.length !== capture.records.length) errors.push(`${capturePath}: blank capture_id`);
-if (new Set(captureIds).size !== captureIds.length) errors.push(`${capturePath}: duplicate capture_id`);
 const capturedUrls = new Set();
-for (const [index, row] of capture.records.entries()) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(row.captured_on_utc || "") || Number.isNaN(Date.parse(row.captured_on_utc))) {
-    errors.push(`${capturePath}: row ${index + 2} has invalid captured_on_utc`);
+const allCaptureIds = new Set();
+const captureRegisters = [];
+for (const file of captureFiles) {
+  const registerPath = `${KIT}/${file}`;
+  const register = readCsv(registerPath);
+  captureRegisters.push({ registerPath, register });
+  if (register.headers.join(",") !== capture.headers.join(",")) errors.push(`${registerPath}: columns differ from the first dated register`);
+  for (const column of captureRequired) {
+    if (!register.headers.includes(column)) errors.push(`${registerPath}: required column missing: ${column}`);
   }
-  if (!(row.source_url || "").startsWith("https://") && !(row.source_url || "").startsWith("http://")) errors.push(`${capturePath}: row ${index + 2} has invalid source_url`);
-  if (!row.observed_fact.trim() || !row.represents.trim() || !row.does_not_represent.trim()) {
-    errors.push(`${capturePath}: row ${index + 2} must separate observed fact, represents and does_not_represent`);
+  const ids = register.records.map(row => row.capture_id).filter(Boolean);
+  if (ids.length !== register.records.length) errors.push(`${registerPath}: blank capture_id`);
+  for (const id of ids) { if (allCaptureIds.has(id)) errors.push(`${registerPath}: duplicate capture_id ${id}`); allCaptureIds.add(id); }
+  const fileDate = file.slice("public-source-capture-".length, -4);
+  for (const [index, row] of register.records.entries()) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(row.captured_on_utc || "") || Number.isNaN(Date.parse(row.captured_on_utc))) {
+      errors.push(`${registerPath}: row ${index + 2} has invalid captured_on_utc`);
+    } else if (file !== "public-source-capture-2026-10-14.csv" && row.captured_on_utc !== fileDate) {
+      errors.push(`${registerPath}: row ${index + 2} captured_on_utc ${row.captured_on_utc} differs from the register date ${fileDate}`);
+    }
+    if (!(row.source_url || "").startsWith("https://") && !(row.source_url || "").startsWith("http://")) errors.push(`${registerPath}: row ${index + 2} has invalid source_url`);
+    if (!row.observed_fact.trim() || !row.represents.trim() || !row.does_not_represent.trim()) {
+      errors.push(`${registerPath}: row ${index + 2} must separate observed fact, represents and does_not_represent`);
+    }
+    if (!row.independence_group.trim()) errors.push(`${registerPath}: row ${index + 2} lacks independence_group`);
+    if (row.source_url) capturedUrls.add(row.source_url.trim());
   }
-  if (!row.independence_group.trim()) errors.push(`${capturePath}: row ${index + 2} lacks independence_group`);
-  if (row.source_url) capturedUrls.add(row.source_url.trim());
 }
 const provenancePath = `${KIT}/public-source-provenance-2026-10-14.csv`;
 const provenance = readCsv(provenancePath);
@@ -225,9 +239,11 @@ const provenanceIds = provenance.records.map(row => row.source_id).filter(Boolea
 if (provenanceIds.length !== provenance.records.length) errors.push(`${provenancePath}: blank source_id`);
 if (new Set(provenanceIds).size !== provenanceIds.length) errors.push(`${provenancePath}: duplicate source_id`);
 const provenanceUrls = new Set(provenance.records.map(row => row.source_url).filter(Boolean).map(url => url.trim()));
-for (const [index, row] of capture.records.entries()) {
-  if (row.source_url && !provenanceUrls.has(row.source_url.trim())) {
-    errors.push(`${capturePath}: row ${index + 2} URL missing from source provenance register`);
+for (const { registerPath, register } of captureRegisters) {
+  for (const [index, row] of register.records.entries()) {
+    if (row.source_url && !provenanceUrls.has(row.source_url.trim())) {
+      errors.push(`${registerPath}: row ${index + 2} URL missing from source provenance register`);
+    }
   }
 }
 for (const [index, row] of review.records.entries()) {
@@ -236,7 +252,7 @@ for (const [index, row] of review.records.entries()) {
     errors.push(`${reviewPath}: row ${index + 2} must cite at least one URL present in the dated capture register`);
   }
 }
-checks.push(`dated capture rows, unique capture/provenance IDs, source URL coverage and review-to-capture links checked`);
+checks.push(`${captureFiles.length} dated capture register(s): dated rows, unique capture/provenance IDs across registers, source URL coverage and review-to-capture links checked`);
 
 if (errors.length) {
   console.error("Chocolate capture-kit integrity FAILED:");

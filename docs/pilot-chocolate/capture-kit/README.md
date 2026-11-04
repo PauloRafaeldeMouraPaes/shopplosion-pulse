@@ -12,6 +12,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `category-scope.md`: category-first discovery principles; brand-specific approval is not a gate for category-level insight discovery.
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
 - `public-source-capture-2026-10-14.csv`: twenty-four dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
+- `public-source-capture-2026-11-04.csv`: five dated records that explain the two off-season Google Trends spikes (Lacta, October 2023: Bis sponsorship of Felipe Neto and the boycott that followed; `chocolate amargo`, April-May 2026: the chocolate labelling law, Lei 15.404/2026) plus the law's thresholds and effective date (May 2027) as a structural watch item.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
 - `trends-query-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
 - `trends-method-v2.md`: method version 2 (2026-11-04): declared term screen (`scripts/trends-term-screen.js`), scoped unions for brands whose name is a common word or spans categories, single-term exports for compressed terms, Topic cross-check, comparability and reproducibility rules, pre-registration tests.
