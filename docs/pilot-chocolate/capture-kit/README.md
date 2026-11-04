@@ -14,6 +14,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `public-source-capture-2026-10-14.csv`: twenty-four dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
 - `trends-query-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
+- `trends-method-v2.md`: method version 2 (2026-11-04): declared term screen (`scripts/trends-term-screen.js`), scoped unions for brands whose name is a common word or spans categories, single-term exports for compressed terms, Topic cross-check, comparability and reproducibility rules, pre-registration tests.
 - `trends-export-status-2026-10-15.csv`: four required exports and their explicit capture/QA states.
 - `google-trends-manual-export-checklist.md`: step-by-step manual export, hash, provenance and QA instructions; no export is implied.
 - `repeatable-capture-cadence.md`: weekly source-capture procedure and explicit gates before starting the four-week baseline.
