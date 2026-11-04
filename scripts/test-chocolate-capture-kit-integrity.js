@@ -87,6 +87,39 @@ for (const row of review.records) {
 }
 checks.push(`artifact hashes checked for ${review.records.filter(row => row.signal_id).length} signal rows`);
 
+// Weekly review logs (weekly-signal-review-<week>.csv) follow the template columns exactly; every row cites one or
+// more checked-in artifacts (";"-separated) whose current bytes match the recorded SHA-256 list, in order; signal ids
+// are unique across the first review and all weekly logs; the review week is a real Monday-to-Sunday week (the convention of the first review).
+const templateHeaders = readCsv(`${KIT}/weekly-signal-review.template.csv`).headers;
+const weeklyFiles = fs.readdirSync(path.resolve(ROOT, KIT)).filter(f => /^weekly-signal-review-\d{4}-\d{2}-\d{2}\.csv$/.test(f)).sort();
+const allSignalIds = new Set(signalIds);
+for (const file of weeklyFiles) {
+  const weeklyPath = `${KIT}/${file}`;
+  const weekly = readCsv(weeklyPath);
+  if (weekly.headers.join(",") !== templateHeaders.join(",")) errors.push(`${weeklyPath}: columns differ from weekly-signal-review.template.csv`);
+  const weekStart = file.slice("weekly-signal-review-".length, -4);
+  for (const [index, row] of weekly.records.entries()) {
+    const where = `${weeklyPath}: row ${index + 2}`;
+    if (row.review_week_start !== weekStart) errors.push(`${where} review_week_start ${row.review_week_start} differs from the file name week ${weekStart}`);
+    const start = Date.parse(row.review_week_start + "T00:00:00Z"); const end = Date.parse(row.review_week_end + "T00:00:00Z");
+    if (Number.isNaN(start) || Number.isNaN(end) || new Date(start).getUTCDay() !== 1 || end - start !== 6 * 86400000) errors.push(`${where} review week must run from a Monday to the following Sunday, as in the first review`);
+    if (!row.signal_id) { errors.push(`${where} blank signal_id`); continue; }
+    if (allSignalIds.has(row.signal_id)) errors.push(`${where} duplicate signal_id ${row.signal_id}`); else allSignalIds.add(row.signal_id);
+    const paths = (row.artifact_path || "").split(";").map(x => x.trim()).filter(Boolean);
+    const hashes = (row.artifact_sha256 || "").split(";").map(x => x.trim().toLowerCase()).filter(Boolean);
+    if (!paths.length || paths.length !== hashes.length) { errors.push(`${where} ${row.signal_id}: artifact paths and SHA-256 values must pair up`); continue; }
+    paths.forEach((rel, k) => {
+      const full = path.resolve(ROOT, rel);
+      if (!full.startsWith(ROOT + path.sep) || !fs.existsSync(full) || !fs.statSync(full).isFile()) { errors.push(`${where} ${row.signal_id}: artifact does not exist: ${rel}`); return; }
+      if (!/^[a-f0-9]{64}$/.test(hashes[k])) { errors.push(`${where} ${row.signal_id}: invalid SHA-256 for ${rel}`); return; }
+      if (sha256(full) !== hashes[k]) errors.push(`${where} ${row.signal_id}: hash mismatch for ${rel}`);
+    });
+    for (const col of ["observed_fact", "hypothesis", "alternative_explanations", "decision", "reviewer"]) if (!row[col]) errors.push(`${where} ${row.signal_id}: ${col} is empty`);
+    if (!/^(true|false)$/.test(row.single_source_preliminary || "")) errors.push(`${where} ${row.signal_id}: single_source_preliminary must be true or false`);
+  }
+}
+checks.push(`${weeklyFiles.length} weekly review log(s) checked against the template, artifact hashes and unique signal ids`);
+
 // Structural and identity checks across all supporting capture registers.
 const supportingCsvs = [
   { file: "public-source-capture-2026-10-14.csv", id: "capture_id", required: ["source_url", "source_name", "observed_fact"] },
