@@ -121,9 +121,11 @@ for (const file of weeklyFiles) {
 checks.push(`${weeklyFiles.length} weekly review log(s) checked against the template, artifact hashes and unique signal ids`);
 
 // Structural and identity checks across all supporting capture registers.
+const retailSnapshotFiles = fs.readdirSync(path.resolve(ROOT, KIT)).filter(f => /^public-retail-snapshot-\d{4}-\d{2}-\d{2}\.csv$/.test(f)).sort();
 const supportingCsvs = [
   { file: "public-source-capture-2026-10-14.csv", id: "capture_id", required: ["source_url", "source_name", "observed_fact"] },
-  { file: "public-retail-snapshot-2026-10-14.csv", id: "observation_id", required: ["source_url", "retailer", "observed_price_brl", "review_status"] },
+  // Every dated retail snapshot (the first one and each repeat capture) is checked the same way.
+  ...retailSnapshotFiles.map(file => ({ file, id: "observation_id", required: ["source_url", "retailer", "observed_price_brl", "review_status", "observed_at_utc", "content_sha256"] })),
   { file: "public-source-provenance-2026-10-14.csv", id: "source_id", required: ["source_url", "access_method", "source_status"] },
   { file: "product-universe-initial-2026-10-14.csv", id: "product_id", required: ["brand", "product_name", "retailer", "inclusion_status"] },
   { file: "retail-sample-acceptance-2026-10-14.csv", id: "sample_id", required: ["access_basis_reference", "overall_row_decision", "notes"] },
@@ -142,6 +144,15 @@ for (const spec of supportingCsvs) {
       errors.push(`${file}: row ${index + 2} has a non-HTTP source_url`);
     }
   }
+  if (/^public-retail-snapshot-/.test(spec.file)) {
+    const headers = readCsv(`${KIT}/public-retail-snapshot-2026-10-14.csv`).headers.join(",");
+    if (csv.headers.join(",") !== headers) errors.push(`${file}: columns differ from the first retail snapshot`);
+    for (const [index, row] of csv.records.entries()) {
+      if (!/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?$/.test(row.observed_at_utc || "")) errors.push(`${file}: row ${index + 2} observed_at_utc must be a UTC date or date-time`);
+      if (!/^\d+(\.\d+)?$/.test(row.observed_price_brl || "")) errors.push(`${file}: row ${index + 2} observed_price_brl must be a number`);
+      if (row.review_status !== "preliminary" && row.review_status !== "accepted" && row.review_status !== "rejected") errors.push(`${file}: row ${index + 2} review_status must be preliminary, accepted or rejected`);
+    }
+  }
   if (spec.file === "product-universe-initial-2026-10-14.csv") {
     for (const [index, row] of csv.records.entries()) {
       if (row.inclusion_status !== "exploratory_only") errors.push(`${file}: row ${index + 2} must remain exploratory_only until QA`);
@@ -153,7 +164,7 @@ for (const spec of supportingCsvs) {
     }
   }
 }
-checks.push(`five supporting CSV registers checked for structure, unique identities and exploratory-only status`);
+checks.push(`${supportingCsvs.length} supporting CSV registers (incl. ${retailSnapshotFiles.length} dated retail snapshot(s)) checked for structure, unique identities and exploratory-only status`);
 
 // Uncaptured Trends slots must never masquerade as zero/empty search interest or a completed export.
 const trendsPath = `${KIT}/trends-export-status-2026-10-15.csv`;
