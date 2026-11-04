@@ -105,28 +105,34 @@ Block shape (the real one is generated, see below):
 
 Free-text `periodo` strings such as `"2026-07 vs 2025-07"` are never parsed into series.
 
-### Refreshing the IBGE series (maintainer procedure)
+### Refreshing the IBGE series (automatic since 2026-11-04)
 
-1. `python3 scripts/fetch-ibge-pmc-series.py --source "IBGE: PMC, tabela 8882 do SIDRA (<mês de AAAA>)" --out docs/data/ibge-pmc-8882-v7170-a90672-<AAAA-MM-DD>.json`
-   queries the SIDRA API (table 8882, variable 7170, index type 56734, activity 90672, last 13 months),
-   validates codes, periods and values, writes the HTTP response body byte for byte to the `.json` file (so
-   the file's SHA-256 is the hash of what the API answered), writes the metadata and the block to the
-   companion `.capture.json`, and prints the block. Values are rounded to two decimals in the block; the raw
-   file keeps the API precision. Pass `--source` explicitly so the series' source label matches the item's
-   `fonte` and its `PULSE_SOURCES` entry. Then capture the headline variables quoted in the item's text with
-   `--variable 11708,11709,11710,11711 --periods <AAAAMM,...> --out docs/data/ibge-pmc-8882-a90672-variacoes-<AAAA-MM-DD>.json`.
-   The script never edits evidence files and is not run by CI.
-2. Paste the block into the item in the three layers (`index.html` embedded JSON, `pulse-public-evidence.js`,
-   `supabase/functions/pulse-ask-ai/public-evidence.ts`), update `fato`, `periodo` (ISO `AAAA-MM`, so the
-   Universo trajectory card sorts it), `fonte_primaria` (both raw files with full SHA-256 and UTC timestamps)
-   and `fato_verificado_na_fonte` from the same responses, and add or update the `PULSE_SOURCES` entry. Rows
-   should declare `geography` explicitly; without it `loadFromEvidence` falls back to the item's
-   `universo_observado`, which is a sentence, not a place.
-3. `node scripts/test-pulse-data-integrity.js index.html` (three-layer parity) and
-   `node scripts/test-pulse-next-level-contract.js` (structural acceptance of the embedded series) must pass.
+Each monthly release gets its own evidence item (`ibge-pmc-super-<mes>-<ano>`); earlier items stay as the
+record of what the Pulse said from that release's captures, and the seasonally adjusted values of past
+months legitimately differ between releases (IBGE revises the series at each publication).
 
-The seasonally adjusted series is revised by IBGE at each release, so a refresh legitimately changes past
-values; the raw capture files are the audit trail of what each version of the dataset was built from.
+1. `scripts/check-ibge-pmc-freshness.py` (weekly GitHub Action, Mondays) compares the latest item of each
+   SIDRA 8882 series with the API and opens or refreshes the issue "Série IBGE PMC desatualizada no Pulse"
+   when a month is missing. Earlier items are not compared.
+2. `python3 scripts/update-ibge-pmc-evidence.py` captures, through `scripts/fetch-ibge-pmc-series.py`, the last
+   13 adjusted months (variable 7170) and the four published variations (11708 to 11711) for the new month,
+   the same month one year earlier and the three previous months, writes both raw responses to `docs/data`
+   with the capture date in the name (byte for byte, SHA-256 in the companion `.capture.json`), and writes the
+   item from fixed templates whose every number comes from those responses: the four variations in `fato`
+   and `comparacao`, the range of the 13 indices and the same-month comparison in `interpretacao`, the
+   previous year's month-on-month variation in `hipotese`, file names, timestamps, hashes and URLs in
+   `fonte_primaria`, and the series block in `serie_historica`. It appends the item to the three layers with
+   `scripts/sync-public-evidence.js` and exits 3 when the month is already published. `--dry-run` prints
+   without writing; `--from-captures` rebuilds an item from saved captures (how the regression test checks
+   that August 2026 regenerates exactly as published: `scripts/test-update-ibge-pmc-evidence.py`, in CI).
+3. The weekly scheduled run of the Pulse opens the pull request, waits for CI, merges it and runs the guarded
+   `pulse-ask-ai` deploy so the server sees the new month; nothing in that chain edits numbers by hand.
+4. `node scripts/test-pulse-data-integrity.js index.html` (three-layer parity) and
+   `node scripts/test-pulse-next-level-contract.js` (structural acceptance; the latest release is the
+   comparable group of the series) must pass.
+
+`scripts/fetch-ibge-pmc-series.py` remains the capture tool for other tables, variables or activities; its
+printed block can still be pasted by hand for a series the generator does not cover.
 
 ## Not covered
 

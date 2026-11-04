@@ -367,24 +367,31 @@ test('série vinda de evidência pública guarda evidenceId, herda proveniência
   assert.strictEqual(summary.causal, false);
 });
 
-test('a série da evidência pública ibge-pmc-super-agosto-2026 carrega no contrato sem rejeições', () => {
+test('as séries da evidência pública IBGE PMC carregam no contrato sem rejeições e a release mais recente é a comparável', () => {
   /* Reads the real public dataset: this is the only check that touches market data, and it only asserts
-     structural acceptance (13 valid rows, one comparable group), never a market conclusion. */
+     structural acceptance (13 valid rows per release, the latest release as the comparable group), never a
+     market conclusion. Each monthly release keeps its own item (scripts/update-ibge-pmc-evidence.py), so the
+     rows of two releases differ in source and never collide. */
   const source = fs.readFileSync(path.join(__dirname, '..', 'pulse-public-evidence.js'), 'utf8');
   const marker = 'window.PULSE_EVIDENCE=';
   const startIdx = source.indexOf('[', source.indexOf(marker));
   const dataset = vm.runInThisContext(source.slice(startIdx, source.lastIndexOf(']') + 1));
-  const item = dataset.find(x => x.id === 'ibge-pmc-super-agosto-2026');
-  assert.ok(item && Array.isArray(item.serie_historica), 'evidence item with serie_historica must exist');
+  const releases = dataset.filter(x => String(x.id).startsWith('ibge-pmc-super-') && Array.isArray(x.serie_historica));
+  assert.ok(releases.length >= 1, 'at least one IBGE PMC evidence item with serie_historica must exist');
+  const item = releases.reduce((a, b) => (a.periodo > b.periodo ? a : b));
+  assert.strictEqual(item.serie_historica.length, 13, 'the latest release carries 13 months');
+  const allRows = dataset.reduce((n, x) => n + (Array.isArray(x.serie_historica) ? x.serie_historica.length : 0), 0);
   const w = freshWindow();
   const loaded = w.PULSE_NEXT_LEVEL.loadFromEvidence(dataset);
   assert.strictEqual(loaded.rejected, 0, 'every declared series row must satisfy the contract');
   assert.strictEqual(loaded.conflict, 0);
-  assert.strictEqual(loaded.added, item.serie_historica.length);
+  assert.strictEqual(loaded.added, allRows);
   assert.ok(w.serie_historica.every(x => x.methodology !== '[A DEFINIR]' && x.unit !== '[A DEFINIR]' && x.provenance && x.url), 'methodology, unit, provenance and url are declared on every row');
   const s = w.PULSE_NEXT_LEVEL.historicalSummary(item.serie_historica[0].metric, 'Brasil');
   assert.strictEqual(s.status, 'observed_change');
-  assert.strictEqual(s.count, item.serie_historica.length);
+  assert.strictEqual(s.count, item.serie_historica.length, 'the comparable group is one release');
+  assert.strictEqual(s.current.evidenceId, item.id, 'the comparable group is the latest release');
+  assert.strictEqual(s.current.period, item.periodo);
   assert.strictEqual(s.consecutive, true, 'the embedded series has no gaps');
   assert.ok(s.yearOverYear && s.yearOverYear.status === 'observed_change', 'thirteen months give a same-month comparison');
   assert.strictEqual(s.interpretation, null);

@@ -6,8 +6,10 @@ from SIDRA table 8882 (supabase/functions/pulse-ask-ai/public-evidence.ts, which
 parity with index.html and pulse-public-evidence.js) with a fresh query made by
 scripts/fetch-ibge-pmc-series.py using the same table, variable, index type and activity.
 
-It never edits evidence: the item's text (fato, contexto, interpretacao) has to be rewritten by a
-person when a new month comes out. It reports:
+It never edits evidence. When a new month is out, scripts/update-ibge-pmc-evidence.py writes the
+new month's item from the API captures (each release keeps its own item, so only the latest item of
+a series is compared here; earlier items record what the Pulse said at the time and are expected to
+differ from later revisions). It reports:
 - new periods: months the API has and the Pulse does not;
 - revisions: months present in both whose value changed by 0.01 or more (IBGE revises the
   seasonally adjusted index every release).
@@ -74,6 +76,10 @@ def main():
         params = series_params(sh[0])
         if params and params[0] == "8882":
             groups.setdefault(params, []).append((item["id"], sh))
+    # Only the latest release of each series is compared: earlier items are kept as published.
+    for params, items in groups.items():
+        latest = max(items, key=lambda it: max(e["period"] for e in it[1]))
+        groups[params] = [latest]
     if not groups:
         print("Nenhum item com serie_historica da tabela 8882 encontrado.", file=sys.stderr)
         return 2
@@ -105,10 +111,9 @@ def main():
             lines.append("")
 
     head = ("A série do IBGE publicada no Pulse está atrás do SIDRA." if stale else "A série do IBGE publicada no Pulse está em dia com o SIDRA.")
-    steps = ("\n**Como atualizar:** rodar `scripts/fetch-ibge-pmc-series.py --out docs/data/<arquivo>.json` com os mesmos parâmetros, "
-             "colar o bloco nas três camadas de evidência pública (index.html, pulse-public-evidence.js e "
-             "supabase/functions/pulse-ask-ai/public-evidence.ts), reescrever fato e contexto do item para o mês novo e abrir PR. "
-             "Depois do merge, o Ask AI só passa a ver o mês novo com um novo deploy do `pulse-ask-ai`.\n") if stale else ""
+    steps = ("\n**Como atualizar:** mês novo: `python3 scripts/update-ibge-pmc-evidence.py` captura a API, grava os registros brutos em docs/data "
+             "e escreve o item do mês nas três camadas (o ciclo semanal agendado faz isso, abre o PR e, depois do merge, "
+             "roda o deploy guardado do `pulse-ask-ai`). Só revisão sem mês novo: nada a fazer, o item publicado registra a consulta da época.\n") if stale else ""
     report = f"{head}\n\n" + "\n".join(lines) + steps
     print(report)
     if args.report:
