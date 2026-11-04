@@ -27,6 +27,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `product-universe.template.csv`: blank schema for future product-sample additions.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
 - `weekly-signal-review.template.csv`: log observed facts separately from hypotheses, alternatives, corroboration, confidence and human accept/reject decisions.
+- `weekly-signal-review-2026-11-02.csv`: draft review of the week of 2026-11-02 with six candidates from the accepted Google Trends captures (facts, hypotheses, alternatives, corroboration); every decision is `pending_human_decision` until Paulo records it.
 - `review-protocol.md`: evidence, quality and interpretation rules.
 - `first-capture-runbook.md`: execution steps, hard stop gates, QA acceptance and baseline start conditions.
 
@@ -47,11 +48,13 @@ No private API, paid provider, account creation or supplier response is a prereq
 | Gate | Status | Evidence required to change status |
 |---|---|---|
 | Google Trends capture | **Accepted** for Sets A and B v1 (2026-11-04, Paulo; limitations in `trends-export-status-2026-10-15.csv`); Set B2 and the Set A single-term exports captured and accepted 2026-11-04 under method v2 (`chocolate amargo` flagged until its 2026 spike is explained) | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
-| Source provenance | Pending | Public URL, access method, timestamps, attribution and relevant reuse limits documented; no bespoke permission gate for ordinary public-source discovery |
+| Source provenance | Documented 2026-11-04, pending Paulo's acceptance (gaps listed below the table) | Public URL, access method, timestamps, attribution and relevant reuse limits documented; no bespoke permission gate for ordinary public-source discovery |
 | Retail coverage | Pending | Multi-brand/category sample with documented EAN × retailer/store coverage and gaps; Lindt is optional, not a prerequisite |
 | Reproducibility and QA | Pending (Google Trends part done 2026-11-04: repeat exports of Sets A and B within 5 index points except bare Garoto, see `trends-method-v2.md` section 7; retail repeat capture still open) | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |
-| Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
+| Human signal review | Pending: draft log for the week of 2026-11-02 prepared with six Trends candidates (`weekly-signal-review-2026-11-02.csv`), decisions pending Paulo; the eleven rows of the first review still carry `reviewer=unassigned` and follow-ups due 2026-10-22 | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
 | Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
+
+Provenance gaps recorded on 2026-11-04 (`public-source-provenance-2026-10-14.csv`): the Pão de Açúcar terms page could not be opened (footer link without URL; only the on-page notice that prices are valid for the current day); the Super Muffato site was outside the kit browser permissions; the terms pages of FGV, BNB, UOL, Folha, Globo, InfoMoney, Foodnews and Mercado do Cacau were not located by search, so those sources stay at citation-and-summary use only; Agência Brasil's reproduction policy (journalistic reuse with attribution, commercial reuse via EBC licensing) and Google's Trends attribution guidance were read and recorded; the 2026-10-14 captures have no clock time.
 
 No restricted source has been connected by this kit and no supplier request has been sent. The desk-capture CSVs record secondary public-source observations only; no multi-retailer observation panel or longitudinal retail time series has been collected; the first direct retail snapshot covers two retailers; the secondary price aggregator is a separate benchmark and may overlap with the same underlying supermarket sites. Do not change the baseline status based on a plan, a public product page, a preview deployment, or CI success alone.
 
