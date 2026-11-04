@@ -46,10 +46,10 @@ No private API, paid provider, account creation or supplier response is a prereq
 
 | Gate | Status | Evidence required to change status |
 |---|---|---|
-| Google Trends capture | **Accepted** for Sets A and B v1 (2026-11-04, Paulo; limitations in `trends-export-status-2026-10-15.csv`); Set B2 and the Set A single-term exports captured 2026-11-04 under method v2, QA pending review | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
+| Google Trends capture | **Accepted** for Sets A and B v1 (2026-11-04, Paulo; limitations in `trends-export-status-2026-10-15.csv`); Set B2 and the Set A single-term exports captured and accepted 2026-11-04 under method v2 (`chocolate amargo` flagged until its 2026 spike is explained) | Original Google Trends CSV exported manually from the official interface; exact query settings, geography, category, search type, date range, export timestamp and SHA-256 recorded |
 | Source provenance | Pending | Public URL, access method, timestamps, attribution and relevant reuse limits documented; no bespoke permission gate for ordinary public-source discovery |
 | Retail coverage | Pending | Multi-brand/category sample with documented EAN × retailer/store coverage and gaps; Lindt is optional, not a prerequisite |
-| Reproducibility and QA | Pending | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |
+| Reproducibility and QA | Pending (Google Trends part done 2026-11-04: repeat exports of Sets A and B within 5 index points except bare Garoto, see `trends-method-v2.md` section 7; retail repeat capture still open) | Repeat capture with source and observation timestamps, stable deduplication keys, documented gaps, verified pack weight and prices |
 | Human signal review | Pending | Weekly review log with observed facts, hypotheses, alternatives, confidence, and accept/reject decision with reasons |
 | Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
 

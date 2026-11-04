@@ -77,8 +77,8 @@ A union that fails T1 or T2 is not registered in that form; the brand is then ex
 ## 6. Consequences for the pilot
 
 - Set B (version 1) stays the registered bare-name benchmark, accepted with the Garoto and Nestlé flags; it is not used to rank those two brands by level.
-- **Set B2 (registered and captured 2026-11-04, QA pending review):** Lindt, Lacta, `chocolate garoto + bombom garoto + barra garoto`, `chocolate nestlé + chocolate nestle + bombom nestlé + bombom nestle + barra nestlé + barra nestle`, Ferrero Rocher; Brazil, All categories (cat=0), Web Search, Search terms; last 5 years and last 12 months. Export ids `GT-CHOC-B2-5Y`, `GT-CHOC-B2-12M`.
-- **Set A single-term exports (registered and captured 2026-11-04, QA pending review):** `chocolate amargo`, `chocolate ao leite`, `chocolate sem açúcar`, each alone, last 5 years, same settings. Export ids `GT-CHOC-AS-AMARGO-5Y`, `GT-CHOC-AS-LEITE-5Y`, `GT-CHOC-AS-SEMACUCAR-5Y`. Shape and seasonality only.
+- **Set B2 (registered and captured 2026-11-04; accepted by Paulo the same day with the limitations in the status file):** Lindt, Lacta, `chocolate garoto + bombom garoto + barra garoto`, `chocolate nestlé + chocolate nestle + bombom nestlé + bombom nestle + barra nestlé + barra nestle`, Ferrero Rocher; Brazil, All categories (cat=0), Web Search, Search terms; last 5 years and last 12 months. Export ids `GT-CHOC-B2-5Y`, `GT-CHOC-B2-12M`.
+- **Set A single-term exports (registered and captured 2026-11-04; accepted by Paulo the same day; `chocolate amargo` stays flagged until its 2026 spike is explained):** `chocolate amargo`, `chocolate ao leite`, `chocolate sem açúcar`, each alone, last 5 years, same settings. Export ids `GT-CHOC-AS-AMARGO-5Y`, `GT-CHOC-AS-LEITE-5Y`, `GT-CHOC-AS-SEMACUCAR-5Y`. Shape and seasonality only.
 - The slots, hashes and notes are in `trends-export-status-2026-10-15.csv`; the test views are in `tests/` with `tests/trends-test-views-2026-11-04.csv`. Every new capture goes through the parser, the screen and human acceptance like version 1.
 
 ## 7. Test and capture log
@@ -126,3 +126,5 @@ The bare "Garoto" column of Set B v1 is the only unstable series: a high-volume 
 Exported alone, "chocolate ao leite" and "chocolate sem açúcar" show the chocolate seasonality cleanly (0% low-volume weeks against 90% and 100% inside the Set A comparison), which confirms that their Set A flags were a compression artefact, not absence of searches.
 
 **Leads for the spike review (not conclusions).** Google's "rising related queries" for Lacta over the five-year window include "lacta felipe neto", "felipe neto bis lacta" and "ações da lacta hoje", a candidate explanation for the week of 2023-10-15 to verify against dated sources. Nothing was found in the interface for the Nestlé 2026 spikes or for "chocolate amargo" in April and May 2026.
+
+**Acceptance.** Paulo accepted Set B2 (both windows) and the three single-term exports on 2026-11-04 (São Paulo), after reviewing the five-year Set B2 chart, with the limitations recorded in `trends-export-status-2026-10-15.csv`. Set B2 is now the brand set for analysis; Set B v1 stays as the bare-name benchmark.
