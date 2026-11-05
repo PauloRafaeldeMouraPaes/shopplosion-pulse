@@ -1,5 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { PULSE_PUBLIC_EVIDENCE } from './public-evidence.ts'
+/* Fail closed: a public item answers only when its provenance is complete (seven fields filled, no [A DEFINIR])
+   and its fact was verified in the source (fato_verificado_na_fonte starts with SIM). CI keeps the dataset fully
+   qualified (scripts/test-pulse-data-integrity.js); this guard holds if an incomplete item ever ships. */
+const PULSE_QUALIFICATION_FIELDS = ["natureza","universo_observado","representa","nao_representa","fonte_primaria","fato_verificado_na_fonte","alcance_para_pergunta"]
+const pulsePublicQualified = (item: any) => PULSE_QUALIFICATION_FIELDS.every((f) => typeof item[f] === 'string' && item[f].trim() !== '' && !item[f].toUpperCase().includes('[A DEFINIR]')) && String(item.fato_verificado_na_fonte || '').trim().toUpperCase().startsWith('SIM')
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -10,6 +15,28 @@ const cors = {
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } })
 const normalize = (value: string) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 const termsFor = (value: string) => Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter((term) => term.length >= 2))).slice(0, 8)
+
+/* PULSE_PUBLIC_RANK_START */
+/* Public-evidence ranking shared by ask.html (browser) and pulse-ask-ai (server). Kept textually identical in both
+   (type annotations aside) and checked by scripts/test-pulse-public-rank.js: Portuguese stopwords are not search
+   terms, a term counts only where it starts a word ("mes" hits "meses", not "semestre"), each term is weighted by
+   how rare it is in the public base (IDF), counting at most 3 hits per item, plus one hit when the term names the
+   item's own subject (id, tipo, categoria, periodo or keywords), so an item about IPCA outranks one that cites IPCA. */
+const PULSE_RANK_STOPWORDS = new Set(['de','da','do','das','dos','em','no','na','nos','nas','ao','aos','um','uma','uns','umas','os','as','e','ou','o','a','para','pra','por','pelo','pela','pelos','pelas','com','sem','que','qual','quais','como','quanto','quantos','quanta','quantas','se','mais','menos','muito','muita','sobre','entre','segundo','isso','esse','essa','este','esta','isto','aquele','aquela','ha','foi','sao','ser','esta','estao','tem','ter','teve','ate','desde','me','meu','minha','nosso','nossa','seu','sua','ja','tambem','ainda','vale','pena','mostram','mostra','diz','dizem','evidencias','evidencia','dados','dado','segundo','frente','ante','vs','quando','onde','porque','pois','entao','mesmo','cada','todo','toda','todos','todas','outro','outra','sim','nao']);
+const pulseRankNormalize = (value: any) => String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const pulseRankTerms = (value: any) => Array.from(new Set(pulseRankNormalize(value).split(/[^a-z0-9]+/).filter((t: string) => t.length >= 2 && !PULSE_RANK_STOPWORDS.has(t)))).slice(0, 10)
+const pulseRankHits = (text: string, term: string) => { let hits = 0, at = 0; while ((at = text.indexOf(term, at)) >= 0) { if (at === 0 || !/[a-z0-9]/.test(text[at - 1])) hits++; at += term.length } return hits }
+const pulseHeadText = (e: any) => [e.id, e.tipo, e.categoria, e.periodo, ...(Array.isArray(e.keywords) ? e.keywords : [])].filter(Boolean).join(' ')
+const pulsePublicText = (e: any) => [e.fato, e.contexto, e.interpretacao, e.hipotese, e.acao, ...(Array.isArray(e.keywords) ? e.keywords : [])].filter(Boolean).join(' ')
+const pulseRankPublic = (query: any, items: any) => {
+  const terms = pulseRankTerms(query)
+  const docs = (Array.isArray(items) ? items : []).map((item: any) => ({ item, text: pulseRankNormalize(pulsePublicText(item)), head: pulseRankNormalize(pulseHeadText(item)) }))
+  const n = docs.length || 1
+  const idf = Object.fromEntries<number>(terms.map((t: string) => [t, Math.log(1 + n / (1 + docs.filter((d: any) => pulseRankHits(d.text, t) > 0).length))]))
+  return docs.map((d: any) => ({ item: d.item, score: Math.round(terms.reduce((s: number, t: string) => s + (idf as any)[t] * (Math.min(3, pulseRankHits(d.text, t)) + (pulseRankHits(d.head, t) > 0 ? 1 : 0)), 0) * 1000) / 1000 }))
+    .filter((r: any) => r.score > 0).sort((a: any, b: any) => b.score - a.score)
+}
+/* PULSE_PUBLIC_RANK_END */
 
 const providerMessage = (status: number) => {
   if (status === 401 || status === 403) return 'A chave Gemini foi recusada. Verifique se ela está ativa e vinculada ao projeto correto.'
@@ -122,11 +149,11 @@ Deno.serve(async (req) => {
     if (clientRetrievedEvidence.length && clientMatchCount === 0 && scope !== 'universe') return json({ error: 'retrieval_context_mismatch', message: 'O contexto recuperado no navegador não coincide com a recuperação autorizada no servidor. Atualize a busca e tente novamente.' }, 409)
   }
   if (scope !== 'industry') {
-    const score = (content: string) => { const text = normalize(content); return terms.reduce((total, term) => total + Math.max(0, text.split(term).length - 1), 0) }
+    const publicScores = new Map(pulseRankPublic(query, PULSE_PUBLIC_EVIDENCE).map((r: any) => [String(r.item.id), r.score]))
     const publicRanked = PULSE_PUBLIC_EVIDENCE.map((item: any) => {
       const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ')
-      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: score(content), scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null }
-    }).filter((item: any) => requestedPublicEvidenceIds.has(String(item.id)) && (item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId)))
+      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: publicScores.get(String(item.id)) || 0, scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null , qualified: pulsePublicQualified(item) }
+    }).filter((item: any) => item.qualified && requestedPublicEvidenceIds.has(String(item.id)) && (item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId)))
       .sort((a: any, b: any) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score)
       .slice(0, 8)
     ranked = scope === 'both' ? [...ranked, ...publicRanked].sort((a, b) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score).slice(0, 12) : publicRanked

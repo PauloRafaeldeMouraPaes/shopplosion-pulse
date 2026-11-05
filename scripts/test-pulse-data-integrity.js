@@ -131,6 +131,13 @@ if (Array.isArray(evidence) && Array.isArray(runtimeEvidence) &&
   failures.push('runtime window.PULSE_EVIDENCE and embedded index.html evidence are out of sync');
 }
 
+/* Every published item must be qualified: seven provenance fields filled without [A DEFINIR] and a fact verified in
+   the source (fato_verificado_na_fonte starts with SIM). index.html and the Ask AI server hide items that are not. */
+if (Array.isArray(evidence)) {
+  const qFields = ["natureza","universo_observado","representa","nao_representa","fonte_primaria","fato_verificado_na_fonte","alcance_para_pergunta"];
+  const unqualified = evidence.filter(item => !(qFields.every(f => typeof item[f] === 'string' && item[f].trim() && !item[f].toUpperCase().includes('[A DEFINIR]')) && String(item.fato_verificado_na_fonte || '').trim().toUpperCase().startsWith('SIM')));
+  if (unqualified.length) failures.push(`public evidence without complete provenance or verified fact: ${unqualified.map(i => i.id).join(', ')}`);
+}
 if (Array.isArray(evidence) && evidence.length < 34) failures.push(`expected at least 34 public evidence records, found ${evidence.length}`);
 for (const id of [
   'kantar-chocolate-brasil-volume-q1-2025',
