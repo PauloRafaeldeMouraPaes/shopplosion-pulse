@@ -6,7 +6,7 @@
 
 Superpowers is an agent-development workflow delivered through skills and harness-specific plugins. Install it in the coding-agent environment you actually use; keep the upstream installation separate from the Pulse application repository so it can be updated without maintaining a private fork.
 
-- **ChatGPT:** connect the Superpowers integration from the installation suggestion surfaced in this conversation. It is not connected until you complete that action.
+- **ChatGPT:** connect the Superpowers integration from ChatGPT's own app or plugin settings; it is not available until that is done.
 - **Codex app / CLI:** open the Codex plugin interface, search for **Superpowers**, and install the official plugin. The upstream project's [README](https://github.com/obra/superpowers#installation) lists current installation routes.
 - **Manual Codex CLI setup (if you prefer a checkout):**
 
@@ -28,7 +28,7 @@ Superpowers is an agent-development workflow delivered through skills and harnes
 | Failed CI, broken UI, unexpected runtime behavior | `systematic-debugging` | Reproduce and trace the root cause before changing code |
 | Before saying “fixed” or “complete” | `verification-before-completion` | Verify the exact final commit and describe any unverified checks honestly |
 | Significant code change or review feedback | `requesting-code-review`, `receiving-code-review` | Review the diff, challenge feedback with evidence, and fix valid blocking findings |
-| Finished implementation | `finishing-a-development-branch` | Check tests, branch target and integration readiness; leave merge/deploy decisions to the authorized human |
+| Finished implementation | `finishing-a-development-branch` | Check tests, branch target and integration readiness; merge only under the release hygiene rule of `AGENTS.md` |
 
 The highest-value immediate improvements for the Pulse project are systematic debugging, test-first regression fixes, and evidence-based verification. Brainstorming and written plans should be proportional to the change; they must not turn a clear instruction into unnecessary conversation.
 
@@ -41,7 +41,7 @@ Apply priorities in this order:
 3. The relevant Superpowers skill.
 4. Generic defaults.
 
-In particular, generic workflows must not override Pulse's stricter gates: no speculative production changes; no fabricated evidence; no silent expansion of scope; no production migration or grant change while lineage is unresolved; no merge or deploy just because checks are green. For a request to continue autonomously, make safe, reversible decisions and proceed rather than repeatedly asking for confirmation.
+In particular, generic workflows must not override Pulse's stricter gates: no speculative production changes; no fabricated evidence; no silent expansion of scope; no production migration or grant change while lineage is unresolved; merges and deploys only under the release hygiene rule of `AGENTS.md` (all checks of the exact commit, release and published-artifact identity verified; database and security changes only after staging). For a request to continue autonomously, make safe, reversible decisions and proceed rather than repeatedly asking for confirmation.
 
 ## What is intentionally not vendored
 

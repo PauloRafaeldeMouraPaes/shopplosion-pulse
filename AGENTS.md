@@ -1,4 +1,4 @@
-# Pulse — engineering instructions
+# Pulse: engineering instructions
 
 These instructions are project-specific guardrails for coding agents. Apply them alongside the installed Superpowers skills when available. If a skill is unavailable in the current harness, follow the equivalent procedure below; do not pretend the plugin or subagents ran.
 
@@ -14,13 +14,13 @@ These instructions are project-specific guardrails for coding agents. Apply them
 
 Use the corresponding Superpowers skills when available:
 
-- **New or ambiguous product behavior — `brainstorming`:** identify the user outcome, non-goals, constraints, and acceptance criteria before implementation. If the request already specifies these sufficiently, do not add a redundant discovery round.
-- **Multi-step work — `writing-plans`:** define the smallest testable tasks and affected files. Create a plan artifact only when it helps coordination or traceability, not for routine edits.
-- **Feature or bug fix — `test-driven-development`:** add a focused test, run it to confirm the expected failure, implement the smallest fix, then rerun the test and relevant regression suite. Do not invent a test result when the environment cannot run it.
-- **Unexpected behavior or failing checks — `systematic-debugging`:** reproduce, inspect the failure and recent changes, trace the failing data/control path, establish root cause, and only then patch. Avoid chains of speculative fixes.
-- **Before reporting completion — `verification-before-completion`:** run the actual relevant command or inspect the actual completed CI run for the exact commit; distinguish verified, unverified, and blocked items.
-- **Review — `requesting-code-review` / `receiving-code-review`:** examine feedback against the repository, requirements, security and tests. Fix valid blocking issues; explain evidence-based disagreement rather than accepting or rejecting feedback reflexively.
-- **Branch completion — `finishing-a-development-branch`:** confirm the target branch and test status. Keep changes in a reviewable branch/PR; do not merge or deploy on your own for changes affecting production data, schema, security or release behavior.
+- **New or ambiguous product behavior (`brainstorming`):** identify the user outcome, non-goals, constraints, and acceptance criteria before implementation. If the request already specifies these sufficiently, do not add a redundant discovery round.
+- **Multi-step work (`writing-plans`):** define the smallest testable tasks and affected files. Create a plan artifact only when it helps coordination or traceability, not for routine edits.
+- **Feature or bug fix (`test-driven-development`):** add a focused test, run it to confirm the expected failure, implement the smallest fix, then rerun the test and relevant regression suite. Do not invent a test result when the environment cannot run it.
+- **Unexpected behavior or failing checks (`systematic-debugging`):** reproduce, inspect the failure and recent changes, trace the failing data/control path, establish root cause, and only then patch. Avoid chains of speculative fixes.
+- **Before reporting completion (`verification-before-completion`):** run the actual relevant command or inspect the actual completed CI run for the exact commit; distinguish verified, unverified, and blocked items.
+- **Review (`requesting-code-review` / `receiving-code-review`):** examine feedback against the repository, requirements, security and tests. Fix valid blocking issues; explain evidence-based disagreement rather than accepting or rejecting feedback reflexively.
+- **Branch completion (`finishing-a-development-branch`):** confirm the target branch and test status, then follow the release hygiene rule below; changes affecting production data, schema, grants or security are never merged or deployed without staging validation.
 
 Do not claim that subagents, worktrees, local commands, browser tests or local files were used unless they actually were available and used. Parallelize only independent work when the current environment supports it.
 
@@ -30,9 +30,11 @@ Do not claim that subagents, worktrees, local commands, browser tests or local f
 - **Production data and security:** prefer read-only diagnosis first. Do not bulk-revoke grants or modify SECURITY DEFINER functions without call-graph analysis and tests for both denied client access and legitimate trusted scheduler/worker paths.
 - **Multi-tenancy:** test tenant boundaries at the database/API layer. Do not rely solely on UI hiding or caller-provided industry IDs.
 - **Evidence and shopper intelligence:** keep source, timestamp, scope, capture status, and limitations explicit. Never fabricate a capture, timestamp, export, hash, price, shopper signal or trend. Industry/product announcements are not proof of shopper behavior. Preserve rejected/dismissed states unless the task explicitly authorizes a reviewed state transition.
-- **Chocolate pilot:** do not mark the baseline started or validated until the real capture, provenance, data-quality, comparability and human acceptance gates are satisfied.
+- **Chocolate pilot:** the gates are rules since 2026-11-04 (`docs/pilot-chocolate/capture-kit/autonomy-rules-v1.md`, applied by `scripts/chocolate-pilot-autonomy.js`, checked in CI). Do not mark the baseline started or validated until the computed gates in `AUTONOMY_STATUS.md` say so; only the exception queue goes to a person.
 - **External source access:** respect HTTP 403, terms, rate limits and licensing; do not bypass access controls.
-- **Release hygiene:** use a focused branch and PR; run relevant tests and audits; inspect the final diff. Draft PRs remain drafts until explicitly asked to promote them. No production deploy or merge merely because CI is green.
+- **Public evidence base:** `index.html` holds the canonical JSON; regenerate `pulse-public-evidence.js` and `supabase/functions/pulse-ask-ai/public-evidence.ts` with `node scripts/sync-public-evidence.js`, never by hand. Every item needs the seven provenance fields and `fato_verificado_na_fonte` starting with `SIM` (CI fails otherwise; the page and the Ask AI hide unqualified items). The public base never names a brand. New IBGE PMC months come from `scripts/update-ibge-pmc-evidence.py`, not from manual edits.
+- **Owner's writing rules:** user-facing text is Portuguese, direct, without emojis and without em or en dashes (use colons).
+- **Release hygiene:** use a focused branch and PR; run relevant tests and audits; inspect the final diff. The owner authorized autonomous merges: a PR may be merged when every check of its exact commit passed, and the work is done only after the Pulse Production Release of the merge commit succeeded and `python3 scripts/verify_published_artifact.py --require-release --cache-key <sha>` reports the published files identical. PRs that change the database, grants, RLS or security stay drafts until staging validation. Edge Functions are deployed only through the guarded workflow (`pulse-supabase-ask-ai-deploy.yml`), and each deploy is recorded in `supabase/functions/DEPLOYMENT_MANIFEST.json`.
 
 ## Reporting
 
