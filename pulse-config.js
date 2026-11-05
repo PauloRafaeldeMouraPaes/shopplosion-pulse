@@ -4,9 +4,12 @@
 window.PULSE_SUPABASE_CONFIG={url:'https://ppfuygnpgywfpiqxsfys.supabase.co',anonKey:'sb_publishable_aRzZJXmWvRu86J4I7_VFDw_ucU46Km7'};
 
 (function(){
+  /* pdf.js 4.10.38 (CVE-2024-4367 fixed in 4.2.67). app.html loads the same file statically with Subresource Integrity and sets the
+     worker; this import is the fallback for a page without that tag (same CDN, same pinned version). isEvalSupported stays false. */
+  const PDFJS_SRC='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs',PDFJS_WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
   let pdfjsPromise=null;
-  const loadPdfJs=()=>{if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(!pdfjsPromise)pdfjsPromise=import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs');return pdfjsPromise};
-  const extractPdfText=async file=>{const pdfjs=await loadPdfJs();const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),disableWorker:true}).promise;const pages=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n);const content=await page.getTextContent();const text=content.items.map(item=>String(item?.str||'')).join(' ').replace(/\s+/g,' ').trim();if(text)pages.push('[Página '+n+']\n'+text)}return pages.join('\n\n').trim()};
+  const loadPdfJs=()=>{if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(!pdfjsPromise)pdfjsPromise=import(PDFJS_SRC).then(m=>window.pdfjsLib||m);return pdfjsPromise};
+  const extractPdfText=async file=>{const pdfjs=await loadPdfJs();if(pdfjs.GlobalWorkerOptions&&!pdfjs.GlobalWorkerOptions.workerSrc)pdfjs.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise;const pages=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n);const content=await page.getTextContent();const text=content.items.map(item=>String(item?.str||'')).join(' ').replace(/\s+/g,' ').trim();if(text)pages.push('[Página '+n+']\n'+text)}return pages.join('\n\n').trim()};
   window.PULSE_PDF_TEXT_EXTRACTION={enabled:true,library:'pdfjs-dist',version:'4.10.38',mode:'explicit'};
   window.PULSE_EXTRACT_PDF_TEXT=extractPdfText;
 })();

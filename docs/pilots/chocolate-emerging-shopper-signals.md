@@ -292,3 +292,124 @@ Consulta somente de leitura ao projeto `ppfuygnpgywfpiqxsfys`:
 **Piloto parcialmente validado — não declarar conclusão definitiva.** O código da PR foi integrado, os gates relevantes no commit atual de `main` passaram, a publicação geral do site foi concluída com verificação de identidade e as funções centrais estão ACTIVE. Ainda não foram demonstradas quatro semanas de observação longitudinal nem corroboração independente suficiente para os sinais prioritários, e a URL específica do painel não pôde ser testada diretamente nesta sessão.
 
 Próximos critérios objetivos: (1) observar e comparar snapshots datados durante quatro semanas; (2) verificar a página `pilot-chocolate.html` no endereço público; (3) revisar cada sinal ativo quanto a fonte primária, data, universo, período e independência; (4) manter como preliminar qualquer hipótese de comportamento que dependa de uma única fonte; (5) atualizar este protocolo somente após nova evidência material.
+
+
+## Auditoria operacional — 28/10/2026 (UTC−3)
+
+### Resultado da execução
+
+A consulta direta às tabelas de fontes, itens, execuções e sinais do tenant Chocolate confirmou:
+
+- **Fontes:** 9 cadastradas, 7 ativas e 2 inativas. As cinco páginas primárias pertinentes são Abicab, Agência Brasil/Instituto Locomotiva, Kantar/Worldpanel, IPEAD/UFMG e Procon Joinville. As duas fontes RSS de descoberta permanecem ativas; a fonte do IBGE continua inativa após HTTP 403, sem tentativa de contornar o bloqueio.
+- **Últimas capturas:** em 28/10, Abicab concluiu às 09h00 BRT; as outras fontes ativas concluíram por volta das 03h00 BRT. Não houve erro nas últimas execuções. Os feeds RSS retornaram zero itens na execução mais recente.
+- **Itens:** 7 itens estão ativos, mas somente 5 são páginas primárias relevantes para Chocolate. Dois itens RSS irrelevantes continuam ativos no banco: “Diretora é presa por desvio de alimentos em unidade prisional feminina” (publicado em 23/10/2026) e “Anvisa proíbe venda de picolé com melatonina e suplemento de proteína” (26/10/2026). Há 21 itens rejeitados.
+- **Sinais:** 16 ativos, 19 descartados e 1 resolvido. Três dos 16 ativos não devem ser tratados como evidência válida: dois sinais duplicados e fora de tema derivados do mesmo artigo sobre desvio de alimentos, e um candidato IPEAD que concatena trechos separados. O sinal resolvido também deriva daquele artigo fora de tema. Assim, 13 candidatos permanecem no conjunto temático após a exclusão desses três registros ativos, mas ainda não constituem tendências longitudinalmente validadas.
+- **Mudança editorial não comprovada:** a página da Agência Brasil sobre intenção de compra retornou `items_changed=1` em várias capturas recentes do mesmo URL/artigo. Como não há snapshots imutáveis por execução, não é possível distinguir alteração editorial real de instabilidade na extração/fingerprint.
+
+### Auditoria de citações e duplicatas
+
+As citações dos 17 registros ativos/resolvidos consultados aparecem literalmente no conteúdo armazenado de seus itens de origem. Essa verificação literal não garante validade semântica. O candidato IPEAD mistura o IPCA de 3,40%, uma frase sobre a variação anterior e o aumento da Lacta em uma única citação. No artigo da Kantar, algumas citações incluem cabeçalhos junto com a frase factual. Há dois sinais ativos e um sinal resolvido sobre o mesmo artigo irrelevante de RSS; títulos diferentes não os tornam evidências independentes.
+
+### Classificação que deve ser preservada
+
+- **Abicab:** fatos setoriais, produção e oferta sazonal; não comprovam compra, preferência ou comportamento do shopper.
+- **Agência Brasil/Instituto Locomotiva:** intenção declarada; não é compra observada ou sell-out.
+- **Kantar/Worldpanel:** consumo agregado observado no primeiro trimestre de 2025; evidência histórica de uma única publicação, não prova que a dinâmica persista em outubro de 2026.
+- **IPEAD/UFMG:** comparação temporal de preços em Belo Horizonte entre 2026 e 2025; descartar o candidato com citação composta.
+- **Procon Joinville:** diferenças de preços entre estabelecimentos em março de 2026; não classificar dispersão transversal como inflação ou variação temporal.
+
+### Decisão e próximos critérios
+
+**Piloto parcialmente validado; baseline de quatro semanas permanece `not_started`.** Antes de ampliar os sinais, corrigir o processamento de itens RSS antigos fora de tema, deduplicar candidatos derivados do mesmo artigo, impedir que recapturas reativem descartes e preservar snapshots imutáveis com timestamp e fingerprint. Os quatro exports reais do Google Trends continuam pendentes; as capturas varejistas existentes são exploratórias e não formam uma série temporal comparável. Não executar mudanças de produção sem CI aprovado e validação humana.
+
+Esta auditoria não alterou dados nem implantou funções de produção. Fontes primárias consultadas: Abicab (31/03/2026), Agência Brasil/Instituto Locomotiva (31/03/2026), Kantar/Worldpanel (17/07/2025), IPEAD/UFMG (30/03/2026) e Procon Joinville (26/03/2026).
+
+## Atualização de execução — 31/10/2026 (UTC−3)
+
+Sessão sem acesso ao banco de produção e sem exportação manual do Google Trends; nada foi capturado nem fabricado.
+
+- **Google Trends:** os quatro slots registrados continuam `not_captured`. A exportação é etapa manual na interface; a API oficial segue em alpha com acesso por candidatura e a biblioteca não oficial mais usada foi arquivada em 2025. Para que a etapa seja concluída sem retrabalho, `scripts/parse-google-trends-export.js` valida o CSV original (estrutura multiTimeline; eixo de tempo com datas válidas, crescentes e cadência uniforme; termos, categoria, rótulo de geografia e extensão da janela iguais ao slot registrado; pico = 100; valores `<1` preservados como baixo volume) e gera as linhas do template `trends-observations`. O hash só é conferido depois de registrado no slot (na primeira captura o parser apenas reporta o SHA-256 para registro após revisão), e o parser recusa gravar dentro do capture kit. Testes com fixtures sintéticas, inclusive da linha de comando contra os slots registrados, rodam no workflow Regression.
+- **Observações repetíveis de varejo e baseline de quatro semanas:** dependem de capturas humanas semanais conforme `repeatable-capture-cadence.md`; o status permanece `not_started` até a aceitação do primeiro ciclo reproduzível por um revisor.
+- **Correções de backend apontadas em 28/10** (itens RSS fora de tema, deduplicação de candidatos do mesmo artigo, recapturas que reativam descartes, snapshots imutáveis com timestamp e fingerprint): exigem alteração de funções e migrations em produção; não executadas nesta sessão. A deduplicação de eventos está proposta na PR #89 e a linhagem de migrations na PR #93, ambas em Draft.
+- **Contexto FMCG versus evidência de Chocolate:** mantida a classificação da auditoria de 28/10; o material da Worldpanel permanece `context_only` e nenhum sinal amplo de FMCG foi promovido a sinal de Chocolate.
+
+
+## 14. Auditoria operacional — 04/11/2026 (UTC−3)
+
+### Resumo e comparação com 28/10
+
+Consulta somente de leitura ao tenant Chocolate (`b6bba4a1-2570-4ab5-b611-10f961f8a1e6`) no Supabase:
+
+- **Fontes:** 9 cadastradas, 7 ativas e 2 inativas. As cinco páginas primárias continuam sendo Abicab, Agência Brasil/Instituto Locomotiva, Kantar/Worldpanel, IPEAD/UFMG e Procon Joinville.
+- **Itens:** 29 no total, 8 ativos e 21 rejeitados. Os 8 ativos são as cinco páginas primárias e três itens do RSS Últimas Notícias; nenhum dos três itens RSS é evidência pertinente à categoria Chocolate.
+- **Sinais:** 14 ativos, 19 descartados e 3 resolvidos. Em 28/10 eram 16 ativos, 19 descartados e 1 resolvido. Dois registros fora de tema derivados do artigo sobre desvio de alimentos passaram de ativos para resolvidos; não houve aumento de evidência de shopper.
+- **Novidade temática:** nenhum artigo novo relevante de Chocolate foi capturado nos feeds RSS. O novo item de 04/11 é uma notícia sobre o Enem, não sobre a categoria.
+
+### Últimas capturas e datas
+
+| Fonte | Última captura (BRT) | Resultado | Publicação do item primário |
+|---|---|---|---|
+| Abicab | 04/11, 09h00 | 1 visto; 0 alterado; sucesso | 31/03/2026 (metadado da captura) |
+| Agência Brasil / Instituto Locomotiva — intenção | 04/11, 09h00 | 1 visto; 1 alterado; sucesso | 31/03/2026 |
+| Agência Brasil — RSS Economia | 04/11, 09h00 | 0 vistos; sucesso | Não se aplica |
+| Agência Brasil — RSS Últimas Notícias | 04/11, 09h00 | 1 visto; 1 alterado; sucesso | Novo item: 04/11, 08h10 |
+| Kantar / Worldpanel | 04/11, 09h00 | 1 visto; 0 alterado; sucesso | 17/07/2025 (metadado da captura) |
+| IPEAD/UFMG | 03/11, 18h00 | 1 visto; 0 alterado; sucesso | 30/03/2026 |
+| Procon Joinville | 03/11, 18h00 | 1 visto; 0 alterado; sucesso | 26/03/2026, 08h49 |
+
+Não havia erro atual registrado nas fontes ativas. O histórico contém uma falha transitória `HTTP 500` do IPEAD em 01/11 às 12h00 BRT; as capturas seguintes de 02/11 e 03/11 foram concluídas com sucesso. O IBGE permanece inativo após `HTTP 403`; não houve tentativa de contornar o bloqueio. A fonte antiga da Agência Brasil sobre consumo setorial permanece inativa por repetir números já atribuídos à Abicab.
+
+### RSS: falsos positivos do filtro temático
+
+Há três itens RSS ativos, todos fora do escopo de Chocolate:
+
+1. **Enem 2026: confira dicas para cuidar do corpo e da mente na reta final** — publicado em 04/11 às 08h10 BRT. O filtro aceitou o artigo porque a matéria menciona chocolates em orientação genérica de alimentação para estudantes; não é notícia de mercado de chocolate.
+2. **Anvisa proíbe venda de picolé com melatonina e suplemento de proteína** — publicado em 26/10 às 18h40 BRT. A palavra-chave é `cacau`, usada para identificar o sabor de um suplemento proteico, não evidência da categoria.
+3. **Diretora é presa por desvio de alimentos em unidade prisional feminina** — publicado em 23/10 às 08h02 BRT. A palavra-chave é `achocolatados`, em uma lista de alimentos encontrados na ocorrência, não observação de consumo.
+
+O worker de origem filtra por palavras-chave encontradas em qualquer parte do conteúdo RSS. Isso explica os três falsos positivos. Os itens continuam ativos como itens de fonte; não geraram sinais ativos de Chocolate nesta consulta. Não houve artigo RSS novo relevante para a categoria. A próxima correção deve avaliar título/lead e contexto, e colocar itens antigos fora de tema em quarentena sem apagar proveniência.
+
+### Sinais, duplicatas e citações
+
+- Os 14 sinais ativos distribuem-se por cinco páginas: Abicab (4), Kantar (3), Agência Brasil/Instituto Locomotiva (1), IPEAD/UFMG (3) e Procon Joinville (3). Não são 14 fontes independentes.
+- **Citações literais:** 14 de 14 citações ativas aparecem literalmente no conteúdo armazenado do item de origem; não houve item de origem ausente. Correspondência literal não garante adequação semântica.
+- **Candidato IPEAD inválido:** um sinal ativo concatena o IPCA de 3,40%, uma frase sobre a alta anterior dos ovos e a variação de 16,17% da Lacta. No release oficial da UFMG esses pontos aparecem em bullets distintos; a citação é literal como sequência extraída, mas não é afirmação contínua e deve ser excluída da síntese válida.
+- **Duplicatas resolvidas:** três registros resolvidos repetem a mesma citação e o mesmo artigo RSS sobre desvio de alimentos, com títulos/tipos diferentes. São duplicatas de uma notícia, não três ocorrências independentes.
+- **Duplicatas descartadas:** dois registros descartados repetem a mesma citação de produção de 805 mil para 814 mil toneladas no artigo antigo da Agência Brasil, que permanece inativo e não é independente da informação setorial da Abicab.
+- Não foi encontrada duplicata de citação literal entre os 14 sinais ativos. Os múltiplos sinais Abicab, Kantar, IPEAD e Procon são fatos distintos dentro de uma mesma publicação; devem ser agrupados por fonte ao contar corroboração.
+
+A página de intenção da Agência Brasil reportou `items_changed=1` em quatro capturas consecutivas (03/11 às 12h e 18h; 04/11 às 00h e 09h BRT). Como o banco mantém apenas o conteúdo/fingerprint corrente e não snapshots imutáveis por execução, não é possível confirmar se houve alteração editorial real ou ruído de extração/fingerprint.
+
+### Classificação das evidências
+
+- **Fatos setoriais — Abicab:** produção 806 mil → 814 mil toneladas (+1,0%); ovos de Páscoa 45 → 46 milhões (+2,2%); lançamentos 94 → 134 (+42,6%); empregos temporários 9.946 → 14.558 (+46,4%). Indicadores de produção, oferta e sazonalidade; não demonstram compra ou preferência.
+- **Intenção declarada — Agência Brasil / Instituto Locomotiva:** 90% declararam intenção de comprar chocolate na Páscoa de 2026, ante 86% em 2025 (+4 p.p.). É pesquisa declarativa, não compra observada ou sell-out. Republicações não são fontes independentes.
+- **Comportamento observado, histórico — Kantar / Worldpanel:** no 1º trimestre de 2025, consumo domiciliar caiu 19% em volume e consumo fora do lar caiu 15%; preço médio/kg subiu 17%, enquanto unidades caíram 10%. Dado agregado de painel sobre comportamento passado, de uma única publicação; não comprova persistência em novembro de 2026.
+- **Variação temporal de preços — IPEAD/UFMG:** ovos de Páscoa +14,60% e chocolate em barra +17,82% em 2026 versus 2025, no levantamento anual de Belo Horizonte realizado entre 02 e 24/03/2026. Não é índice nacional nem série contínua.
+- **Dispersão entre lojas — Procon Joinville:** diferenças de até 31,91% para um mesmo ovo, R$ 25,09 entre dois estabelecimentos e 191,26% para uma barra de 80 g. Comparação transversal entre lojas; não classificar como inflação ou variação temporal.
+
+### Código, CI e produção
+
+- **PR #87** foi mesclada em 01/11 (`553740e`). O kit de captura e seus testes de integridade estão em `main`; os quatro exports oficiais do Google Trends continuam `not_captured`, os sete snapshots varejistas permanecem `exploratory_only` e a baseline continua `not_started`. Os cinco workflows de QA/regressão/contratos passaram no HEAD consultado; o workflow de release foi cancelado.
+- **PR #89** foi mesclada em 01/11 (`033ef37`). Os sete workflows, incluindo o contrato do trigger e o Release Gate, passaram. O job de publicação de GitHub Pages foi ignorado; o Release Gate não é deploy de Edge Functions.
+- **PR #93** foi mesclada em 01/11 (`1a7a3b7`). Os seis workflows consultados passaram; a PR documenta linhagem de migrations e ACL, mas não aplica migration, trigger ou grants em produção. O release notes declara que o SQL é draft e requer staging.
+- A consulta de Edge Functions do Supabase mostra versões ainda anteriores aos merges: source worker v6 (atualizado 10/10), signal worker v15 (11/10), deterministic backstop v11 (11/10) e intelligence worker v9 (08/09). Não há evidência de redeploy desses workers após o merge de #89.
+- No código atual de `main`, o signal worker externo e o backstop preservam `resolved`, mas ainda mapeiam qualquer outro status existente para `active`; portanto, ainda podem reativar `dismissed`. O worker privado `pulse-intelligence-worker` preserva `resolved` e `dismissed`. Os bundles implantados são anteriores e não contêm as correções de #89. O filtro RSS de origem implantado é amplo e produziu os três falsos positivos descritos acima.
+- Nenhuma Edge Function, migration, trigger, ACL, item ou sinal foi alterado nesta auditoria. Não houve deploy de produção.
+
+### Cobertura e decisão
+
+**Piloto parcialmente validado; não iniciar nem declarar concluída a baseline de quatro semanas.** Os quatro exports reais do Google Trends continuam ausentes; as sete listagens varejistas continuam exploratórias, sem série repetida com identidade de SKU, região e condições promocionais comparáveis; não há sell-out ou painel autorizado. A cobertura de shopper continua concentrada em uma pesquisa de intenção e uma publicação histórica de painel.
+
+Próximos gates: (1) endurecer o filtro RSS e quarentenar itens antigos fora de tema; (2) corrigir ambos os workers externos para preservar também `dismissed`, com testes de regressão; (3) concluir o contrato de trigger/ACL em staging e verificar o caminho cron → Vault → Edge Function; (4) só então planejar deploy, após CI verde; (5) obter exports reais do Google Trends e observações varejistas repetíveis e autorizadas; (6) iniciar a baseline apenas após QA e revisão humana da primeira captura.
+
+### Fontes primárias consultadas
+
+- [Abicab — Indústria brasileira de chocolate reforça dinamismo e inovação na Páscoa 2026](https://abicab.org.br/industria-brasileira-de-chocolate-reforca-dinamismo-e-inovacao-na-pascoa-2026/) — publicação registrada na captura em 31/03/2026; autoria individual não indicada.
+- [Agência Brasil — Pesquisa aponta que 90% dos consumidores comprarão chocolate na Páscoa](https://agenciabrasil.ebc.com.br/geral/noticia/2026-03/pesquisa-aponta-que-90-dos-consumidores-comprarao-chocolate-na-pascoa) — 31/03/2026; pesquisa do Instituto Locomotiva. A cópia em outros veículos é republicação, não corroboração independente.
+- [Kantar — Brasileiros compram menos chocolate e escolhem porções menores](https://www.kantar.com/brazil/inspiration/consumo/2025/queda-consumo-chocolate-crise-cacau) — 17/07/2025 conforme metadado capturado; dados da Worldpanel by Numerator; autoria individual não indicada no texto consultado.
+- [UFMG/IPEAD — Ipead UFMG: produtos da Páscoa ficaram mais caros em 2026](https://www.ufmg.br/comunicacao/assessoria-de-imprensa/releases/pesquisa-e-inovacao/ipead-ufmg-produtos-da-pascoa-ficaram-mais-caros-em-2026/) — Assessoria de Imprensa UFMG, 30/03/2026.
+- [Prefeitura de Joinville/Procon — Procon de Joinville divulga pesquisa de preços dos chocolates de Páscoa](https://www.joinville.sc.gov.br/noticias/procon-de-joinville-divulga-pesquisa-de-precos-dos-chocolates-de-pascoa/) — publicação institucional, 26/03/2026 às 08h49.
+
+Links de implementação: [PR #87](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/pull/87), [PR #89](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/pull/89), [PR #93](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/pull/93), [PR #101](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/pull/101), [Issue #67](https://github.com/PauloRafaeldeMouraPaes/shopplosion-pulse/issues/67).
+

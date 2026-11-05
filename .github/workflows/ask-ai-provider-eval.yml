@@ -1,0 +1,73 @@
+name: Ask AI Provider Eval
+
+# Manual comparison of the Ask AI answer quality and cost between the current Gemini model and a Claude model,
+# on the public-scope prompt used in production (extracted from supabase/functions/pulse-ask-ai/index.ts).
+# Requires repository secrets GEMINI_API_KEY and ANTHROPIC_API_KEY. Read-only: nothing is committed or deployed;
+# the report, the raw results and a blind A/B review sheet are kept as a run artifact.
+# Prices are inputs on purpose: copy them from the official pricing pages on the day of the run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      gemini_model:
+        description: Gemini model (current production default)
+        default: gemini-3.5-flash-lite
+      claude_model:
+        description: Claude model to compare
+        default: claude-haiku-5-5
+      price_gemini_in:
+        description: Gemini input price, USD per million tokens (official page)
+        required: false
+      price_gemini_out:
+        description: Gemini output price, USD per million tokens (official page)
+        required: false
+      price_claude_in:
+        description: Claude input price, USD per million tokens (official page)
+        required: false
+      price_claude_out:
+        description: Claude output price, USD per million tokens (official page)
+        required: false
+      monthly_questions:
+        description: Expected Ask AI questions per month
+        default: "1000"
+      usd_brl:
+        description: USD to BRL rate used for the monthly estimate
+        required: false
+      budget_brl:
+        description: Monthly budget in BRL
+        default: "100"
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Self-test (no network)
+        run: node scripts/eval-ask-ai-providers.mjs --self-test
+      - name: Run the comparison
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: >-
+          node scripts/eval-ask-ai-providers.mjs --out ask-ai-eval
+          --gemini-model "${{ inputs.gemini_model }}" --claude-model "${{ inputs.claude_model }}"
+          --price-gemini-in "${{ inputs.price_gemini_in }}" --price-gemini-out "${{ inputs.price_gemini_out }}"
+          --price-claude-in "${{ inputs.price_claude_in }}" --price-claude-out "${{ inputs.price_claude_out }}"
+          --monthly-questions "${{ inputs.monthly_questions }}" --usd-brl "${{ inputs.usd_brl }}" --budget-brl "${{ inputs.budget_brl }}"
+      - name: Publish the report in the run summary
+        if: ${{ always() }}
+        run: test -f ask-ai-eval/report.md && cat ask-ai-eval/report.md >> "$GITHUB_STEP_SUMMARY" || echo "no report" >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep results and the blind review sheet
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ask-ai-eval-${{ github.run_id }}
+          path: ask-ai-eval/
+          if-no-files-found: ignore

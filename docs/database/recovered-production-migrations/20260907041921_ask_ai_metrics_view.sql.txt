@@ -1,0 +1,16 @@
+CREATE OR REPLACE VIEW public.ask_ai_daily_metrics WITH (security_invoker = true) AS
+SELECT
+  industry_id,
+  date_trunc('day', created_at) AS day,
+  COUNT(*)::integer AS requests,
+  COUNT(*) FILTER (WHERE outcome = 'answered')::integer AS answered,
+  COUNT(*) FILTER (WHERE outcome = 'no_evidence')::integer AS no_evidence,
+  COUNT(*) FILTER (WHERE outcome = 'scope_rejected')::integer AS scope_rejected,
+  COUNT(*) FILTER (WHERE outcome IN ('retrieval_error','provider_error'))::integer AS errors,
+  ROUND(AVG(latency_ms))::integer AS avg_latency_ms,
+  ROUND(AVG(retrieved_count))::numeric AS avg_retrieved,
+  ROUND(AVG(citation_count))::numeric AS avg_citations
+FROM public.ask_ai_events
+GROUP BY industry_id, date_trunc('day', created_at);
+GRANT SELECT ON public.ask_ai_daily_metrics TO authenticated;
+REVOKE ALL ON public.ask_ai_daily_metrics FROM anon;

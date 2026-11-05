@@ -9,8 +9,11 @@ on:
     types: [closed]
   workflow_dispatch:
 
+# The pull_request(closed) run only re-runs the gate (its deploy job is skipped). It used to share the
+# group with the push run of the same merge and cancel it, so nothing was deployed until a manual re-run.
+# Keying the group by event keeps the two apart; pushes to main still cancel older pushes.
 concurrency:
-  group: pulse-production-${{ github.ref }}
+  group: pulse-production-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

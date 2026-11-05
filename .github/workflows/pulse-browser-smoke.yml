@@ -56,6 +56,9 @@ jobs:
       - name: Run mobile reprojection smoke tests
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-mobile-v3.spec.js
+      - name: No horizontal overflow at 390 px on the seven pages
+        if: ${{ !cancelled() }}
+        run: npx playwright test scripts/browser-tests/pulse-mobile-overflow.spec.js
       - name: Run proposal fidelity smoke tests
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-proposal-fidelity.spec.js
@@ -65,6 +68,12 @@ jobs:
       - name: Run Ask AI interaction smoke tests
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-ask-interaction.spec.js
+      - name: Run listener integrity gate (one handler per suggestion, no duplicate click/keydown)
+        if: ${{ !cancelled() }}
+        run: npx playwright test scripts/browser-tests/pulse-listener-integrity.spec.js
+      - name: Run Supabase SDK pin and Subresource Integrity check
+        if: ${{ !cancelled() }}
+        run: npx playwright test scripts/browser-tests/pulse-sdk-integrity.spec.js
       - name: Run chocolate evidence retrieval regression
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-ask-interaction.spec.js --grep "Busca de chocolate"

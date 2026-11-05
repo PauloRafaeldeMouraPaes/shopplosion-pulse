@@ -1,0 +1,3 @@
+REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.current_industry_id() FROM anon;
+GRANT EXECUTE ON FUNCTION public.current_industry_id() TO authenticated;

@@ -5,9 +5,223 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pulse - Piloto Chocolate | Baseline de sinais</title>
 <meta name="description" content="Primeiro baseline público do piloto Pulse para chocolate no Brasil, com evidências e limites de interpretação.">
+<meta name="theme-color" content="#f7f6f4">
+<meta name="color-scheme" content="light">
+<link rel="stylesheet" href="./pulse-tokens.css">
 <style>
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f6f7fb;--pink:#d3185f;--muted:#6e6b76;--line:#e4e8ef;--ink:#172033}
-*{box-sizing:border-box}body{margin:0;background:#f6f7fb}a{color:inherit}.top{background:#fff;border-bottom:1px solid var(--line);padding:16px max(20px,calc((100% - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-size:13px;letter-spacing:.08em;font-weight:900;color:var(--pink)}.top a{font-size:12px;font-weight:800;color:#596274;text-decoration:none}.wrap{width:min(1120px,calc(100% - 28px));margin:28px auto 60px}.hero,.panel,.signal{background:#fff;border:1px solid var(--line);border-radius:17px;padding:22px;box-shadow:0 8px 24px #17203308}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--pink)}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-1.8px;line-height:1.05;margin:8px 0 12px}.intro{max-width:800px;font-size:15px;line-height:1.65;color:#5f6878;margin:0}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.pill{display:inline-flex;align-items:center;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;color:#596274;background:#fafbfc}.pill.warning{background:#fff7e8;border-color:#f5e3b8;color:#82520a}.pill.good{background:#effaf3;border-color:#d1f0dc;color:#176b3a}.section{margin-top:20px}.section h2{font-size:19px;letter-spacing:-.4px;margin:0 0 12px}.sectionIntro{font-size:13px;line-height:1.55;color:var(--muted);margin:-4px 0 14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.signal{padding:18px;box-shadow:none}.signalTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.signal h3{font-size:15px;line-height:1.4;margin:0 0 8px}.delta{font-size:24px;letter-spacing:-.8px;font-weight:900;white-space:nowrap;color:var(--pink)}.metric{font-size:12px;color:#596274;margin-bottom:12px}.interpretation{font-size:13px;line-height:1.6;color:#434b5a}.quote{margin-top:12px;padding:12px;border-radius:10px;background:#f8f9fb;border-left:3px solid #e5a6c2;font-size:12px;line-height:1.6;color:#424b5a}.source{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:11px;font-size:11px}.source a{color:#b31957;font-weight:850;text-decoration:none}.source a:hover{text-decoration:underline}.label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:900;color:#6e6b76}.insight{padding:18px;border-radius:14px;background:#fff7fb;border:1px solid #f1d7e3;font-size:14px;line-height:1.65}.insight strong{color:#9c164b}.limit{padding:18px;border-radius:14px;border:1px solid #f0dfb8;background:#fffaf0;font-size:13px;line-height:1.65;color:#66522b}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px}.step b{display:block;font-size:12px;margin-bottom:6px}.step p{margin:0;font-size:12px;line-height:1.55;color:#687284}.foot{margin-top:22px;font-size:11px;line-height:1.6;color:#6e6b76}.foot a{color:#b31957;font-weight:800}@media(max-width:760px){.grid,.steps{grid-template-columns:1fr}.hero,.panel{padding:18px}.signal{padding:16px}.signalTop{display:block}.delta{font-size:22px;margin:5px 0 10px}.top{align-items:flex-start}}
+:root {
+  color-scheme: light;
+  font-family: var(--font-sans);
+  color: var(--ink-1);
+  background: var(--surface-app);
+  --pink: var(--brand-pulse-strong);
+  --muted: var(--ink-2);
+  --line: var(--line-1);
+  --ink: var(--ink-1);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--surface-app);
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+a { color: inherit; }
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  background: var(--surface-canvas);
+  border-bottom: 1px solid var(--line-1);
+  padding: var(--space-16) max(var(--space-24), calc((100% - 1120px) / 2));
+}
+.brand {
+  color: var(--brand-pulse-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+.top a {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.wrap {
+  width: min(1120px, calc(100% - 32px));
+  margin: var(--space-32) auto var(--space-64);
+}
+.hero, .panel, .signal {
+  background: var(--surface-canvas);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-panel);
+  padding: var(--space-24);
+  box-shadow: var(--shadow-panel);
+}
+.hero { padding: var(--space-32); }
+.eyebrow, .label {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 8px 0 12px;
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  font-size: clamp(30px, 4vw, 32px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+.intro {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--ink-2);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 26px;
+}
+.meta { display: flex; gap: var(--space-8); flex-wrap: wrap; margin-top: var(--space-16); }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-chip);
+  padding: 6px 10px;
+  background: var(--surface-sunken);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+}
+.pill.warning {
+  background: color-mix(in srgb, var(--state-attention) 10%, var(--surface-canvas));
+  border-color: color-mix(in srgb, var(--state-attention) 28%, var(--surface-canvas));
+  color: var(--ink-1);
+}
+.pill.good {
+  background: color-mix(in srgb, var(--state-ok) 10%, var(--surface-canvas));
+  border-color: color-mix(in srgb, var(--state-ok) 28%, var(--surface-canvas));
+  color: var(--ink-1);
+}
+.section { margin-top: var(--space-32); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; font-weight: 400; letter-spacing: normal; }
+.section h2 {
+  margin: 0 0 12px;
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.sectionIntro {
+  max-width: 80ch;
+  margin: -4px 0 var(--space-16);
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-16); }
+.signal { padding: var(--space-24); box-shadow: none; }
+.signalTop { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-12); }
+.signal h3 {
+  margin: 0 0 8px;
+  color: var(--ink-1);
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.delta {
+  color: var(--brand-pulse-strong);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  white-space: nowrap;
+}
+.metric { margin-bottom: 12px; color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+.interpretation { color: var(--ink-2); font-size: 14px; line-height: 1.6; }
+.quote {
+  margin-top: var(--space-12);
+  padding: var(--space-12);
+  border-left: 3px solid var(--brand-pulse);
+  border-radius: var(--radius-control);
+  background: var(--brand-soft);
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.source {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 14px;
+}
+.source a, .foot a { color: var(--brand-pulse-strong); font-weight: 700; text-decoration: none; }
+.source a:hover, .foot a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.insight {
+  padding: var(--space-24);
+  border: 1px solid color-mix(in srgb, var(--brand-pulse-strong) 22%, var(--surface-canvas));
+  border-radius: var(--radius-panel);
+  background: var(--brand-soft);
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.insight strong { color: var(--brand-pulse-strong); font-weight: 750; }
+.limit {
+  padding: var(--space-24);
+  border: 1px solid color-mix(in srgb, var(--state-attention) 28%, var(--surface-canvas));
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--state-attention) 8%, var(--surface-canvas));
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.limit strong { color: var(--ink-1); }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-12); }
+.step {
+  padding: var(--space-16);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  background: var(--surface-canvas);
+}
+.step b { display: block; margin-bottom: 6px; color: var(--ink-1); font-size: 14px; line-height: 20px; font-weight: 700; }
+.step p { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.55; }
+.foot { margin-top: var(--space-24); color: var(--ink-2); font-size: 12px; line-height: 1.6; }
+a:focus-visible { outline: 2px solid var(--brand-pulse-strong); outline-offset: 3px; border-radius: 4px; }
+@media (max-width: 760px) {
+  .top { align-items: flex-start; flex-wrap: wrap; padding: var(--space-16) var(--space-16); }
+  .wrap { width: calc(100% - 24px); margin-top: var(--space-24); }
+  .grid, .steps { grid-template-columns: 1fr; }
+  .hero, .panel { padding: var(--space-24); }
+  .signal { padding: var(--space-16); }
+  .signalTop { display: block; }
+  .delta { margin: 6px 0 10px; font-size: 22px; }
+  h1 { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
 </style>
 </head>
 <body>
@@ -17,7 +231,24 @@
 <div class="eyebrow">Piloto de inteligência emergente · Categoria chocolate</div>
 <h1>Baseline inicial de sinais</h1>
 <p class="intro">Segundo ciclo operacional do piloto: a cadeia agora reúne evidência setorial, pesquisa de intenção de compra, consumo domiciliar e preços de varejo. O recorte é retrospectivo (2025-março de 2026), não um painel em tempo real, e separa mudanças temporais de diferenças de preço observadas em uma única data.</p>
-<div class="meta"><span class="pill">Captura: 11 out 2026</span><span class="pill good">13 sinais ativos após revisão</span><span class="pill">5 páginas-fonte primárias</span><span class="pill warning">Sem série contínua de sell-out</span><span class="pill">2 RSS filtrados; 0 artigos de chocolate nesta captura</span></div>
+<div class="meta"><span class="pill">Snapshot temático: 11 out 2026</span><span class="pill">13 candidatos temáticos no snapshot de 11/10</span><span class="pill warning">Auditoria operacional: 04 nov 2026</span><span class="pill">5 páginas-fonte primárias</span><span class="pill warning">Sem série contínua de sell-out</span><span class="pill">2 RSS filtrados; 0 artigos de chocolate nesta captura</span></div>
+</section>
+
+<section class="section">
+<h2>Auditoria operacional: 4 nov. 2026</h2>
+<p class="sectionIntro">Revisão somente de leitura do tenant Chocolate no Supabase, comparada com a auditoria de 28/10. Esta seção atualiza o estado operacional; o snapshot temático original de 11/10 permanece preservado.</p>
+<div class="limit"><strong>Estado atual:</strong> 9 fontes cadastradas (7 ativas, 2 inativas); 29 itens de fonte (8 ativos, 21 rejeitados); 14 sinais ativos, 19 descartados e 3 resolvidos. Em 28/10 eram 16 ativos, 19 descartados e 1 resolvido: dois sinais fora de tema derivados do artigo sobre desvio de alimentos foram resolvidos. Os 14 ativos continuam ligados a cinco páginas primárias; um candidato IPEAD tem citação semanticamente composta. As 14 citações ativas aparecem literalmente no conteúdo armazenado, mas isso não garante que sejam semanticamente válidas.</div>
+<div class="limit"><strong>Capturas:</strong> Abicab, Agência Brasil/Instituto Locomotiva, Kantar e os dois RSS concluíram em 04/11 às 09h00 BRT. IPEAD e Procon tiveram última captura bem-sucedida em 03/11 às 18h00. Houve um HTTP 500 transitório no IPEAD em 01/11, seguido de capturas bem-sucedidas. A página da pesquisa de intenção retornou <code>items_changed=1</code> em quatro execuções consecutivas; sem snapshots imutáveis, não é possível separar mudança editorial de ruído de extração.</div>
+<div class="limit"><strong>RSS: três falsos positivos ativos:</strong> (1) artigo sobre o Enem, publicado em 04/11 às 08h10, aceito porque menciona chocolates em orientação genérica de alimentação; (2) notícia sobre picolé e suplemento, publicada em 26/10, aceita pela palavra cacau no sabor de um suplemento; (3) notícia sobre desvio de alimentos, publicada em 23/10, aceita por mencionar achocolatados em uma lista de alimentos. Nenhum é notícia da categoria Chocolate e nenhum originou sinal ativo. Não houve novo artigo RSS relevante para a categoria. O filtro atual usa palavras-chave em qualquer parte do conteúdo, sem validação semântica suficiente.</div>
+<div class="limit"><strong>Duplicatas e citações:</strong> os três sinais resolvidos repetem a mesma citação e o mesmo artigo sobre desvio de alimentos; dois registros descartados repetem a mesma citação de produção de chocolate de um artigo antigo da Agência Brasil, fonte inativa e não independente da Abicab. Não foi encontrada duplicata literal entre os 14 sinais ativos. Um dos três sinais IPEAD combina em uma única citação o IPCA de 3,40%, a alta anterior dos ovos e a variação de 16,17% da Lacta; esses trechos são bullets separados no release oficial e o candidato deve ser excluído da síntese válida.</div>
+<div class="limit"><strong>Natureza das evidências:</strong> Abicab = produção/oferta setorial; Agência Brasil/Locomotiva = intenção declarada (+4 p.p. em 2026 vs. 2025); Kantar/Worldpanel = comportamento agregado observado no 1º tri. de 2025 (histórico); IPEAD = variação temporal de preços em Belo Horizonte; Procon Joinville = dispersão transversal entre lojas, não variação temporal. Os sinais de cada página não são fontes independentes entre si.</div>
+<div class="limit"><strong>CI e produção:</strong> PR #87, #89 e #93 foram mescladas em 01/11. #89 teve Release Gate e contrato de trigger aprovados; #93 teve os checks de documentação/contratos aprovados; isso não significa deploy de Edge Functions ou aplicação de migrations. O job de publicação de Pages foi ignorado nas execuções de release consultadas. Supabase ainda mostra source worker v6 (10/10), signal worker v15 (11/10), backstop v11 (11/10) e intelligence worker v9 (08/09), todos anteriores ao merge de #89. O código externo em main preserva resolved, mas ainda pode reativar dismissed; os bundles de produção são anteriores. Nenhuma função, migration ou dado foi alterado nesta auditoria.</div>
+<div class="limit"><strong>Decisão:</strong> piloto parcialmente validado. Baseline de quatro semanas segue <code>not_started</code>; os quatro exports reais do Google Trends seguem <code>not_captured</code>; sete snapshots varejistas seguem <code>exploratory_only</code>. Próximos gates: corrigir filtro RSS, preservar dismissed nos dois workers externos, concluir testes de trigger/ACL em staging e somente depois planejar deploy com CI verde; obter dados de shopper e varejo repetíveis antes de iniciar a baseline.</div>
+</section>
+
+<section class="section">
+<h2>Auditoria operacional: 28 out. 2026</h2>
+<div class="limit"><strong>Qualidade da captura:</strong> a auditoria de 28/10 encontrou 16 registros de sinais ativos no banco (19 descartados e 1 resolvido), mas três dos 16 ativos não são qualificados: dois sinais fora de tema, duplicados, derivados do mesmo artigo de RSS sobre desvio de alimentos e um candidato IPEAD que concatena trechos distintos. Um registro resolvido também deriva daquele artigo irrelevante. O snapshot abaixo mantém os 13 candidatos temáticos da revisão de 11/10; eles não são tendências longitudinalmente validadas. Cinco páginas primárias estão ativas, mas dois itens antigos de RSS irrelevantes permanecem ativos no banco apesar do filtro aplicado a novas capturas. A captura mais recente não reportou erros; a página da Agência Brasil sobre intenção retornou <code>items_changed=1</code> repetidamente. Como ainda não há snapshots imutáveis por execução, não é possível confirmar se houve mudança editorial real. A baseline de quatro semanas continua não iniciada.</div>
 </section>
 
 <section class="section">
@@ -109,7 +340,7 @@
 <div class="step"><b>3. Validar shopper</b><p>Confrontar a hipótese com sell-out, painel ou pesquisa independente autorizada antes de recomendar mudança de portfólio, preço ou mídia.</p></div>
 </div>
 </section>
-<p class="foot">Snapshot gerado a partir de 13 sinais ativos do ambiente dedicado de pesquisa do Pulse em 11/10/2026, agrupados por fonte e tema. Variações percentuais foram calculadas a partir dos valores citados quando indicado. Os dados abrangem 2025 a março de 2026; não representam leitura em tempo real de outubro de 2026. Diferenças regionais entre lojas não equivalem a tendência temporal. <a href="./docs/pilots/chocolate-emerging-shopper-signals.md">Ler protocolo completo do piloto ↗</a></p>
+<p class="foot">Snapshot temático gerado em 11/10/2026, complementado pelas auditorias operacionais de 28/10 e 04/11. Em 04/11 o banco contém 14 sinais ativos, 19 descartados e 3 resolvidos; um sinal IPEAD ativo tem citação semanticamente composta. Os 13 candidatos temáticos do snapshot original continuam sendo candidatos preliminares, não tendências longitudinalmente validadas. Há três itens RSS ativos fora de tema e o filtro de palavras-chave ainda produz falsos positivos. A página de intenção reporta alterações repetidas sem snapshots imutáveis para comparação. A baseline de quatro semanas continua não iniciada; os dados publicados permanecem retrospectivos, não uma leitura em tempo real. <a href="./docs/pilots/chocolate-emerging-shopper-signals.md">Ler protocolo completo do piloto ↗</a></p>
 </main>
 </body>
 </html>
