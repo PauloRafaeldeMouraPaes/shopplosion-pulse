@@ -36,7 +36,7 @@
 .evidenceSelectionBar strong{color:var(--ink-2)}
 @media(max-width:640px){.questionBuilderHead{display:block}.evidenceSelectionBar{align-items:flex-start;flex-direction:column}}
 </style><style id="pulse-analysis-actions">.analysisActions{display:flex;gap:8px;align-items:center;margin:0 0 12px}.analysisActions button,.analysisActions a{border:1px solid var(--line-1);border-radius:var(--radius-card);padding:9px 12px;background:var(--surface-canvas);color:var(--ink-2);font:700 12px inherit;text-decoration:none;cursor:pointer}.analysisActions button{background:var(--brand-pulse-strong);border-color:var(--brand-pulse-strong);color:var(--on-brand)}.analysisActions button:disabled{opacity:.6;cursor:wait}@media(max-width:640px){.analysisActions{flex-wrap:wrap}}</style><style id="pulse-workflow-ask">.pulseWorkflow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin:18px 0 4px}.pulseWorkflow a{min-width:0;padding:11px 12px;border:1px solid var(--line-1);border-radius:var(--radius-card);background:var(--surface-canvas);text-decoration:none;color:var(--ink-2);display:grid;gap:2px}.pulseWorkflow a.current{border-color:var(--line-1);box-shadow:0 5px 18px rgba(163,22,78,.07)}.pulseWorkflow a.done{background:var(--surface-sunken)}.pulseWorkflow span:first-child{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;border-radius:var(--radius-chip);background:var(--surface-sunken);font-size:11px;font-weight:800}.pulseWorkflow a.current span:first-child{background:var(--brand-pulse-strong);color:var(--on-brand)}.pulseWorkflow b{font-size:12px}.pulseWorkflow small{font-size:11px;color:var(--ink-3)}.pulseWorkflow .arrow{color:var(--ink-3);font-weight:700}@media(max-width:640px){.pulseWorkflow{grid-template-columns:1fr;gap:6px}.pulseWorkflow .arrow{display:none}}
-</style><link rel="stylesheet" href="./pulse-workspace-v3.css?v=20260922.17"><script src="./pulse-public-evidence.js?v=20260922.17"></script><script>if(new URLSearchParams(location.search).get("v")!=="20260922.17")location.replace("./ask.html?v=20260922.17")</script><style id="pulse-aprofundamento-ui">
+</style><link rel="stylesheet" href="./pulse-workspace-v3.css?v=20261101.1"><script src="./pulse-public-evidence.js?v=20261101.1"></script><script>if(new URLSearchParams(location.search).get("v")!=="20260922.17")location.replace("./ask.html?v=20260922.17")</script><style id="pulse-aprofundamento-ui">
 .pulse-deepen{margin-top:14px;padding:15px;border:1px solid var(--line-1);border-radius:var(--radius-panel);background:var(--brand-soft)}.pulse-deepen h3{margin:0;font-size:13px;color:var(--ink-1)}.pulse-deepen p{margin:5px 0 0;color:var(--ink-2);font-size:11px;line-height:1.45}.pulse-deepen-list{display:grid;gap:7px;margin-top:11px}.pulse-deepen-btn{display:block;width:100%;min-height:44px;text-align:left;border:1px solid var(--line-1);border-radius:var(--radius-card);background:var(--surface-canvas);padding:10px 12px;cursor:pointer;font:600 14px/20px var(--font-sans);color:var(--ink-2)}.pulse-deepen-btn:hover{border-color:var(--brand-pulse-strong);color:var(--brand-pulse-strong)}.pulse-deepen-btn:focus-visible{border-color:var(--brand-pulse-strong);color:var(--brand-pulse-strong);outline:2px solid var(--brand-pulse-strong);outline-offset:2px}.pulse-deepen-meta{display:block;margin-bottom:3px;font-family:var(--font-mono);font-size:11px;line-height:14px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em}.pulse-research{margin-top:14px;padding:15px;border:1px solid var(--line-1);border-radius:var(--radius-panel);background:var(--surface-sunken)}.pulse-research h3{margin:0;font-size:13px}.pulse-research .briefGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pulse-research .briefItem{padding:9px;border:1px solid var(--line-1);border-radius:var(--radius-card);background:var(--surface-canvas)}.pulse-research small{display:block;font-size:11px;color:var(--ink-3);font-weight:850;text-transform:uppercase;letter-spacing:.06em}.pulse-research strong{display:block;margin-top:4px;font-size:11px;line-height:1.4}.pulse-research-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.pulse-research-actions button{border:1px solid var(--line-1);border-radius:var(--radius-card);background:var(--surface-canvas);padding:8px 10px;font:750 14px/20px var(--font-sans);color:var(--brand-pulse-strong);cursor:pointer}.pulse-research-actions button.primary{background:var(--brand-pulse-strong);color:var(--on-brand);border-color:var(--brand-pulse-strong)}.pulse-area{margin-top:10px;display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-2)}.pulse-area select{height:34px;border:1px solid var(--line-1);border-radius:var(--radius-card);background:var(--surface-canvas);padding:0 8px;font:inherit}@media(max-width:640px){.pulse-research .briefGrid{grid-template-columns:1fr}}
 </style></head>
 <body>
@@ -84,8 +84,7 @@
   </section>
 </main>
 <script src="./pulse-config.js?v=20260922.17"></script>
-<script src="./pulse-public-evidence.js?v=20260922.17"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js" integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous"></script>
 <script>
 (async function(){
   const cfg=window.PULSE_SUPABASE_CONFIG||{};
@@ -219,6 +218,27 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
   document.getElementById('userEmail').textContent=user.email||'';
   const esc=v=>String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+/* PULSE_PUBLIC_RANK_START */
+/* Public-evidence ranking shared by ask.html (browser) and pulse-ask-ai (server). Kept textually identical in both
+   (type annotations aside) and checked by scripts/test-pulse-public-rank.js: Portuguese stopwords are not search
+   terms, a term counts only where it starts a word ("mes" hits "meses", not "semestre"), each term is weighted by
+   how rare it is in the public base (IDF), counting at most 3 hits per item, plus one hit when the term names the
+   item's own subject (id, tipo, categoria, periodo or keywords), so an item about IPCA outranks one that cites IPCA. */
+const PULSE_RANK_STOPWORDS = new Set(['de','da','do','das','dos','em','no','na','nos','nas','ao','aos','um','uma','uns','umas','os','as','e','ou','o','a','para','pra','por','pelo','pela','pelos','pelas','com','sem','que','qual','quais','como','quanto','quantos','quanta','quantas','se','mais','menos','muito','muita','sobre','entre','segundo','isso','esse','essa','este','esta','isto','aquele','aquela','ha','foi','sao','ser','esta','estao','tem','ter','teve','ate','desde','me','meu','minha','nosso','nossa','seu','sua','ja','tambem','ainda','vale','pena','mostram','mostra','diz','dizem','evidencias','evidencia','dados','dado','segundo','frente','ante','vs','quando','onde','porque','pois','entao','mesmo','cada','todo','toda','todos','todas','outro','outra','sim','nao']);
+const pulseRankNormalize = (value) => String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const pulseRankTerms = (value) => Array.from(new Set(pulseRankNormalize(value).split(/[^a-z0-9]+/).filter((t) => t.length >= 2 && !PULSE_RANK_STOPWORDS.has(t)))).slice(0, 10)
+const pulseRankHits = (text, term) => { let hits = 0, at = 0; while ((at = text.indexOf(term, at)) >= 0) { if (at === 0 || !/[a-z0-9]/.test(text[at - 1])) hits++; at += term.length } return hits }
+const pulseHeadText = (e) => [e.id, e.tipo, e.categoria, e.periodo, ...(Array.isArray(e.keywords) ? e.keywords : [])].filter(Boolean).join(' ')
+const pulsePublicText = (e) => [e.fato, e.contexto, e.interpretacao, e.hipotese, e.acao, ...(Array.isArray(e.keywords) ? e.keywords : [])].filter(Boolean).join(' ')
+const pulseRankPublic = (query, items) => {
+  const terms = pulseRankTerms(query)
+  const docs = (Array.isArray(items) ? items : []).map((item) => ({ item, text: pulseRankNormalize(pulsePublicText(item)), head: pulseRankNormalize(pulseHeadText(item)) }))
+  const n = docs.length || 1
+  const idf = Object.fromEntries(terms.map((t) => [t, Math.log(1 + n / (1 + docs.filter((d) => pulseRankHits(d.text, t) > 0).length))]))
+  return docs.map((d) => ({ item: d.item, score: Math.round(terms.reduce((s, t) => s + idf[t] * (Math.min(3, pulseRankHits(d.text, t)) + (pulseRankHits(d.head, t) > 0 ? 1 : 0)), 0) * 1000) / 1000 }))
+    .filter((r) => r.score > 0).sort((a, b) => b.score - a.score)
+}
+/* PULSE_PUBLIC_RANK_END */
   const termsFor=value=>Array.from(new Set(normalize(value).split(/[^a-z0-9]+/).filter(t=>t.length>=2))).slice(0,8);
   const evidenceKey=r=>String(r?.id||r?.publicEvidence?.id||((r?.document_id||'')+':'+(r?.chunk_index??'')));
   function syncSelectionUI(){
@@ -253,7 +273,7 @@ const waitForAskReady=async()=>{if(askInitError)return false;let timer;const tim
       const publicEvidence=await loadPublicEvidence();
       const params=new URLSearchParams(location.search);
       const fixedId=params.get('evidence')||window.__pulseInvestigation?.originating_evidence_id||null;
-      publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:score(text,terms),publicEvidence:e}}).filter(r=>r.score>0 || String(r.id)===String(fixedId)).sort((a,b)=>String(a.id)===String(fixedId)?-1:String(b.id)===String(fixedId)?1:b.score-a.score).slice(0,12);
+      const publicScores=new Map(pulseRankPublic(raw,publicEvidence).map(r=>[String(r.item.id),r.score]));publicRows=publicEvidence.map(e=>{const text=[e.fato,e.contexto,e.interpretacao,e.hipotese,e.acao,(e.keywords||[]).join(' ')].filter(Boolean).join(' ');return {id:e.id,document_id:null,chunk_index:0,content:text,source_type:'public',created_at:e.periodo||'',score:publicScores.get(String(e.id))||0,publicEvidence:e}}).filter(r=>r.score>0 || String(r.id)===String(fixedId)).sort((a,b)=>String(a.id)===String(fixedId)?-1:String(b.id)===String(fixedId)?1:b.score-a.score).slice(0,12);
     }
     const rows=(scope==='industry'?privateRows:scope==='universe'?publicRows:[...privateRows,...publicRows].sort((a,b)=>b.score-a.score)).slice(0,20);
     const docIds=Array.from(new Set(rows.map(r=>r.document_id).filter(Boolean)));let docs=[];
@@ -381,12 +401,10 @@ async function loadPriorKnowledge(scope,query){
   document.querySelectorAll('.questionExample').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('query').value=btn.dataset.question||'';document.getElementById('query').focus();show('Exemplo carregado. Ajuste a pergunta se quiser e depois recupere as evidências.','ok')}));
   document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer();});
   askReadyResolve(true);
-  document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')generateAnswer()});
   document.getElementById('logout').addEventListener('click',async()=>{try{await client.auth.signOut()}finally{redirect()}});
 })().catch(()=>{const el=document.getElementById('message');el.textContent='Não foi possível inicializar o Ask AI privado.';el.className='msg show error'});
 </script>
-<script src="./pulse-public-evidence.js?v=20260922.17"></script>
-<script src="./pulse-workspace-v3.js?v=20260922.17"></script>
+<script src="./pulse-workspace-v3.js?v=20261101.1"></script>
 <script src="./scripts/pulse-aprofundamento-escopo.js?v=20260925.aprofundamento"></script>
 <script src="./scripts/pulse-aprofundamento-ui.js?v=20260925.aprofundamento"></script></body>
 </html>

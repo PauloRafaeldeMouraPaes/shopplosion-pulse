@@ -1,0 +1,32 @@
+{
+  "description": "Conjunto de avaliação do Ask AI (escopo público). Perguntas no estilo de times de trade, shopper insights, inteligência de mercado e gerenciamento de categorias. 'kind': 'grounded' tem evidência pública que responde; 'partial' tem evidência só parcial; 'unsupported' não tem evidência e a resposta correta é dizer isso sem inventar números. 'expect_ids' lista evidências que deveriam aparecer entre as recuperadas (checagem da recuperação, não do modelo).",
+  "version": "2026-11-01",
+  "questions": [
+    {"id": "q01", "kind": "grounded", "q": "Como variou o IPCA de alimentação e bebidas mês a mês no primeiro semestre de 2026?", "expect_ids": ["ibge-ipca-alimentos-2026-03"]},
+    {"id": "q02", "kind": "grounded", "q": "O volume de vendas de supermercados cresceu em agosto de 2026?", "expect_ids": ["ibge-pmc-super-agosto-2026"]},
+    {"id": "q03", "kind": "grounded", "q": "Qual a diferença entre faturamento e unidades vendidas no varejo alimentar em julho segundo a Scanntech?", "expect_ids": ["scanntech-julho"]},
+    {"id": "q04", "kind": "grounded", "q": "Quantos lares compraram FMCG pelo e-commerce em 2025 e como isso evoluiu desde 2023?", "expect_ids": ["worldpanel-ecommerce-2025"]},
+    {"id": "q05", "kind": "grounded", "q": "Qual o peso de Higiene e Beleza no e-commerce de FMCG via WhatsApp?", "expect_ids": ["worldpanel-whatsapp-2025"]},
+    {"id": "q06", "kind": "grounded", "q": "O shopper brasileiro está mais sensível a preço em 2026? Que evidências mostram isso?", "expect_ids": ["niq-full-view-2026-price"]},
+    {"id": "q07", "kind": "grounded", "q": "Quantas categorias perderam volume no primeiro trimestre de 2026 segundo a NIQ?", "expect_ids": ["niq-full-view-2026-volume"]},
+    {"id": "q08", "kind": "grounded", "q": "Como está a intensidade promocional no Brasil e em quais categorias ela é maior?", "expect_ids": ["niq-promo-polarization"]},
+    {"id": "q09", "kind": "grounded", "q": "O consumidor se importa se o produto é de marca própria ou de marca nacional?", "expect_ids": ["niq-private-label-global"]},
+    {"id": "q10", "kind": "grounded", "q": "Como variou a cesta AbrasMercado em julho de 2026?", "expect_ids": ["abras-cesta-julho"]},
+    {"id": "q11", "kind": "grounded", "q": "Quanto cresceu o consumo nos lares em julho de 2026 segundo a Abras?", "expect_ids": ["abras-consumo-julho"]},
+    {"id": "q12", "kind": "grounded", "q": "Quais alimentos tiveram queda de preço em agosto de 2026 no IPCA?", "expect_ids": ["ibge-ipca-food-items-agosto"]},
+    {"id": "q13", "kind": "grounded", "q": "Como os brasileiros pretendem acompanhar a Copa de 2026 e o que isso sugere para ocasiões de consumo?", "expect_ids": ["kantar-copa-2026"]},
+    {"id": "q14", "kind": "grounded", "q": "O que a NIQ diz sobre a janela promocional da Black Friday de 2026?", "expect_ids": ["niq-black-friday-2026"]},
+    {"id": "q15", "kind": "grounded", "q": "O volume de chocolate comprado para casa caiu no início de 2025? Quanto?", "expect_ids": ["kantar-chocolate-brasil-volume-q1-2025"]},
+    {"id": "q16", "kind": "grounded", "q": "Quanto subiu o preço do chocolate em barra e bombom em cinco anos até agosto de 2026?", "expect_ids": ["rico-preco-chocolate-barra-bombom-out-2026"]},
+    {"id": "q17", "kind": "grounded", "q": "Qual foi a produção brasileira de chocolate em 2024 e 2025?", "expect_ids": ["abicab-chocolate-producao-brasil-2025-pascoa-2026"]},
+    {"id": "q18", "kind": "grounded", "q": "Qual a intenção de compra de chocolate na Páscoa de 2026 e quais fatores pesam na escolha?", "expect_ids": ["locomotiva-pascoa-2026-intencao-drivers"]},
+    {"id": "q19", "kind": "partial", "q": "A alta do preço do chocolate explica a queda de volume comprado?", "expect_ids": ["rico-preco-chocolate-barra-bombom-out-2026", "kantar-chocolate-brasil-volume-q1-2025"]},
+    {"id": "q20", "kind": "partial", "q": "O varejo alimentar está crescendo mais que o varejo total? Compare os dados de julho de 2026.", "expect_ids": ["ibge-pmc-super-julho"]},
+    {"id": "q21", "kind": "partial", "q": "Vale a pena investir em premiumização na categoria de chocolate em 2026?", "expect_ids": ["niq-polarization-brazil"]},
+    {"id": "q22", "kind": "partial", "q": "Como as vendas nominais e reais do varejo se comportaram em julho de 2026?", "expect_ids": ["idv-julho-2026"]},
+    {"id": "q23", "kind": "unsupported", "q": "Qual o market share da Nestlé em chocolate no Brasil em 2026?", "expect_ids": []},
+    {"id": "q24", "kind": "unsupported", "q": "Quanto a Unilever faturou com sorvetes no Nordeste no último trimestre?", "expect_ids": []},
+    {"id": "q25", "kind": "unsupported", "q": "Qual a elasticidade-preço do café torrado em 2026?", "expect_ids": []},
+    {"id": "q26", "kind": "unsupported", "q": "Qual será a inflação de alimentos em dezembro de 2026?", "expect_ids": []}
+  ]
+}

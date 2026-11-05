@@ -49,10 +49,11 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v3
         with:
-          version: latest
+          # Pinned: CLI 3.x requires explicit confirmation in non-interactive runs; "latest" changed that behaviour silently.
+          version: 3.0.0
 
       - name: Deploy only pulse-ask-ai
-        run: supabase functions deploy pulse-ask-ai --project-ref "$SUPABASE_PROJECT_ID"
+        run: supabase functions deploy pulse-ask-ai --project-ref "$SUPABASE_PROJECT_ID" --yes
 
       - name: Verify deployed function metadata
         shell: bash

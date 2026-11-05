@@ -81,3 +81,46 @@ a,button,input,select,textarea{touch-action:manipulation}
 
 /* Shared CTA foreground override: strong brand background requires on-brand white text. */
 body .pv4-next small{color:var(--on-brand)}
+
+/* Next-level panel (Hoje): explicit states for own records; tokens only, no new colors. */
+.pv4-next-level{margin-top:16px;padding:24px;background:var(--surface-canvas);border:1px solid var(--line-1);border-radius:var(--radius-panel)}
+.pv4-next-level .pv4-nl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pv4-nl-card{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--line-1);border-radius:var(--radius-card);background:var(--surface-app)}
+.pv4-nl-card h3{margin:0;font-size:14px;line-height:20px;font-weight:700}
+.pv4-nl-state{display:grid;gap:4px;padding:12px;border-radius:var(--radius-card);background:var(--surface-canvas);border:1px solid var(--line-1)}
+.pv4-nl-state b{font-size:12px;line-height:16px}
+.pv4-nl-state span{font-size:12px;line-height:17px;color:var(--ink-2)}
+.pv4-nl-state[data-state="available"]{border-left:3px solid var(--state-ok)}
+.pv4-nl-state[data-state="not_comparable"],.pv4-nl-state[data-state="insufficient"]{border-left:3px solid var(--state-attention)}
+.pv4-nl-state[data-state="source_error"],.pv4-nl-state[data-state="conflict"]{border-left:3px solid var(--state-error)}
+.pv4-nl-state[data-state="heuristic"]{border-left:3px solid var(--state-processing)}
+.pv4-nl-muted{margin:0;font-size:12px;line-height:17px;color:var(--ink-2)}
+.pv4-nl-list{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:17px;color:var(--ink-2)}
+.pv4-nl-local{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pv4-nl-local li{display:grid;gap:3px;padding:10px 12px;border-radius:var(--radius-card);background:var(--surface-canvas);border:1px solid var(--line-1)}
+.pv4-nl-local span{font-size:12px;line-height:17px;color:var(--ink-2)}
+.pv4-nl-open{text-align:left;border:0;background:transparent;padding:0;font:600 13px/18px var(--font-sans);color:var(--brand-pulse-strong);cursor:pointer}
+.pv4-nl-series{display:grid;gap:8px}
+.pv4-nl-series+.pv4-nl-series{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-1)}
+.pv4-nl-series-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;line-height:16px;color:var(--ink-2)}
+.pv4-nl-series-head b{color:var(--ink-1);font-weight:600}
+.pv4-nl-series-head span{flex:none}
+.pv4-nl-open-evidence{border:0;background:transparent;padding:0;font:600 12px/17px var(--font-sans);color:var(--brand-pulse-strong);cursor:pointer}
+.pv4-nl-details summary,.pv4-nl-form summary{cursor:pointer;font-size:12px;line-height:17px;font-weight:600;color:var(--ink-2)}
+.pv4-nl-form{margin-top:auto;padding-top:6px;border-top:1px solid var(--line-1)}
+.pv4-nl-fields{display:grid;gap:8px;margin-top:10px}
+.pv4-nl-fields label{display:grid;gap:4px;font-size:12px;line-height:16px;font-weight:600;color:var(--ink-2)}
+.pv4-nl-fields input{height:38px;border:1px solid var(--line-1);border-radius:var(--radius-control);padding:0 10px;font:14px var(--font-sans);color:var(--ink-1);background:var(--surface-canvas)}
+.pv4-nl-fields input::placeholder{color:var(--ink-3);opacity:1}
+.pv4-nl-actions{margin-top:10px}
+.pv4-nl-actions button{height:38px;padding:0 14px;border:0;border-radius:var(--radius-card);background:var(--brand-pulse-strong);color:var(--on-brand);font:600 14px/20px var(--font-sans)}
+.pv4-nl-feedback{margin:8px 0 0;min-height:17px;font-size:12px;line-height:17px;color:var(--ink-2)}
+.pv4-nl-feedback[data-status="added"]{color:var(--state-ok)}
+.pv4-nl-feedback[data-status="rejected"],.pv4-nl-feedback[data-status="conflict"]{color:var(--state-error)}
+@media(max-width:900px){.pv4-next-level{margin-top:16px;padding:24px;background:var(--surface-canvas);border:1px solid var(--line-1);border-radius:var(--radius-panel)}
+.pv4-next-level .pv4-nl-grid{grid-template-columns:1fr}}
+
+/* Press feedback on pointer-down (not on release): instant, 100ms, transform only. Under
+   prefers-reduced-motion the global rule above removes the transition; the state change stays. */
+body.pv3-active button:not(:disabled):active,body.pv3-active .pv4-primary:active,body.pv3-active .pv4-secondary:active,body.pv3-active .pv4-next:active{transform:scale(.97);transition:transform 100ms ease-out}
+body.pv3-active button:not(:disabled),body.pv3-active .pv4-primary,body.pv3-active .pv4-secondary,body.pv3-active .pv4-next{transition:transform 100ms ease-out}

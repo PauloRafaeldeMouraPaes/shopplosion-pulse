@@ -1,0 +1,21 @@
+CREATE UNIQUE INDEX IF NOT EXISTS document_chunks_document_chunk_idx ON public.document_chunks(document_id, chunk_index);
+CREATE OR REPLACE VIEW public.document_indexing_status WITH (security_invoker = true) AS
+SELECT
+  d.id AS document_id,
+  d.industry_id,
+  d.filename,
+  d.mime_type,
+  d.storage_path,
+  d.created_at,
+  COUNT(dc.id)::integer AS chunk_count,
+  MAX(dc.created_at) AS last_indexed_at,
+  CASE
+    WHEN COUNT(dc.id) > 0 THEN 'indexed'
+    WHEN lower(COALESCE(d.mime_type,'')) IN ('application/pdf','text/plain','text/csv','application/json') THEN 'pending'
+    ELSE 'stored_only'
+  END AS indexing_status
+FROM public.documents d
+LEFT JOIN public.document_chunks dc ON dc.document_id = d.id
+GROUP BY d.id, d.industry_id, d.filename, d.mime_type, d.storage_path, d.created_at;
+GRANT SELECT ON public.document_indexing_status TO authenticated;
+REVOKE ALL ON public.document_indexing_status FROM anon;
