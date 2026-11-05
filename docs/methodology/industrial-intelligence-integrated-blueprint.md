@@ -1,4 +1,4 @@
-# Pulse — Blueprint de inteligência integrada para a indústria
+# Pulse: Blueprint de inteligência integrada para a indústria
 
 **Status:** especificação de produto e método para revisão. Não afirma que fontes, contratos ou conectores estejam ativos.  
 **Piloto inicial:** Chocolate no Brasil.  
@@ -78,7 +78,7 @@ Exemplo: maior conversa sobre embalagens menores + redução observada de gramat
 4. **Detecção:** variação, aceleração, ruptura, novidade, persistência, sazonalidade, anomalia e divergência entre fontes.
 5. **Inferência:** desenho amostral, ponderação, incerteza e validação quando o objetivo é estimar população; modelos preditivos com validação temporal quando o objetivo é prever.
 6. **Triangulação:** confirmar ou contradizer sinais com fontes independentes, mantendo a trilha da evidência.
-7. **Revisão especializada:** revisão humana e estatística de sinais materiais, fontes, hipótese e recomendação.
+7. **Revisão especializada:** revisão humana e estatística de sinais materiais, fontes, hipótese e recomendação. Desde 04/11/2026, no piloto Chocolate, essa revisão é feita por regras auditáveis (`docs/pilot-chocolate/capture-kit/autonomy-rules-v1.md`) e só a fila de exceções chega a uma pessoa.
 8. **Decisão e teste:** recomendação com público/canal, indicador, experimento, risco, custo de não agir e condição de revisão.
 9. **Monitoramento:** acompanhar se o sinal persistiu, se a hipótese foi apoiada ou rejeitada e registrar aprendizado.
 
@@ -117,25 +117,25 @@ A confiança não é a probabilidade de a hipótese ser verdadeira, a menos que 
 
 ## 7. Plano de implementação para Chocolate Brasil
 
-### Etapa 1 — Definir perguntas e dados necessários
+### Etapa 1: Definir perguntas e dados necessários
 Escolher de 3 a 5 decisões prioritárias, métricas, universo, janela, categoria/canais e limites de confidencialidade.
 
-### Etapa 2 — Inventário e qualificação de fontes
+### Etapa 2: Inventário e qualificação de fontes
 Auditar workers e capturas existentes; criar catálogo de instituto/painel, sell-out, pesquisa de shopper, pesquisa de mercado, dados on-line e contexto. Para cada fonte, verificar método, cobertura, custo/licença, frequência, histórico e exportação.
 
-### Etapa 3 — Viabilidade e acessos
+### Etapa 3: Viabilidade e acessos
 Distinguir fontes públicas, APIs gratuitas, fornecedores licenciados e dados que exigem contratação ou autorização do varejista/fabricante. Registrar dependências e não afirmar que acesso está disponível antes de comprová-lo.
 
-### Etapa 4 — Prova de captura e harmonização
+### Etapa 4: Prova de captura e harmonização
 Executar amostra permitida de cada fonte disponível; validar dados, citações, timestamps, cobertura, deduplicação e erros. Construir mapeamentos de categoria/SKU/unidades.
 
-### Etapa 5 — Baseline e validação
+### Etapa 5: Baseline e validação
 Construir baseline prospectivo ou importar histórico licenciado com origem conhecida. Definir testes, comparadores, janelas e métricas antes de olhar os resultados. Validar fora da amostra e registrar falsos positivos.
 
-### Etapa 6 — Primeiro estudo integrado
+### Etapa 6: Primeiro estudo integrado
 Produzir um relatório com evidência disponível de cada pilar, incluindo divergências e lacunas. Se sell-out ou painel não estiver disponível, restringir explicitamente as conclusões em vez de substituir por proxies sem validação.
 
-### Etapa 7 — Revisão e decisão de produto
+### Etapa 7: Revisão e decisão de produto
 Revisão por especialistas de categoria, pesquisa e estatística; só então ativar visualização/alertas e frequência operacional.
 
 ## 8. Critérios de aceite
@@ -153,4 +153,4 @@ Revisão por especialistas de categoria, pesquisa e estatística; só então ati
 
 ## 9. Princípio de saída
 
-O Pulse deve funcionar como sistema de inteligência para decisão industrial: **medir o mercado, entender o shopper, observar o que emerge on-line, cruzar as evidências e recomendar como agir**. A robustez vem da qualidade, independência e compatibilidade das evidências — não da quantidade de fontes nem da eloquência da síntese.
+O Pulse deve funcionar como sistema de inteligência para decisão industrial: **medir o mercado, entender o shopper, observar o que emerge on-line, cruzar as evidências e recomendar como agir**. A robustez vem da qualidade, independência e compatibilidade das evidências: não da quantidade de fontes nem da eloquência da síntese.

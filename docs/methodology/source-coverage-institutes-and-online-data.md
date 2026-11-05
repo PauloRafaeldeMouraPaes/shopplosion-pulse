@@ -1,4 +1,4 @@
-# Pulse — Catálogo de fontes institucionais e dados on-line
+# Pulse: Catálogo de fontes institucionais e dados on-line
 
 **Status:** requisitos de cobertura e plano de qualificação; fontes não são consideradas ativas até passar pelo processo de onboarding.  
 **Aplicação inicial:** piloto Chocolate no Brasil; arquitetura extensível por categoria, país e cliente.
@@ -17,15 +17,15 @@ A lista é um backlog de qualificação, não uma declaração de acesso, licen�
 
 ### A. Institutos, pesquisas e painéis
 Avaliar conforme o indicador e a disponibilidade comercial:
-- **IBGE** — estatísticas oficiais de população, domicílios, consumo/produção e contexto econômico, conforme a pesquisa aplicável.
-- **Kantar** — painéis e estudos de consumo/compra, quando o escopo contratado permitir.
-- **NielsenIQ** — painel de varejo, vendas, categoria e comportamento de compra, conforme cobertura e licença.
-- **Worldpanel by Numerator / painéis equivalentes** — comportamento de domicílios e compradores, sujeito à disponibilidade, metodologia e licença no mercado.
-- **Ipsos** — pesquisas com consumidores e estudos ad hoc, conforme desenho e escopo.
-- **Nielsen, Kantar, Ipsos ou outros institutos citados por estudos setoriais** — nunca tratar uma citação secundária como acesso ao dado subjacente.
-- **Abicab** — indicadores setoriais e lançamentos de chocolate; contexto de indústria, não substituto de painel representativo de shoppers.
-- **ComexStat/MDIC** — comércio exterior; contexto de fluxo comercial, não medição direta de preferência.
-- **Fontes públicas oficiais adicionais** — selecionar conforme categoria, geografia e pergunta de pesquisa.
+- **IBGE**: estatísticas oficiais de população, domicílios, consumo/produção e contexto econômico, conforme a pesquisa aplicável.
+- **Kantar**: painéis e estudos de consumo/compra, quando o escopo contratado permitir.
+- **NielsenIQ**: painel de varejo, vendas, categoria e comportamento de compra, conforme cobertura e licença.
+- **Worldpanel by Numerator / painéis equivalentes**: comportamento de domicílios e compradores, sujeito à disponibilidade, metodologia e licença no mercado.
+- **Ipsos**: pesquisas com consumidores e estudos ad hoc, conforme desenho e escopo.
+- **Nielsen, Kantar, Ipsos ou outros institutos citados por estudos setoriais**: nunca tratar uma citação secundária como acesso ao dado subjacente.
+- **Abicab**: indicadores setoriais e lançamentos de chocolate; contexto de indústria, não substituto de painel representativo de shoppers.
+- **ComexStat/MDIC**: comércio exterior; contexto de fluxo comercial, não medição direta de preferência.
+- **Fontes públicas oficiais adicionais**: selecionar conforme categoria, geografia e pergunta de pesquisa.
 
 Para cada instituto, confirmar: produto/dataset exato, universo e desenho, amostragem, ponderação, frequência, granularidade, período histórico, erro/limitações publicados, direitos de uso, exportação, armazenamento e possibilidade de citar resultados no Pulse. Não presumir que uma marca institucional signifique que qualquer dado seja representativo.
 

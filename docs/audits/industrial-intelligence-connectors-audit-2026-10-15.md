@@ -1,8 +1,17 @@
-# Pulse — Auditoria técnica de conectores e lacunas do piloto Chocolate
+# Pulse: Auditoria técnica de conectores e lacunas do piloto Chocolate
 
 **Data da auditoria:** 15/10/2026.  
 **Escopo:** leitura do código em `main` (SHA `64f9a31d3421e560ca91c53a4585011cba779980`) e consultas somente de leitura ao Supabase Production `ppfuygnpgywfpiqxsfys`.  
 **Limite:** fotografia do momento; não altera dados nem comprova contratos comerciais ou representatividade estatística.
+
+## Atualização de 05/11/2026
+
+Este documento é o retrato de 15/10/2026 e fica como está. Desde então:
+
+- **P0, evidência pública:** os campos `[A DEFINIR]` foram resolvidos. Os 37 itens têm procedência completa conferida na fonte, e item sem procedência é bloqueado no CI, escondido na tela e ignorado pelo Ask AI (PR #127; registro em `docs/audits/public-evidence-provenance-review-2026-11-05.md`).
+- **Google Trends:** capturado pelo kit do piloto Chocolate (método v2, `docs/pilot-chocolate/capture-kit/trends-method-v2.md`), não pelo worker de fontes.
+- **Revisão humana:** por decisão de 04/11/2026, as portas do piloto viraram regras (`docs/pilot-chocolate/capture-kit/autonomy-rules-v1.md`); uma pessoa vê só a fila de exceções. Onde este documento pede revisão humana, leia-se: decisão por regra auditável, com exceção para pessoa.
+- **Sell-out e painéis licenciados:** continuam sem conector; a porta de varejo do piloto segue aberta até haver fonte com EAN.
 
 ## 1. Conclusão executiva
 
@@ -61,32 +70,32 @@ Uma fonte do IBGE para cacau está inativa após erros HTTP 403. O sistema não 
 
 ## 4. Lacunas críticas para uma análise que atenda à indústria
 
-### P0 — Qualificar evidências e sinais existentes
+### P0: Qualificar evidências e sinais existentes
 - Resolver ou quarentenar os campos `[A DEFINIR]` na evidência pública gerada.
 - Auditar cada um dos 14 sinais ativos: fato literal, URL, data, fonte primária, período, universo, classificação (observação/hipótese/estimativa), atualidade e utilidade industrial.
 - Identificar duplicatas, fontes que republicam o mesmo dado e afirmações sazonais apresentadas como mudança emergente.
 - Distinguir eventos repetidos do worker de observações independentes.
 - Preservar trilha de revisão e razão para manter, corrigir ou dispensar cada sinal.
 
-### P1 — Ingestão de sell-out e varejo
+### P1: Ingestão de sell-out e varejo
 - Definir um contrato versionado para dados licenciados: período, SKU/EAN, marca/categoria, unidades, valor, preço unitário, promoção, canal, geografia, cobertura/distribuição e disponibilidade, conforme direitos e campos fornecidos.
 - Distinguir sell-out, sell-in, preço anunciado, preço de tabela e preço transacionado.
 - Implementar importação validada para CSV/API autorizada com controles de tenant, idempotência, auditoria, tratamento de revisões e testes de qualidade.
 - Não criar números de vendas a partir de notícias ou de páginas de preço.
 
-### P1 — Pesquisa de shopper e mercado
+### P1: Pesquisa de shopper e mercado
 - Criar um contrato de ingestão de estudos com população-alvo, método/amostragem, datas de campo, tamanho de base, ponderação, questionário/variáveis, limitações e licença.
 - Estruturar resultados quantitativos separadamente de achados qualitativos e de declarações de intenção.
 - Vincular cada claim a página/tabela/questão e ao denominador adequado; não extrapolar estudos de Páscoa para comportamento anual.
 - Disponibilizar uma camada para segmentação, ocasiões, missão, frequência, escolha, barreiras e sensibilidade declarada, apenas quando o estudo realmente medir esses atributos.
 
-### P1 — Dados on-line autorizados
+### P1: Dados on-line autorizados
 - Avaliar adaptadores separados para APIs oficiais/licenciadas de busca, redes sociais, reviews, comunidades, notícias e varejo eletrônico.
 - Registrar termos/licença, universo coberto, limitações de coleta, taxa de amostragem, paginação, retenção, timestamps e políticas de privacidade.
 - Medir deduplicação, reposts, spam e mudanças na cobertura; sinal social continua exploratório até validação adequada.
 - Não tratar contagem de posts como número de pessoas nem como estimativa de prevalência.
 
-### P2 — Modelo de integração e validação
+### P2: Modelo de integração e validação
 - Criar camada comum de categoria, marca, SKU/EAN, atributo, ocasião, canal, região e período, sem perder a granularidade original.
 - Exigir ligações de evidência explícitas, independência das fontes, defasagens temporais, explicações alternativas e evidência contraditória.
 - Implementar scorecards de qualidade e validação temporal fora da amostra; nenhum score opaco de “confiança” deve substituir métricas primárias.

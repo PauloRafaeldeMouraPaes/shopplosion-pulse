@@ -1,4 +1,4 @@
-# Pulse — Protocolo de representatividade estatística para sinais on-line
+# Pulse: Protocolo de representatividade estatística para sinais on-line
 
 **Status:** proposta metodológica para revisão; não certifica que fontes atuais sejam representativas.  
 **Escopo inicial:** piloto Chocolate no Brasil; reutilizável por categoria após validação.  
