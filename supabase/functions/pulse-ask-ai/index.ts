@@ -1,5 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { PULSE_PUBLIC_EVIDENCE } from './public-evidence.ts'
+/* Fail closed: a public item answers only when its provenance is complete (seven fields filled, no [A DEFINIR])
+   and its fact was verified in the source (fato_verificado_na_fonte starts with SIM). CI keeps the dataset fully
+   qualified (scripts/test-pulse-data-integrity.js); this guard holds if an incomplete item ever ships. */
+const PULSE_QUALIFICATION_FIELDS = ["natureza","universo_observado","representa","nao_representa","fonte_primaria","fato_verificado_na_fonte","alcance_para_pergunta"]
+const pulsePublicQualified = (item: any) => PULSE_QUALIFICATION_FIELDS.every((f) => typeof item[f] === 'string' && item[f].trim() !== '' && !item[f].toUpperCase().includes('[A DEFINIR]')) && String(item.fato_verificado_na_fonte || '').trim().toUpperCase().startsWith('SIM')
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -147,8 +152,8 @@ Deno.serve(async (req) => {
     const publicScores = new Map(pulseRankPublic(query, PULSE_PUBLIC_EVIDENCE).map((r: any) => [String(r.item.id), r.score]))
     const publicRanked = PULSE_PUBLIC_EVIDENCE.map((item: any) => {
       const content = [item.fato, item.contexto, item.interpretacao, item.hipotese, item.acao, ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ')
-      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: publicScores.get(String(item.id)) || 0, scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null }
-    }).filter((item: any) => requestedPublicEvidenceIds.has(String(item.id)) && (item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId)))
+      return { id: item.id, document_id: null, chunk_index: 0, content, source_type: 'public', created_at: item.periodo || '', score: publicScores.get(String(item.id)) || 0, scope_source: 'public', public_evidence_id: item.id, public_source: item.fonte || 'Mercado publicado', public_source_url: item.url || null , qualified: pulsePublicQualified(item) }
+    }).filter((item: any) => item.qualified && requestedPublicEvidenceIds.has(String(item.id)) && (item.score > 0 || (originatingEvidenceId && String(item.id) === originatingEvidenceId)))
       .sort((a: any, b: any) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score)
       .slice(0, 8)
     ranked = scope === 'both' ? [...ranked, ...publicRanked].sort((a, b) => String(a.public_evidence_id) === originatingEvidenceId ? -1 : String(b.public_evidence_id) === originatingEvidenceId ? 1 : b.score - a.score).slice(0, 12) : publicRanked
