@@ -13,6 +13,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `public-source-first-policy.md`: public evidence collection and citation workflow; paid feeds and supplier contact are optional.
 - `public-source-capture-2026-10-14.csv`: twenty-four dated public-source records across surveys, retail price context, macro context, cocoa supply and recipe content.
 - `public-source-capture-2026-11-04.csv`: five dated records that explain the two off-season Google Trends spikes (Lacta, October 2023: Bis sponsorship of Felipe Neto and the boycott that followed; `chocolate amargo`, April-May 2026: the chocolate labelling law, Lei 15.404/2026) plus the law's thresholds and effective date (May 2027) as a structural watch item.
+- `public-source-capture-2026-11-10.csv`: five dated records from the weekly run of 2026-11-09 (São Paulo) that explain the remaining off-season spikes listed by the term screen (Garoto recall of 2022-10-18; Nestlé infant-formula recall of 2026-01-07 and the false factory-closure claims of 2026-08-17 to 20, both on the bare term of Set B v1; Black Friday 2025 behind the Lindt week of 2025-11-23).
 - `public-source-provenance-2026-10-14.csv`: provenance and reuse notes for each source used or planned.
 - `trends-query-plan.md`: pre-registered category and brand query sets with direct Explore links; no export is represented as captured.
 - `autonomy-rules-v1.md` and `AUTONOMY_STATUS.md`: from 2026-11-04 the gates are rules applied by `scripts/chocolate-pilot-autonomy.js` (checked in CI); the status page is generated and its exception queue is the only thing a person is asked to look at.
@@ -30,7 +31,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `product-universe.template.csv`: blank schema for future product-sample additions.
 - `source-provenance.template.csv`: record source URL, access method, timestamps, attribution and applicable reuse notes; this is a provenance register, not a universal permission gate.
 - `weekly-signal-review.template.csv`: log observed facts separately from hypotheses, alternatives, corroboration, confidence and human accept/reject decisions.
-- `weekly-signal-review-2026-11-02.csv`: draft review of the week of 2026-11-02 with six candidates from the accepted Google Trends captures (facts, hypotheses, alternatives, corroboration); every decision is `pending_human_decision` until Paulo records it.
+- `weekly-signal-review-2026-11-02.csv`: review of the week of 2026-11-02 to 2026-11-08: six candidates written on 2026-11-04 from the accepted Google Trends captures, plus seven rows written in the weekly run of 2026-11-09 (year-on-year comparison of the latest complete week per term inside each export, and the dated explanations of the spikes listed by the screen); decisions are applied by `scripts/chocolate-pilot-autonomy.js` (rules v1). No new export was captured in that run (linked browser unavailable), so its facts come from the exports of 2026-11-03 and 2026-11-04.
 - `review-protocol.md`: evidence, quality and interpretation rules.
 - `first-capture-runbook.md`: execution steps, hard stop gates, QA acceptance and baseline start conditions.
 
