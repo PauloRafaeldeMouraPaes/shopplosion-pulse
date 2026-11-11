@@ -189,6 +189,22 @@ for (const [url, obs] of byUrl) {
 if (!CHECK) for (const f of retail) if (f.dirty) writeCsv(f.rel, f.csv);
 if (!CHECK && trendsDirty) writeCsv(trendsFile, trends);
 
+// ---------- 3b. NFC-e transacted prices with EAN (Economiza Alagoas, SEFAZ/AL) ----------
+// Weekly gzipped captures written by scripts/capture-economiza-alagoas.py. Only file contents count, never the date
+// of the run, so the status page stays reproducible in CI.
+const zlib = require("node:zlib");
+const nfce = fs.readdirSync(path.resolve(ROOT, KIT)).filter(f => /^economiza-alagoas-\d{4}-\d{2}-\d{2}\.csv\.gz$/.test(f)).sort().map(f => {
+  const text = zlib.gunzipSync(fs.readFileSync(path.resolve(ROOT, KIT, f))).toString("utf8");
+  const records = parseCsv(text).records;
+  const eans = new Set(records.map(r => (r.gtin || "").trim()).filter(Boolean));
+  const places = new Set(records.map(r => (r.municipio_bairro_cep || "").split(",")[0].trim()).filter(Boolean));
+  const day = f.slice(18, 28); const d = new Date(day + "T00:00:00Z"); const monday = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * DAY).toISOString().slice(0, 10);
+  return { f, day, monday, rows: records.length, eans: eans.size, places: [...places].sort() };
+});
+const nfceWeeks = [...new Set(nfce.map(c => c.monday))].sort();
+const nfceLast = nfce[nfce.length - 1];
+const BASELINE_WEEKS = 4;
+
 // ---------- 4. Gate evaluation and status page ----------
 const provenance = readCsv(`${KIT}/public-source-provenance-2026-10-14.csv`);
 const provGaps = provenance.records.filter(r => /not located|not reviewed|not reachable|not opened/i.test(r.access_or_license_basis || "")).length;
@@ -198,10 +214,13 @@ const trendsRepeat = testsManifest.map(r => `${r.file.replace(/^tests\//, "")}: 
 const gates = [
   ["Source provenance", provGaps === 0 ? "documented" : `documented with ${provGaps} source(s) at citation-and-summary use only (terms not located, not reachable or not reviewed)`],
   ["Google Trends capture", Object.entries(slotCounts).map(([k, v]) => `${v} ${k}`).join(", ") || "no slots"],
-  ["Retail coverage", `${retailListings} listing(s) at ${retailers.size} retailer(s); ${retailWithEan} with EAN; ${retailReproduced} reproduced. ${retailWithEan === 0 ? "Insufficient: no page exposes an EAN, so coverage by EAN x store cannot be documented from these pages" : ""}`.trim()],
+  ["Retail coverage", `Retail pages: ${retailListings} listing(s) at ${retailers.size} retailer(s); ${retailWithEan} with EAN; ${retailReproduced} reproduced. ` +
+    (nfceLast ? `NFC-e prices with EAN (Economiza Alagoas): ${nfce.length} weekly capture(s); latest ${nfceLast.day}: ${nfceLast.rows} observation(s), ${nfceLast.eans} EAN, municipality ${nfceLast.places.join(", ") || "not parsed"}. Coverage by EAN x store is documented for that municipality only, not for Brazil.` : "No source exposes an EAN yet, so coverage by EAN x store cannot be documented")],
   ["Reproducibility", `Trends: ${trendsRepeat.length ? trendsRepeat.join("; ") : "no repeat export recorded"}. Retail: ${retailReproduced} of ${retailListings} listing(s) reproduced at least 7 days apart`],
   ["Signal review (rules v1)", Object.entries(decisionCounts).map(([k, v]) => `${v} ${k}`).join(", ") || "no rows"],
-  ["Baseline", retailWithEan === 0 ? "not_started: retail coverage gate open (EAN)" : "ready to start when the capture cadence runs"],
+  ["Baseline", !nfceLast && retailWithEan === 0 ? "not_started: retail coverage gate open (EAN)"
+    : nfceWeeks.length < BASELINE_WEEKS ? `collecting: ${nfceWeeks.length} of ${BASELINE_WEEKS} weekly NFC-e captures (weeks of ${nfceWeeks.join(", ")})`
+    : `started on NFC-e prices (${nfceLast.places.join(", ")}): ${nfceWeeks.length} weekly captures since the week of ${nfceWeeks[0]}`],
 ];
 const status = [
   `# Chocolate pilot: autonomy status (${RULES_VERSION}, computed ${TODAY})`, "",

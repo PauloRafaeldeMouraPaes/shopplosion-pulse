@@ -39,9 +39,17 @@ Files hashed by a review row are frozen: the rules never rewrite them, so the fi
 
 Prices stay observations of their own day. No rule turns two snapshots into a trend.
 
+## 3b. Transacted prices with EAN (NFC-e)
+
+Since 2026-11-11 the pilot reads Economiza Alagoas (SEFAZ/AL), the state's free price-transparency service built on consumer electronic invoices, through `scripts/capture-economiza-alagoas.py`: once a week, seven pilot terms, the food category page of each, one request at a time with a 5 second pause, stopping on any HTTP error. Each card becomes a row with the GTIN, the invoice description, the two prices exactly as labelled on the page (valor unitário, última venda), how long ago the sale happened and the store (name, state registration, address). Only chocolate rows are kept; the decision is per GTIN, by the majority of its descriptions in the run, because each store writes the same barcode differently. Observations are written gzipped (`economiza-alagoas-<date>.csv.gz`) with a request log that records the SHA-256 of every raw page and of the observations.
+
+What it is: transacted prices and which stores sold each EAN in the last seven days, in Maceió (the site's default view). What it is not: volume, share, Alagoas as a whole or Brazil. The official JSON API, which needs a token requested by e-mail, replaces the page reading when the token arrives.
+
+Baseline rule: the baseline is `collecting` while fewer than four distinct weeks have an NFC-e capture, and `started` from the fourth week on. Weeks are counted from the capture files, never from the date of the run.
+
 ## 4. Gates
 
-`AUTONOMY_STATUS.md` computes every gate from the files: provenance gaps, Trends slot states, retail listings with and without EAN, reproducibility (Trends repeat exports and retail repeats), review decisions by type, and the baseline condition. The baseline stays `not_started` while no retail page exposes an EAN, because the kit's own retail gate asks for coverage by EAN x store; that is a data-source decision (a licensed feed or a catalogue with EANs), not a validation.
+`AUTONOMY_STATUS.md` computes every gate from the files: provenance gaps, Trends slot states, retail listings with and without EAN, reproducibility (Trends repeat exports and retail repeats), review decisions by type, and the baseline condition. The baseline stayed `not_started` while no source exposed an EAN, because the kit's own retail gate asks for coverage by EAN x store; since 2026-11-11 the NFC-e prices of section 3b cover that for Maceió, and the baseline follows the rule of section 3b.
 
 ## 5. What a person is asked
 

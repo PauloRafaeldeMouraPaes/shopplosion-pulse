@@ -29,6 +29,8 @@ jobs:
         run: python3 scripts/test-update-ibge-pmc-evidence.py
       - name: Test the IBGE IPCA evidence generator (offline, from the saved captures)
         run: python3 scripts/test-update-ibge-ipca-evidence.py
+      - name: Check the Economiza Alagoas (NFC-e) captures and parser (offline)
+        run: python3 scripts/test-economiza-alagoas-capture.py
       - name: Run product regression guardrails
         run: node scripts/validate_pulse_regression.js
       - name: Run semantic data integrity checks

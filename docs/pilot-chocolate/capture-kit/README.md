@@ -25,6 +25,7 @@ Status: **pre-production; exploratory public-source observations captured**. Thi
 - `public-source-review-2026-10-14.csv`: eleven preliminary signal candidates, alternative explanations and follow-up decisions.
 - `public-retail-snapshot-2026-10-14.csv`: seven dated, publicly visible product listing snapshots from two retailers, with unit prices and promotion mechanics.
 - `public-retail-snapshot-2026-11-04.csv`: repeat capture of the same seven listings on 2026-11-04 (UTC clock time per row, price block hashed in `content_sha256`): Pão de Açúcar moved five Lacta/Garoto 80g bars to a straight -42%/-30% (R$7.99) and the Nestlé Classic 80g from R$9.69 promoted to R$14.49 without promotion; Super Muffato's Lacta 80g went from R$6.15 promoted to R$7.20 regular.
+- `economiza-alagoas-terms.csv`, `economiza-alagoas-<date>.csv.gz` and `economiza-alagoas-requests-<date>.csv`: weekly transacted prices with EAN by store from Economiza Alagoas (SEFAZ/AL, consumer electronic invoices), captured by `scripts/capture-economiza-alagoas.py` from 2026-11-11; Maceió only, last seven days of sales, no volume. Method and baseline rule in `autonomy-rules-v1.md`, section 3b.
 - `first-public-source-capture-report.md`: summary, limitations and next capture sequence.
 - `shopper-context-follow-up-2026-10-15.md`: supplemental Worldpanel by Numerator context on cross-category budget, promotion and channel behavior; explicitly `context_only`, not chocolate-specific evidence.
 - `product-universe-initial-2026-10-14.csv`: initial seven-row exploratory product × retailer register with inclusion rationale and coverage gaps; EAN gaps are explicit, not treated as approval gates.
@@ -47,16 +48,16 @@ No private API, paid provider, account creation or supplier response is a prereq
 
 ## Baseline status record
 
-**Current status: `not_started`.** This is an exploratory desk-capture kit, not a longitudinal or representative dataset.
+**Current status: computed in `AUTONOMY_STATUS.md`.** On 2026-11-11 the baseline moved from `not_started` to `collecting` (weekly NFC-e prices with EAN, Maceió); it is `started` from the fourth weekly capture. This is still not a representative national dataset.
 
 | Gate | Status | Evidence required to change status |
 |---|---|---|
 | Google Trends capture | Computed in `AUTONOMY_STATUS.md` (nine slots accepted: v1 by Paulo, v2 by Paulo; later slots by `autonomy-rules-v1.md`) |
 | Source provenance | Computed in `AUTONOMY_STATUS.md` (documented 2026-11-04; sources whose terms were not located stay at citation-and-summary use) |
-| Retail coverage | Computed in `AUTONOMY_STATUS.md`: open while no page exposes an EAN (a data-source decision: licensed feed or catalogue with EANs) |
+| Retail coverage | Computed in `AUTONOMY_STATUS.md`: EAN x store documented for Maceió from NFC-e prices (Economiza Alagoas, from 2026-11-11); retailer pages still expose no EAN |
 | Reproducibility and QA | Computed in `AUTONOMY_STATUS.md`: Trends repeat exports and retail repeats applied by rule |
 | Signal review | Rules v1 decide every row (`autonomy-rules-v1.md`); exceptions only in `AUTONOMY_STATUS.md` |
-| Four-week baseline | **Not started** | All prerequisite gates accepted and fixed category queries, transparent sampling method, schedule and coverage documented |
+| Four-week baseline | Computed in `AUTONOMY_STATUS.md` (`collecting` until four weekly NFC-e captures) | Four distinct weeks with an NFC-e capture; fixed terms, method and coverage in `autonomy-rules-v1.md` section 3b |
 
 Provenance gaps recorded on 2026-11-04 (`public-source-provenance-2026-10-14.csv`): the Pão de Açúcar terms page could not be opened (footer link without URL; only the on-page notice that prices are valid for the current day); the Super Muffato site was outside the kit browser permissions; the terms pages of FGV, BNB, UOL, Folha, Globo, InfoMoney, Foodnews and Mercado do Cacau were not located by search, so those sources stay at citation-and-summary use only; Agência Brasil's reproduction policy (journalistic reuse with attribution, commercial reuse via EBC licensing) and Google's Trends attribution guidance were read and recorded; the 2026-10-14 captures have no clock time.
 
