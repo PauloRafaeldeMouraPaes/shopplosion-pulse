@@ -131,6 +131,8 @@ months legitimately differ between releases (IBGE revises the series at each pub
    `node scripts/test-pulse-next-level-contract.js` (structural acceptance; the latest release is the
    comparable group of the series) must pass.
 
+IPCA works the same way since 2026-11-11: `python3 scripts/update-ibge-ipca-evidence.py` queries SIDRA table 7060 once (variables 63, 69 and 2265; Índice geral, Alimentação e bebidas, Alimentação no domicílio; the month and the previous one), keeps the raw response in `docs/data` with SHA-256 and writes `ibge-ipca-alimentos-<AAAA-MM>` from fixed templates; `scripts/test-update-ibge-ipca-evidence.py` (CI) regenerates every generated month from its capture and compares it with the published item.
+
 `scripts/fetch-ibge-pmc-series.py` remains the capture tool for other tables, variables or activities; its
 printed block can still be pasted by hand for a series the generator does not cover.
 

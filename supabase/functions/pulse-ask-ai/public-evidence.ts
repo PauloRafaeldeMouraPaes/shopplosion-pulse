@@ -18,7 +18,17 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
     "fonte_primaria": "IBGE, IPCA e INPC, release de janeiro de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_jan.pdf); API SIDRA tabela 7060: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202601-202608/c315/7169,7170",
     "fato_verificado_na_fonte": "SIM: 0,23% de Alimentação e bebidas em janeiro de 2026 conferido no PDF do release (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_jan.pdf) e na API SIDRA (tabela 7060, variável 63, categoria 7170, período 202601) em 05/11/2026; as páginas da Agência de Notícias retornam 403",
-    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em janeiro de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em janeiro de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "janeiro 2026",
+      "SIDRA 7060"
+    ]
   },
   {
     "id": "ibge-ipca-alimentos-2026-02",
@@ -38,7 +48,17 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
     "fonte_primaria": "IBGE, IPCA e INPC, releases de fevereiro e março de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_fev.pdf; https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_mar.pdf); API SIDRA tabela 7060: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202601-202608/c315/7169,7170",
     "fato_verificado_na_fonte": "SIM: 0,26% de Alimentação e bebidas em fevereiro de 2026 conferido na Tabela 1 do release de março (url do item), no texto do release de fevereiro (PDF oficial em biblioteca.ibge.gov.br) e na API SIDRA (tabela 7060, variável 63, categoria 7170, período 202602) em 05/11/2026; as páginas da Agência de Notícias retornam 403",
-    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em fevereiro de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em fevereiro de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "fevereiro 2026",
+      "SIDRA 7060"
+    ]
   },
   {
     "id": "ibge-ipca-alimentos-2026-03",
@@ -58,7 +78,17 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
     "fonte_primaria": "IBGE, IPCA e INPC, release de março de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_mar.pdf); API SIDRA tabela 7060: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202601-202608/c315/7169,7170",
     "fato_verificado_na_fonte": "SIM: 1,56% de Alimentação e bebidas em março de 2026 conferido no PDF do release (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_mar.pdf) e na API SIDRA (tabela 7060, variável 63, categoria 7170, período 202603) em 05/11/2026; as páginas da Agência de Notícias retornam 403",
-    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em março de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em março de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "março 2026",
+      "SIDRA 7060"
+    ]
   },
   {
     "id": "ibge-ipca-alimentos-2026-04",
@@ -78,7 +108,17 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
     "fonte_primaria": "IBGE, IPCA e INPC, release de abril de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_abr.pdf); API SIDRA tabela 7060: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202601-202608/c315/7169,7170",
     "fato_verificado_na_fonte": "SIM: 1,34% de Alimentação e bebidas em abril de 2026 conferido no PDF do release (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_abr.pdf) e na API SIDRA (tabela 7060, variável 63, categoria 7170, período 202604) em 05/11/2026; as páginas da Agência de Notícias retornam 403",
-    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em abril de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em abril de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "abril 2026",
+      "SIDRA 7060"
+    ]
   },
   {
     "id": "ibge-ipca-alimentos-2026-05",
@@ -98,7 +138,17 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
     "fonte_primaria": "IBGE, IPCA e INPC, release de maio de 2026 (página da Agência bloqueada por 403); release de junho de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_jun.pdf); API SIDRA tabela 7060: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202601-202608/c315/7169,7170",
     "fato_verificado_na_fonte": "SIM: 1,33% de Alimentação e bebidas em maio de 2026 conferido na API SIDRA (tabela 7060, variável 63, categoria 7170, período 202605) em 05/11/2026 e no texto e na Tabela 1 do release de junho (PDF oficial em biblioteca.ibge.gov.br); a página da Agência do release de maio retorna 403 e o PDF de maio não foi localizado",
-    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em maio de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em maio de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "maio 2026",
+      "SIDRA 7060"
+    ]
   },
   {
     "id": "ibge-ipca-alimentos-2026-06",
@@ -118,7 +168,17 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
     "fonte_primaria": "IBGE, IPCA e INPC, release de junho de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_jun.pdf); API SIDRA tabela 7060: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202601-202608/c315/7169,7170",
     "fato_verificado_na_fonte": "SIM: queda de 0,24% de Alimentação e bebidas em junho de 2026 conferido no PDF do release (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_jun.pdf) e na API SIDRA (tabela 7060, variável 63, categoria 7170, período 202606) em 05/11/2026; as páginas da Agência de Notícias retornam 403",
-    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em junho de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para inflação de alimentos e bebidas no Brasil em junho de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "junho 2026",
+      "SIDRA 7060"
+    ]
   },
   {
     "id": "ibge-pmc-supermercados-2026-04",
@@ -438,7 +498,17 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa volume, gasto, preço de marca ou canal, nem tendência futura; a queda do índice geral teve peso de Habitação (-1,87%, energia elétrica residencial -7,63%) e Transportes (-0,86%), não só de alimentos",
     "fonte_primaria": "IBGE, IPCA e INPC, release de agosto de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_ago.pdf) e de junho de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_jun.pdf); API SIDRA tabela 7060: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202601-202608/c315/7169,7170; a url do item (ibge.gov.br/indicadores-economicos/ipca.html) retorna 403",
     "fato_verificado_na_fonte": "SIM: IPCA -0,32% e Alimentação e bebidas -0,34% em agosto de 2026, -0,67% em julho e -0,24% em junho conferidos nos PDFs oficiais dos releases de agosto e junho e na API SIDRA (tabela 7060, variável 63) em 05/11/2026; a url do item retorna 403",
-    "alcance_para_pergunta": "DIRETO para inflação geral e de alimentos e bebidas no Brasil em agosto de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para inflação geral e de alimentos e bebidas no Brasil em agosto de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "agosto 2026",
+      "SIDRA 7060"
+    ]
   },
   {
     "id": "ibge-ipca-food-items-agosto",
@@ -458,7 +528,19 @@ export const PULSE_PUBLIC_EVIDENCE = [
     "nao_representa": "Não representa vendas, volume, preço de marcas ou canais, nem regiões isoladas; não indica tendência dos meses seguintes nem causa da variação",
     "fonte_primaria": "IBGE, IPCA e INPC, release de agosto de 2026 (https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_ago.pdf); API SIDRA tabela 7060, classificação 315: https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63/p/202608/c315/all; a url do item (ibge.gov.br/indicadores-economicos/ipca.html) retorna 403",
     "fato_verificado_na_fonte": "SIM: as seis quedas e as três altas, com os percentuais, conferidos no release do IPCA de agosto de 2026 (biblioteca.ibge.gov.br) e nos subitens da tabela 7060 do SIDRA consultada em 05/11/2026. Texto do fato corrigido em 05/11/2026: a versão anterior agrupava café moído com as altas.",
-    "alcance_para_pergunta": "DIRETO para preços de hortifrúti, ovos, leite longa vida, carnes e café moído em agosto de 2026; CONTEXTUAL para categorias de FMCG embaladas, marcas e comportamento do shopper"
+    "alcance_para_pergunta": "DIRETO para preços de hortifrúti, ovos, leite longa vida, carnes e café moído em agosto de 2026; CONTEXTUAL para categorias de FMCG embaladas, marcas e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "preços",
+      "agosto 2026",
+      "SIDRA 7060",
+      "itens alimentícios",
+      "perecíveis"
+    ]
   },
   {
     "id": "ibge-pmc-julho",
@@ -978,6 +1060,68 @@ export const PULSE_PUBLIC_EVIDENCE = [
       "2025",
       "2026",
       "piloto Chocolate"
+    ]
+  },
+  {
+    "id": "ibge-ipca-alimentos-2026-07",
+    "categoria": "preços",
+    "tipo": "IPCA",
+    "fato": "Em julho de 2026, o IPCA subiu 0,07%; Alimentação e bebidas caiu 0,67% e Alimentação no domicílio caiu 1,14% ante junho. No ano, Alimentação e bebidas acumula 3,86% e, em 12 meses, 3,40%.",
+    "contexto": "IPCA nacional do IBGE, tabela 7060 do SIDRA. Item escrito por scripts/update-ibge-ipca-evidence.py a partir da resposta da API consultada em 2026-11-11 (UTC), sem edição manual; resposta bruta em docs/data.",
+    "interpretacao": "O grupo Alimentação e bebidas passou de -0,24% em junho para -0,67% em julho (manteve o sinal da variação mensal); em 12 meses, o grupo (3,40%) está abaixo do índice geral (4,44%).",
+    "hipotese": "Investigar se a variação de preços de alimentos em julho aparece no volume do varejo alimentar (PMC) e no comportamento de compra do mesmo mês, sem presumir causa.",
+    "acao": "Acompanhar o IPCA de agosto de 2026 e cruzar com a PMC do mesmo mês e com preço por categoria, sem misturar universos.",
+    "fonte": "IBGE: IPCA, tabela 7060 do SIDRA (julho de 2026)",
+    "url": "https://sidra.ibge.gov.br/tabela/7060",
+    "periodo": "2026-07",
+    "natureza": "Índice oficial de preços ao consumidor (IPCA, IBGE); mede variação de preços, não volume vendido, gasto das famílias nem comportamento de compra",
+    "universo_observado": "Preços de produtos e serviços consumidos por famílias com rendimento de 1 a 40 salários mínimos, qualquer que seja a fonte, em dez regiões metropolitanas (Rio de Janeiro, Porto Alegre, Belo Horizonte, Recife, São Paulo, Belém, Fortaleza, Salvador, Curitiba, Vitória), Distrito Federal e os municípios de Goiânia, Campo Grande, Rio Branco, São Luís e Aracaju; índice nacional agregado dos índices regionais, conforme notas metodológicas do IBGE",
+    "representa": "Variação mensal, acumulada no ano e em 12 meses do IPCA geral e dos grupos Alimentação e bebidas e Alimentação no domicílio em julho de 2026, Brasil",
+    "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
+    "fonte_primaria": "IBGE, SIDRA tabela 7060, resposta bruta da API gravada em docs/data/ibge-ipca-7060-2026-07-2026-11-11.json (consulta 2026-11-11T03:28:10Z, SHA-256 b3371dc19a5cbce923e0571e9c8f0a3b11faaa4205a39d28cee07c8171efc189): https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63,69,2265/p/202606,202607/c315/7169,7170,7171",
+    "fato_verificado_na_fonte": "SIM: IPCA 0,07%, Alimentação e bebidas -0,67% e Alimentação no domicílio -1,14% em julho de 2026 (variável 63), Alimentação e bebidas -0,24% em junho de 2026, 3,86% no ano (variável 69) e 3,40% em 12 meses (variável 2265), índice geral 3,44% no ano e 4,44% em 12 meses, lidos da resposta bruta docs/data/ibge-ipca-7060-2026-07-2026-11-11.json",
+    "alcance_para_pergunta": "DIRETO para inflação geral e de alimentos e bebidas no Brasil em julho de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "alimentação no domicílio",
+      "preços",
+      "julho 2026",
+      "SIDRA 7060"
+    ]
+  },
+  {
+    "id": "ibge-ipca-alimentos-2026-09",
+    "categoria": "preços",
+    "tipo": "IPCA",
+    "fato": "Em setembro de 2026, o IPCA subiu 0,82%; Alimentação e bebidas subiu 0,83% e Alimentação no domicílio subiu 0,96% ante agosto. No ano, Alimentação e bebidas acumula 4,37% e, em 12 meses, 4,66%.",
+    "contexto": "IPCA nacional do IBGE, tabela 7060 do SIDRA. Item escrito por scripts/update-ibge-ipca-evidence.py a partir da resposta da API consultada em 2026-11-11 (UTC), sem edição manual; resposta bruta em docs/data.",
+    "interpretacao": "O grupo Alimentação e bebidas passou de -0,34% em agosto para 0,83% em setembro (inverteu o sinal da variação mensal); em 12 meses, o grupo (4,66%) está acima do índice geral (4,58%).",
+    "hipotese": "Investigar se a variação de preços de alimentos em setembro aparece no volume do varejo alimentar (PMC) e no comportamento de compra do mesmo mês, sem presumir causa.",
+    "acao": "Acompanhar o IPCA de outubro de 2026 e cruzar com a PMC do mesmo mês e com preço por categoria, sem misturar universos.",
+    "fonte": "IBGE: IPCA, tabela 7060 do SIDRA (setembro de 2026)",
+    "url": "https://sidra.ibge.gov.br/tabela/7060",
+    "periodo": "2026-09",
+    "natureza": "Índice oficial de preços ao consumidor (IPCA, IBGE); mede variação de preços, não volume vendido, gasto das famílias nem comportamento de compra",
+    "universo_observado": "Preços de produtos e serviços consumidos por famílias com rendimento de 1 a 40 salários mínimos, qualquer que seja a fonte, em dez regiões metropolitanas (Rio de Janeiro, Porto Alegre, Belo Horizonte, Recife, São Paulo, Belém, Fortaleza, Salvador, Curitiba, Vitória), Distrito Federal e os municípios de Goiânia, Campo Grande, Rio Branco, São Luís e Aracaju; índice nacional agregado dos índices regionais, conforme notas metodológicas do IBGE",
+    "representa": "Variação mensal, acumulada no ano e em 12 meses do IPCA geral e dos grupos Alimentação e bebidas e Alimentação no domicílio em setembro de 2026, Brasil",
+    "nao_representa": "Não representa volume de vendas, gasto, sell-out, preço de marca ou canal específico, nem variação de uma região isolada; não indica causa nem reação do shopper",
+    "fonte_primaria": "IBGE, SIDRA tabela 7060, resposta bruta da API gravada em docs/data/ibge-ipca-7060-2026-09-2026-11-11.json (consulta 2026-11-11T03:28:10Z, SHA-256 c28a09b02c99848dbe7e311ad2397feaabeb44a452d0123db8e1cfec1c3a21f1): https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63,69,2265/p/202608,202609/c315/7169,7170,7171",
+    "fato_verificado_na_fonte": "SIM: IPCA 0,82%, Alimentação e bebidas 0,83% e Alimentação no domicílio 0,96% em setembro de 2026 (variável 63), Alimentação e bebidas -0,34% em agosto de 2026, 4,37% no ano (variável 69) e 4,66% em 12 meses (variável 2265), índice geral 3,95% no ano e 4,58% em 12 meses, lidos da resposta bruta docs/data/ibge-ipca-7060-2026-09-2026-11-11.json",
+    "alcance_para_pergunta": "DIRETO para inflação geral e de alimentos e bebidas no Brasil em setembro de 2026; CONTEXTUAL para categorias, marcas, canais e comportamento do shopper",
+    "keywords": [
+      "IPCA",
+      "IBGE",
+      "inflação",
+      "alimentos",
+      "alimentação e bebidas",
+      "alimentação no domicílio",
+      "preços",
+      "setembro 2026",
+      "SIDRA 7060"
     ]
   }
 ] as const;
