@@ -2,9 +2,9 @@
 """Weekly capture of chocolate prices with EAN from Economiza Alagoas (SEFAZ/AL), free and public.
 
 Economiza Alagoas publishes prices of real sales taken from consumer electronic invoices (NFC-e) in Alagoas, per
-product barcode (GTIN/EAN) and per store. The official JSON API needs a token requested by e-mail
-(api@sefaz.al.gov.br); until it is granted this script reads the public consultation page, which is what the
-site offers any visitor, with deliberate restraint:
+product barcode (GTIN/EAN) and per store. The official JSON API needs a token tied to a person's CPF; the owner
+decided on 2026-11-11 not to request it, so this script reads only the public consultation page, which is what
+the site offers any visitor without registration, with deliberate restraint:
 
 * one request at a time, a pause of PAUSE_SECONDS between requests, a User-Agent that identifies the Pulse;
 * only the terms in docs/pilot-chocolate/capture-kit/economiza-alagoas-terms.csv, once a week;
