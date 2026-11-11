@@ -9,7 +9,8 @@ concurrency:
 
 jobs:
   browser-auth:
-    runs-on: ubuntu-latest
+    # Pinned like browser-smoke (#130): Playwright 1.55.0 does not install its browser on the Ubuntu 26.04 image behind ubuntu-latest.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
