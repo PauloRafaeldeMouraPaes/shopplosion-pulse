@@ -1,0 +1,44 @@
+name: SECURITY DEFINER ACL Contract
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "docs/database/security-definer-acl-draft.sql"
+      - "scripts/test-security-definer-acl-contract.py"
+      - ".github/workflows/security-definer-acl-contract.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "docs/database/security-definer-acl-draft.sql"
+      - "scripts/test-security-definer-acl-contract.py"
+      - ".github/workflows/security-definer-acl-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acl-contract:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pulse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d pulse_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pulse_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate ACL draft in an isolated transaction
+        run: python3 scripts/test-security-definer-acl-contract.py
