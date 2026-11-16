@@ -1,0 +1,7 @@
+{
+ "month": "2026-10",
+ "url": "https://apisidra.ibge.gov.br/values/t/7060/n1/all/v/63,69,2265/p/202609,202610/c315/7169,7170,7171",
+ "captured_at_utc": "2026-11-13T15:46:45Z",
+ "raw_file": "docs/data/ibge-ipca-7060-2026-10-2026-11-13.json",
+ "raw_sha256": "c41a79334736247aaffcfcd252979d3becf2ecd591c6cd8d1794eacbb35165b8"
+}

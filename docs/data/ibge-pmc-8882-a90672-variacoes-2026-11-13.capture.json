@@ -1,0 +1,155 @@
+{
+ "captured_at_utc": "2026-11-13T15:46:44Z",
+ "url": "https://apisidra.ibge.gov.br/values/t/8882/n1/all/v/11708,11709,11710,11711/p/202509,202606,202607,202608,202609/c11046/56734/c85/90672",
+ "http_status": 200,
+ "raw_file": "/home/claude/shopplosion-pulse/docs/data/ibge-pmc-8882-a90672-variacoes-2026-11-13.json",
+ "raw_sha256": "2d682fb38a258e145e01919a40b59b29b1b9c7f9c43d444a897b1121bade753c",
+ "raw_bytes": 10264,
+ "table": "8882",
+ "variables": [
+  "11708",
+  "11709",
+  "11710",
+  "11711"
+ ],
+ "index_type": "56734",
+ "activity": "90672",
+ "labels": {
+  "variable": "PMC - Variação mês/mês imediatamente anterior, com ajuste sazonal (M/M-1)",
+  "index_type": "Índice de volume de vendas no comércio varejista",
+  "activity": "Hipermercados, supermercados, produtos alimentícios, bebidas e fumo",
+  "unit": "%"
+ },
+ "periods_requested": [
+  "202509",
+  "202606",
+  "202607",
+  "202608",
+  "202609"
+ ],
+ "periods_with_value": 5,
+ "absences": [],
+ "values": [
+  {
+   "variable": "11708",
+   "period": "2025-09",
+   "value": 0.0,
+   "raw": "0.0"
+  },
+  {
+   "variable": "11708",
+   "period": "2026-06",
+   "value": 0.9,
+   "raw": "0.9"
+  },
+  {
+   "variable": "11708",
+   "period": "2026-07",
+   "value": -0.2,
+   "raw": "-0.2"
+  },
+  {
+   "variable": "11708",
+   "period": "2026-08",
+   "value": -0.3,
+   "raw": "-0.3"
+  },
+  {
+   "variable": "11708",
+   "period": "2026-09",
+   "value": -0.5,
+   "raw": "-0.5"
+  },
+  {
+   "variable": "11709",
+   "period": "2025-09",
+   "value": -0.6,
+   "raw": "-0.6"
+  },
+  {
+   "variable": "11709",
+   "period": "2026-06",
+   "value": 2.1,
+   "raw": "2.1"
+  },
+  {
+   "variable": "11709",
+   "period": "2026-07",
+   "value": 2.9,
+   "raw": "2.9"
+  },
+  {
+   "variable": "11709",
+   "period": "2026-08",
+   "value": 0.5,
+   "raw": "0.5"
+  },
+  {
+   "variable": "11709",
+   "period": "2026-09",
+   "value": 1.5,
+   "raw": "1.5"
+  },
+  {
+   "variable": "11710",
+   "period": "2025-09",
+   "value": 0.9,
+   "raw": "0.9"
+  },
+  {
+   "variable": "11710",
+   "period": "2026-06",
+   "value": 1.3,
+   "raw": "1.3"
+  },
+  {
+   "variable": "11710",
+   "period": "2026-07",
+   "value": 1.6,
+   "raw": "1.6"
+  },
+  {
+   "variable": "11710",
+   "period": "2026-08",
+   "value": 1.4,
+   "raw": "1.4"
+  },
+  {
+   "variable": "11710",
+   "period": "2026-09",
+   "value": 1.4,
+   "raw": "1.4"
+  },
+  {
+   "variable": "11711",
+   "period": "2025-09",
+   "value": 1.5,
+   "raw": "1.5"
+  },
+  {
+   "variable": "11711",
+   "period": "2026-06",
+   "value": 0.7,
+   "raw": "0.7"
+  },
+  {
+   "variable": "11711",
+   "period": "2026-07",
+   "value": 0.9,
+   "raw": "0.9"
+  },
+  {
+   "variable": "11711",
+   "period": "2026-08",
+   "value": 1.0,
+   "raw": "1.0"
+  },
+  {
+   "variable": "11711",
+   "period": "2026-09",
+   "value": 1.2,
+   "raw": "1.2"
+  }
+ ],
+ "serie_historica": []
+}
