@@ -1,0 +1,142 @@
+{
+ "generated_by": "scripts/chocolate-pilot-autonomy.js",
+ "rules": "auto-rule v1",
+ "baseline": {
+  "state": "collecting",
+  "weeks_with_capture": 1,
+  "weeks_required": 4,
+  "weeks": [
+   "2026-11-09"
+  ]
+ },
+ "trends_slots": {
+  "captured/accepted": 9
+ },
+ "review_decisions": {
+  "preliminary_only": 15,
+  "context_only": 8,
+  "consolidated": 1
+ },
+ "retail_pages": {
+  "listings": 7,
+  "retailers": 2,
+  "with_ean": 0,
+  "reproduced": 7
+ },
+ "nfce": {
+  "source": "Economiza Alagoas (SEFAZ/AL), página pública",
+  "scope": "Maceió, vendas dos últimos 7 dias antes de cada captura; preço praticado, não volume",
+  "captures": [
+   {
+    "capture_date": "2026-11-11",
+    "week_of": "2026-11-09",
+    "observations": 11195,
+    "ean": 581,
+    "stores": 1021,
+    "municipalities": [
+     "MACEIO"
+    ],
+    "median_unit_price_brl": 7.99
+   }
+  ],
+  "latest_top_ean_by_stores": [
+   {
+    "gtin": "7891000248768",
+    "description": "CHOC NESTLE KITKAT 4",
+    "stores": 357,
+    "median_unit_price_brl": 5,
+    "min_unit_price_brl": 2.99,
+    "max_unit_price_brl": 9.99
+   },
+   {
+    "gtin": "78912359",
+    "description": "BATON AO LEITE 16G",
+    "stores": 322,
+    "median_unit_price_brl": 2.29,
+    "min_unit_price_brl": 1.75,
+    "max_unit_price_brl": 3.99
+   },
+   {
+    "gtin": "7891000460207",
+    "description": "CHOC PRESTIGIO 33G",
+    "stores": 311,
+    "median_unit_price_brl": 4,
+    "min_unit_price_brl": 2.49,
+    "max_unit_price_brl": 6.9
+   },
+   {
+    "gtin": "7891000462300",
+    "description": "CHOCOLATE CHOKITO 32G",
+    "stores": 303,
+    "median_unit_price_brl": 3.99,
+    "min_unit_price_brl": 1.3,
+    "max_unit_price_brl": 10
+   },
+   {
+    "gtin": "78939318",
+    "description": "BOMBOM OURO BRANCO 20G",
+    "stores": 283,
+    "median_unit_price_brl": 1.99,
+    "min_unit_price_brl": 1.25,
+    "max_unit_price_brl": 3.99
+   },
+   {
+    "gtin": "78939301",
+    "description": "CHOC SONHO DE VALSA",
+    "stores": 252,
+    "median_unit_price_brl": 1.99,
+    "min_unit_price_brl": 0.49,
+    "max_unit_price_brl": 3.99
+   },
+   {
+    "gtin": "7891008414127",
+    "description": "BOMB SERENATA DE AMOR 16,5G UND",
+    "stores": 224,
+    "median_unit_price_brl": 1.77,
+    "min_unit_price_brl": 0.49,
+    "max_unit_price_brl": 3.99
+   },
+   {
+    "gtin": "7891008123975",
+    "description": "CHOC GAROTO AO LEITE 80G",
+    "stores": 194,
+    "median_unit_price_brl": 9.99,
+    "min_unit_price_brl": 4.24,
+    "max_unit_price_brl": 14.99
+   },
+   {
+    "gtin": "7891000464908",
+    "description": "CHOC CHARGE 40G",
+    "stores": 185,
+    "median_unit_price_brl": 4,
+    "min_unit_price_brl": 2.13,
+    "max_unit_price_brl": 6.9
+   },
+   {
+    "gtin": "78912366",
+    "description": "BATON BRANCO 16G",
+    "stores": 183,
+    "median_unit_price_brl": 2.2,
+    "min_unit_price_brl": 1.5,
+    "max_unit_price_brl": 3.99
+   },
+   {
+    "gtin": "7891000457092",
+    "description": "BOMBOM GAROTO SORTIDOS 220G",
+    "stores": 166,
+    "median_unit_price_brl": 14.99,
+    "min_unit_price_brl": 9.99,
+    "max_unit_price_brl": 29.99
+   },
+   {
+    "gtin": "7891000410707",
+    "description": "CHOC ALPINO NESTLE 80G",
+    "stores": 159,
+    "median_unit_price_brl": 11,
+    "min_unit_price_brl": 8.69,
+    "max_unit_price_brl": 14.99
+   }
+  ]
+ },
+ "exception_queue": []
+}

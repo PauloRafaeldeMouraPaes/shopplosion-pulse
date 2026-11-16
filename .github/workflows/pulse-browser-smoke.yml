@@ -56,6 +56,9 @@ jobs:
       - name: Run mobile reprojection smoke tests
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-mobile-v3.spec.js
+      - name: Chocolate pilot live status section
+        if: ${{ !cancelled() }}
+        run: npx playwright test scripts/browser-tests/pulse-pilot-live-status.spec.js
       - name: No horizontal overflow at 390 px on the seven pages
         if: ${{ !cancelled() }}
         run: npx playwright test scripts/browser-tests/pulse-mobile-overflow.spec.js

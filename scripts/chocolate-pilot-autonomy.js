@@ -199,7 +199,8 @@ const nfce = fs.readdirSync(path.resolve(ROOT, KIT)).filter(f => /^economiza-ala
   const eans = new Set(records.map(r => (r.gtin || "").trim()).filter(Boolean));
   const places = new Set(records.map(r => (r.municipio_bairro_cep || "").split(",")[0].trim()).filter(Boolean));
   const day = f.slice(18, 28); const d = new Date(day + "T00:00:00Z"); const monday = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * DAY).toISOString().slice(0, 10);
-  return { f, day, monday, rows: records.length, eans: eans.size, places: [...places].sort() };
+  const stores = new Set(records.map(r => r.inscricao_estadual || `${r.loja}|${r.endereco}`));
+  return { f, day, monday, rows: records.length, eans: eans.size, stores: stores.size, places: [...places].sort(), records };
 });
 const nfceWeeks = [...new Set(nfce.map(c => c.monday))].sort();
 const nfceLast = nfce[nfce.length - 1];
@@ -230,6 +231,33 @@ const status = [
   ...(exceptions.length ? ["| Where | What | Action |", "|---|---|---|", ...exceptions.map(e => `| ${e.where} | ${e.what} | ${e.action} |`)] : ["(empty)"]), "",
   "## Last run", "", ...(changes.length ? changes.map(c => `- ${c}`) : ["- no changes"]), "",
 ].join("\n");
+// ---------- 5. Machine-readable status for pilot-chocolate.html ----------
+// Same facts as AUTONOMY_STATUS.md, no run date, so CI can require it to be current (--check).
+const median = xs => { const a = xs.filter(Number.isFinite).sort((x, y) => x - y); if (!a.length) return null; const m = Math.floor(a.length / 2); return Math.round((a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2) * 100) / 100; };
+const nfceSummary = nfce.map(c => ({ capture_date: c.day, week_of: c.monday, observations: c.rows, ean: c.eans, stores: c.stores, municipalities: c.places,
+  median_unit_price_brl: median(c.records.map(r => parseFloat(r.valor_unitario_brl))) }));
+let topEan = [];
+if (nfceLast) {
+  const by = new Map();
+  for (const r of nfceLast.records) { if (!r.gtin) continue; const g = by.get(r.gtin) || { gtin: r.gtin, stores: new Set(), prices: [], names: new Map() };
+    g.stores.add(r.inscricao_estadual || `${r.loja}|${r.endereco}`); g.prices.push(parseFloat(r.valor_unitario_brl)); g.names.set(r.descricao_nfce, (g.names.get(r.descricao_nfce) || 0) + 1); by.set(r.gtin, g); }
+  topEan = [...by.values()].sort((a, b) => b.stores.size - a.stores.size || a.gtin.localeCompare(b.gtin)).slice(0, 12).map(g => ({
+    gtin: g.gtin, description: [...g.names.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0], stores: g.stores.size,
+    median_unit_price_brl: median(g.prices), min_unit_price_brl: Math.min(...g.prices.filter(Number.isFinite)), max_unit_price_brl: Math.max(...g.prices.filter(Number.isFinite)) }));
+}
+const pilotStatus = {
+  generated_by: "scripts/chocolate-pilot-autonomy.js", rules: RULES_VERSION,
+  baseline: { state: !nfceLast && retailWithEan === 0 ? "not_started" : nfceWeeks.length < BASELINE_WEEKS ? "collecting" : "started", weeks_with_capture: nfceWeeks.length, weeks_required: BASELINE_WEEKS, weeks: nfceWeeks },
+  trends_slots: slotCounts, review_decisions: decisionCounts,
+  retail_pages: { listings: retailListings, retailers: retailers.size, with_ean: retailWithEan, reproduced: retailReproduced },
+  nfce: { source: "Economiza Alagoas (SEFAZ/AL), página pública", scope: "Maceió, vendas dos últimos 7 dias antes de cada captura; preço praticado, não volume", captures: nfceSummary,
+    latest_top_ean_by_stores: topEan },
+  exception_queue: exceptions.filter(e => !/status (page|file) is stale/.test(e.what)).map(e => ({ where: e.where, what: e.what })),
+};
+const pilotStatusText = JSON.stringify(pilotStatus, null, 1) + "\n";
+const pilotStatusPath = path.resolve(ROOT, "pilot-chocolate-status.json");
+if (CHECK && (!fs.existsSync(pilotStatusPath) || fs.readFileSync(pilotStatusPath, "utf8") !== pilotStatusText)) exception("pilot-chocolate-status.json", "status file is stale", "run the autonomy script and commit the result");
+
 const statusPath = path.resolve(ROOT, KIT, "AUTONOMY_STATUS.md");
 if (CHECK) {
   const current = fs.existsSync(statusPath) ? fs.readFileSync(statusPath, "utf8") : "";
@@ -241,6 +269,7 @@ if (CHECK) {
   process.exit(hard.length ? 1 : 0);
 }
 fs.writeFileSync(statusPath, status);
+fs.writeFileSync(pilotStatusPath, pilotStatusText);
 console.log(`autonomy run (${TODAY}): ${changes.length} change(s), ${exceptions.length} exception(s) queued`);
 for (const c of changes) console.log(`  - ${c}`);
 for (const e of exceptions) console.log(`  ! ${e.where}: ${e.what}`);
