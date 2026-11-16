@@ -222,6 +222,17 @@ a:focus-visible { outline: 2px solid var(--brand-pulse-strong); outline-offset: 
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+/* Estado atual: generated from pilot-chocolate-status.json */
+.live-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-12); margin-top: var(--space-12); }
+.live-kpi { border: 1px solid var(--line-1, rgba(0,0,0,.12)); border-radius: 10px; padding: var(--space-12); }
+.live-kpi b { display: block; font-size: 20px; color: var(--ink-1); font-variant-numeric: tabular-nums; }
+.live-kpi span { color: var(--ink-2); font-size: 12px; }
+.live-table-wrap { overflow-x: auto; margin-top: var(--space-12); }
+.live-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.live-table th, .live-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line-1, rgba(0,0,0,.12)); white-space: nowrap; }
+.live-table th { color: var(--ink-2); font-weight: 600; }
+.live-table td.num, .live-table th.num { text-align: right; }
+@media (max-width: 720px) { .live-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .live-table .wide { display: none; } .live-table td:first-child { white-space: normal; } }
 </style>
 </head>
 <body>
@@ -231,11 +242,17 @@ a:focus-visible { outline: 2px solid var(--brand-pulse-strong); outline-offset: 
 <div class="eyebrow">Piloto de inteligência emergente · Categoria chocolate</div>
 <h1>Baseline inicial de sinais</h1>
 <p class="intro">Segundo ciclo operacional do piloto: a cadeia agora reúne evidência setorial, pesquisa de intenção de compra, consumo domiciliar e preços de varejo. O recorte é retrospectivo (2025-março de 2026), não um painel em tempo real, e separa mudanças temporais de diferenças de preço observadas em uma única data.</p>
-<div class="meta"><span class="pill">Snapshot temático: 11 out 2026</span><span class="pill">13 candidatos temáticos no snapshot de 11/10</span><span class="pill warning">Auditoria operacional: 04 nov 2026</span><span class="pill">5 páginas-fonte primárias</span><span class="pill warning">Sem série contínua de sell-out</span><span class="pill">2 RSS filtrados; 0 artigos de chocolate nesta captura</span></div>
+<div class="meta"><span class="pill">Snapshot temático: 11 out 2026</span><span class="pill">13 candidatos temáticos no snapshot de 11/10</span><span class="pill good">Estado atual: gerado das capturas</span><span class="pill">Auditoria operacional: 04 nov 2026 (histórico)</span><span class="pill">5 páginas-fonte primárias</span><span class="pill warning">Sem série contínua de sell-out</span><span class="pill">2 RSS filtrados; 0 artigos de chocolate nesta captura</span></div>
 </section>
 
+
+<section class="section" id="estado-atual" aria-live="polite">
+<h2>Estado atual do piloto</h2>
+<p class="sectionIntro">Gerado automaticamente das capturas e das regras do piloto (<code>pilot-chocolate-status.json</code>, escrito por <code>scripts/chocolate-pilot-autonomy.js</code> e conferido no CI). As auditorias de 04/11 e 28/10 abaixo ficam como histórico.</p>
+<div id="estado-atual-body"><div class="limit">Carregando o estado atual.</div></div>
+</section>
 <section class="section">
-<h2>Auditoria operacional: 4 nov. 2026</h2>
+<h2>Auditoria operacional: 4 nov. 2026 (histórico)</h2>
 <p class="sectionIntro">Revisão somente de leitura do tenant Chocolate no Supabase, comparada com a auditoria de 28/10. Esta seção atualiza o estado operacional; o snapshot temático original de 11/10 permanece preservado.</p>
 <div class="limit"><strong>Estado atual:</strong> 9 fontes cadastradas (7 ativas, 2 inativas); 29 itens de fonte (8 ativos, 21 rejeitados); 14 sinais ativos, 19 descartados e 3 resolvidos. Em 28/10 eram 16 ativos, 19 descartados e 1 resolvido: dois sinais fora de tema derivados do artigo sobre desvio de alimentos foram resolvidos. Os 14 ativos continuam ligados a cinco páginas primárias; um candidato IPEAD tem citação semanticamente composta. As 14 citações ativas aparecem literalmente no conteúdo armazenado, mas isso não garante que sejam semanticamente válidas.</div>
 <div class="limit"><strong>Capturas:</strong> Abicab, Agência Brasil/Instituto Locomotiva, Kantar e os dois RSS concluíram em 04/11 às 09h00 BRT. IPEAD e Procon tiveram última captura bem-sucedida em 03/11 às 18h00. Houve um HTTP 500 transitório no IPEAD em 01/11, seguido de capturas bem-sucedidas. A página da pesquisa de intenção retornou <code>items_changed=1</code> em quatro execuções consecutivas; sem snapshots imutáveis, não é possível separar mudança editorial de ruído de extração.</div>
@@ -247,7 +264,7 @@ a:focus-visible { outline: 2px solid var(--brand-pulse-strong); outline-offset: 
 </section>
 
 <section class="section">
-<h2>Auditoria operacional: 28 out. 2026</h2>
+<h2>Auditoria operacional: 28 out. 2026 (histórico)</h2>
 <div class="limit"><strong>Qualidade da captura:</strong> a auditoria de 28/10 encontrou 16 registros de sinais ativos no banco (19 descartados e 1 resolvido), mas três dos 16 ativos não são qualificados: dois sinais fora de tema, duplicados, derivados do mesmo artigo de RSS sobre desvio de alimentos e um candidato IPEAD que concatena trechos distintos. Um registro resolvido também deriva daquele artigo irrelevante. O snapshot abaixo mantém os 13 candidatos temáticos da revisão de 11/10; eles não são tendências longitudinalmente validadas. Cinco páginas primárias estão ativas, mas dois itens antigos de RSS irrelevantes permanecem ativos no banco apesar do filtro aplicado a novas capturas. A captura mais recente não reportou erros; a página da Agência Brasil sobre intenção retornou <code>items_changed=1</code> repetidamente. Como ainda não há snapshots imutáveis por execução, não é possível confirmar se houve mudança editorial real. A baseline de quatro semanas continua não iniciada.</div>
 </section>
 
@@ -340,7 +357,48 @@ a:focus-visible { outline: 2px solid var(--brand-pulse-strong); outline-offset: 
 <div class="step"><b>3. Validar shopper</b><p>Confrontar a hipótese com sell-out, painel ou pesquisa independente autorizada antes de recomendar mudança de portfólio, preço ou mídia.</p></div>
 </div>
 </section>
-<p class="foot">Snapshot temático gerado em 11/10/2026, complementado pelas auditorias operacionais de 28/10 e 04/11. Em 04/11 o banco contém 14 sinais ativos, 19 descartados e 3 resolvidos; um sinal IPEAD ativo tem citação semanticamente composta. Os 13 candidatos temáticos do snapshot original continuam sendo candidatos preliminares, não tendências longitudinalmente validadas. Há três itens RSS ativos fora de tema e o filtro de palavras-chave ainda produz falsos positivos. A página de intenção reporta alterações repetidas sem snapshots imutáveis para comparação. A baseline de quatro semanas continua não iniciada; os dados publicados permanecem retrospectivos, não uma leitura em tempo real. <a href="./docs/pilots/chocolate-emerging-shopper-signals.md">Ler protocolo completo do piloto ↗</a></p>
+<p class="foot">Snapshot temático gerado em 11/10/2026, complementado pelas auditorias operacionais de 28/10 e 04/11. Em 04/11 o banco contém 14 sinais ativos, 19 descartados e 3 resolvidos; um sinal IPEAD ativo tem citação semanticamente composta. Os 13 candidatos temáticos do snapshot original continuam sendo candidatos preliminares, não tendências longitudinalmente validadas. Há três itens RSS ativos fora de tema e o filtro de palavras-chave ainda produz falsos positivos. A página de intenção reporta alterações repetidas sem snapshots imutáveis para comparação. O estado da baseline e das capturas está na seção Estado atual, gerada a cada ciclo semanal. <a href="./docs/pilots/chocolate-emerging-shopper-signals.md">Ler protocolo completo do piloto ↗</a></p>
 </main>
+<script>
+(function () {
+  var body = document.getElementById('estado-atual-body');
+  var fmt = function (n, d) { return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
+  var brl = function (n) { return 'R$ ' + fmt(n, 2); };
+  var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var dia = function (iso) { var p = String(iso).split('-'); return p[2] + '/' + p[1] + '/' + p[0]; };
+  var BASE = { not_started: 'não iniciada', collecting: 'coletando', started: 'iniciada' };
+  var LABEL = { 'captured/accepted': 'aceitos', 'captured/auto_accepted': 'aceitos por regra', 'captured/pending_review': 'em revisão', preliminary_only: 'preliminares', context_only: 'contexto', consolidated: 'consolidado', follow_up_required: 'em apuração', rejected: 'rejeitados' };
+  var lab = function (k) { return LABEL[k] || k; };
+  var cidade = function (c) { var m = { MACEIO: 'Maceió' }; return m[c] || String(c).toLowerCase().replace(/(^|\s)\S/g, function (x) { return x.toUpperCase(); }); };
+  fetch('./pilot-chocolate-status.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (d) {
+    var caps = (d.nfce && d.nfce.captures) || []; var last = caps[caps.length - 1];
+    var b = d.baseline || {}; var html = '';
+    html += '<div class="live-grid">';
+    html += '<div class="live-kpi"><b>' + esc(BASE[b.state] || b.state) + '</b><span>Baseline: ' + fmt(b.weeks_with_capture) + ' de ' + fmt(b.weeks_required) + ' semanas com captura</span></div>';
+    if (last) {
+      html += '<div class="live-kpi"><b>' + fmt(last.ean) + '</b><span>EAN com venda em ' + esc((last.municipalities || []).map(cidade).join(', ')) + '</span></div>';
+      html += '<div class="live-kpi"><b>' + fmt(last.stores) + '</b><span>Lojas com venda registrada</span></div>';
+      html += '<div class="live-kpi"><b>' + brl(last.median_unit_price_brl) + '</b><span>Preço unitário mediano (' + dia(last.capture_date) + ')</span></div>';
+    }
+    html += '</div>';
+    if (last) {
+      html += '<div class="limit"><strong>Preço praticado com EAN:</strong> ' + esc(d.nfce.source) + '; ' + esc(d.nfce.scope) + '. Última captura em ' + dia(last.capture_date) + ': ' + fmt(last.observations) + ' observações. Mostra preço de venda real por código de barras e loja; não mede volume, participação nem o Brasil.</div>';
+      var top = d.nfce.latest_top_ean_by_stores || [];
+      if (top.length) {
+        html += '<div class="live-table-wrap"><table class="live-table"><caption class="metric" style="caption-side:top;text-align:left">EAN vendidos em mais lojas na última captura</caption><thead><tr><th>Descrição na nota</th><th class="wide">EAN</th><th class="num">Lojas</th><th class="num">Mediana</th><th class="num wide">Mín.</th><th class="num wide">Máx.</th></tr></thead><tbody>';
+        top.forEach(function (t) { html += '<tr><td>' + esc(t.description) + '</td><td class="wide">' + esc(t.gtin) + '</td><td class="num">' + fmt(t.stores) + '</td><td class="num">' + brl(t.median_unit_price_brl) + '</td><td class="num wide">' + brl(t.min_unit_price_brl) + '</td><td class="num wide">' + brl(t.max_unit_price_brl) + '</td></tr>'; });
+        html += '</tbody></table></div>';
+      }
+    }
+    var slots = Object.keys(d.trends_slots || {}).map(function (k) { return fmt(d.trends_slots[k]) + ' ' + lab(k); }).join(', ');
+    var dec = Object.keys(d.review_decisions || {}).map(function (k) { return fmt(d.review_decisions[k]) + ' ' + lab(k); }).join(', ');
+    html += '<div class="limit"><strong>Google Trends:</strong> ' + esc(slots || 'sem exports') + '. <strong>Revisão de sinais (regras v1):</strong> ' + esc(dec || 'sem linhas') + '. <strong>Páginas de loja:</strong> ' + fmt(d.retail_pages.listings) + ' listagens em ' + fmt(d.retail_pages.retailers) + ' redes, ' + fmt(d.retail_pages.reproduced) + ' reproduzidas, ' + fmt(d.retail_pages.with_ean) + ' com EAN.</div>';
+    var ex = d.exception_queue || [];
+    html += '<div class="limit"><strong>Fila de exceções:</strong> ' + (ex.length ? ex.map(function (e) { return esc(e.where + ': ' + e.what); }).join('; ') : 'vazia') + '.</div>';
+    body.innerHTML = html;
+  }).catch(function (e) { body.innerHTML = '<div class="limit"><strong>Estado atual indisponível:</strong> não foi possível ler pilot-chocolate-status.json (' + esc(e.message) + ').</div>'; });
+})();
+</script>
+
 </body>
 </html>
