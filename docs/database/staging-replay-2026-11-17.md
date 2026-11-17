@@ -51,7 +51,29 @@ Event failures on the current trigger: a timestamp-only update, a no-op update, 
 
 ACL failures: `anon` and `authenticated` hold EXECUTE (through the default `PUBLIC` grant) on the two trigger functions, the backstop scheduler, the fixture-writing self test, the six worker routines and `auth_industry_context()`. Revokes from `anon` alone in earlier migrations did not remove the `PUBLIC` grant. In production this means the public API key can call, for example, `rpc/pulse_external_backstop_schedule_tick` and `rpc/pulse_external_signal_deterministic_backstop`.
 
-Candidate: `docs/database/signal-event-trigger-draft.sql` (sha256 `1ad64025e1277eb61c1c8ab3813b0dc005c1de42d75fe48a69e0ddd81371252e`). **Not yet applied on staging**: the Supabase connector asks the owner to confirm DDL that contains REVOKE/DROP, and the confirmation was cancelled automatically while the owner was away. Next run, once confirmed: apply the candidate, rerun the matrix, then the remaining gates of `staging-signal-event-acl-acceptance.md` (authenticated tenant isolation with two synthetic users, cron to Vault to Edge Function with staging functions deployed, Security Advisor delta).
+Candidate: `docs/database/signal-event-trigger-draft.sql` (sha256 `1ad64025e1277eb61c1c8ab3813b0dc005c1de42d75fe48a69e0ddd81371252e`), applied on staging after the owner allowed the connector to run DDL without a per-call confirmation (2026-11-17, "Permitir sempre", on the condition that production changes only follow a passing staging run and a documented rollback).
+
+Result on staging with the candidate:
+
+| Gate | Result |
+|---|---|
+| Event matrix | 12 of 12 |
+| ACL matrix | 13 of 13 |
+| Trigger fires for a `service_role` update and for an authenticated owner update | pass |
+| Two synthetic tenants: each sees only its own signals and its own `auth_industry_context()`; a cross-tenant update writes nothing | pass |
+| `anon` calling the backstop scheduler | denied |
+| Cron owner path (`postgres` runs `pulse_external_backstop_schedule_tick()`) | executes |
+| Security Advisor | `anon` SECURITY DEFINER findings 11 to 0; `authenticated` 12 to 2 (`auth_industry_context`, `current_industry_id`, both intended) |
+
+Call graph checked in the repository: Edge Functions call `pulse_intelligence_worker_token`, `verify_pulse_internal_token`, `pulse_external_intelligence_fallback_candidate` and `pulse_capture_document_version` with the service key; all keep EXECUTE for `service_role`. No page calls a revoked routine.
+
+## Production release (2026-11-17)
+
+Applied to production as migration `signal_event_trigger_and_acl` (repo file `supabase/migrations/011_signal_event_trigger_and_acl.sql`, the draft body with a header). Before: 72 migrations, previous trigger unchanged, 16,302 events for 39 signals. After: trigger function body, trigger definition and the 11 routine ACLs hash-identical to staging; zero of the 11 routines executable by `anon`; Security Advisor shows only the 2 intended findings plus leaked-password protection (an Auth setting, unrelated).
+
+Rollback: `docs/database/signal-event-rollback.sql` restores the previous trigger and function; grants are not reopened.
+
+Open follow-up: the three deployed workers (`pulse-external-signal-worker`, `pulse-external-deterministic-backstop`, `pulse-intelligence-worker`) still insert events themselves; the repository versions no longer do. Until they are redeployed, worker-written events continue as before; the trigger no longer adds duplicates of its own. Existing duplicate rows are left in place (no data deletion without a reviewed cleanup).
 
 ## Reproduce
 

@@ -4,7 +4,7 @@
 Output: one file per step in OUT_DIR (default: ./staging-replay), in apply order:
   000  out-of-band objects that production has outside tracked history (rls_auto_enable + ensure_rls)
   001-003  repo migrations applied in production before tracking began (004 never reached production)
-  then the 72 production versions in ledger order (repo file when mapped, recovered body otherwise)
+  then the production versions in ledger order (72 at the time of the replay; the 73rd, 011, is the released fix) (repo file when mapped, recovered body otherwise)
   999  remaining production drift outside tracked history (see staging-replay-2026-11-17.md)
 
 Substitutions, staging only:
@@ -53,8 +53,8 @@ def main() -> int:
         body = (ROOT / row["repo_path"]).read_text()
         steps.append((f"{row['production_version']}_{row['production_name']}", body))
     steps.append(("999_production_out_of_band_drift", (FIXTURES / "999_production_out_of_band_drift.sql").read_text()))
-    if len(rows) != 72:
-        raise SystemExit(f"expected 72 production versions, manifest has {len(rows)}")
+    if len(rows) < 72:
+        raise SystemExit(f"expected at least 72 production versions, manifest has {len(rows)}")
     for i, (name, body) in enumerate(steps):
         (out / f"{i:03d}_{name}.sql").write_text(staging_sql(body))
     print(f"{len(steps)} steps written to {out}")
