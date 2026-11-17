@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary, shouldRecordSignalEvent, signalEventDirection } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
+import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary, isRelevantSignal, shouldRecordSignalEvent, signalEventDirection } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
 
 const abicab = {
   id: "abicab-item",
@@ -131,3 +131,15 @@ assert.match(sourceWorker, /descoberta.*items=items\.filter/, "discovery feeds m
 assert.match(sourceWorker, /chocolate\|cacau\|p\[aá\]scoa\|doces\|confeitaria\|achocolatado/, "discovery feeds should retain category-relevant articles only");
 
 console.log("External signal evidence quality: PASS");
+
+// Relevance gate (2026-11-17): off-topic or zero-confidence candidates never become signals. Cases taken from
+// production: a prison food-diversion news item (confidence 0) and two on-topic quotes whose topic word sits in
+// the source article, not in the quote itself.
+assert.equal(isRelevantSignal({ confidence: 0, text: "Desvio de alimentos em unidade prisional. Diretora presa por desvio de 70kg de alimentos.", sourceTitle: "Polícia Penal prende diretora", sourceContent: "agentes da Secretaria de Estado de Polícia Penal" }), false, "zero confidence and off-topic must be dropped");
+assert.equal(isRelevantSignal({ confidence: 0.65, text: "Aporte de 100 milhões de euros em bioeconomia", sourceTitle: "Bioeconomia recebe aporte", sourceContent: "fundo europeu para bioeconomia" }), false, "off-topic must be dropped even with confidence");
+assert.equal(isRelevantSignal({ confidence: 0.2, text: "O consumo de chocolate caiu 19%", sourceTitle: "Chocolate", sourceContent: "chocolate" }), false, "confidence below 0.3 must be dropped");
+assert.equal(isRelevantSignal({ confidence: 0.65, text: "Neste ano, estão sendo lançados 134 lançamentos (contra 94 em 2025).", sourceTitle: "Indústria projeta Páscoa", sourceContent: "A produção de chocolates avançou. Ovos de Páscoa." }), true, "topic in the source article keeps a quote that does not repeat it");
+assert.equal(isRelevantSignal({ confidence: 0.65, text: "A produção de chocolates avançou de 806 mil toneladas em 2024 para 814 mil toneladas em 2025.", sourceTitle: "", sourceContent: "" }), true, "topic in the signal text is enough");
+assert.match(signalWorker, /isRelevantSignal\(/, "the signal worker must apply the relevance gate before writing");
+assert.match(backstopWorker, /isRelevantSignal\(/, "the backstop must apply the relevance gate before writing");
+console.log("Signal relevance gate: PASS");

@@ -65,3 +65,13 @@ export function deterministicCandidate(item) {
 export function isGenericSummary(summary) {
   return /captured external source reports a quantified change|may be relevant to the industry|fonte externa reporta uma mudança quantitativa gen[eé]rica/i.test(String(summary || ""));
 }
+
+/* Relevance gate: a candidate becomes a signal only with confidence of at least 0.3 and the category topic present
+   either in the signal itself (title, summary, quotes) or in the source article it was taken from. */
+const TOPIC = /(chocolate|cacau|p[aá]scoa|bombo[mn]|confeit|achocolatad)/i;
+export function isRelevantSignal({ confidence, text, sourceTitle, sourceContent }) {
+  if (!(Number(confidence) >= 0.3)) return false;
+  if (TOPIC.test(String(text || "")) || TOPIC.test(String(sourceTitle || ""))) return true;
+  const mentions = String(sourceContent || "").match(/(chocolate|cacau|p[aá]scoa)/gi) || [];
+  return mentions.length >= 2;
+}
