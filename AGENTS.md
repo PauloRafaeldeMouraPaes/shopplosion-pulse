@@ -36,6 +36,12 @@ Do not claim that subagents, worktrees, local commands, browser tests or local f
 - **Owner's writing rules:** user-facing text is Portuguese, direct, without emojis and without em or en dashes (use colons).
 - **Release hygiene:** use a focused branch and PR; run relevant tests and audits; inspect the final diff. The owner authorized autonomous merges: a PR may be merged when every check of its exact commit passed, and the work is done only after the Pulse Production Release of the merge commit succeeded and `python3 scripts/verify_published_artifact.py --require-release --cache-key <sha>` reports the published files identical. PRs that change the database, grants, RLS or security stay drafts until staging validation. Edge Functions are deployed only through the guarded workflow (`pulse-supabase-ask-ai-deploy.yml`), and each deploy is recorded in `supabase/functions/DEPLOYMENT_MANIFEST.json`.
 
+## Installed agent tooling (project scope, `.claude/settings.json`)
+
+- Plugins: `superpowers@anthropic-plugin-directory`, `impeccable@impeccable` (design skill; its hooks run a checksum-verified engine on edits and at turn end), `task-observer@one-skill-to-rule-them-all` (activation block in `CLAUDE.md`, session-start hook in `.claude/hooks/`, workspace `.task-observer/`).
+- Skill: `.claude/skills/find-skills` (Vercel skills CLI, pinned in `skills-lock.json`). Install new skills at project scope and review them before committing; they run with full agent permissions.
+- Not installed: claude-mem (requires account sign-in, a paid trial or plan usage, and sends tool activity to an observer model; conflicts with the no-cost and no-secrets rules). Persistent memory for this project stays in the claude.ai project docs and this file.
+
 ## Reporting
 
 Report the actual commit/branch and verification evidence, then list only material gaps or blockers. Keep status updates useful and avoid repeating a question or emitting a progress loop. A green check on one commit does not verify a later commit.
