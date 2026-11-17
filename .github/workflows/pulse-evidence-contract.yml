@@ -27,3 +27,11 @@ jobs:
         run: node scripts/validate-conducao-contract.js
       - name: Validate analysis publish/limits contract
         run: node scripts/validate-analysis-publish-contract.js
+      - name: Parse every Edge Function entrypoint
+        # A syntax error in a repository copy only surfaces at deploy time otherwise (found 2026-11-17 in pulse-intelligence-worker).
+        run: |
+          set -euo pipefail
+          for f in supabase/functions/*/index.ts; do
+            npx -y esbuild@0.24.0 --loader=ts --log-level=error < "$f" > /dev/null
+            echo "parsed $f"
+          done
