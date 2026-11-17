@@ -2,3 +2,13 @@ project_id = "ppfuygnpgywfpiqxsfys"
 
 [functions.pulse-ask-ai]
 verify_jwt = true
+
+# Internal workers: called only by pg_cron with the Vault token in x-pulse-cron; each checks it before any work.
+[functions.pulse-external-signal-worker]
+verify_jwt = false
+
+[functions.pulse-external-deterministic-backstop]
+verify_jwt = false
+
+[functions.pulse-intelligence-worker]
+verify_jwt = false
