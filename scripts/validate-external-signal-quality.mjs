@@ -76,6 +76,11 @@ for (const fn of readdirSync(resolve(root, "supabase/functions"))) {
 }
 const intelligenceWorker = readFileSync(resolve(root, "supabase/functions/pulse-intelligence-worker/index.ts"), "utf8");
 assert.match(intelligenceWorker, /status:existing\?\.status==='resolved'\|\|existing\?\.status==='dismissed'\?existing\.status:'active'/, "the private intelligence worker must preserve resolved and dismissed signals");
+// Both external writers update the same signal (same signal_key); a different fingerprint recipe makes them
+// overwrite each other's fingerprint and the trigger records a "stable" event on every swap (seen 2026-11-17).
+const fingerprintRecipe = (source) => (source.match(/fingerprint=await sha\(`\$\{signalKey\}\|\$\{([^}]*)\}\|\$\{JSON\.stringify\(evidence\)\}`\)/) || [])[1];
+assert.equal(fingerprintRecipe(signalWorker), "norm(summary)", "signal worker fingerprint recipe changed: keep both external writers identical");
+assert.match(String(fingerprintRecipe(backstopWorker)), /^norm\(/, "the backstop must normalise the summary exactly like the signal worker (accents, case, spaces), or the two writers swap fingerprints");
 assert.match(intelligenceWorker, /select\('id,confidence,fingerprint,status'\)/, "the private intelligence worker must read the prior status");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65, priorStatus: "dismissed", status: "active" }), false, "a status change that is not a resolution is not an event by itself (same rule as the trigger)");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.69996, priorStatus: "active", status: "active" }), true, "confidence is compared on the stored numeric(5,4) precision, as the trigger sees it");
