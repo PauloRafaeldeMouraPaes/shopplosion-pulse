@@ -1,0 +1,3 @@
+2026-11-17 12:33 [shopplosion-pulse] workspace: created=observation-log,observation-log/archive,last-review-date.txt,cross-cutting-principles.md
+2026-11-17 12:33 [shopplosion-pulse] session-start scan: files=0 parsed=0 principles=0
+2026-11-17 12:44 [shopplosion-pulse] checkpoint: none logged; incident: two signal writers hashed summaries differently (code defect fixed in PR #146, not a skill gap); no user correction this task
