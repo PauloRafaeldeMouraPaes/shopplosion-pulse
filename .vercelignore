@@ -1,0 +1,6 @@
+# Preview deploys serve the static Pulse only; tooling, tests and raw captures stay out.
+node_modules
+scripts
+supabase
+.github
+docs/pilot-chocolate/capture-kit/*.csv.gz
