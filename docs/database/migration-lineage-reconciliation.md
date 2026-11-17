@@ -9,6 +9,10 @@ Status: investigation only. No production schema, data, grants, or migration his
 - The remaining 68 SQL bodies have now been retrieved read-only from `supabase_migrations.schema_migrations.statements[1]` and archived verbatim under `docs/database/recovered-production-migrations/*.sql.txt`; each archive's Git-blob SHA-1 matches the production-stored statement SHA-1. The original Git authoring paths, reviews and commit provenance for these 68 entries remain unproven.
 - The live signal-event trigger/function and SECURITY DEFINER grant fixes still require separately reviewed forward migrations. Recovering exact SQL bodies does not make them safe to replay or make `supabase db push` safe.
 
+## Staging replay (2026-11-17)
+
+The full history was replayed on the staging project and the resulting catalog matches production in every category (`staging-replay-2026-11-17.md`). It corrected two assumptions: repo migration `004_private_document_integrity.sql` never reached production (only 001-003 predate the ledger), and production carries objects created outside tracked history, including the live signal-event trigger and its function. Those objects are captured in `scripts/staging/replay-fixtures/` so staging mirrors production.
+
 ## Per-version reconciliation manifest (2026-10-15)
 
 The read-only production migration listing is preserved row-by-row in `docs/database/production-migration-lineage-manifest.csv`. It contains all 72 production versions. Four rows map to existing active migration files by Git-blob SHA; the other 68 map to new, verbatim audit archives recovered from the production migration ledger. An archive mapping establishes the exact SQL body, not its original Git authoring path or review provenance.
