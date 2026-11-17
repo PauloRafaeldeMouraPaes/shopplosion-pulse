@@ -104,10 +104,10 @@
     },
     {
       "slug": "pulse-external-deterministic-backstop",
-      "version": 13,
+      "version": 14,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "69a9e47b6f582ffbc7d79781f2bb3b337e4e7f6dbb1522c44290bfc13eb543bf",
+      "deployed_sha256": "05926af7288aac59a6097fc2c143c8e6d2986513aff7bce05ca14d7555356bb3",
       "source_path": "supabase/functions/pulse-external-deterministic-backstop/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
@@ -116,7 +116,7 @@
       ],
       "deployment_drift": false,
       "drift_reason": "",
-      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 44020791933 from b486edb7 (2026-11-17)"
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 44116611358 from 3664e161 (2026-11-17)"
     },
     {
       "slug": "pulse-index-bootstrap",
