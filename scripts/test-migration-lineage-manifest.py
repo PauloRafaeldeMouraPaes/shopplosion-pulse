@@ -19,12 +19,14 @@ EXPECTED_REPOSITORY_MIGRATIONS = {
     "008_analysis_artifact_metadata.sql",
     "009_shopper_knowledge_layer.sql",
     "010_knowledge_updates_saved_evidence.sql",
+    "011_signal_event_trigger_and_acl.sql",
 }
 EXPECTED_MAPPINGS = {
     "20260922030555": ("supabase/migrations/007_investigations_and_analysis_link.sql", "confirmed_after_trailing_newline_trim"),
     "20260922030641": ("supabase/migrations/008_analysis_artifact_metadata.sql", "confirmed_exact_blob_match"),
     "20260922031240": ("supabase/migrations/009_shopper_knowledge_layer.sql", "confirmed_exact_blob_match"),
     "20260922032516": ("supabase/migrations/010_knowledge_updates_saved_evidence.sql", "confirmed_exact_blob_match"),
+    "20261117043814": ("supabase/migrations/011_signal_event_trigger_and_acl.sql", "confirmed_exact_blob_match"),
 }
 ALLOWED_STATUSES = {"unmapped", "confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim", "recovered_from_production_history", "recovered_from_production_history_redacted"}
 REDACTION_MARKER = "[REDIGIDO "
@@ -48,8 +50,8 @@ def main() -> int:
             raise AssertionError("Migration lineage manifest is missing required columns")
         rows = list(reader)
 
-    if len(rows) != 72:
-        raise AssertionError(f"Expected exactly 72 production migration rows, found {len(rows)}")
+    if len(rows) != 73:
+        raise AssertionError(f"Expected exactly 73 production migration rows, found {len(rows)}")
     versions = [row["production_version"] for row in rows]
     if len(set(versions)) != len(versions):
         raise AssertionError("Duplicate production migration version")
@@ -82,9 +84,9 @@ def main() -> int:
     recovered = [row for row in rows if row["mapping_status"] == "recovered_from_production_history"]
     redacted = [row for row in rows if row["mapping_status"] == "recovered_from_production_history_redacted"]
     unmapped = [row for row in rows if row["mapping_status"] == "unmapped"]
-    if len(current_mappings) != 4 or len(recovered) + len(redacted) != 68 or len(unmapped) != 0:
+    if len(current_mappings) != 5 or len(recovered) + len(redacted) != 68 or len(unmapped) != 0:
         raise AssertionError(
-            f"Expected 4 current-file mappings, 68 production-body archives (exact or redacted), and 0 unmapped rows; "
+            f"Expected 5 current-file mappings, 68 production-body archives (exact or redacted), and 0 unmapped rows; "
             f"found {len(current_mappings)} / {len(recovered) + len(redacted)} / {len(unmapped)}"
         )
     if {row["production_version"] for row in redacted} != EXPECTED_REDACTED:
@@ -142,7 +144,7 @@ def main() -> int:
         unexpected = sorted(actual_paths - EXPECTED_REPOSITORY_MIGRATIONS)
         raise AssertionError(f"Repository migration inventory changed; missing={missing}, unexpected={unexpected}. Reconcile the manifest before release.")
 
-    print(f"Validated 72 production SQL bodies with UTF-8 byte-accurate Git blob hashes, 4 current migration-file mappings, {len(recovered)} exact archived SQL bodies, {len(redacted)} redacted archive(s) with the production hash on record, 0 unmapped versions, and 10 active migration files.")
+    print(f"Validated {len(rows)} production SQL bodies with UTF-8 byte-accurate Git blob hashes, {len(current_mappings)} current migration-file mappings, {len(recovered)} exact archived SQL bodies, {len(redacted)} redacted archive(s) with the production hash on record, 0 unmapped versions, and {len(EXPECTED_REPOSITORY_MIGRATIONS)} active migration files.")
     print("Archived bodies are exact read-only copies from the production ledger; original Git authoring context and safe forward-only release strategy remain separate gates. No database connection was made by this validator.")
     return 0
 

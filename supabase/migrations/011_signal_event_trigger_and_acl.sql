@@ -1,7 +1,3 @@
--- Signal-event trigger deduplication and least-privilege SECURITY DEFINER grants (issues #89, #90, #99).
--- Accepted on staging 2026-11-17 (docs/database/staging-replay-2026-11-17.md): event matrix 12/12, ACL 13/13,
--- role and tenant checks 8/8, cron owner path ok, Security Advisor anon findings 11 -> 0.
--- Rollback: docs/database/signal-event-rollback.sql (restores the previous trigger; grants are not reopened).
 DO $precondition$
 DECLARE
   v_missing text[] := ARRAY[]::text[];
@@ -20,7 +16,6 @@ BEGIN
     'public.pulse_intelligence_external_quality_check()',
     'public.auth_industry_context()'
   ] LOOP
-    -- The trigger function is created by this very script; every other routine must pre-exist.
     IF v_sig <> 'public.capture_intelligence_signal_event()' AND to_regprocedure(v_sig) IS NULL THEN
       v_missing := v_missing || v_sig;
     END IF;
@@ -49,7 +44,6 @@ BEGIN
     v_change := 1;
     v_emit := true;
   ELSE
-    -- Do not create repeated events for a signal that is already resolved.
     IF OLD.status = 'resolved' AND NEW.status = 'resolved' THEN
       RETURN NEW;
     END IF;
@@ -59,13 +53,6 @@ BEGIN
       v_change := 1;
       v_emit := true;
     ELSE
-      -- Non-resolution status changes alone are not signal events. If the same
-      -- update also changes confidence materially or the fingerprint, the
-      -- corresponding semantic change below still emits one event.
-      -- NULL confidence counts as 0 on both sides (the column is nullable in production): 0.5 -> NULL
-      -- emits a 'down' event with confidence 0, NULL -> 0.03 emits nothing. The comparison is against
-      -- the previously STORED confidence, not the last event's, so a slow drift in steps below 0.05
-      -- never emits (documented limitation; see staging-signal-event-acl-acceptance.md).
       v_delta := COALESCE(NEW.confidence, 0) - COALESCE(OLD.confidence, 0);
       v_fingerprint_changed :=
         COALESCE(NEW.fingerprint, NEW.id::text)
@@ -77,13 +64,10 @@ BEGIN
         v_change := LEAST(1, abs(v_delta));
         v_emit := true;
       ELSIF v_fingerprint_changed THEN
-        -- Evidence/fingerprint changes alone are not confidence increases.
         v_direction := 'stable';
         v_change := 0;
         v_emit := true;
       ELSE
-        -- Includes observed_at-only, updated_at-only, no-op and evidence-only
-        -- changes when the approved fingerprint did not change.
         RETURN NEW;
       END IF;
     END IF;
@@ -95,10 +79,6 @@ BEGIN
        direction, change_score, evidence)
     VALUES
       (NEW.id, NEW.industry_id, COALESCE(NEW.fingerprint, NEW.id::text),
-       -- The event's observed_at is when the event happened, never earlier than the signal's own
-       -- observed_at: an UPDATE that leaves observed_at untouched (confidence-only change, the
-       -- stale-signal resolver) must not produce an event stamped in the past or equal to the
-       -- previous event, which would make timeline ordering non-deterministic.
        CASE WHEN TG_OP = 'INSERT'
             THEN COALESCE(NEW.observed_at, pg_catalog.clock_timestamp())
             ELSE GREATEST(COALESCE(NEW.observed_at, pg_catalog.clock_timestamp()), pg_catalog.clock_timestamp())
@@ -111,28 +91,14 @@ BEGIN
 END;
 $signal_event_capture$;
 
--- ACL dispositions consolidated from PR #99 (least-privilege SECURITY DEFINER contract)
--- so that trigger deduplication and grant hardening ship as ONE forward migration.
--- Every GRANT is explicit; nothing relies on grants that may or may not exist in production.
-
--- Trigger-only functions: PostgreSQL invokes them through their triggers. No role needs
--- direct EXECUTE, including service_role. The contract below proves the trigger still fires.
 REVOKE ALL ON FUNCTION public.capture_intelligence_signal_event()
   FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.capture_document_version()
   FROM PUBLIC, anon, authenticated, service_role;
-
--- Scheduler runs from pg_cron as the owner (postgres); it must not be callable through
--- PostgREST with any API key, including service_role.
 REVOKE ALL ON FUNCTION public.pulse_external_backstop_schedule_tick()
   FROM PUBLIC, anon, authenticated, service_role;
-
--- Fixture-inserting self test: no caller in the repository; owner-only until its body and
--- cleanup guarantees are reviewed (issue #90).
 REVOKE ALL ON FUNCTION public.pulse_external_intelligence_self_test()
   FROM PUBLIC, anon, authenticated, service_role;
-
--- Worker-facing internal routines: service_role only (Edge Functions use the service key).
 REVOKE ALL ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid)
   FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.pulse_external_intelligence_fallback_candidate(uuid)
@@ -158,7 +124,6 @@ REVOKE ALL ON FUNCTION public.pulse_intelligence_external_quality_check()
 GRANT EXECUTE ON FUNCTION public.pulse_intelligence_external_quality_check()
   TO service_role;
 
--- Authenticated user-context contract: deny anonymous/PUBLIC, keep authenticated.
 REVOKE ALL ON FUNCTION public.auth_industry_context()
   FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.auth_industry_context()
