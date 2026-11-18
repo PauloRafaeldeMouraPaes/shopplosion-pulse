@@ -76,9 +76,30 @@ test('Base page cards keep title, details and status apart (no run-together text
   await expect(detail).not.toContainText('análisesDISPONÍVEL');
 });
 
-test('Hoje does not claim a fixed update date; the dated editorial case says which data it uses', async ({ page }) => {
+test('Hoje does not claim a fixed update date; the first case reads the latest PMC and IPCA months of the base', async ({ page }) => {
   await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.pv4-section-title').first()).toContainText(/Base pública: \d+ evidências com fonte/);
   await expect(page.locator('body')).not.toContainText('Atualizado em 11 out 2026');
-  await expect(page.locator('body')).toContainText('Case editorial de 11 out 2026, com dados de julho de 2026');
+  const latest = await page.evaluate(() => {
+    const monthly = (t) => window.PULSE_EVIDENCE.filter((e) => e.tipo === t && /^\d{4}-\d{2}$/.test(String(e.periodo || ''))).sort((a, b) => String(a.periodo).localeCompare(String(b.periodo))).pop();
+    return { pmc: monthly('PMC'), ipca: monthly('IPCA') };
+  });
+  const card = page.locator('[data-latest-case]');
+  await expect(card).toContainText(latest.pmc.fato);
+  await expect(card).toContainText(latest.ipca.fato);
+  await expect(card.locator('[data-case-evidence]')).toHaveAttribute('data-case-evidence', latest.pmc.id);
+  await expect(page.locator('body')).toContainText('CONTRADIÇÃO: ALIMENTOS, JULHO DE 2026');
+});
+
+test.describe('mobile scope bar', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  test('the scope selector shows at the top and scrolls away with the page instead of covering content', async ({ page }) => {
+    await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+    const bar = page.locator('.pv4-mobile-scope');
+    await expect(bar).toBeVisible();
+    await expect(bar).toBeInViewport();
+    await page.locator('[data-latest-case]').scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await expect(bar).not.toBeInViewport();
+  });
 });

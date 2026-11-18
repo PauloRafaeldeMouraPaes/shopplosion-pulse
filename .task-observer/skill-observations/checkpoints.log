@@ -4,3 +4,4 @@
 2026-11-17 16:34 [shopplosion-pulse] checkpoint: none logged; incident: signed-in tenant access broken since 2026-09-07 found via advisor review (code/database defect fixed in PR #151, not a skill gap); incident: connector confirmation timed out once, user re-approved (environment, not a skill gap)
 2026-11-17 22:22 [shopplosion-pulse] checkpoint: none logged; no user correction or incident in this task (signed-in browser test added)
 2026-11-18 09:08 [shopplosion-pulse] checkpoint: none logged; no user correction; incident: Base cards ran title, details and status together and Hoje showed a fixed date, found from the owner's phone screenshots (UI defect fixed in this PR, not a skill gap)
+2026-11-18 09:29 [shopplosion-pulse] checkpoint: none logged; no user correction or incident in this task (Hoje case now reads the latest PMC and IPCA months; mobile scope bar scrolls with the page)
