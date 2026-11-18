@@ -80,7 +80,7 @@ if (!ask.includes('prior_knowledge')) failures.push('Prior shopper knowledge com
 if (!ask.includes('pulse-save-evidence')) failures.push('Persistent saved evidence flow missing');
 if (!index.includes('20260922.08')) failures.push('Public workspace cache version is not canonical');
 if (!workspace.includes('MOVIMENTO OBSERVÁVEL')) failures.push('Today narrative still uses static movement claim');
-if (!workspace.includes('ev.slice(0,2).map')) failures.push('Today Opportunity Canvas is not evidence-derived');
+if (!workspace.includes('canvasEvidence(ev).map') || !workspace.includes('function canvasEvidence(ev)')) failures.push('Today Opportunity Canvas is not evidence-derived');
 if (!workspace.includes("routes.investigacao+'?saveEvidence='")) failures.push('Inspector persistent save action missing');
 if (!ask.includes('selected_public_evidence_ids:selectedPublicEvidenceIds')) failures.push('Selected public evidence IDs missing from Ask AI request');
 const canonicalEdge = fs.existsSync('supabase/functions/pulse-ask-ai/index.ts') ? fs.readFileSync('supabase/functions/pulse-ask-ai/index.ts', 'utf8') : '';

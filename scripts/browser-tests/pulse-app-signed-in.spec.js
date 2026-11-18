@@ -103,3 +103,14 @@ test.describe('mobile scope bar', () => {
     await expect(bar).not.toBeInViewport();
   });
 });
+
+test('Hoje opportunity canvas uses the hypotheses of the latest PMC and IPCA months, not the oldest items of the base', async ({ page }) => {
+  await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+  const latest = await page.evaluate(() => {
+    const monthly = (t) => window.PULSE_EVIDENCE.filter((e) => e.tipo === t && /^\d{4}-\d{2}$/.test(String(e.periodo || ''))).sort((a, b) => String(a.periodo).localeCompare(String(b.periodo))).pop();
+    return [monthly('PMC'), monthly('IPCA')].map((e) => e.hipotese);
+  });
+  const canvas = page.locator('.pv4-op-grid');
+  for (const h of latest) await expect(canvas).toContainText(h);
+  await expect(canvas).not.toContainText('no início de 2026');
+});
