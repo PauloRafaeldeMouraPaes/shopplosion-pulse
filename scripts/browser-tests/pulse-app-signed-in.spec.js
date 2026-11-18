@@ -60,3 +60,25 @@ test('signed-in workspace reports a documents read failure instead of an empty l
   await expect(page.locator('#documents')).toContainText('Não foi possível carregar os documentos.');
   await expect(page.locator('#documents')).not.toContainText('Nenhum documento anexado ainda.');
 });
+
+test('Base page cards keep title, details and status apart (no run-together text)', async ({ page }) => {
+  await signedIn(page, {
+    documents: [{ id: '00000000-0000-4000-8000-00000000d002', filename: 'pulse_teste_privado.pdf', mime_type: 'application/pdf', created_at: '2026-09-06T22:30:46Z', storage_path: '00000000-0000-4000-8000-00000000b001/pulse_teste_privado.pdf' }],
+  });
+  await page.goto('/app.html', { waitUntil: 'domcontentloaded' });
+  const row = page.locator('.pv4-list-row').first();
+  await expect(row.locator('h3')).toHaveText('pulse_teste_privado.pdf');
+  const detail = row.locator('p');
+  await expect(detail).toContainText('Tipo: application/pdf');
+  await expect(detail).toContainText(' · ');
+  await expect(detail).not.toContainText('pulse_teste_privado.pdfTipo');
+  await expect(detail).not.toContainText('análisesPENDENTE');
+  await expect(detail).not.toContainText('análisesDISPONÍVEL');
+});
+
+test('Hoje does not claim a fixed update date; the dated editorial case says which data it uses', async ({ page }) => {
+  await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.pv4-section-title').first()).toContainText(/Base pública: \d+ evidências com fonte/);
+  await expect(page.locator('body')).not.toContainText('Atualizado em 11 out 2026');
+  await expect(page.locator('body')).toContainText('Case editorial de 11 out 2026, com dados de julho de 2026');
+});
