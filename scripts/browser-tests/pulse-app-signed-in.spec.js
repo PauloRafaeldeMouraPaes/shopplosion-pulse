@@ -114,3 +114,18 @@ test('Hoje opportunity canvas uses the hypotheses of the latest PMC and IPCA mon
   for (const h of latest) await expect(canvas).toContainText(h);
   await expect(canvas).not.toContainText('no início de 2026');
 });
+
+test('public Investigação: evidence ticked in the visible list is counted and a free question produces a reading', async ({ page }) => {
+  await page.goto('/ask.html', { waitUntil: 'domcontentloaded' });
+  await page.locator('textarea:visible, input[type=text]:visible').first().fill('Quanto subiu o preço do chocolate em 2026?');
+  await page.locator('button:visible:has-text("Buscar evidências")').first().click();
+  const boxes = page.locator('#pv4-results input[data-evidence-key]');
+  await expect(boxes.first()).toBeVisible();
+  await boxes.nth(0).check();
+  await boxes.nth(1).check();
+  await expect(page.locator('#pv4-results')).toContainText('2 evidência(s) selecionada(s)');
+  await page.locator('button:visible:has-text("Gerar resposta")').first().click();
+  await expect(page.locator('#pv4-results input[data-evidence-key]:checked')).toHaveCount(2);
+  await expect(page.locator('#pv4-response')).toContainText('LEITURA:');
+  await expect(page.locator('#pv4-response')).toContainText('[E1]');
+});
