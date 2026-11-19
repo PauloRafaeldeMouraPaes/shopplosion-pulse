@@ -179,6 +179,9 @@ body .pv4-next small{color:var(--on-brand)}
 .pv4-shopper-banner p{margin:0 0 6px}.pv4-shopper-banner p:last-child{margin-bottom:0}
 .pv4-shopper-banner ul{margin:0;padding-left:18px;display:grid;gap:4px}
 #pv4-results .evidenceSelectionBar{grid-column:1/-1}
+.pv4-shopper-line{margin-top:10px;font-size:12px;line-height:17px;color:var(--ink-2);padding-left:10px;border-left:3px solid var(--state-ok)}
+.pv4-shopper-line.declarado{border-left-color:var(--state-attention)}.pv4-shopper-line.mercado{border-left-color:var(--state-processing)}.pv4-shopper-line.is-context{border-left-color:var(--line-1);color:var(--ink-3)}
+.pv4-filter{flex-wrap:wrap;gap:var(--space-12)}
 .pv4-shopper-tag{display:inline-block;margin-bottom:8px;padding:2px 8px;border-radius:var(--radius-chip);background:var(--brand-soft);color:var(--brand-pulse-strong);font-size:11px;line-height:16px;font-weight:700}
 @media(max-width:760px){.pv4-shopper-row{grid-template-columns:1fr;gap:var(--space-8)}.pv4-shopper-row.head{display:none}.pv4-shopper-cell small{display:block}}
 

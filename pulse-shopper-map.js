@@ -80,5 +80,33 @@
     return { questions: scored.slice(0, 2).map(x => x.key), noMarketData: NO_DATA_TERMS.some(w => t.includes(w)) };
   }
 
-  return { QUESTIONS, LEVELS, LEVEL_ORDER, CONTEXT_TYPES, MAP, entry, coverage, classify };
+  /* Deterministic reading of the evidence a person selected, for the public Investigação (no AI involved).
+     It only restates facts and the limits each item declares (nao_representa); it never infers a cause.
+     Returns the text and the evidence in the order it is cited ([E1], [E2], ...). */
+  const shortPeriod = p => String(p || '').split(';')[0].trim();
+  const upperFirst = t => t.charAt(0).toUpperCase() + t.slice(1);
+  function reading(question, selected, allEvidence, category) {
+    const rows = (Array.isArray(selected) ? selected : []).filter(Boolean).map((e, i) => ({ e, i, m: entry(e) || { q: [], level: 'mercado' } }));
+    const ordered = rows.slice().sort((a, b) => LEVEL_ORDER.indexOf(a.m.level) - LEVEL_ORDER.indexOf(b.m.level) || a.i - b.i).slice(0, 4);
+    if (!ordered.length) return { text: '', ordered: [] };
+    const levels = new Set(ordered.map(x => x.m.level));
+    const asked = classify(question).questions;
+    const cov = coverage(allEvidence, category);
+    const gaps = asked.map(k => cov.find(r => r.key === k)).filter(r => r && !r.category.count).map(r => r.label.toLowerCase());
+    const leitura = ordered.map((x, n) => `[E${n + 1}] ${upperFirst(LEVELS[x.m.level])}${shortPeriod(x.e.periodo) ? ' (' + shortPeriod(x.e.periodo) + ')' : ''}: ${String(x.e.fato || '').trim()}`).join('\n');
+    const hipotese = levels.has('observado') && levels.has('declarado')
+      ? 'Há compra observada e declaração entre as evidências. A declaração mostra o que as pessoas dizem; só a compra observada mostra o que fizeram. Nenhuma das duas prova, sozinha, a causa da mudança.'
+      : levels.has('observado') ? 'A compra observada mostra o que mudou, não por que mudou.'
+      : levels.has('declarado') ? 'A leitura se apoia só em declaração: mostra intenção e percepção, não compra realizada.'
+      : 'As evidências selecionadas são indicadores de mercado: descrevem preço, vendas ou oferta, não o comportamento de um shopper.';
+    const recomendacao = gaps.length
+      ? `Antes de concluir, buscar evidência de ${category} para: ${gaps.join('; ')}.`
+      : 'Confrontar esta leitura com um estudo próprio de shopper ou com o painel da categoria antes de decidir.';
+    const limits = ordered.map((x, n) => (x.e.nao_representa ? `[E${n + 1}] ${String(x.e.nao_representa).trim().replace(/\.$/, '')}.` : '')).filter(Boolean).join(' ');
+    const desconhecidos = (limits || 'As evidências selecionadas não declaram seus limites.') + (gaps.length ? ` A base não tem evidência de ${category} para: ${gaps.join('; ')}.` : '');
+    const text = `LEITURA: ${leitura}\n\nHIPÓTESE: ${hipotese}\n\nRECOMENDAÇÃO: ${recomendacao}\n\nDESCONHECIDOS: ${desconhecidos}\n\nATUALIZAÇÃO: INSUFFICIENT: leitura baseada nas evidências públicas selecionadas.`;
+    return { text, ordered: ordered.map(x => x.e) };
+  }
+
+  return { QUESTIONS, LEVELS, LEVEL_ORDER, CONTEXT_TYPES, MAP, entry, coverage, classify, reading };
 });
