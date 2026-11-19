@@ -249,3 +249,42 @@ test.describe('Shopper question map', () => {
     await expect(banner).toContainText('Não identifiquei uma pergunta de shopper');
   });
 });
+
+test.describe('Shopper insights in Universo and in the public reading', () => {
+  test('Universo opens with shopper evidence first, filters by shopper question and says when there is none', async ({ page }) => {
+    await page.goto('/index.html#overview', { waitUntil: 'domcontentloaded' });
+    const ids = () => page.locator('#pv3-signals .pv4-evidence').evaluateAll((els) => els.map((e) => e.dataset.evidenceId));
+    const map = await page.evaluate(() => Object.fromEntries(window.PULSE_EVIDENCE.map((e) => [e.id, window.PULSE_SHOPPER.entry(e)])));
+    const all = await ids();
+    expect(all.length).toBe(Object.keys(map).length);
+    const firstContext = all.findIndex((id) => !map[id].q.length);
+    expect(firstContext).toBeGreaterThan(0);
+    expect(all.slice(firstContext).every((id) => !map[id].q.length)).toBe(true);
+    expect(map[all[0]].level).toBe('observado');
+    await expect(page.locator('#pv3-signals .pv4-evidence').first().locator('.pv4-shopper-line')).toContainText('Pergunta de shopper:');
+    await expect(page.locator('#pv3-signals .pv4-evidence').last().locator('.pv4-shopper-line')).toContainText('Contexto de mercado:');
+
+    await page.locator('#pv3-shopper-question').selectOption('preco');
+    const preco = await ids();
+    expect(preco.sort()).toEqual(Object.keys(map).filter((id) => map[id].q.includes('preco')).sort());
+    await page.locator('#pv3-shopper-question').selectOption('quem');
+    await expect(page.locator('#pv3-signals')).toContainText('Sem evidência na base para este filtro.');
+    await page.locator('#pv3-shopper-question').selectOption('__context');
+    expect((await ids()).every((id) => !map[id].q.length)).toBe(true);
+  });
+
+  test('public reading cites every selected evidence by level and repeats the limits each one declares', async ({ page }) => {
+    await page.goto('/ask.html', { waitUntil: 'domcontentloaded' });
+    await page.locator('textarea:visible, input[type=text]:visible').first().fill('O que o shopper faz quando o preço do chocolate sobe?');
+    await page.locator('button:visible:has-text("Buscar evidências")').first().click();
+    for (const id of ['locomotiva-pascoa-2026-intencao-drivers', 'kantar-chocolate-brasil-volume-q1-2025']) await page.locator(`#pv4-results input[data-evidence-key="${id}"]`).check();
+    await page.locator('button:visible:has-text("Gerar resposta")').first().click();
+    const answer = page.locator('#pv4-response');
+    await expect(answer).toContainText('[E1] Compra observada em painel (2025-T1):');
+    await expect(answer).toContainText('[E2] Declaração em pesquisa (Páscoa 2026):');
+    await expect(answer).toContainText('só a compra observada mostra o que fizeram');
+    await expect(answer).toContainText('[E1] Não comprova motivo individual da mudança');
+    await expect(page.locator('.pv4-citation-line')).toContainText('[E1] Mercado publicado: kantar-chocolate-brasil-volume-q1-2025');
+    await expect(answer).not.toContainText('\\n');
+  });
+});

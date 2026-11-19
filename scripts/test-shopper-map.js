@@ -70,4 +70,24 @@ t("classify: shopper questions, market-share questions and text that is neither"
   assert.deepEqual(S.classify("   "), { questions: [], noMarketData: false });
 });
 
+t("reading: facts by level in citation order, declared limits, gaps named, no cause inferred", () => {
+  const pick = ids => ids.map(id => evidence.find(e => e.id === id));
+  const r = S.reading("O que o shopper faz quando o preço do chocolate sobe?", pick(["locomotiva-pascoa-2026-intencao-drivers", "kantar-chocolate-brasil-volume-q1-2025"]), evidence, "chocolate");
+  assert.deepEqual(r.ordered.map(e => e.id), ["kantar-chocolate-brasil-volume-q1-2025", "locomotiva-pascoa-2026-intencao-drivers"]);
+  assert.match(r.text, /^LEITURA: \[E1\] Compra observada em painel \(2025-T1\): /);
+  assert.ok(r.text.includes("[E2] Declaração em pesquisa (Páscoa 2026): "));
+  for (const e of r.ordered) { assert.ok(r.text.includes(e.fato.trim())); assert.ok(r.text.includes(e.nao_representa.trim().replace(/\.$/, ""))); }
+  for (const label of ["HIPÓTESE:", "RECOMENDAÇÃO:", "DESCONHECIDOS:", "ATUALIZAÇÃO: INSUFFICIENT"]) assert.ok(r.text.includes(label), label);
+  assert.ok(r.text.includes("só a compra observada mostra o que fizeram"));
+
+  const gap = S.reading("Quem compra chocolate premium?", pick(["rico-preco-chocolate-barra-bombom-out-2026"]), evidence, "chocolate");
+  assert.ok(gap.text.includes("indicadores de mercado"));
+  assert.ok(gap.text.includes("buscar evidência de chocolate para: quem compra"));
+  assert.ok(gap.text.includes("A base não tem evidência de chocolate para: quem compra."));
+
+  assert.deepEqual(S.reading("qualquer", [], evidence, "chocolate"), { text: "", ordered: [] });
+  const five = S.reading("preço", evidence.slice(0, 6), evidence, "chocolate");
+  assert.equal(five.ordered.length, 4);
+});
+
 console.log(`shopper map: ${n} tests passed`);
