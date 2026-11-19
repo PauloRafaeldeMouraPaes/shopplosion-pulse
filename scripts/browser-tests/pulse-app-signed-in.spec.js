@@ -198,3 +198,54 @@ test.describe('Preços do piloto de chocolate (app.html#precos)', () => {
     await expect(page.locator('body')).not.toContainText('PRESENÇA EM LOJA POR FABRICANTE');
   });
 });
+
+test.describe('Shopper question map', () => {
+  test('Hoje shows, for each shopper question, the strongest evidence of the category or says there is none', async ({ page }) => {
+    await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+    const rows = await page.evaluate(() => window.PULSE_SHOPPER.coverage(window.PULSE_EVIDENCE, 'chocolate'));
+    const levels = await page.evaluate(() => window.PULSE_SHOPPER.LEVELS);
+    const map = page.locator('[data-shopper-map]');
+    await expect(map.locator('[data-shopper-question]')).toHaveCount(6);
+    for (const r of rows) {
+      const row = map.locator(`[data-shopper-question="${r.key}"]`);
+      await expect(row).toContainText(r.label);
+      const cells = row.locator('.pv4-shopper-cell');
+      for (const [i, cell] of [[0, r.category], [1, r.general]]) {
+        if (!cell.count) await expect(cells.nth(i)).toContainText('Sem evidência na base');
+        else {
+          await expect(cells.nth(i)).toContainText(new RegExp(levels[cell.level], 'i'));
+          await expect(cells.nth(i)).toContainText(cell.count + ' evidência(s)');
+          await expect(cells.nth(i).locator('[data-case-evidence]')).toHaveAttribute('data-case-evidence', cell.items[0].id);
+        }
+      }
+    }
+    const first = rows.find((r) => r.category.count);
+    await map.locator(`[data-shopper-question="${first.key}"] [data-case-evidence]`).first().click();
+    await expect(page.locator('#pv3-inspector')).toHaveClass(/open/);
+  });
+
+  test('Investigação puts the evidence that speaks to the shopper question first and says so', async ({ page }) => {
+    await page.goto('/ask.html', { waitUntil: 'domcontentloaded' });
+    const ask = async (q) => { await page.locator('textarea:visible, input[type=text]:visible').first().fill(q); await page.locator('button:visible:has-text("Buscar evidências")').first().click(); };
+    await ask('O que o shopper faz quando o preço do chocolate sobe?');
+    const banner = page.locator('#pv4-results [data-shopper-banner]');
+    await expect(banner).toContainText('Como reage ao preço');
+    await expect(banner).toContainText('compra observada em painel');
+    const keys = await page.locator('#pv4-results .result input[data-evidence-key]').evaluateAll((els) => els.map((e) => e.dataset.evidenceKey));
+    expect(keys[0]).toBe('kantar-chocolate-brasil-volume-q1-2025');
+    expect(keys.slice(0, 6)).toContain('niq-full-view-2026-price');
+    await expect(page.locator('#pv4-results .result').first().locator('.pv4-shopper-tag')).toHaveText('Fala desta pergunta de shopper');
+
+    await ask('Quem compra chocolate premium?');
+    await expect(banner).toContainText('Quem compra');
+    await expect(banner).toContainText('Chocolate: sem evidência na base');
+    await expect(banner).toContainText('contexto, não resposta');
+    await expect(page.locator('#pv4-results .pv4-shopper-tag')).toHaveCount(0);
+
+    await ask('Qual é a participação de mercado em chocolate?');
+    await expect(banner).toContainText('não tem dado de participação de mercado nem de vendas por marca');
+
+    await ask('Como está o varejo?');
+    await expect(banner).toContainText('Não identifiquei uma pergunta de shopper');
+  });
+});

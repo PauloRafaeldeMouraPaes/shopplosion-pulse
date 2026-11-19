@@ -28,7 +28,7 @@ else:
         # product dependencies, not accidental page-specific references.
         # pulse-tokens.css is generated from design/tokens.json and must load before
         # page styles so the source-of-truth tokens are not duplicated inline.
-        if value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css", "./pulse-config.js", "./pulse-tokens.css")):
+        if value.startswith(("./pulse-workspace-v3.js", "./pulse-workspace-v3.css", "./pulse-config.js", "./pulse-tokens.css", "./pulse-shopper-map.js")):
             continue
         if value.startswith(("./", "../", "/")) or not re.match(r"^[a-z][a-z0-9+.-]*:", value, re.I):
             # Relative paths are only valid if the single-file contract explicitly permits them.

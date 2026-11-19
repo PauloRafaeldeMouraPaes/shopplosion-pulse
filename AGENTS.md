@@ -4,6 +4,8 @@ These instructions are project-specific guardrails for coding agents. Apply them
 
 ## Project priorities
 
+Target user (owner's decision, 2026-11-19): the shopper insights team of a consumer goods manufacturer. Judge relevance and usability by their questions: who buys, how much and how often, for which occasion or mission, where, how they choose, and how they react to price. Market indicators (price, retail volume, search, production) are context, not shopper behaviour. `pulse-shopper-map.js` classifies every public evidence item by these questions; classify a new item there when adding it (`scripts/test-shopper-map.js` fails otherwise).
+
 1. Preserve existing Pulse architecture, product scope, routes, IDs, anchors, and workflows unless the task explicitly asks to change them. Visual polish is not a redesign.
 2. For design work, use `design/tokens.json` as the source of truth, followed by `pulse-tokens.css` and `docs/DESIGN_SYSTEM_SYNC.md`. Do not silently replace existing patterns with a new design system.
 3. Prefer the smallest change that solves the evidenced problem. Avoid new screens, abstractions, dependencies, data pipelines, and schema objects unless they are necessary for the accepted scope.
