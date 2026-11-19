@@ -156,6 +156,32 @@ body .pv4-next small{color:var(--on-brand)}
 @media(max-width:900px){.pv4-price-grid{grid-template-columns:1fr}.pv4-price-controls{grid-template-columns:1fr}}
 @media(max-width:640px){.pv4-price-wide{display:none}.pv4-price-table th,.pv4-price-table td{padding:8px 6px}.pv4-price-table .num{white-space:normal}.pv4-price-bar{grid-template-columns:minmax(0,8em) 1fr 3.6em}}
 
+/* Shopper question map (Hoje) and banner (Investigação). Tokens only. */
+.pv4-shopper-map{background:var(--surface-canvas);border:1px solid var(--line-1);border-radius:var(--radius-panel);margin-top:26px;padding:24px}
+@media(max-width:640px){.pv4-shopper-map{margin-top:16px;padding:16px}}
+.pv4-shopper-grid{display:grid;gap:0;border:1px solid var(--line-1);border-radius:var(--radius-card);overflow:hidden}
+.pv4-shopper-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1.3fr);gap:var(--space-16);padding:var(--space-12) var(--space-16);border-top:1px solid var(--line-1);align-items:start}
+.pv4-shopper-row.head{border-top:0;background:var(--surface-sunken);font-size:11px;line-height:14px;font-weight:700;color:var(--ink-2)}
+.pv4-shopper-row>div>b{display:block;font-size:14px;line-height:20px}
+.pv4-shopper-row>div>span{display:block;font-size:12px;line-height:17px;color:var(--ink-2)}
+.pv4-shopper-cell{display:grid;gap:4px;justify-items:start}
+.pv4-shopper-cell b{font-size:13px;line-height:18px}
+.pv4-shopper-cell small{display:none;font-family:var(--font-mono);font-size:11px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.pv4-shopper-cell span{font-size:12px;line-height:17px;color:var(--ink-2)}
+.pv4-shopper-cell.empty b{color:var(--ink-3);font-weight:650}
+.pv4-shopper-cell.observado b::before,.pv4-shopper-cell.declarado b::before,.pv4-shopper-cell.mercado b::before,.pv4-shopper-cell.empty b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:1px;background:var(--state-ok)}
+.pv4-shopper-cell.declarado b::before{background:var(--state-attention)}
+.pv4-shopper-cell.mercado b::before{background:var(--state-processing)}
+.pv4-shopper-cell.empty b::before{background:transparent;border:1px solid var(--ink-3)}
+.pv4-shopper-cell .pv4-secondary-action{min-height:36px;padding:0 10px;font-size:12px;margin-top:2px}
+.pv4-shopper-note{margin:var(--space-12) 0 0;font-size:12px;line-height:18px;color:var(--ink-2);max-width:820px}
+.pv4-shopper-banner{grid-column:1/-1;border:1px solid var(--line-1);border-left:3px solid var(--brand-pulse-strong);border-radius:var(--radius-card);background:var(--surface-sunken);padding:var(--space-12) var(--space-16);margin-bottom:var(--space-12);font-size:13px;line-height:19px}
+.pv4-shopper-banner p{margin:0 0 6px}.pv4-shopper-banner p:last-child{margin-bottom:0}
+.pv4-shopper-banner ul{margin:0;padding-left:18px;display:grid;gap:4px}
+#pv4-results .evidenceSelectionBar{grid-column:1/-1}
+.pv4-shopper-tag{display:inline-block;margin-bottom:8px;padding:2px 8px;border-radius:var(--radius-chip);background:var(--brand-soft);color:var(--brand-pulse-strong);font-size:11px;line-height:16px;font-weight:700}
+@media(max-width:760px){.pv4-shopper-row{grid-template-columns:1fr;gap:var(--space-8)}.pv4-shopper-row.head{display:none}.pv4-shopper-cell small{display:block}}
+
 /* Press feedback on pointer-down (not on release): instant, 100ms, transform only. Under
    prefers-reduced-motion the global rule above removes the transition; the state change stays. */
 body.pv3-active button:not(:disabled):active,body.pv3-active .pv4-primary:active,body.pv3-active .pv4-secondary:active,body.pv3-active .pv4-next:active{transform:scale(.97);transition:transform 100ms ease-out}
