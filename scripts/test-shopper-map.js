@@ -80,7 +80,9 @@ t("reading: facts by level in citation order, declared limits, gaps named, no ca
   for (const label of ["HIPÓTESE:", "RECOMENDAÇÃO:", "DESCONHECIDOS:", "ATUALIZAÇÃO: INSUFFICIENT"]) assert.ok(r.text.includes(label), label);
   assert.ok(r.text.includes("só a compra observada mostra o que fizeram"));
 
-  const gap = S.reading("Quem compra chocolate premium?", pick(["rico-preco-chocolate-barra-bombom-out-2026"]), evidence, "chocolate");
+  // A base without any evidence for "quem compra": the reading must name the gap.
+  const withoutWho = evidence.filter(e => !(S.entry(e).q || []).includes("quem"));
+  const gap = S.reading("Quem compra chocolate premium?", pick(["rico-preco-chocolate-barra-bombom-out-2026"]), withoutWho, "chocolate");
   assert.ok(gap.text.includes("indicadores de mercado"));
   assert.ok(gap.text.includes("buscar evidência de chocolate para: quem compra"));
   assert.ok(gap.text.includes("A base não tem evidência de chocolate para: quem compra."));
