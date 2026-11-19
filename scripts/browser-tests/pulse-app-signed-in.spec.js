@@ -199,6 +199,18 @@ test.describe('Preços do piloto de chocolate (app.html#precos)', () => {
   });
 });
 
+// Serves the public evidence without the items that speak to one shopper question, to exercise the "no evidence" paths
+// whatever the real base holds.
+async function withoutShopperQuestion(page, key) {
+  const path = require('path');
+  const root = path.resolve(__dirname, '..', '..');
+  global.window = {}; delete require.cache[require.resolve(path.join(root, 'pulse-public-evidence.js'))];
+  require(path.join(root, 'pulse-public-evidence.js'));
+  const S = require(path.join(root, 'pulse-shopper-map.js'));
+  const kept = global.window.PULSE_EVIDENCE.filter((e) => !((S.entry(e) || { q: [] }).q.includes(key)));
+  await page.route('**/pulse-public-evidence.js*', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.PULSE_EVIDENCE=' + JSON.stringify(kept) + ';' }));
+}
+
 test.describe('Shopper question map', () => {
   test('Hoje shows, for each shopper question, the strongest evidence of the category or says there is none', async ({ page }) => {
     await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
@@ -236,17 +248,23 @@ test.describe('Shopper question map', () => {
     expect(keys.slice(0, 6)).toContain('niq-full-view-2026-price');
     await expect(page.locator('#pv4-results .result').first().locator('.pv4-shopper-tag')).toHaveText('Fala desta pergunta de shopper');
 
-    await ask('Quem compra chocolate premium?');
-    await expect(banner).toContainText('Quem compra');
-    await expect(banner).toContainText('Chocolate: sem evidência na base');
-    await expect(banner).toContainText('contexto, não resposta');
-    await expect(page.locator('#pv4-results .pv4-shopper-tag')).toHaveCount(0);
-
     await ask('Qual é a participação de mercado em chocolate?');
     await expect(banner).toContainText('não tem dado de participação de mercado nem de vendas por marca');
 
     await ask('Como está o varejo?');
     await expect(banner).toContainText('Não identifiquei uma pergunta de shopper');
+  });
+
+  test('Investigação says it has no evidence when the base holds none for the shopper question', async ({ page }) => {
+    await withoutShopperQuestion(page, 'quem');
+    await page.goto('/ask.html', { waitUntil: 'domcontentloaded' });
+    await page.locator('textarea:visible, input[type=text]:visible').first().fill('Quem compra chocolate premium?');
+    await page.locator('button:visible:has-text("Buscar evidências")').first().click();
+    const banner = page.locator('#pv4-results [data-shopper-banner]');
+    await expect(banner).toContainText('Quem compra');
+    await expect(banner).toContainText('Chocolate: sem evidência na base');
+    await expect(banner).toContainText('contexto, não resposta');
+    await expect(page.locator('#pv4-results .pv4-shopper-tag')).toHaveCount(0);
   });
 });
 
@@ -267,8 +285,10 @@ test.describe('Shopper insights in Universo and in the public reading', () => {
     await page.locator('#pv3-shopper-question').selectOption('preco');
     const preco = await ids();
     expect(preco.sort()).toEqual(Object.keys(map).filter((id) => map[id].q.includes('preco')).sort());
-    await page.locator('#pv3-shopper-question').selectOption('quem');
+    await page.locator('#pv3-shopper-question').selectOption('canal');
+    await page.locator('#pv3-category').selectOption({ label: 'preços' });
     await expect(page.locator('#pv3-signals')).toContainText('Sem evidência na base para este filtro.');
+    await page.locator('#pv3-category').selectOption('');
     await page.locator('#pv3-shopper-question').selectOption('__context');
     expect((await ids()).every((id) => !map[id].q.length)).toBe(true);
   });

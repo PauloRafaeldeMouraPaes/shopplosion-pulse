@@ -22,7 +22,11 @@
   const MAP = {
     'kantar-chocolate-brasil-volume-q1-2025': { q: ['quanto', 'preco'], level: 'observado' },
     'kantar-chocolate-brasil-compras-pascoa-2024': { q: ['quanto', 'ocasiao'], level: 'observado' },
+    'kantar-chocolate-pascoa-2024-lares-canal': { q: ['quem', 'canal', 'ocasiao'], level: 'observado' },
+    'kantar-chocolate-classes-4tri-2024': { q: ['quem', 'preco'], level: 'observado' },
     'locomotiva-pascoa-2026-intencao-drivers': { q: ['escolha', 'ocasiao', 'preco'], level: 'declarado' },
+    'nexus-chocolate-consumo-perfil-2025': { q: ['quem', 'escolha'], level: 'declarado' },
+    'nexus-pascoa-2025-ovos-intencao-presente': { q: ['ocasiao', 'preco'], level: 'declarado' },
     'niq-full-view-2026-price': { q: ['preco', 'escolha'], level: 'declarado' },
     'niq-private-label-global': { q: ['escolha'], level: 'declarado' },
     'niq-ecommerce-2026': { q: ['canal'], level: 'declarado' },
