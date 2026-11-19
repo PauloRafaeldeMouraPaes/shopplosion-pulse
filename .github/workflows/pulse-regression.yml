@@ -25,6 +25,8 @@ jobs:
         run: node scripts/trends-term-screen.js --self-test
       - name: Chocolate pilot autonomy rules (check mode)
         run: node scripts/chocolate-pilot-autonomy.js --check
+      - name: Test the chocolate price index (invented rows and the committed file)
+        run: node scripts/test-chocolate-price-index.js
       - name: Test the IBGE PMC evidence generator (offline, from the saved captures)
         run: python3 scripts/test-update-ibge-pmc-evidence.py
       - name: Test the IBGE IPCA evidence generator (offline, from the saved captures)

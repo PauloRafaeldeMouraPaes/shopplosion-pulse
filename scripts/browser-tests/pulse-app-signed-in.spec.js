@@ -129,3 +129,72 @@ test('public Investigação: evidence ticked in the visible list is counted and 
   await expect(page.locator('#pv4-response')).toContainText('LEITURA:');
   await expect(page.locator('#pv4-response')).toContainText('[E1]');
 });
+
+test.describe('Preços do piloto de chocolate (app.html#precos)', () => {
+  test('signed out: no price or brand is shown, only the way in and the public pilot status', async ({ page }) => {
+    let fetched = false;
+    await page.route('**/pilot-chocolate-prices.json*', (route) => { fetched = true; return route.continue(); });
+    await page.goto('/app.html?view=precos#precos', { waitUntil: 'domcontentloaded' });
+    const host = page.locator('#pv4-prices');
+    await expect(host).toContainText('ficam na área logada');
+    await expect(host.locator('a[href="./auth.html"]')).toBeVisible();
+    await expect(host.locator('a[href="./pilot-chocolate.html"]')).toBeVisible();
+    await expect(page.locator('#pv4-price-body')).toHaveCount(0);
+    expect(fetched).toBe(false);
+    await expect(page.locator('.pv4-rail nav a[aria-current="page"]')).toHaveAttribute('data-nav', 'base');
+    await expect(page.locator('.pv4-rail nav a')).toHaveCount(5);
+  });
+
+  test('signed in: items, manufacturer presence and tablets come from the committed capture file; search and filters work', async ({ page }) => {
+    await signedIn(page);
+    await page.goto('/app.html?view=precos#precos', { waitUntil: 'domcontentloaded' });
+    const data = await page.evaluate(() => fetch('./pilot-chocolate-prices.json').then((r) => r.json()));
+    const host = page.locator('#pv4-prices');
+    const brl = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const first = data.items[0];
+    const row = page.locator('#pv4-price-body tr').first();
+    await expect(row).toContainText(first.description);
+    await expect(row).toContainText(first.gtin);
+    await expect(row).toContainText(brl(first.median_brl));
+    await expect(page.locator('#pv4-price-body tr')).toHaveCount(50);
+    await expect(host.locator('.pv4-price-bar').first()).toContainText(data.manufacturer_coverage[0].manufacturer);
+    await expect(host.locator('.pv4-price-line').first()).toContainText(brl(data.tablet_price_per_100g[0].median_per_100g_brl));
+    await expect(host).toContainText('não mede volume, participação nem o Brasil');
+    await expect(host).toContainText('lidos do texto da nota fiscal por regra');
+
+    const maker = data.manufacturer_coverage[0].manufacturer;
+    await page.locator('#pv4-price-maker').selectOption({ label: maker });
+    const expected = data.items.filter((i) => i.manufacturer === maker).length;
+    await expect(page.locator('#pv4-price-count')).toContainText(expected.toLocaleString('pt-BR') + ' item(ns) neste filtro');
+    await page.locator('#pv4-price-maker').selectOption('');
+    await page.locator('#pv4-price-search').fill(first.gtin);
+    await expect(page.locator('#pv4-price-body tr')).toHaveCount(1);
+    await page.locator('#pv4-price-search').fill('');
+    await page.locator('#pv4-price-sort').selectOption('spread');
+    const top = [...data.items].filter((i) => i.spread_pct !== null).sort((a, b) => b.spread_pct - a.spread_pct || b.stores - a.stores)[0];
+    await expect(page.locator('#pv4-price-body tr').first()).toContainText(top.gtin);
+    await page.locator('#pv4-price-sort').selectOption('stores');
+    await page.locator('#pv4-price-more').click();
+    await expect(page.locator('#pv4-price-body tr')).toHaveCount(100);
+  });
+
+  test('phone: the price table does not make the page scroll sideways', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    await signedIn(page);
+    await page.goto('/app.html?view=precos#precos', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#pv4-price-body tr').first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
+    await expect(page.locator('#pv4-price-body tr').first().locator('td.pv4-price-wide').first()).toBeHidden();
+    await context.close();
+  });
+
+  test('Hoje, Base and the pilot page lead to the price view; the public pilot page lists no manufacturer comparison', async ({ page }) => {
+    await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-pilot-card] a[href="./app.html?view=precos#precos"]')).toBeVisible();
+    await expect(page.locator('[data-pilot-card] a[href="./pilot-chocolate.html"]')).toBeVisible();
+    await page.goto('/pilot-chocolate.html', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('a[href="./app.html?view=precos#precos"]')).toBeVisible();
+    await expect(page.locator('body')).not.toContainText('PRESENÇA EM LOJA POR FABRICANTE');
+  });
+});

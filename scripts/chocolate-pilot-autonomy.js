@@ -258,6 +258,13 @@ const pilotStatusText = JSON.stringify(pilotStatus, null, 1) + "\n";
 const pilotStatusPath = path.resolve(ROOT, "pilot-chocolate-status.json");
 if (CHECK && (!fs.existsSync(pilotStatusPath) || fs.readFileSync(pilotStatusPath, "utf8") !== pilotStatusText)) exception("pilot-chocolate-status.json", "status file is stale", "run the autonomy script and commit the result");
 
+// ---------- 6. Per-EAN price index for the signed-in price view (app.html#precos) ----------
+// Built only from the two latest NFC-e captures; same reproducibility rule as the status file.
+const { buildPriceIndex } = require("./lib/chocolate-price-index.js");
+const pricesPath = path.resolve(ROOT, "pilot-chocolate-prices.json");
+const pricesText = nfceLast ? JSON.stringify(buildPriceIndex(nfceLast, nfce.length > 1 ? nfce[nfce.length - 2] : null)) + "\n" : null;
+if (CHECK && pricesText && (!fs.existsSync(pricesPath) || fs.readFileSync(pricesPath, "utf8") !== pricesText)) exception("pilot-chocolate-prices.json", "status file is stale", "run the autonomy script and commit the result");
+
 const statusPath = path.resolve(ROOT, KIT, "AUTONOMY_STATUS.md");
 if (CHECK) {
   const current = fs.existsSync(statusPath) ? fs.readFileSync(statusPath, "utf8") : "";
@@ -270,6 +277,7 @@ if (CHECK) {
 }
 fs.writeFileSync(statusPath, status);
 fs.writeFileSync(pilotStatusPath, pilotStatusText);
+if (pricesText) fs.writeFileSync(pricesPath, pricesText);
 console.log(`autonomy run (${TODAY}): ${changes.length} change(s), ${exceptions.length} exception(s) queued`);
 for (const c of changes) console.log(`  - ${c}`);
 for (const e of exceptions) console.log(`  ! ${e.where}: ${e.what}`);
