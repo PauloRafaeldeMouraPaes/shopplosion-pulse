@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 "use strict";
-/* Unit tests for scripts/lib/chocolate-price-index.js, plus consistency checks of the committed
+/* Unit tests for scripts/lib/pilot-price-index.js, plus consistency checks of the committed
    pilot-chocolate-prices.json. Invented rows only: no real store or price is used in the fixtures. */
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { buildPriceIndex, inferBrand, inferGrams, quantile } = require("./lib/chocolate-price-index.js");
+const { buildPriceIndex, PROFILES, inferBrand: inferBrandWith, inferGrams, quantile } = require("./lib/pilot-price-index.js");
+const CHOCOLATE = PROFILES.chocolate;
+const inferBrand = text => inferBrandWith(text, CHOCOLATE.brandRules);
 
 let n = 0; const t = (name, fn) => { fn(); n++; };
 const row = (gtin, store, price, sold, description) => ({ gtin, inscricao_estadual: store, valor_ultima_venda_brl: String(price), ultima_venda_estimada_utc: sold, descricao_nfce: description });
@@ -45,7 +47,7 @@ const previousRecords = [];
 for (let s = 1; s <= 6; s++) previousRecords.push(row("111", "L" + s, 10, "2026-01-03T10:00:00Z", "CHOC GAROTO AO LEITE 80G"));
 previousRecords.push(row("111", "L99", 30, "2026-01-03T10:00:00Z", "CHOC GAROTO AO LEITE 80G")); // store absent from the latest capture: not used for the change
 previousRecords.push(row("333", "L2", 20, "2026-01-03T10:00:00Z", "CHOCOLATE ARTESANAL"));        // one store in common: too few for a change
-const index = buildPriceIndex({ day: "2026-01-10", places: ["CIDADE"], records: latestRecords }, { day: "2026-01-03", places: ["CIDADE"], records: previousRecords });
+const index = buildPriceIndex({ day: "2026-01-10", places: ["CIDADE"], records: latestRecords }, { day: "2026-01-03", places: ["CIDADE"], records: previousRecords }, CHOCOLATE);
 
 t("one observation per EAN x store, most recent sale wins", () => {
   const i = index.items.find(x => x.gtin === "111");
@@ -87,7 +89,7 @@ t("rows without EAN or price are counted, not used", () => {
 });
 
 t("the result does not depend on the order of the rows", () => {
-  const shuffled = buildPriceIndex({ day: "2026-01-10", places: ["CIDADE"], records: [...latestRecords].reverse() }, { day: "2026-01-03", places: ["CIDADE"], records: [...previousRecords].reverse() });
+  const shuffled = buildPriceIndex({ day: "2026-01-10", places: ["CIDADE"], records: [...latestRecords].reverse() }, { day: "2026-01-03", places: ["CIDADE"], records: [...previousRecords].reverse() }, CHOCOLATE);
   assert.deepEqual(shuffled, index);
 });
 
@@ -101,6 +103,8 @@ t("manufacturer coverage counts stores, not rows", () => {
 t("committed file is internally consistent and never lists an item without stores", () => {
   const file = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "pilot-chocolate-prices.json"), "utf8"));
   assert.equal(file.method.brand_inferred, true);
+  assert.deepEqual(file.category, { key: "chocolate", label: "Chocolate" });
+  assert.ok(file.benchmark && typeof file.benchmark.label === "string" && Array.isArray(file.benchmark.rows));
   assert.equal(file.items.length, file.totals.ean);
   assert.equal(file.items.filter(i => ![8, 12, 13, 14].includes(i.gtin.length)).length, file.totals.codes_not_gtin_length);
   for (const i of file.items) {
@@ -114,9 +118,30 @@ t("committed file is internally consistent and never lists an item without store
 });
 
 t("description, brand and grams use the most frequent value that states them", () => {
-  const { describe } = require("./lib/chocolate-price-index.js");
-  const d = describe([{ description: "CHOC LINDT EXCELLENC" }, { description: "CHOC LINDT EXCELLENC" }, { description: "CHOC LINDT EXCELLENCE 70 100G" }, { description: "CHOCOLATE 70 CACAU 100G" }]);
+  const { describe } = require("./lib/pilot-price-index.js");
+  const d = describe([{ description: "CHOC LINDT EXCELLENC" }, { description: "CHOC LINDT EXCELLENC" }, { description: "CHOC LINDT EXCELLENCE 70 100G" }, { description: "CHOCOLATE 70 CACAU 100G" }], CHOCOLATE.brandRules);
   assert.deepEqual(d, { description: "CHOC LINDT EXCELLENCE 70 100G", brand: "Lindt", manufacturer: "Lindt & Sprüngli", grams: 100 });
 });
 
-console.log(`chocolate price index: ${n} tests passed`);
+t("a second category is only a profile: same computation, its own brand rules and benchmark", () => {
+  const coffee = {
+    key: "cafe", label: "Café", generatedBy: "test",
+    brandRules: [[/\bMARCA UM\b/, "Marca Um", "Fabricante Um"], [/\bMARCA DOIS\b/, "Marca Dois", "Fabricante Dois"]],
+    benchmark: { label: "Pacotes de 250 g a 500 g", minGrams: 250, maxGrams: 500, minObservations: 3 },
+  };
+  const rows = [];
+  for (let s = 1; s <= 4; s++) rows.push(row("900", "L" + s, 20 + s, "2026-02-10T10:00:00Z", "CAFE MARCA UM 500G"));
+  for (let s = 1; s <= 3; s++) rows.push(row("901", "L" + s, 15, "2026-02-10T10:00:00Z", "CAFE MARCA DOIS 250G"));
+  rows.push(row("902", "L1", 9, "2026-02-10T10:00:00Z", "CAFE SOLUVEL 50G"));
+  const out = buildPriceIndex({ day: "2026-02-10", places: ["CIDADE"], records: rows }, null, coffee);
+  assert.deepEqual(out.category, { key: "cafe", label: "Café" });
+  assert.equal(out.benchmark.label, "Pacotes de 250 g a 500 g");
+  assert.deepEqual(out.benchmark.rows.map(r => [r.manufacturer, r.median_per_100g_brl]), [["Fabricante Um", 4.5], ["Fabricante Dois", 6]]);
+  assert.deepEqual(out.manufacturer_coverage.map(c => c.manufacturer), ["Fabricante Um", "Fabricante Dois"]);
+  assert.equal(out.items.find(i => i.gtin === "902").manufacturer, "");
+  assert.equal(out.previous_capture_date, null);
+  assert.equal(JSON.stringify(out).toLowerCase().includes("chocolate"), false, "nothing of another category leaks into the output");
+  assert.throws(() => buildPriceIndex({ day: "2026-02-10", places: [], records: rows }, null), /category profile/);
+});
+
+console.log(`pilot price index: ${n} tests passed`);

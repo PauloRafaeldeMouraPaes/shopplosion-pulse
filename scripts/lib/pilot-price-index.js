@@ -1,7 +1,10 @@
 "use strict";
-/* Per-EAN price index for the chocolate pilot, built only from the NFC-e captures (Economiza Alagoas, SEFAZ/AL).
+/* Per-EAN price index of a category pilot, built only from the NFC-e captures (Economiza Alagoas, SEFAZ/AL).
+   Nothing in the computation is specific to a category: what changes per category is its profile (PROFILES below),
+   with the rules that read brand and manufacturer from the invoice text and the definition of its benchmark segment.
+   To add a category: add a profile and pass it to buildPriceIndex.
    Pure functions: no file access, no dates of the run. Used by scripts/chocolate-pilot-autonomy.js, which writes
-   pilot-chocolate-prices.json, and by scripts/test-chocolate-price-index.js.
+   pilot-chocolate-prices.json, and by scripts/test-pilot-price-index.js.
 
    What is computed and what is inferred:
    - Observed in the source: EAN, description on the invoice, store (inscrição estadual), price of the last sale.
@@ -14,12 +17,9 @@
 const UNIT_RATIO = 2.5;
 const MIN_STORES_FOR_SPREAD = 10;
 const MIN_STORES_FOR_CHANGE = 5;
-const TABLET_MIN_G = 70;
-const TABLET_MAX_G = 120;
-const TABLET_MIN_PAIRS = 15;
 
 // Order matters: the first rule that matches wins (product lines before the house brand).
-const BRAND_RULES = [
+const CHOCOLATE_BRAND_RULES = [
   [/\bLINDT\b|\bLINDOR\b/, "Lindt", "Lindt & Sprüngli"],
   [/\bFERRERO\b/, "Ferrero Rocher", "Ferrero"],
   [/\bRAFFAELLO\b/, "Raffaello", "Ferrero"],
@@ -63,9 +63,9 @@ const BRAND_RULES = [
 const plain = t => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
 const round2 = n => (Number.isFinite(n) ? Math.round(n * 100) / 100 : null);
 
-function inferBrand(description) {
+function inferBrand(description, rules) {
   const t = plain(description);
-  for (const [re, brand, manufacturer] of BRAND_RULES) if (re.test(t)) return { brand, manufacturer };
+  for (const [re, brand, manufacturer] of rules || []) if (re.test(t)) return { brand, manufacturer };
   return { brand: "", manufacturer: "" };
 }
 
@@ -125,16 +125,28 @@ function mostCommon(values) {
 
 /* The same EAN is typed differently by each store. Brand and grams are the most frequent value among the
    descriptions that state one; the description shown is the most frequent one that states the weight, when any. */
-function describe(observations) {
+function describe(observations, rules) {
   const texts = observations.map(o => o.description).filter(Boolean);
   const grams = mostCommon(texts.map(t => inferGrams(t)).filter(g => g !== null).map(String));
-  const brandKey = mostCommon(texts.map(t => inferBrand(t)).filter(b => b.brand).map(b => `${b.brand}\u0000${b.manufacturer}`));
+  const brandKey = mostCommon(texts.map(t => inferBrand(t, rules)).filter(b => b.brand).map(b => `${b.brand}\u0000${b.manufacturer}`));
   const [brand, manufacturer] = brandKey ? brandKey.split("\u0000") : ["", ""];
   const withGrams = grams ? texts.filter(t => String(inferGrams(t)) === grams) : [];
   return { description: mostCommon(withGrams.length ? withGrams : texts), brand, manufacturer, grams: grams ? parseFloat(grams) : null };
 }
 
-function buildPriceIndex(latest, previous) {
+/* One profile per category. benchmark: a segment of comparable items (by weight) whose price per 100 g is compared
+   across manufacturers. */
+const PROFILES = {
+  chocolate: {
+    key: "chocolate", label: "Chocolate", generatedBy: "scripts/chocolate-pilot-autonomy.js",
+    brandRules: CHOCOLATE_BRAND_RULES,
+    benchmark: { label: "Tabletes de 70 g a 120 g", minGrams: 70, maxGrams: 120, minObservations: 15 },
+  },
+};
+
+function buildPriceIndex(latest, previous, profile) {
+  if (!profile || !profile.key || !Array.isArray(profile.brandRules) || !profile.benchmark) throw new Error("buildPriceIndex needs a category profile");
+  const bench = profile.benchmark;
   const cur = observationsByEan(latest.records);
   const prev = previous ? observationsByEan(previous.records) : null;
   const stores = new Set();
@@ -142,7 +154,7 @@ function buildPriceIndex(latest, previous) {
   const items = [];
   for (const [gtin, obs] of cur.byEan) {
     const s = eanStats(obs);
-    const { description, brand, manufacturer, grams } = describe(obs);
+    const { description, brand, manufacturer, grams } = describe(obs, profile.brandRules);
     const p10 = quantile(s.kept, 0.1), p90 = quantile(s.kept, 0.9);
     // Change only over the stores that sold the item in both captures, so a different mix of stores is not read as a price move.
     let prevMedian = null, matchedMedian = null, matched = 0;
@@ -185,18 +197,19 @@ function buildPriceIndex(latest, previous) {
   // Tablets: price per 100 g of each EAN x store observation, grouped by manufacturer.
   const tablet = new Map();
   for (const i of items) {
-    if (!i.manufacturer || !i.grams || i.grams < TABLET_MIN_G || i.grams > TABLET_MAX_G) continue;
+    if (!i.manufacturer || !i.grams || i.grams < bench.minGrams || i.grams > bench.maxGrams) continue;
     const kept = eanStats(cur.byEan.get(i.gtin)).kept;
     if (!tablet.has(i.manufacturer)) tablet.set(i.manufacturer, { prices: [], ean: 0 });
     const t = tablet.get(i.manufacturer); t.ean++; for (const p of kept) t.prices.push(p / i.grams * 100);
   }
-  const tablets = [...tablet.entries()].filter(([, t]) => t.prices.length >= TABLET_MIN_PAIRS).map(([manufacturer, t]) => {
+  const tablets = [...tablet.entries()].filter(([, t]) => t.prices.length >= bench.minObservations).map(([manufacturer, t]) => {
     const s = sortedNums(t.prices);
     return { manufacturer, ean: t.ean, observations: s.length, median_per_100g_brl: round2(quantile(s, 0.5)), p10_per_100g_brl: round2(quantile(s, 0.1)), p90_per_100g_brl: round2(quantile(s, 0.9)) };
   }).sort((a, b) => a.median_per_100g_brl - b.median_per_100g_brl || a.manufacturer.localeCompare(b.manufacturer));
 
   return {
-    generated_by: "scripts/chocolate-pilot-autonomy.js",
+    generated_by: profile.generatedBy || "",
+    category: { key: profile.key, label: profile.label },
     source: "Economiza Alagoas (SEFAZ/AL), página pública",
     scope: "Preço da última venda por EAN e loja nos 7 dias antes da captura; não mede volume, participação nem o Brasil",
     capture_date: latest.day, previous_capture_date: previous ? previous.day : null, municipalities: latest.places,
@@ -207,7 +220,7 @@ function buildPriceIndex(latest, previous) {
       change: `mediana nas lojas que venderam o item nas duas capturas; só com ${MIN_STORES_FOR_CHANGE} lojas ou mais em comum`,
       brand_inferred: true,
       brand_note: "Marca, fabricante e gramatura são lidos do texto da nota fiscal por regra; campo vazio quando o texto não permite",
-      tablets: `EAN de ${TABLET_MIN_G} g a ${TABLET_MAX_G} g com fabricante identificado; fabricantes com ${TABLET_MIN_PAIRS} observações ou mais`,
+      benchmark: `EAN de ${bench.minGrams} g a ${bench.maxGrams} g com fabricante identificado; fabricantes com ${bench.minObservations} observações ou mais`,
     },
     totals: {
       rows: latest.records.length, rows_without_ean: cur.withoutEan, rows_without_price: cur.withoutPrice,
@@ -217,9 +230,9 @@ function buildPriceIndex(latest, previous) {
       other_unit_observations: items.reduce((n, i) => n + i.other_unit_observations, 0),
     },
     manufacturer_coverage: coverage,
-    tablet_price_per_100g: tablets,
+    benchmark: { label: bench.label, rows: tablets },
     items,
   };
 }
 
-module.exports = { buildPriceIndex, inferBrand, inferGrams, quantile, observationsByEan, eanStats, describe, UNIT_RATIO };
+module.exports = { buildPriceIndex, PROFILES, inferBrand, inferGrams, quantile, observationsByEan, eanStats, describe, UNIT_RATIO };
