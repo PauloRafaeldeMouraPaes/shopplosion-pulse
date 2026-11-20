@@ -158,7 +158,7 @@ test.describe('Preços do piloto de chocolate (app.html#precos)', () => {
     await expect(row).toContainText(brl(first.median_brl));
     await expect(page.locator('#pv4-price-body tr')).toHaveCount(50);
     await expect(host.locator('.pv4-price-bar').first()).toContainText(data.manufacturer_coverage[0].manufacturer);
-    await expect(host.locator('.pv4-price-line').first()).toContainText(brl(data.tablet_price_per_100g[0].median_per_100g_brl));
+    await expect(host.locator('.pv4-price-line').first()).toContainText(brl(data.benchmark.rows[0].median_per_100g_brl));
     await expect(host).toContainText('não mede volume, participação nem o Brasil');
     await expect(host).toContainText('lidos do texto da nota fiscal por regra');
 
@@ -306,5 +306,71 @@ test.describe('Shopper insights in Universo and in the public reading', () => {
     await expect(answer).toContainText('[E1] Não comprova motivo individual da mudança');
     await expect(page.locator('.pv4-citation-line')).toContainText('[E1] Mercado publicado: kantar-chocolate-brasil-volume-q1-2025');
     await expect(answer).not.toContainText('\\n');
+  });
+});
+
+test.describe('More than one category', () => {
+  // A second, invented category is added only through the registry, the evidence file and the classification:
+  // no page names a category. The item below is invented for the test and says so.
+  const fakeItem = {
+    id: 'teste-cafe-painel', categoria: 'cafe', tipo: 'painel de compras domiciliares',
+    fato: 'Fato inventado para teste: lares compraram a categoria inventada.', contexto: 'Inventado para teste.', interpretacao: 'Inventado para teste.',
+    hipotese: 'Inventado para teste.', acao: 'Inventado para teste.', fonte: 'Fonte inventada para teste', url: 'https://example.invalid/teste', periodo: '2026-T1',
+    natureza: 'Compras observadas em painel de lares (inventado para teste)', universo_observado: 'Inventado para teste', representa: 'Inventado para teste',
+    nao_representa: 'Limite inventado para teste', fonte_primaria: 'Inventada para teste', fato_verificado_na_fonte: 'SIM: item inventado para teste',
+    alcance_para_pergunta: 'DIRETO: inventado para teste', keywords: ['cafe', 'quem compra', 'teste'],
+  };
+  async function withSecondCategory(page) {
+    const fs = require('fs'); const path = require('path');
+    const root = path.resolve(__dirname, '..', '..');
+    const map = fs.readFileSync(path.join(root, 'pulse-shopper-map.js'), 'utf8') + "\n;PULSE_SHOPPER.CATEGORIES.push({key:'cafe',label:'Café',terms:['cafe']});PULSE_SHOPPER.MAP['teste-cafe-painel']={q:['quem'],level:'observado'};";
+    const evidence = fs.readFileSync(path.join(root, 'pulse-public-evidence.js'), 'utf8') + '\n;window.PULSE_EVIDENCE.push(' + JSON.stringify(fakeItem) + ');';
+    await page.route('**/pulse-shopper-map.js*', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: map }));
+    await page.route('**/pulse-public-evidence.js*', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: evidence }));
+  }
+
+  test('with one category there is no picker; with two, Hoje lets the person choose and remembers the choice', async ({ page }) => {
+    await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-shopper-map]')).toHaveAttribute('data-shopper-category', 'chocolate');
+    await expect(page.locator('#pv4-shopper-category')).toHaveCount(0);
+
+    await withSecondCategory(page);
+    await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+    const map = page.locator('[data-shopper-map]');
+    await expect(map).toHaveAttribute('data-shopper-category', 'chocolate');
+    await expect(page.locator('#pv4-shopper-category option')).toHaveText(['Chocolate', 'Café']);
+    // The invented coffee item counts as "general" while the person reads chocolate.
+    await page.locator('#pv4-shopper-category').selectOption('cafe');
+    await expect(map).toHaveAttribute('data-shopper-category', 'cafe');
+    await expect(map).toContainText('PERGUNTAS DE SHOPPER: CATEGORIA CAFÉ');
+    await expect(map).toContainText('Sem evidência de café para:');
+    const who = map.locator('[data-shopper-question="quem"] .pv4-shopper-cell');
+    await expect(who.nth(0)).toContainText('Compra observada em painel');
+    await expect(who.nth(0).locator('[data-case-evidence]')).toHaveAttribute('data-case-evidence', 'teste-cafe-painel');
+    await expect(map.locator('[data-shopper-question="canal"] .pv4-shopper-cell').nth(0)).toContainText('Sem evidência na base');
+    await who.nth(0).locator('[data-case-evidence]').click();
+    await expect(page.locator('#pv3-inspector')).toHaveClass(/open/);
+
+    await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-shopper-map]')).toHaveAttribute('data-shopper-category', 'cafe');
+    await expect(page.locator('[data-pilot-card]')).toHaveAttribute('data-pilot-category', 'chocolate');
+  });
+
+  test('Investigação reads the category from the question', async ({ page }) => {
+    await withSecondCategory(page);
+    await page.goto('/ask.html', { waitUntil: 'domcontentloaded' });
+    await page.locator('textarea:visible, input[type=text]:visible').first().fill('Quem compra café?');
+    await page.locator('button:visible:has-text("Buscar evidências")').first().click();
+    const banner = page.locator('#pv4-results [data-shopper-banner]');
+    await expect(banner).toHaveAttribute('data-shopper-category', 'cafe');
+    await expect(banner).toContainText('Café: 1 evidência(s), a mais forte é compra observada em painel');
+    const keys = await page.locator('#pv4-results .result input[data-evidence-key]').evaluateAll((els) => els.map((e) => e.dataset.evidenceKey));
+    expect(keys[0]).toBe('teste-cafe-painel');
+
+    await page.locator('textarea:visible, input[type=text]:visible').first().fill('Quem compra chocolate?');
+    await page.locator('button:visible:has-text("Buscar evidências")').first().click();
+    await expect(banner).toHaveAttribute('data-shopper-category', 'chocolate');
+    const keys2 = await page.locator('#pv4-results .result input[data-evidence-key]').evaluateAll((els) => els.map((e) => e.dataset.evidenceKey));
+    expect(keys2[0]).not.toBe('teste-cafe-painel');
   });
 });

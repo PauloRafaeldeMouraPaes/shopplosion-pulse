@@ -260,9 +260,9 @@ if (CHECK && (!fs.existsSync(pilotStatusPath) || fs.readFileSync(pilotStatusPath
 
 // ---------- 6. Per-EAN price index for the signed-in price view (app.html#precos) ----------
 // Built only from the two latest NFC-e captures; same reproducibility rule as the status file.
-const { buildPriceIndex } = require("./lib/chocolate-price-index.js");
+const { buildPriceIndex, PROFILES } = require("./lib/pilot-price-index.js");
 const pricesPath = path.resolve(ROOT, "pilot-chocolate-prices.json");
-const pricesText = nfceLast ? JSON.stringify(buildPriceIndex(nfceLast, nfce.length > 1 ? nfce[nfce.length - 2] : null)) + "\n" : null;
+const pricesText = nfceLast ? JSON.stringify(buildPriceIndex(nfceLast, nfce.length > 1 ? nfce[nfce.length - 2] : null, PROFILES.chocolate)) + "\n" : null;
 if (CHECK && pricesText && (!fs.existsSync(pricesPath) || fs.readFileSync(pricesPath, "utf8") !== pricesText)) exception("pilot-chocolate-prices.json", "status file is stale", "run the autonomy script and commit the result");
 
 const statusPath = path.resolve(ROOT, KIT, "AUTONOMY_STATUS.md");

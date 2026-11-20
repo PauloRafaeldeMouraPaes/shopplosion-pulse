@@ -159,6 +159,8 @@ body .pv4-next small{color:var(--on-brand)}
 /* Shopper question map (Hoje) and banner (Investigação). Tokens only. */
 .pv4-shopper-map{background:var(--surface-canvas);border:1px solid var(--line-1);border-radius:var(--radius-panel);margin-top:26px;padding:24px}
 @media(max-width:640px){.pv4-shopper-map{margin-top:16px;padding:16px}}
+.pv4-shopper-picker{display:grid;gap:4px;font-size:12px;line-height:16px;font-weight:600;color:var(--ink-2);min-width:180px}
+.pv4-shopper-picker select{height:44px;border:1px solid var(--line-1);border-radius:var(--radius-control);background:var(--surface-canvas);color:var(--ink-1);padding:0 10px;font:14px var(--font-sans)}
 .pv4-shopper-grid{display:grid;gap:0;border:1px solid var(--line-1);border-radius:var(--radius-card);overflow:hidden}
 .pv4-shopper-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1.3fr);gap:var(--space-16);padding:var(--space-12) var(--space-16);border-top:1px solid var(--line-1);align-items:start}
 .pv4-shopper-row.head{border-top:0;background:var(--surface-sunken);font-size:11px;line-height:14px;font-weight:700;color:var(--ink-2)}

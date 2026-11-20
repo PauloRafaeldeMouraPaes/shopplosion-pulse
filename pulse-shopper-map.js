@@ -1,5 +1,6 @@
 /* Shopper question map: which public evidence speaks to each question a shopper insights team asks.
    Target user of Pulse: shopper insights in a consumer goods manufacturer.
+   Built for any product category: the categories live in CATEGORIES, never in the pages.
    Every public evidence item that is not an IBGE monthly series must be listed here (scripts/test-shopper-map.js
    fails otherwise), so a new item is classified by a person or agent who read it, never by a keyword guess.
    Levels, strongest first:
@@ -15,6 +16,12 @@
     { key: 'canal', label: 'Onde compra', detail: 'canal e formato de loja' },
     { key: 'escolha', label: 'Como escolhe', detail: 'fatores de escolha, marca, embalagem, impulso ou planejamento' },
     { key: 'preco', label: 'Como reage ao preço', detail: 'embalagem menor, opção mais barata, promoção, saída da categoria' },
+  ];
+  /* Product categories the workspace can be read by. To add one: add an entry here (key = the `categoria` value its
+     evidence items use), add its evidence to the public base, and classify each item in MAP below. Nothing else in
+     the pages names a category. `prices` and `pilot` are optional: the per-item price file and the status page of a pilot, when the category has one. */
+  const CATEGORIES = [
+    { key: 'chocolate', label: 'Chocolate', terms: ['chocolate', 'bombom', 'cacau', 'ovo de pascoa', 'ovos de pascoa'], prices: './pilot-chocolate-prices.json', pilot: './pilot-chocolate.html' },
   ];
   const LEVELS = { observado: 'compra observada em painel', declarado: 'declaração em pesquisa', mercado: 'indicador de mercado, não por shopper' };
   const LEVEL_ORDER = ['observado', 'declarado', 'mercado'];
@@ -48,6 +55,20 @@
     'google-trends-chocolate-sazonalidade-pascoa-2022-2026': { q: [], level: 'mercado' },
   };
   const plain = v => String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const category = key => CATEGORIES.find(c => c.key === key) || null;
+  // Categories of the registry that have at least one evidence item in the given base, in registry order.
+  const categoriesIn = evidence => CATEGORIES.filter(c => (Array.isArray(evidence) ? evidence : []).some(e => e && e.categoria === c.key));
+  // The category a typed question names, by the registry terms; null when it names none.
+  const categoryOf = question => { const t = plain(question); const hit = CATEGORIES.find(c => c.terms.some(w => t.includes(w))); return hit ? hit.key : null; };
+  // The category the person is working on: their last choice when still valid, otherwise the first with evidence.
+  const STORE_KEY = 'pulse.shopper.category';
+  function activeCategory(evidence) {
+    const available = categoriesIn(evidence);
+    let stored = null;
+    try { stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORE_KEY) : null; } catch (e) { stored = null; }
+    return (available.find(c => c.key === stored) || available[0] || CATEGORIES[0]).key;
+  }
+  function setActiveCategory(key) { if (!category(key)) return false; try { if (typeof localStorage !== 'undefined') localStorage.setItem(STORE_KEY, key); } catch (e) { /* storage is a convenience */ } return true; }
   const entry = e => MAP[String(e && e.id)] || (e && CONTEXT_TYPES.includes(e.tipo) ? { q: [], level: 'mercado' } : null);
 
   /* For one category ("chocolate") against everything else: per question, the evidence that speaks to it,
@@ -89,13 +110,14 @@
      Returns the text and the evidence in the order it is cited ([E1], [E2], ...). */
   const shortPeriod = p => String(p || '').split(';')[0].trim();
   const upperFirst = t => t.charAt(0).toUpperCase() + t.slice(1);
-  function reading(question, selected, allEvidence, category) {
+  function reading(question, selected, allEvidence, categoryKey) {
+    const name = ((category(categoryKey) || {}).label || String(categoryKey || '')).toLowerCase();
     const rows = (Array.isArray(selected) ? selected : []).filter(Boolean).map((e, i) => ({ e, i, m: entry(e) || { q: [], level: 'mercado' } }));
     const ordered = rows.slice().sort((a, b) => LEVEL_ORDER.indexOf(a.m.level) - LEVEL_ORDER.indexOf(b.m.level) || a.i - b.i).slice(0, 4);
     if (!ordered.length) return { text: '', ordered: [] };
     const levels = new Set(ordered.map(x => x.m.level));
     const asked = classify(question).questions;
-    const cov = coverage(allEvidence, category);
+    const cov = coverage(allEvidence, categoryKey);
     const gaps = asked.map(k => cov.find(r => r.key === k)).filter(r => r && !r.category.count).map(r => r.label.toLowerCase());
     const leitura = ordered.map((x, n) => `[E${n + 1}] ${upperFirst(LEVELS[x.m.level])}${shortPeriod(x.e.periodo) ? ' (' + shortPeriod(x.e.periodo) + ')' : ''}: ${String(x.e.fato || '').trim()}`).join('\n');
     const hipotese = levels.has('observado') && levels.has('declarado')
@@ -104,13 +126,13 @@
       : levels.has('declarado') ? 'A leitura se apoia só em declaração: mostra intenção e percepção, não compra realizada.'
       : 'As evidências selecionadas são indicadores de mercado: descrevem preço, vendas ou oferta, não o comportamento de um shopper.';
     const recomendacao = gaps.length
-      ? `Antes de concluir, buscar evidência de ${category} para: ${gaps.join('; ')}.`
+      ? `Antes de concluir, buscar evidência de ${name} para: ${gaps.join('; ')}.`
       : 'Confrontar esta leitura com um estudo próprio de shopper ou com o painel da categoria antes de decidir.';
     const limits = ordered.map((x, n) => (x.e.nao_representa ? `[E${n + 1}] ${String(x.e.nao_representa).trim().replace(/\.$/, '')}.` : '')).filter(Boolean).join(' ');
-    const desconhecidos = (limits || 'As evidências selecionadas não declaram seus limites.') + (gaps.length ? ` A base não tem evidência de ${category} para: ${gaps.join('; ')}.` : '');
+    const desconhecidos = (limits || 'As evidências selecionadas não declaram seus limites.') + (gaps.length ? ` A base não tem evidência de ${name} para: ${gaps.join('; ')}.` : '');
     const text = `LEITURA: ${leitura}\n\nHIPÓTESE: ${hipotese}\n\nRECOMENDAÇÃO: ${recomendacao}\n\nDESCONHECIDOS: ${desconhecidos}\n\nATUALIZAÇÃO: INSUFFICIENT: leitura baseada nas evidências públicas selecionadas.`;
     return { text, ordered: ordered.map(x => x.e) };
   }
 
-  return { QUESTIONS, LEVELS, LEVEL_ORDER, CONTEXT_TYPES, MAP, entry, coverage, classify, reading };
+  return { QUESTIONS, CATEGORIES, LEVELS, LEVEL_ORDER, CONTEXT_TYPES, MAP, entry, coverage, classify, reading, category, categoriesIn, categoryOf, activeCategory, setActiveCategory };
 });

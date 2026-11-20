@@ -92,4 +92,41 @@ t("reading: facts by level in citation order, declared limits, gaps named, no ca
   assert.equal(five.ordered.length, 4);
 });
 
+t("category registry: unique keys, searchable terms, and every category has evidence in the base", () => {
+  const seen = new Set();
+  for (const c of S.CATEGORIES) {
+    assert.ok(c.key && c.label && Array.isArray(c.terms) && c.terms.length, `category ${c.key}`);
+    assert.ok(!seen.has(c.key), `duplicate category ${c.key}`); seen.add(c.key);
+    for (const w of c.terms) assert.equal(w, w.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(), `term "${w}" must be lower case without accents`);
+    assert.ok(evidence.some(e => e.categoria === c.key), `category ${c.key} has no evidence in the public base`);
+  }
+  assert.deepEqual(S.categoriesIn(evidence).map(c => c.key), S.CATEGORIES.map(c => c.key));
+  assert.equal(S.categoryOf("O que o shopper faz quando o preço do chocolate sobe?"), "chocolate");
+  assert.equal(S.categoryOf("Quem compra ovo de Páscoa?"), "chocolate");
+  assert.equal(S.categoryOf("Como está o varejo?"), null);
+});
+
+t("a second category needs only a registry entry, its evidence and its classification", () => {
+  const added = { key: "cafe", label: "Café", terms: ["cafe"] };
+  S.CATEGORIES.push(added);
+  S.MAP["teste-cafe-painel"] = { q: ["quem"], level: "observado" };
+  try {
+    const base = evidence.concat([{ id: "teste-cafe-painel", categoria: "cafe", periodo: "2026-T1", fato: "Fato inventado para teste.", nao_representa: "Limite inventado para teste." }]);
+    assert.deepEqual(S.categoriesIn(base).map(c => c.key), ["chocolate", "cafe"]);
+    assert.equal(S.categoryOf("Quem compra café em cápsula?"), "cafe");
+    const rows = S.coverage(base, "cafe");
+    assert.equal(rows.find(r => r.key === "quem").category.count, 1);
+    assert.equal(rows.find(r => r.key === "preco").category.count, 0);
+    // What is chocolate for the chocolate reading becomes "general" for coffee, and the other way around.
+    assert.ok(rows.find(r => r.key === "preco").general.items.some(i => i.id === "kantar-chocolate-brasil-volume-q1-2025"));
+    assert.ok(S.coverage(base, "chocolate").find(r => r.key === "quem").general.items.some(i => i.id === "teste-cafe-painel"));
+    const r = S.reading("Como o shopper de café reage ao preço?", [base[base.length - 1]], base, "cafe");
+    assert.ok(r.text.includes("buscar evidência de café para: como reage ao preço"));
+    assert.ok(!r.text.includes("chocolate"));
+    assert.equal(S.activeCategory(base), "chocolate");
+    assert.equal(S.activeCategory(base.filter(e => e.categoria !== "chocolate")), "cafe");
+    assert.equal(S.setActiveCategory("inexistente"), false);
+  } finally { S.CATEGORIES.pop(); delete S.MAP["teste-cafe-painel"]; }
+});
+
 console.log(`shopper map: ${n} tests passed`);
