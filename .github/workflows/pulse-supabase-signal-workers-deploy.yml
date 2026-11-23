@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_deploy:
-        description: Type DEPLOY_PULSE_SIGNAL_WORKERS to deploy the three signal workers to Supabase production.
+        description: Type DEPLOY_PULSE_SIGNAL_WORKERS to deploy the four signal workers to Supabase production.
         required: true
         type: string
         default: ""
@@ -26,7 +26,7 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_ID: ppfuygnpgywfpiqxsfys
-      WORKERS: pulse-external-signal-worker pulse-external-deterministic-backstop pulse-intelligence-worker
+      WORKERS: pulse-external-source-worker pulse-external-signal-worker pulse-external-deterministic-backstop pulse-intelligence-worker
     steps:
       - name: Checkout exact main release commit
         uses: actions/checkout@v4
