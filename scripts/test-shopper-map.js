@@ -131,4 +131,10 @@ t("a second category needs only a registry entry, its evidence and its classific
   } finally { S.CATEGORIES.pop(); delete S.MAP["teste-cafe-painel"]; }
 });
 
+t("the base answers every shopper question for the shopper as a whole", () => {
+  // The general layer is what every category reading starts from; a question with no general evidence is a gap in the base.
+  const empty = S.coverage(evidence, S.CATEGORIES[0].key).filter(r => !r.general.count).map(r => r.key);
+  assert.deepEqual(empty, []);
+});
+
 console.log(`shopper map: ${n} tests passed`);
