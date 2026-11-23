@@ -4,6 +4,9 @@ project_id = "ppfuygnpgywfpiqxsfys"
 verify_jwt = true
 
 # Internal workers: called only by pg_cron with the Vault token in x-pulse-cron; each checks it before any work.
+[functions.pulse-external-source-worker]
+verify_jwt = false
+
 [functions.pulse-external-signal-worker]
 verify_jwt = false
 
