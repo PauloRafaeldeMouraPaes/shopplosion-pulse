@@ -21,6 +21,7 @@ EXPECTED_REPOSITORY_MIGRATIONS = {
     "010_knowledge_updates_saved_evidence.sql",
     "011_signal_event_trigger_and_acl.sql",
     "012_restore_tenant_access_and_rls_performance.sql",
+    "013_industry_signal_topic_terms.sql",
 }
 EXPECTED_MAPPINGS = {
     "20260922030555": ("supabase/migrations/007_investigations_and_analysis_link.sql", "confirmed_after_trailing_newline_trim"),
@@ -29,6 +30,7 @@ EXPECTED_MAPPINGS = {
     "20260922032516": ("supabase/migrations/010_knowledge_updates_saved_evidence.sql", "confirmed_exact_blob_match"),
     "20261117043814": ("supabase/migrations/011_signal_event_trigger_and_acl.sql", "confirmed_exact_blob_match"),
     "20261117192957": ("supabase/migrations/012_restore_tenant_access_and_rls_performance.sql", "confirmed_exact_blob_match"),
+    "20261123123859": ("supabase/migrations/013_industry_signal_topic_terms.sql", "confirmed_exact_blob_match"),
 }
 ALLOWED_STATUSES = {"unmapped", "confirmed_exact_blob_match", "confirmed_after_trailing_newline_trim", "recovered_from_production_history", "recovered_from_production_history_redacted"}
 REDACTION_MARKER = "[REDIGIDO "
@@ -52,8 +54,8 @@ def main() -> int:
             raise AssertionError("Migration lineage manifest is missing required columns")
         rows = list(reader)
 
-    if len(rows) != 74:
-        raise AssertionError(f"Expected exactly 74 production migration rows, found {len(rows)}")
+    if len(rows) != 75:
+        raise AssertionError(f"Expected exactly 75 production migration rows, found {len(rows)}")
     versions = [row["production_version"] for row in rows]
     if len(set(versions)) != len(versions):
         raise AssertionError("Duplicate production migration version")
@@ -86,9 +88,9 @@ def main() -> int:
     recovered = [row for row in rows if row["mapping_status"] == "recovered_from_production_history"]
     redacted = [row for row in rows if row["mapping_status"] == "recovered_from_production_history_redacted"]
     unmapped = [row for row in rows if row["mapping_status"] == "unmapped"]
-    if len(current_mappings) != 6 or len(recovered) + len(redacted) != 68 or len(unmapped) != 0:
+    if len(current_mappings) != 7 or len(recovered) + len(redacted) != 68 or len(unmapped) != 0:
         raise AssertionError(
-            f"Expected 6 current-file mappings, 68 production-body archives (exact or redacted), and 0 unmapped rows; "
+            f"Expected 7 current-file mappings, 68 production-body archives (exact or redacted), and 0 unmapped rows; "
             f"found {len(current_mappings)} / {len(recovered) + len(redacted)} / {len(unmapped)}"
         )
     if {row["production_version"] for row in redacted} != EXPECTED_REDACTED:

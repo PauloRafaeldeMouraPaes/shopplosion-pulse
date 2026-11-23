@@ -2,7 +2,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { deterministicCandidate, deterministicCandidates, isGoodEvidenceQuote, isGenericSummary, isRelevantSignal, shouldRecordSignalEvent, signalEventDirection } from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
+import * as quality from "../supabase/functions/pulse-external-signal-worker/quality.mjs";
+const { isGenericSummary, shouldRecordSignalEvent, signalEventDirection, normalizeTopicTerms, topicMentions } = quality;
+// The workers read the topic terms from industries.signal_topic_terms. These are the terms the pilot industry gets in
+// migration 013; the assertions below that predate the column keep running against them.
+const CHOCOLATE_TERMS = ["chocolate", "cacau", "pascoa", "bombom", "bombon", "confeit", "achocolatad"];
+const deterministicCandidate = (item, terms = CHOCOLATE_TERMS) => quality.deterministicCandidate(item, terms);
+const deterministicCandidates = (item, terms = CHOCOLATE_TERMS) => quality.deterministicCandidates(item, terms);
+const isGoodEvidenceQuote = (quote, content, terms = CHOCOLATE_TERMS) => quality.isGoodEvidenceQuote(quote, content, terms);
+const isRelevantSignal = (args) => quality.isRelevantSignal({ topicTerms: CHOCOLATE_TERMS, ...args });
 
 const abicab = {
   id: "abicab-item",
@@ -128,7 +136,7 @@ assert.match(sourceWorker, /const namedDate=bodyText\.match/ , "HTML capture sho
 assert.match(sourceWorker, /\(\?:de\\s\+\)\?\(janeiro/, "Portuguese dates with the preposition de should be parsed");
 assert.match(sourceWorker, /janeiro.*fevereiro.*março.*julho/, "Portuguese month-name date parsing must cover the calendar");
 assert.match(sourceWorker, /descoberta.*items=items\.filter/, "discovery feeds must filter out articles unrelated to the pilot category");
-assert.match(sourceWorker, /chocolate\|cacau\|p\[aá\]scoa\|doces\|confeitaria\|achocolatado/, "discovery feeds should retain category-relevant articles only");
+assert.match(sourceWorker, /descoberta[\s\S]{0,60}topicTermsFor\(s\.industry_id\)[\s\S]{0,60}onTopic\(/, "discovery feeds should retain only articles on the topic of the industry");
 
 console.log("External signal evidence quality: PASS");
 
@@ -143,3 +151,32 @@ assert.equal(isRelevantSignal({ confidence: 0.65, text: "A produção de chocola
 assert.match(signalWorker, /isRelevantSignal\(/, "the signal worker must apply the relevance gate before writing");
 assert.match(backstopWorker, /isRelevantSignal\(/, "the backstop must apply the relevance gate before writing");
 console.log("Signal relevance gate: PASS");
+
+// ---- Topic per industry: nothing in the workers names a category ----
+assert.deepEqual(normalizeTopicTerms(["Páscoa", " CACAU ", "ab", "cacau", null]), ["pascoa", "cacau"], "terms are compared without accents or case; too short or empty terms are ignored");
+assert.equal(topicMentions("A Páscoa e a PASCOA: confeitaria e achocolatados.", CHOCOLATE_TERMS), 4, "a term matches anywhere in a word");
+// The same article, read for two industries.
+const coffeeTerms = ["cafe", "capsula"];
+const coffeeItem = { id: "coffee", content: "O consumo de café em cápsula cresceu 12% em 2025, contra 8% em 2024." };
+assert.ok(quality.deterministicCandidate(coffeeItem, coffeeTerms), "a quantified change on the topic of the industry is a candidate");
+assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "O consumo de café em cápsula cresceu 12% em 2025.", sourceTitle: "", sourceContent: "", topicTerms: coffeeTerms }), true, "on topic for the coffee industry");
+assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "O consumo de café em cápsula cresceu 12% em 2025.", sourceTitle: "", sourceContent: "", topicTerms: CHOCOLATE_TERMS }), false, "the same signal is off topic for the chocolate industry");
+assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "A produção de chocolates avançou de 806 mil toneladas para 814 mil toneladas.", sourceTitle: "", sourceContent: "", topicTerms: coffeeTerms }), false, "a chocolate signal is off topic for the coffee industry");
+assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "Lançamentos passaram de 94 para 134.", sourceTitle: "Setor projeta crescimento", sourceContent: "O café torrado avançou. A cápsula de café ganhou espaço.", topicTerms: coffeeTerms }), true, "two mentions in the source text are enough");
+assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "Lançamentos passaram de 94 para 134.", sourceTitle: "Setor projeta crescimento", sourceContent: "O café torrado avançou.", topicTerms: coffeeTerms }), false, "one mention in the source text is not enough");
+// An industry that declared no topic receives nothing.
+for (const none of [undefined, null, [], ["", "a"]]) {
+  assert.equal(quality.isRelevantSignal({ confidence: 0.9, text: "A produção de chocolates avançou de 806 para 814 mil toneladas.", sourceTitle: "Chocolate", sourceContent: "chocolate chocolate", topicTerms: none }), false, "no topic terms: the gate is closed");
+}
+// A topic word alone, with a number, is still a usable quote; without topic terms it needs a market word or unit.
+assert.equal(quality.isGoodEvidenceQuote("O bombom recheado passou a representar 31% das unidades da linha.", "O bombom recheado passou a representar 31% das unidades da linha.", CHOCOLATE_TERMS), true);
+assert.equal(quality.isGoodEvidenceQuote("O bombom recheado passou a representar 31% das unidades da linha.", "O bombom recheado passou a representar 31% das unidades da linha.", []), false);
+
+for (const [name, source] of [["quality.mjs", primaryQuality], ["signal worker", signalWorker], ["backstop", backstopWorker], ["source worker", readFileSync(resolve(root, "supabase/functions/pulse-external-source-worker/index.ts"), "utf8")]]) {
+  assert.doesNotMatch(source, /chocolate|cacau|p\[a[áa]\]scoa|bombo|achocolat/i, `${name} must not name a category: the topic comes from industries.signal_topic_terms`);
+  if (name !== "quality.mjs") assert.match(source, /signal_topic_terms/, `${name} must read the topic terms of the industry`);
+}
+const migration013 = readFileSync(resolve(root, "supabase/migrations/013_industry_signal_topic_terms.sql"), "utf8");
+assert.ok(migration013.includes("ARRAY[" + CHOCOLATE_TERMS.map((t) => `'${t}'`).join(",") + "]"), "the pilot industry gets exactly the terms these tests use");
+assert.deepEqual(normalizeTopicTerms(CHOCOLATE_TERMS), CHOCOLATE_TERMS, "stored terms are already lower case without accents");
+console.log("Topic per industry: PASS");
