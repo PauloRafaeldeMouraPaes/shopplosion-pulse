@@ -79,12 +79,15 @@
     },
     {
       "slug": "pulse-external-source-worker",
-      "version": 6,
+      "version": 7,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "efc91128ea25319e7d7c883a2573526a502c2ab9324b1e4778e4f70a323d735e",
+      "deployed_sha256": "2b88ef5605b5eff15c04e571ba24dd9a9fa85b342b9cd90bc419c9bd04169e26",
       "source_path": "supabase/functions/pulse-external-source-worker/index.ts",
-      "auth": "internal_worker_token"
+      "auth": "internal_worker_token",
+      "deployment_drift": false,
+      "drift_reason": "",
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45178411898 from 96956291 (2026-11-23)"
     },
     {
       "slug": "pulse-external-signal-worker",
