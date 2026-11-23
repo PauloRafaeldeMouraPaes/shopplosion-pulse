@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 "use strict";
-/* Chocolate pilot autonomy rules, version 1 (docs/pilot-chocolate/capture-kit/autonomy-rules-v1.md).
+/* Category pilot autonomy rules, version 1 (autonomy-rules-v1.md in the capture kit of each pilot).
+   The same rules run for every pilot registered in pilots.json; nothing here names a category.
 
    The pilot was first designed with a human "accept" at every gate. On 2026-11-04 Paulo decided the Pulse must run
    without him validating each step, so the gates became rules applied by this script. It reads only checked-in
    files, never downloads anything, and changes exactly three kinds of row:
 
-   1. Google Trends slots (trends-export-status-2026-10-15.csv) with qa_status = pending_review: the slot becomes
+   1. Google Trends slots (trends.status_file of the pilot) with qa_status = pending_review: the slot becomes
       auto_accepted when the parser says VALID for the registered slot and the term screen runs; any FLAGGED term is
       copied into the notes as a limitation (a flag is information, not a rejection). A parser rejection or a missing
       file makes the slot an exception.
@@ -26,7 +27,8 @@
    Everything else is reporting: AUTONOMY_STATUS.md carries the computed state of every gate and the exception queue,
    which is the only thing a person is asked to look at. Idempotent: a second run changes nothing.
 
-   Usage: node scripts/chocolate-pilot-autonomy.js [--check] [--today YYYY-MM-DD]
+   Usage: node scripts/pilot-autonomy.js [--pilot <key>] [--check] [--today YYYY-MM-DD]
+     Without --pilot the script runs once for each registered pilot.
      --check  write nothing; exit 1 when a pending row is older than 7 days, a decided row contradicts the rules,
               or AUTONOMY_STATUS.md is stale (CI mode). */
 const fs = require("node:fs");
@@ -35,7 +37,19 @@ const crypto = require("node:crypto");
 const { spawnSync } = require("node:child_process");
 
 const ROOT = process.cwd();
-const KIT = "docs/pilot-chocolate/capture-kit";
+const { loadPilots, getPilot, pilotArg, priceProfile } = require("./lib/pilot-config.js");
+const SCRIPT = "scripts/pilot-autonomy.js";
+if (!pilotArg(process.argv.slice(2))) {
+  // One run per registered pilot; the exit code is the worst of them.
+  let worst = 0;
+  for (const p of loadPilots(ROOT)) {
+    const r = spawnSync(process.execPath, [__filename, "--pilot", p.key, ...process.argv.slice(2)], { stdio: "inherit" });
+    worst = Math.max(worst, r.status === null ? 1 : r.status);
+  }
+  process.exit(worst);
+}
+const PILOT = getPilot(pilotArg(process.argv.slice(2)), ROOT);
+const KIT = PILOT.kit;
 const RULES_VERSION = "auto-rule v1";
 const DAY = 86400000;
 
@@ -74,7 +88,7 @@ function change(file, what) { changes.push(`${file}: ${what}`); }
 function exception(where, what, action) { exceptions.push({ where, what, action }); }
 
 // ---------- 1. Google Trends slots ----------
-const trendsFile = `${KIT}/trends-export-status-2026-10-15.csv`;
+const trendsFile = `${KIT}/${PILOT.trends.status_file}`;
 const trends = readCsv(trendsFile);
 let trendsDirty = false;
 for (const row of trends.records) {
@@ -84,7 +98,7 @@ for (const row of trends.records) {
     const parser = spawnSync(process.execPath, ["scripts/parse-google-trends-export.js", "--export-id", row.export_id, "--file", file, "--exported-at", row.exported_at_utc], { encoding: "utf8", cwd: ROOT });
     const valid = parser.status === 0 && /VALID/.test(parser.stdout + parser.stderr);
     if (!valid) { exception(`${trendsFile} ${row.export_id}`, "parser rejected the export: " + (parser.stdout + parser.stderr).split("\n").filter(l => /REJECTED|error/i.test(l)).join(" | ").slice(0, 300), "fix the capture or the registration before anything else uses it"); continue; }
-    const screen = spawnSync(process.execPath, ["scripts/trends-term-screen.js", "--file", file, "--exported-at", row.exported_at_utc], { encoding: "utf8", cwd: ROOT });
+    const screen = spawnSync(process.execPath, ["scripts/trends-term-screen.js", "--pilot", PILOT.key, "--file", file, "--exported-at", row.exported_at_utc], { encoding: "utf8", cwd: ROOT });
     if (screen.status !== 0) { exception(`${trendsFile} ${row.export_id}`, "term screen could not run: " + (screen.stdout + screen.stderr).slice(0, 200), "inspect the file"); continue; }
     const flagged = (screen.stdout.match(/^\s*FLAGGED\s+(.+)$/gm) || []).map(l => l.replace(/^\s*FLAGGED\s+/, "").trim());
     row.qa_status = "auto_accepted";
@@ -153,7 +167,7 @@ const retail = retailFiles.map(f => ({ rel: `${KIT}/${f}`, csv: readCsv(`${KIT}/
 const norm = s => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9%]+/g, " ").trim();
 // Product identity across captures: same net weight and brand, and the name tokens of one capture contain the
 // other's or overlap by at least 60% (retailers add or drop words such as "Pacote" or "Ao Leite" between visits).
-const tokens = s => new Set(norm(s).split(" ").filter(t => t && !["pacote", "barra", "tablete", "chocolate", "de", "com"].includes(t)));
+const tokens = s => new Set(norm(s).split(" ").filter(t => t && !PILOT.retail.name_stopwords.includes(t)));
 const sameProduct = (a, b) => {
   if ((a.net_weight_g || "") !== (b.net_weight_g || "") || norm(a.brand) !== norm(b.brand)) return false;
   const ta = tokens(a.product_name), tb = tokens(b.product_name);
@@ -224,14 +238,14 @@ const gates = [
     : `started on NFC-e prices (${nfceLast.places.join(", ")}): ${nfceWeeks.length} weekly captures since the week of ${nfceWeeks[0]}`],
 ];
 const status = [
-  `# Chocolate pilot: autonomy status (${RULES_VERSION}, computed ${TODAY})`, "",
-  "Generated by `scripts/chocolate-pilot-autonomy.js`. Rules: `autonomy-rules-v1.md`. Nothing here waits for a person except the exception queue.", "",
+  `# ${PILOT.status_title}: autonomy status (${RULES_VERSION}, computed ${TODAY})`, "",
+  "Generated by `" + SCRIPT + "`. Rules: `autonomy-rules-v1.md`. Nothing here waits for a person except the exception queue.", "",
   "## Gates (computed)", "", "| Gate | State |", "|---|---|", ...gates.map(([g, s]) => `| ${g} | ${s} |`), "",
   "## Exception queue", "",
   ...(exceptions.length ? ["| Where | What | Action |", "|---|---|---|", ...exceptions.map(e => `| ${e.where} | ${e.what} | ${e.action} |`)] : ["(empty)"]), "",
   "## Last run", "", ...(changes.length ? changes.map(c => `- ${c}`) : ["- no changes"]), "",
 ].join("\n");
-// ---------- 5. Machine-readable status for pilot-chocolate.html ----------
+// ---------- 5. Machine-readable status for the page of the pilot ----------
 // Same facts as AUTONOMY_STATUS.md, no run date, so CI can require it to be current (--check).
 const median = xs => { const a = xs.filter(Number.isFinite).sort((x, y) => x - y); if (!a.length) return null; const m = Math.floor(a.length / 2); return Math.round((a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2) * 100) / 100; };
 const nfceSummary = nfce.map(c => ({ capture_date: c.day, week_of: c.monday, observations: c.rows, ean: c.eans, stores: c.stores, municipalities: c.places,
@@ -246,24 +260,24 @@ if (nfceLast) {
     median_unit_price_brl: median(g.prices), min_unit_price_brl: Math.min(...g.prices.filter(Number.isFinite)), max_unit_price_brl: Math.max(...g.prices.filter(Number.isFinite)) }));
 }
 const pilotStatus = {
-  generated_by: "scripts/chocolate-pilot-autonomy.js", rules: RULES_VERSION,
+  generated_by: SCRIPT, pilot: { key: PILOT.key, label: PILOT.label }, rules: RULES_VERSION,
   baseline: { state: !nfceLast && retailWithEan === 0 ? "not_started" : nfceWeeks.length < BASELINE_WEEKS ? "collecting" : "started", weeks_with_capture: nfceWeeks.length, weeks_required: BASELINE_WEEKS, weeks: nfceWeeks },
   trends_slots: slotCounts, review_decisions: decisionCounts,
   retail_pages: { listings: retailListings, retailers: retailers.size, with_ean: retailWithEan, reproduced: retailReproduced },
-  nfce: { source: "Economiza Alagoas (SEFAZ/AL), página pública", scope: "Maceió, vendas dos últimos 7 dias antes de cada captura; preço praticado, não volume", captures: nfceSummary,
+  nfce: { source: PILOT.nfce.source, scope: PILOT.nfce.scope, captures: nfceSummary,
     latest_top_ean_by_stores: topEan },
   exception_queue: exceptions.filter(e => !/status (page|file) is stale/.test(e.what)).map(e => ({ where: e.where, what: e.what })),
 };
 const pilotStatusText = JSON.stringify(pilotStatus, null, 1) + "\n";
-const pilotStatusPath = path.resolve(ROOT, "pilot-chocolate-status.json");
-if (CHECK && (!fs.existsSync(pilotStatusPath) || fs.readFileSync(pilotStatusPath, "utf8") !== pilotStatusText)) exception("pilot-chocolate-status.json", "status file is stale", "run the autonomy script and commit the result");
+const pilotStatusPath = path.resolve(ROOT, PILOT.status_file);
+if (CHECK && (!fs.existsSync(pilotStatusPath) || fs.readFileSync(pilotStatusPath, "utf8") !== pilotStatusText)) exception(PILOT.status_file, "status file is stale", "run the autonomy script and commit the result");
 
 // ---------- 6. Per-EAN price index for the signed-in price view (app.html#precos) ----------
 // Built only from the two latest NFC-e captures; same reproducibility rule as the status file.
-const { buildPriceIndex, PROFILES } = require("./lib/pilot-price-index.js");
-const pricesPath = path.resolve(ROOT, "pilot-chocolate-prices.json");
-const pricesText = nfceLast ? JSON.stringify(buildPriceIndex(nfceLast, nfce.length > 1 ? nfce[nfce.length - 2] : null, PROFILES.chocolate)) + "\n" : null;
-if (CHECK && pricesText && (!fs.existsSync(pricesPath) || fs.readFileSync(pricesPath, "utf8") !== pricesText)) exception("pilot-chocolate-prices.json", "status file is stale", "run the autonomy script and commit the result");
+const { buildPriceIndex } = require("./lib/pilot-price-index.js");
+const pricesPath = path.resolve(ROOT, PILOT.prices_file);
+const pricesText = nfceLast ? JSON.stringify(buildPriceIndex(nfceLast, nfce.length > 1 ? nfce[nfce.length - 2] : null, priceProfile(PILOT, SCRIPT))) + "\n" : null;
+if (CHECK && pricesText && (!fs.existsSync(pricesPath) || fs.readFileSync(pricesPath, "utf8") !== pricesText)) exception(PILOT.prices_file, "status file is stale", "run the autonomy script and commit the result");
 
 const statusPath = path.resolve(ROOT, KIT, "AUTONOMY_STATUS.md");
 if (CHECK) {

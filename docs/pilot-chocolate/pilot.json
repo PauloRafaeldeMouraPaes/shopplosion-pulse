@@ -1,0 +1,339 @@
+{
+ "key": "chocolate",
+ "label": "Chocolate",
+ "about": "Category pilot configuration. Everything a script needs to know about this category lives here: no script names a category.",
+ "kit": "docs/pilot-chocolate/capture-kit",
+ "status_file": "pilot-chocolate-status.json",
+ "prices_file": "pilot-chocolate-prices.json",
+ "page": "pilot-chocolate.html",
+ "status_title": "Chocolate pilot",
+ "nfce": {
+  "source": "Economiza Alagoas (SEFAZ/AL), página pública",
+  "scope": "Maceió, vendas dos últimos 7 dias antes de cada captura; preço praticado, não volume",
+  "terms_file": "economiza-alagoas-terms.csv",
+  "keep_pattern": "CHOC|BOMB|TRUFA|CACAU|OVO\\s+(DE\\s+)?PASC|OURO\\s*BRANCO|\\bO\\s*BRANCO\\b|SONHO\\s+DE\\s+VALSA|SONHO\\s+VALS|DIAMANTE\\s+NEGRO|\\bLAKA\\b|TALENTO|SERENATA|BATON|PRESTIGIO|CHARGE|KIT\\s*KAT|\\bBIS\\b|5\\s*STAR|FERRERO|LINDT|LINDOR|KINDER|TORTUGUITA|SUFLAIR|ALPINO|CLASSIC\\b",
+  "drop_pattern": "BEB(IDA)?\\b|ACHOC|NESCAU|TODDY|LEITE\\s+(UHT|LONGA|INTEGRAL|DESNAT)|\\bLT\\b|\\d\\s*L\\b|1,5L|SORV|PICOL|BISC|COOKIE|WAFER\\s+RECH|TRAKINAS|BOLO|IOGUR|\\bPO\\b|EM\\s+PO|CEREAL|SUCRILHOS|ROSQ|PANETONE|CHOCOTONE|CAPPUC|MOUSSE|PUDIM|DANONE|DANETTE|CALDA|COBERT|GRANULADO",
+  "keep_note": "Kept: chocolate confectionery. A description is kept when it names chocolate or a chocolate product line and is not a drink, ice cream, biscuit, cake, yoghurt or powder."
+ },
+ "retail": {
+  "name_stopwords": [
+   "pacote",
+   "barra",
+   "tablete",
+   "chocolate",
+   "de",
+   "com"
+  ],
+  "snapshot_registry": "public-retail-snapshot-2026-10-14.csv"
+ },
+ "trends": {
+  "status_file": "trends-export-status-2026-10-15.csv",
+  "required_exports": [
+   "GT-CHOC-A-5Y",
+   "GT-CHOC-A-12M",
+   "GT-CHOC-B-5Y",
+   "GT-CHOC-B-12M"
+  ],
+  "seasonal_calendar": {
+   "note": "The term screen expects demand of this category to peak in the anchor week. Weeks are offsets from the week of each event.",
+   "anchor": {
+    "name": "easter",
+    "event": "easter",
+    "shift_weeks": -1
+   },
+   "peak_windows": [
+    {
+     "event": "easter",
+     "shift_weeks": -1,
+     "weeks": [
+      -1,
+      0,
+      1
+     ]
+    },
+    {
+     "event": "date",
+     "month": 12,
+     "day": 24,
+     "weeks": [
+      -1,
+      0
+     ]
+    }
+   ],
+   "band": [
+    {
+     "event": "easter",
+     "shift_weeks": -1,
+     "weeks": [
+      -3,
+      -2,
+      -1,
+      0,
+      1
+     ]
+    },
+    {
+     "event": "date",
+     "month": 12,
+     "day": 24,
+     "weeks": [
+      -3,
+      -2,
+      -1,
+      0
+     ]
+    }
+   ]
+  },
+  "export_id_prefix": "GT-CHOC",
+  "capture": {
+   "note": "Views repeated every week by the weekly cycle. File name: <export_id_prefix>-<set>-<window>-W<Monday of the ISO week>.csv. Windows: 5Y = today 5-y, 12M = today 12-m.",
+   "geo": "BR",
+   "category": 0,
+   "property": "web",
+   "sets": [
+    {
+     "set": "A",
+     "windows": [
+      "5Y",
+      "12M"
+     ],
+     "terms": [
+      "chocolate",
+      "barra de chocolate",
+      "chocolate amargo",
+      "chocolate ao leite",
+      "chocolate sem açúcar"
+     ]
+    },
+    {
+     "set": "B2",
+     "windows": [
+      "5Y",
+      "12M"
+     ],
+     "terms": [
+      "Lindt",
+      "Lacta",
+      "chocolate garoto + bombom garoto + barra garoto",
+      "chocolate nestlé + chocolate nestle + bombom nestlé + bombom nestle + barra nestlé + barra nestle",
+      "Ferrero Rocher"
+     ]
+    },
+    {
+     "set": "ISO",
+     "windows": [
+      "5Y"
+     ],
+     "each_term_alone": true,
+     "terms": [
+      "chocolate amargo",
+      "chocolate ao leite",
+      "chocolate sem açúcar"
+     ]
+    }
+   ]
+  }
+ },
+ "price_index": {
+  "benchmark": {
+   "label": "Tabletes de 70 g a 120 g",
+   "minGrams": 70,
+   "maxGrams": 120,
+   "minObservations": 15
+  },
+  "brand_rules": [
+   [
+    "\\bLINDT\\b|\\bLINDOR\\b",
+    "Lindt",
+    "Lindt & Sprüngli"
+   ],
+   [
+    "\\bFERRERO\\b",
+    "Ferrero Rocher",
+    "Ferrero"
+   ],
+   [
+    "\\bRAFFAELLO\\b",
+    "Raffaello",
+    "Ferrero"
+   ],
+   [
+    "\\bKINDER\\b",
+    "Kinder",
+    "Ferrero"
+   ],
+   [
+    "\\bHERSHE",
+    "Hershey's",
+    "Hershey"
+   ],
+   [
+    "\\bKIT ?KAT\\b",
+    "KitKat",
+    "Nestlé"
+   ],
+   [
+    "\\bPRESTIGIO\\b",
+    "Prestígio",
+    "Nestlé"
+   ],
+   [
+    "\\bCHOKITO\\b",
+    "Chokito",
+    "Nestlé"
+   ],
+   [
+    "\\bALPINO\\b",
+    "Alpino",
+    "Nestlé"
+   ],
+   [
+    "\\bCRUNCH\\b",
+    "Crunch",
+    "Nestlé"
+   ],
+   [
+    "\\bGALAK\\b",
+    "Galak",
+    "Nestlé"
+   ],
+   [
+    "\\bCHARGE\\b",
+    "Charge",
+    "Nestlé"
+   ],
+   [
+    "\\bSUFLAIR\\b",
+    "Suflair",
+    "Nestlé"
+   ],
+   [
+    "\\bBATON\\b|\\bBATOM\\b",
+    "Baton",
+    "Garoto (grupo Nestlé)"
+   ],
+   [
+    "\\bSERENATA\\b",
+    "Serenata de Amor",
+    "Garoto (grupo Nestlé)"
+   ],
+   [
+    "\\bTALENTO\\b",
+    "Talento",
+    "Garoto (grupo Nestlé)"
+   ],
+   [
+    "\\bGAROTO\\b",
+    "Garoto",
+    "Garoto (grupo Nestlé)"
+   ],
+   [
+    "\\bSONHO DE VALSA\\b",
+    "Sonho de Valsa",
+    "Mondelez (Lacta)"
+   ],
+   [
+    "\\bOURO BRANCO\\b",
+    "Ouro Branco",
+    "Mondelez (Lacta)"
+   ],
+   [
+    "\\bDIAMANTE NEGRO\\b",
+    "Diamante Negro",
+    "Mondelez (Lacta)"
+   ],
+   [
+    "\\bLAKA\\b",
+    "Laka",
+    "Mondelez (Lacta)"
+   ],
+   [
+    "\\bBIS\\b",
+    "Bis",
+    "Mondelez (Lacta)"
+   ],
+   [
+    "\\bLACTA\\b",
+    "Lacta",
+    "Mondelez (Lacta)"
+   ],
+   [
+    "\\bMILKA\\b",
+    "Milka",
+    "Mondelez"
+   ],
+   [
+    "\\bTOBLERONE\\b",
+    "Toblerone",
+    "Mondelez"
+   ],
+   [
+    "\\bNESTLE\\b",
+    "Nestlé",
+    "Nestlé"
+   ],
+   [
+    "\\bM ?& ?M\\b|\\bMMS\\b",
+    "M&M's",
+    "Mars"
+   ],
+   [
+    "\\bSNICKERS\\b",
+    "Snickers",
+    "Mars"
+   ],
+   [
+    "\\bTWIX\\b",
+    "Twix",
+    "Mars"
+   ],
+   [
+    "\\bTORTUGUITA\\b",
+    "Tortuguita",
+    "Arcor"
+   ],
+   [
+    "\\bARCOR\\b",
+    "Arcor",
+    "Arcor"
+   ],
+   [
+    "\\bMELKEN\\b",
+    "Melken",
+    "Harald"
+   ],
+   [
+    "\\bHARALD\\b",
+    "Harald",
+    "Harald"
+   ],
+   [
+    "\\bSICAO\\b",
+    "Sicao",
+    "Barry Callebaut"
+   ],
+   [
+    "\\bCACAU SHOW\\b",
+    "Cacau Show",
+    "Cacau Show"
+   ],
+   [
+    "\\bNEUGEBAUER\\b",
+    "Neugebauer",
+    "Neugebauer"
+   ],
+   [
+    "\\bMONTEVERGINE\\b",
+    "Montevérgine",
+    "Montevérgine"
+   ],
+   [
+    "\\bDORI\\b",
+    "Dori",
+    "Dori"
+   ]
+  ]
+ }
+}

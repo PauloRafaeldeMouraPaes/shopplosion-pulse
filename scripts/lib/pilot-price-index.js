@@ -1,10 +1,10 @@
 "use strict";
 /* Per-EAN price index of a category pilot, built only from the NFC-e captures (Economiza Alagoas, SEFAZ/AL).
-   Nothing in the computation is specific to a category: what changes per category is its profile (PROFILES below),
-   with the rules that read brand and manufacturer from the invoice text and the definition of its benchmark segment.
-   To add a category: add a profile and pass it to buildPriceIndex.
-   Pure functions: no file access, no dates of the run. Used by scripts/chocolate-pilot-autonomy.js, which writes
-   pilot-chocolate-prices.json, and by scripts/test-pilot-price-index.js.
+   Nothing in the computation is specific to a category: what changes per category is its profile, read from the
+   configuration of the pilot (pilot.json): the rules that read brand and manufacturer from the invoice text and the
+   definition of its benchmark segment.
+   Pure functions: no file access, no dates of the run. Used by scripts/pilot-autonomy.js, which writes
+   the price file of each pilot, and by scripts/test-pilot-price-index.js.
 
    What is computed and what is inferred:
    - Observed in the source: EAN, description on the invoice, store (inscrição estadual), price of the last sale.
@@ -18,47 +18,6 @@ const UNIT_RATIO = 2.5;
 const MIN_STORES_FOR_SPREAD = 10;
 const MIN_STORES_FOR_CHANGE = 5;
 
-// Order matters: the first rule that matches wins (product lines before the house brand).
-const CHOCOLATE_BRAND_RULES = [
-  [/\bLINDT\b|\bLINDOR\b/, "Lindt", "Lindt & Sprüngli"],
-  [/\bFERRERO\b/, "Ferrero Rocher", "Ferrero"],
-  [/\bRAFFAELLO\b/, "Raffaello", "Ferrero"],
-  [/\bKINDER\b/, "Kinder", "Ferrero"],
-  [/\bHERSHE/, "Hershey's", "Hershey"],
-  [/\bKIT ?KAT\b/, "KitKat", "Nestlé"],
-  [/\bPRESTIGIO\b/, "Prestígio", "Nestlé"],
-  [/\bCHOKITO\b/, "Chokito", "Nestlé"],
-  [/\bALPINO\b/, "Alpino", "Nestlé"],
-  [/\bCRUNCH\b/, "Crunch", "Nestlé"],
-  [/\bGALAK\b/, "Galak", "Nestlé"],
-  [/\bCHARGE\b/, "Charge", "Nestlé"],
-  [/\bSUFLAIR\b/, "Suflair", "Nestlé"],
-  [/\bBATON\b|\bBATOM\b/, "Baton", "Garoto (grupo Nestlé)"],
-  [/\bSERENATA\b/, "Serenata de Amor", "Garoto (grupo Nestlé)"],
-  [/\bTALENTO\b/, "Talento", "Garoto (grupo Nestlé)"],
-  [/\bGAROTO\b/, "Garoto", "Garoto (grupo Nestlé)"],
-  [/\bSONHO DE VALSA\b/, "Sonho de Valsa", "Mondelez (Lacta)"],
-  [/\bOURO BRANCO\b/, "Ouro Branco", "Mondelez (Lacta)"],
-  [/\bDIAMANTE NEGRO\b/, "Diamante Negro", "Mondelez (Lacta)"],
-  [/\bLAKA\b/, "Laka", "Mondelez (Lacta)"],
-  [/\bBIS\b/, "Bis", "Mondelez (Lacta)"],
-  [/\bLACTA\b/, "Lacta", "Mondelez (Lacta)"],
-  [/\bMILKA\b/, "Milka", "Mondelez"],
-  [/\bTOBLERONE\b/, "Toblerone", "Mondelez"],
-  [/\bNESTLE\b/, "Nestlé", "Nestlé"],
-  [/\bM ?& ?M\b|\bMMS\b/, "M&M's", "Mars"],
-  [/\bSNICKERS\b/, "Snickers", "Mars"],
-  [/\bTWIX\b/, "Twix", "Mars"],
-  [/\bTORTUGUITA\b/, "Tortuguita", "Arcor"],
-  [/\bARCOR\b/, "Arcor", "Arcor"],
-  [/\bMELKEN\b/, "Melken", "Harald"],
-  [/\bHARALD\b/, "Harald", "Harald"],
-  [/\bSICAO\b/, "Sicao", "Barry Callebaut"],
-  [/\bCACAU SHOW\b/, "Cacau Show", "Cacau Show"],
-  [/\bNEUGEBAUER\b/, "Neugebauer", "Neugebauer"],
-  [/\bMONTEVERGINE\b/, "Montevérgine", "Montevérgine"],
-  [/\bDORI\b/, "Dori", "Dori"],
-];
 
 const plain = t => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
 const round2 = n => (Number.isFinite(n) ? Math.round(n * 100) / 100 : null);
@@ -134,16 +93,10 @@ function describe(observations, rules) {
   return { description: mostCommon(withGrams.length ? withGrams : texts), brand, manufacturer, grams: grams ? parseFloat(grams) : null };
 }
 
-/* One profile per category. benchmark: a segment of comparable items (by weight) whose price per 100 g is compared
-   across manufacturers. */
-const PROFILES = {
-  chocolate: {
-    key: "chocolate", label: "Chocolate", generatedBy: "scripts/chocolate-pilot-autonomy.js",
-    brandRules: CHOCOLATE_BRAND_RULES,
-    benchmark: { label: "Tabletes de 70 g a 120 g", minGrams: 70, maxGrams: 120, minObservations: 15 },
-  },
-};
-
+/* profile: { key, label, generatedBy, brandRules: [[RegExp, brand, manufacturer]], benchmark: { label, minGrams,
+   maxGrams, minObservations } }. It comes from the configuration of the pilot (scripts/lib/pilot-config.js, priceProfile).
+   In brandRules the order matters: the first rule that matches wins (product lines before the house brand).
+   benchmark: a segment of comparable items (by weight) whose price per 100 g is compared across manufacturers. */
 function buildPriceIndex(latest, previous, profile) {
   if (!profile || !profile.key || !Array.isArray(profile.brandRules) || !profile.benchmark) throw new Error("buildPriceIndex needs a category profile");
   const bench = profile.benchmark;
@@ -235,4 +188,4 @@ function buildPriceIndex(latest, previous, profile) {
   };
 }
 
-module.exports = { buildPriceIndex, PROFILES, inferBrand, inferGrams, quantile, observationsByEan, eanStats, describe, UNIT_RATIO };
+module.exports = { buildPriceIndex, inferBrand, inferGrams, quantile, observationsByEan, eanStats, describe, UNIT_RATIO };

@@ -1,5 +1,7 @@
 # Chocolate pilot — capture kit (pre-production)
 
+Configuration of this pilot: `docs/pilot-chocolate/pilot.json` (registered in `pilots.json`). Everything specific to the category (NFC-e search terms and description filter, Trends views and seasonal calendar, retail stopwords, price brand rules and benchmark) is there; the scripts are shared by every pilot. `scripts/chocolate-pilot-autonomy.js` became `scripts/pilot-autonomy.js` and `scripts/test-chocolate-capture-kit-integrity.js` became `scripts/test-pilot-capture-kit-integrity.js` on 2026-11-23.
+
 Status: **pre-production; exploratory public-source observations captured**. This directory includes dated secondary-source notes and one-day public retail listing snapshots. Filenames use São Paulo local capture date 2026-10-14; UTC-date fields use 2026-10-15. Exact capture clock times were not recorded. These are preliminary observations, not a validated trend or a started four-week baseline.
 
 ## Files

@@ -56,6 +56,8 @@
   };
   const plain = v => String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const category = key => CATEGORIES.find(c => c.key === key) || null;
+  // Evidence about one registered category; everything else describes the shopper as a whole.
+  const isCategoryEvidence = e => !!(e && CATEGORIES.some(c => c.key === e.categoria));
   // Categories of the registry that have at least one evidence item in the given base, in registry order.
   const categoriesIn = evidence => CATEGORIES.filter(c => (Array.isArray(evidence) ? evidence : []).some(e => e && e.categoria === c.key));
   // The category a typed question names, by the registry terms; null when it names none.
@@ -71,8 +73,10 @@
   function setActiveCategory(key) { if (!category(key)) return false; try { if (typeof localStorage !== 'undefined') localStorage.setItem(STORE_KEY, key); } catch (e) { /* storage is a convenience */ } return true; }
   const entry = e => MAP[String(e && e.id)] || (e && CONTEXT_TYPES.includes(e.tipo) ? { q: [], level: 'mercado' } : null);
 
-  /* For one category ("chocolate") against everything else: per question, the evidence that speaks to it,
-     the strongest level among them and the most recent period text. No evidence is a result, not an error. */
+  /* Two layers per question: `general`, the shopper as a whole (evidence that is not about any registered category),
+     and `category`, what is specific to the category read. Evidence of another registered category is in neither:
+     it is not about the shopper in general and not about this category. Each cell keeps the evidence that speaks to
+     the question, the strongest level among them and their periods. No evidence is a result, not an error. */
   function coverage(evidence, category) {
     const rows = (Array.isArray(evidence) ? evidence : []).map(e => ({ e, m: entry(e) })).filter(x => x.m);
     const cell = list => {
@@ -83,7 +87,7 @@
     };
     return QUESTIONS.map(question => {
       const hit = rows.filter(x => x.m.q.includes(question.key));
-      return { ...question, category: cell(hit.filter(x => x.e.categoria === category)), general: cell(hit.filter(x => x.e.categoria !== category)) };
+      return { ...question, general: cell(hit.filter(x => !isCategoryEvidence(x.e))), category: cell(hit.filter(x => x.e.categoria === category)) };
     });
   }
 
@@ -134,5 +138,5 @@
     return { text, ordered: ordered.map(x => x.e) };
   }
 
-  return { QUESTIONS, CATEGORIES, LEVELS, LEVEL_ORDER, CONTEXT_TYPES, MAP, entry, coverage, classify, reading, category, categoriesIn, categoryOf, activeCategory, setActiveCategory };
+  return { QUESTIONS, CATEGORIES, isCategoryEvidence, LEVELS, LEVEL_ORDER, CONTEXT_TYPES, MAP, entry, coverage, classify, reading, category, categoriesIn, categoryOf, activeCategory, setActiveCategory };
 });

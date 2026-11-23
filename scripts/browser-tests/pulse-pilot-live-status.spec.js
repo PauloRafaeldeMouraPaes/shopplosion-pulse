@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 /* The "Estado atual" section of pilot-chocolate.html renders pilot-chocolate-status.json, which
-   scripts/chocolate-pilot-autonomy.js writes and CI keeps current. The page must show the same numbers. */
+   scripts/pilot-autonomy.js writes and CI keeps current. The page must show the same numbers. */
 test('pilot-chocolate.html: Estado atual mostra os números do arquivo de estado', async ({ page }) => {
   const d = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'pilot-chocolate-status.json'), 'utf8'));
   const errors = []; page.on('pageerror', e => errors.push(e.message));

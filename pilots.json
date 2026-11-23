@@ -1,0 +1,6 @@
+{
+ "about": "Registry of category pilots. Each entry is the path of a pilot configuration. To add a category pilot, add its pilot.json here.",
+ "pilots": [
+  "docs/pilot-chocolate/pilot.json"
+ ]
+}
