@@ -17,18 +17,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Validate Chocolate capture-kit artifact integrity
-        run: node scripts/test-chocolate-capture-kit-integrity.js
+      - name: Validate the capture kit of every registered pilot
+        run: node scripts/test-pilot-capture-kit-integrity.js
       - name: Test Google Trends export parser (synthetic fixtures only)
         run: node scripts/test-parse-google-trends-export.js
       - name: Test Google Trends term screen (synthetic series)
         run: node scripts/trends-term-screen.js --self-test
-      - name: Chocolate pilot autonomy rules (check mode)
-        run: node scripts/chocolate-pilot-autonomy.js --check
+      - name: Pilot autonomy rules, every registered pilot (check mode)
+        run: node scripts/pilot-autonomy.js --check
       - name: Test the pilot price index (invented rows, a second invented category and the committed file)
         run: node scripts/test-pilot-price-index.js
       - name: Test the shopper question map (every public evidence item classified)
         run: node scripts/test-shopper-map.js
+      - name: No category fixed in logic (categories and pilots only in configuration)
+        run: node scripts/test-no-fixed-category.js
       - name: Test the IBGE PMC evidence generator (offline, from the saved captures)
         run: python3 scripts/test-update-ibge-pmc-evidence.py
       - name: Test the IBGE IPCA evidence generator (offline, from the saved captures)

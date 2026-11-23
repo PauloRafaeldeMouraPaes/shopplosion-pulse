@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Weekly capture of chocolate prices with EAN from Economiza Alagoas (SEFAZ/AL), free and public.
+"""Weekly capture of prices with EAN of one category pilot from Economiza Alagoas (SEFAZ/AL), free and public.
+
+The category comes from the configuration of the pilot (pilots.json, then its pilot.json): the search terms file and
+the description filter. Nothing in this script names a category.
 
 Economiza Alagoas publishes prices of real sales taken from consumer electronic invoices (NFC-e) in Alagoas, per
 product barcode (GTIN/EAN) and per store. The official JSON API needs a token tied to a person's CPF; the owner
@@ -7,20 +10,22 @@ decided on 2026-11-11 not to request it, so this script reads only the public co
 the site offers any visitor without registration, with deliberate restraint:
 
 * one request at a time, a pause of PAUSE_SECONDS between requests, a User-Agent that identifies the Pulse;
-* only the terms in docs/pilot-chocolate/capture-kit/economiza-alagoas-terms.csv, once a week;
+* only the terms in the terms file of the pilot (nfce.terms_file in its capture kit), once a week;
 * only the food category page of each term (GPC segment 50000000), never a crawl of the site;
 * stop on any HTTP error, 403 or 429 included, and record it instead of retrying.
 
 For each request the SHA-256 of the raw bytes is recorded; raw pages are not committed (about 2 MB each).
-Rows kept are the cards whose description is chocolate (regex CHOCOLATE_RE); the rest are counted, not stored.
+Rows kept are the cards whose description passes the filter of the pilot (nfce.keep_pattern and not
+nfce.drop_pattern); the rest are counted, not stored.
 Each card gives: GTIN, description as written on the invoice, "valor unitário" and "última venda" exactly as
 labelled on the page, how long ago the last sale happened, store name and address. Nothing here is a volume,
 a share or a national figure: it is Alagoas, transacted prices, and which stores sold each EAN recently.
 
 Output (UTC capture date in the names):
-  docs/pilot-chocolate/capture-kit/economiza-alagoas-<date>.csv.gz       one row per card kept (gzip, mtime 0)
-  docs/pilot-chocolate/capture-kit/economiza-alagoas-requests-<date>.csv one row per HTTP request (status, bytes, SHA-256)
-Usage: python3 scripts/capture-economiza-alagoas.py [--dry-run] [--from-html term=file ...]
+  <kit>/economiza-alagoas-<date>.csv.gz       one row per card kept (gzip, mtime 0)
+  <kit>/economiza-alagoas-requests-<date>.csv one row per HTTP request (status, bytes, SHA-256)
+Usage: python3 scripts/capture-economiza-alagoas.py [--pilot <key>] [--dry-run] [--from-html term=file ...]
+  --pilot may be left out when a single pilot is registered.
 """
 import argparse
 import csv
@@ -40,33 +45,22 @@ from http.cookiejar import CookieJar
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-KIT = ROOT / "docs/pilot-chocolate/capture-kit"
-TERMS = KIT / "economiza-alagoas-terms.csv"
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+from pilot_config import get_pilot, classifier  # noqa: E402
+
 BASE = "https://economizaalagoas.sefaz.al.gov.br"
 UA = "ShopplosionPulse/1.0 (public price research, weekly, low rate; github.com/PauloRafaeldeMouraPaes/shopplosion-pulse)"
 FOOD_SEGMENT = "50000000"
 PAUSE_SECONDS = 5
-# Kept: chocolate confectionery. A description is kept when it names chocolate or a chocolate product line and is not
-# a drink, ice cream, biscuit, cake, yoghurt or powder. Excluded rows are counted per request, never stored.
-CHOCOLATE_RE = re.compile(r"CHOC|BOMB|TRUFA|CACAU|OVO\s+(DE\s+)?PASC|OURO\s*BRANCO|\bO\s*BRANCO\b|SONHO\s+DE\s+VALSA|SONHO\s+VALS|DIAMANTE\s+NEGRO|\bLAKA\b|"
-                          r"TALENTO|SERENATA|BATON|PRESTIGIO|CHARGE|KIT\s*KAT|\bBIS\b|5\s*STAR|FERRERO|LINDT|LINDOR|KINDER|TORTUGUITA|SUFLAIR|ALPINO|CLASSIC\b", re.I)
-NOT_CHOCOLATE_RE = re.compile(r"BEB(IDA)?\b|ACHOC|NESCAU|TODDY|LEITE\s+(UHT|LONGA|INTEGRAL|DESNAT)|\bLT\b|\d\s*L\b|1,5L|SORV|PICOL|BISC|COOKIE|WAFER\s+RECH|TRAKINAS|BOLO|IOGUR|"
-                              r"\bPO\b|EM\s+PO|CEREAL|SUCRILHOS|ROSQ|PANETONE|CHOCOTONE|CAPPUC|MOUSSE|PUDIM|DANONE|DANETTE|CALDA|COBERT|GRANULADO", re.I)
-
-
-def is_chocolate(desc):
-    return bool(CHOCOLATE_RE.search(desc)) and not NOT_CHOCOLATE_RE.search(desc)
-
-
-def keep_rows(rows):
-    """One decision per GTIN: the same barcode is written differently by each store, so a GTIN is chocolate when
-    most of its descriptions in the run are; rows without a GTIN are decided by their own description."""
+def keep_rows(rows, keep):
+    """One decision per GTIN: the same barcode is written differently by each store, so a GTIN is kept when most of
+    its descriptions in the run pass the filter of the pilot (keep); rows without a GTIN are decided by their own."""
     votes = {}
     for r in rows:
         if r["gtin"]:
-            votes.setdefault(r["gtin"], []).append(is_chocolate(r["descricao_nfce"]))
+            votes.setdefault(r["gtin"], []).append(keep(r["descricao_nfce"]))
     decided = {g: sum(v) * 2 >= len(v) for g, v in votes.items()}
-    return [r for r in rows if (decided[r["gtin"]] if r["gtin"] else is_chocolate(r["descricao_nfce"]))]
+    return [r for r in rows if (decided[r["gtin"]] if r["gtin"] else keep(r["descricao_nfce"]))]
 FIELDS = ["capture_id", "captured_at_utc", "search_term", "gtin", "descricao_nfce", "valor_unitario_brl", "unidade",
           "valor_ultima_venda_brl", "ultima_venda_texto", "ultima_venda_estimada_utc", "loja", "inscricao_estadual", "endereco",
           "municipio_bairro_cep", "request_sha256"]
@@ -147,9 +141,14 @@ class Session:
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--pilot", help="key of the pilot in pilots.json (optional when only one is registered)")
     ap.add_argument("--dry-run", action="store_true", help="print counts, write nothing")
     ap.add_argument("--from-html", nargs="*", default=[], help="term=path pairs: parse saved category pages (tests), no network")
     args = ap.parse_args()
+    pilot = get_pilot(args.pilot)
+    KIT = ROOT / pilot["kit"]
+    TERMS = KIT / pilot["nfce"]["terms_file"]
+    keep = classifier(pilot)
     captured = dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
     stamp = captured.isoformat().replace("+00:00", "Z")
     day = captured.date().isoformat()
@@ -160,7 +159,7 @@ def main():
             raw = Path(path).read_bytes()
             sha = hashlib.sha256(raw).hexdigest()
             got = parse_cards(raw.decode("utf-8", "replace"), term, captured, sha)
-            kept = keep_rows(got)
+            kept = keep_rows(got, keep)
             rows += kept
             reqs.append({"captured_at_utc": stamp, "search_term": term, "method": "FILE", "url": path, "http_status": "", "bytes": len(raw), "sha256": sha, "cards_total": len(got), "cards_kept": len(kept), "note": "parsed from saved page"})
     else:
@@ -190,7 +189,7 @@ def main():
                     break
                 if i == 2:
                     got = parse_cards(raw.decode("utf-8", "replace"), term, captured, sha)
-                    kept = keep_rows(got)
+                    kept = keep_rows(got, keep)
                     rec["cards_total"], rec["cards_kept"] = len(got), len(kept)
                     rows += kept
                 reqs.append(rec)
@@ -210,11 +209,11 @@ def main():
         r["captured_at_utc"] = stamp
     eans = {r["gtin"] for r in out if r["gtin"]}
     stores = {r["inscricao_estadual"] or (r["loja"], r["endereco"]) for r in out}
-    print(f"{len(out)} linhas de chocolate, {len(eans)} EAN, {len(stores)} lojas; {len(reqs)} requisições")
+    print(f"{pilot['label']}: {len(out)} linhas, {len(eans)} EAN, {len(stores)} lojas; {len(reqs)} requisições")
     if args.dry_run:
         return 0
     if not out:
-        print("Nada gravado: nenhuma linha de chocolate.", file=sys.stderr)
+        print(f"Nada gravado: nenhuma linha de {pilot['label'].lower()}.", file=sys.stderr)
         return 2
     def as_csv(fields, data):
         buf = io.StringIO()

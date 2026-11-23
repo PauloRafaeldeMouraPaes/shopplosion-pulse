@@ -222,7 +222,7 @@ test.describe('Shopper question map', () => {
       const row = map.locator(`[data-shopper-question="${r.key}"]`);
       await expect(row).toContainText(r.label);
       const cells = row.locator('.pv4-shopper-cell');
-      for (const [i, cell] of [[0, r.category], [1, r.general]]) {
+      for (const [i, cell] of [[0, r.general], [1, r.category]]) {
         if (!cell.count) await expect(cells.nth(i)).toContainText('Sem evidência na base');
         else {
           await expect(cells.nth(i)).toContainText(new RegExp(levels[cell.level], 'i'));
@@ -339,16 +339,18 @@ test.describe('More than one category', () => {
     const map = page.locator('[data-shopper-map]');
     await expect(map).toHaveAttribute('data-shopper-category', 'chocolate');
     await expect(page.locator('#pv4-shopper-category option')).toHaveText(['Chocolate', 'Café']);
-    // The invented coffee item counts as "general" while the person reads chocolate.
+    // Columns: the shopper as a whole first, then the category read. The invented coffee item is coffee only.
+    await expect(map.locator('.pv4-shopper-row.head')).toContainText('Shopper em geral');
+    expect(await map.locator('[data-shopper-question="quem"] .pv4-shopper-cell').nth(0).locator('[data-case-evidence="teste-cafe-painel"]').count()).toBe(0);
     await page.locator('#pv4-shopper-category').selectOption('cafe');
     await expect(map).toHaveAttribute('data-shopper-category', 'cafe');
-    await expect(map).toContainText('PERGUNTAS DE SHOPPER: CATEGORIA CAFÉ');
+    await expect(map).toContainText('PERGUNTAS DE SHOPPER: VISÃO GERAL E CATEGORIA CAFÉ');
     await expect(map).toContainText('Sem evidência de café para:');
     const who = map.locator('[data-shopper-question="quem"] .pv4-shopper-cell');
-    await expect(who.nth(0)).toContainText('Compra observada em painel');
-    await expect(who.nth(0).locator('[data-case-evidence]')).toHaveAttribute('data-case-evidence', 'teste-cafe-painel');
-    await expect(map.locator('[data-shopper-question="canal"] .pv4-shopper-cell').nth(0)).toContainText('Sem evidência na base');
-    await who.nth(0).locator('[data-case-evidence]').click();
+    await expect(who.nth(1)).toContainText('Compra observada em painel');
+    await expect(who.nth(1).locator('[data-case-evidence]')).toHaveAttribute('data-case-evidence', 'teste-cafe-painel');
+    await expect(map.locator('[data-shopper-question="canal"] .pv4-shopper-cell').nth(1)).toContainText('Sem evidência na base');
+    await who.nth(1).locator('[data-case-evidence]').click();
     await expect(page.locator('#pv3-inspector')).toHaveClass(/open/);
 
     await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });

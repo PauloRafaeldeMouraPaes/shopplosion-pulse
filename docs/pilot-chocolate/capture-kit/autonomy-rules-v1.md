@@ -57,5 +57,5 @@ Only the exception queue: a rejected export, an unexplained spike without a date
 
 ## 6. Where the rules run
 
-- CI: `node scripts/chocolate-pilot-autonomy.js --check` fails the regression workflow when a pending row is older than 7 days, a decided row contradicts the rules, or the status page is stale.
+- CI: `node scripts/pilot-autonomy.js --check` (every pilot in `pilots.json`; this pilot: `--pilot chocolate`) fails the regression workflow when a pending row is older than 7 days, a decided row contradicts the rules, or the status page is stale.
 - Weekly: the scheduled run captures Trends (when the personal browser is available), screens, writes the review rows, applies the rules, opens the pull request and merges it when every check passes; it reports only the exception queue.

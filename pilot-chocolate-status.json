@@ -1,5 +1,9 @@
 {
- "generated_by": "scripts/chocolate-pilot-autonomy.js",
+ "generated_by": "scripts/pilot-autonomy.js",
+ "pilot": {
+  "key": "chocolate",
+  "label": "Chocolate"
+ },
  "rules": "auto-rule v1",
  "baseline": {
   "state": "collecting",

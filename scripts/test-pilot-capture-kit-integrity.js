@@ -1,14 +1,24 @@
 #!/usr/bin/env node
 "use strict";
 
-// Integrity checks for the pre-production Chocolate capture kit.
+// Integrity checks for the capture kit of each category pilot registered in pilots.json (one run per pilot).
 // Uses only checked-in files and Node built-ins; never downloads or fabricates observations.
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 
 const ROOT = process.cwd();
-const KIT = "docs/pilot-chocolate/capture-kit";
+const { loadPilots, getPilot, pilotArg } = require("./lib/pilot-config.js");
+if (!pilotArg(process.argv.slice(2))) {
+  let worst = 0;
+  for (const p of loadPilots(ROOT)) {
+    const r = require("node:child_process").spawnSync(process.execPath, [__filename, "--pilot", p.key], { stdio: "inherit" });
+    worst = Math.max(worst, r.status === null ? 1 : r.status);
+  }
+  process.exit(worst);
+}
+const PILOT = getPilot(pilotArg(process.argv.slice(2)), ROOT);
+const KIT = PILOT.kit;
 const errors = [];
 const checks = [];
 
@@ -167,9 +177,9 @@ for (const spec of supportingCsvs) {
 checks.push(`${supportingCsvs.length} supporting CSV registers (incl. ${retailSnapshotFiles.length} dated retail snapshot(s)) checked for structure, unique identities and exploratory-only status`);
 
 // Uncaptured Trends slots must never masquerade as zero/empty search interest or a completed export.
-const trendsPath = `${KIT}/trends-export-status-2026-10-15.csv`;
+const trendsPath = `${KIT}/${PILOT.trends.status_file}`;
 const trends = readCsv(trendsPath);
-const requiredIds = ["GT-CHOC-A-5Y", "GT-CHOC-A-12M", "GT-CHOC-B-5Y", "GT-CHOC-B-12M"];
+const requiredIds = PILOT.trends.required_exports;
 const trendById = new Map(trends.records.map(row => [row.export_id, row]));
 for (const id of requiredIds) if (!trendById.has(id)) errors.push(`${trendsPath}: missing required export slot ${id}`);
 const slotIds = trends.records.map(row => row.export_id);
@@ -266,9 +276,9 @@ for (const [index, row] of review.records.entries()) {
 checks.push(`${captureFiles.length} dated capture register(s): dated rows, unique capture/provenance IDs across registers, source URL coverage and review-to-capture links checked`);
 
 if (errors.length) {
-  console.error("Chocolate capture-kit integrity FAILED:");
+  console.error(`${PILOT.label} capture-kit integrity FAILED:`);
   for (const error of errors) console.error(`- ${error}`);
   process.exit(1);
 }
-console.log("Chocolate capture-kit integrity passed:");
+console.log(`${PILOT.label} capture-kit integrity passed:`);
 for (const check of checks) console.log(`- ${check}`);

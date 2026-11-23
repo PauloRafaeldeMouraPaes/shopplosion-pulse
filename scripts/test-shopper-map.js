@@ -117,9 +117,11 @@ t("a second category needs only a registry entry, its evidence and its classific
     const rows = S.coverage(base, "cafe");
     assert.equal(rows.find(r => r.key === "quem").category.count, 1);
     assert.equal(rows.find(r => r.key === "preco").category.count, 0);
-    // What is chocolate for the chocolate reading becomes "general" for coffee, and the other way around.
-    assert.ok(rows.find(r => r.key === "preco").general.items.some(i => i.id === "kantar-chocolate-brasil-volume-q1-2025"));
-    assert.ok(S.coverage(base, "chocolate").find(r => r.key === "quem").general.items.some(i => i.id === "teste-cafe-painel"));
+    // Evidence of another category is never "general": the general layer is the shopper as a whole.
+    assert.ok(!rows.find(r => r.key === "preco").general.items.some(i => i.id === "kantar-chocolate-brasil-volume-q1-2025"));
+    assert.ok(!S.coverage(base, "chocolate").find(r => r.key === "quem").general.items.some(i => i.id === "teste-cafe-painel"));
+    // The general layer is the same whichever category is read.
+    assert.deepEqual(S.coverage(base, "cafe").map(r => r.general), S.coverage(base, "chocolate").map(r => r.general));
     const r = S.reading("Como o shopper de café reage ao preço?", [base[base.length - 1]], base, "cafe");
     assert.ok(r.text.includes("buscar evidência de café para: como reage ao preço"));
     assert.ok(!r.text.includes("chocolate"));

@@ -5,8 +5,10 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { buildPriceIndex, PROFILES, inferBrand: inferBrandWith, inferGrams, quantile } = require("./lib/pilot-price-index.js");
-const CHOCOLATE = PROFILES.chocolate;
+const { buildPriceIndex, inferBrand: inferBrandWith, inferGrams, quantile } = require("./lib/pilot-price-index.js");
+const { loadPilots, getPilot, priceProfile } = require("./lib/pilot-config.js");
+// The brand-rule tests below use the chocolate pilot's own configuration (its rules are data in docs/pilot-chocolate/pilot.json).
+const CHOCOLATE = priceProfile(getPilot("chocolate"), "test");
 const inferBrand = text => inferBrandWith(text, CHOCOLATE.brandRules);
 
 let n = 0; const t = (name, fn) => { fn(); n++; };
@@ -142,6 +144,21 @@ t("a second category is only a profile: same computation, its own brand rules an
   assert.equal(out.previous_capture_date, null);
   assert.equal(JSON.stringify(out).toLowerCase().includes("chocolate"), false, "nothing of another category leaks into the output");
   assert.throws(() => buildPriceIndex({ day: "2026-02-10", places: [], records: rows }, null), /category profile/);
+});
+
+t("every registered pilot yields a valid profile and its committed price file is its own", () => {
+  for (const p of loadPilots()) {
+    const prof = priceProfile(p, "test");
+    assert.ok(prof.brandRules.every(([re]) => re instanceof RegExp), p.key);
+    const file = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", p.prices_file), "utf8"));
+    assert.deepEqual(file.category, { key: p.key, label: p.label }, p.prices_file);
+    assert.equal(file.benchmark.label, p.price_index.benchmark.label, p.prices_file);
+  }
+});
+
+t("the price index library names no category", () => {
+  const src = fs.readFileSync(path.resolve(__dirname, "lib", "pilot-price-index.js"), "utf8");
+  for (const p of loadPilots()) assert.ok(!src.toLowerCase().includes(p.key.toLowerCase()), `pilot-price-index.js names ${p.key}`);
 });
 
 console.log(`pilot price index: ${n} tests passed`);

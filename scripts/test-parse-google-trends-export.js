@@ -76,7 +76,8 @@ test("rejeita datas duplicadas, fora de ordem, impossíveis e cadência diária 
 const { spawnSync } = require("child_process");
 const fs = require("fs"); const os = require("os"); const path = require("path");
 const PARSER = path.join(__dirname, "parse-google-trends-export.js");
-const KIT = path.join(__dirname, "..", "docs", "pilot-chocolate", "capture-kit");
+// The registered slots below belong to the chocolate pilot: this block tests the parser against that pilot's files.
+const KIT = path.join(__dirname, "..", require("./lib/pilot-config.js").getPilot("chocolate").kit);
 const REGISTERED_TERMS = ["chocolate", "barra de chocolate", "chocolate amargo", "chocolate ao leite", "chocolate sem açúcar"];
 function weeklyFixture({ weeks = 52, geo = "Brasil", terms = REGISTERED_TERMS, category = "Categoria: Todas as categorias" } = {}) {
   const lines = [category, "", "Semana," + terms.map(t => `${t}: (${geo})`).join(",")];
@@ -91,7 +92,7 @@ function weeklyFixture({ weeks = 52, geo = "Brasil", terms = REGISTERED_TERMS, c
    hash registered for the real exports does not reject them before the structural checks run. */
 const UNREGISTERED_STATUS = (() => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gt-status-"));
-  const lines = fs.readFileSync(path.join(KIT, "trends-export-status-2026-10-15.csv"), "utf8").split(/\r?\n/);
+  const lines = fs.readFileSync(path.join(KIT, require("./lib/pilot-config.js").getPilot("chocolate").trends.status_file), "utf8").split(/\r?\n/);
   const head = lines[0].split(",");
   const idx = ["exported_at_utc", "raw_filename", "raw_file_sha256"].map(h => head.indexOf(h));
   const out = [lines[0]].concat(lines.slice(1).filter(Boolean).map(l => {
@@ -145,7 +146,7 @@ test("CLI recusa escrever dentro do capture kit", () => {
 });
 
 test("CLI aceita os exports reais registrados e rejeita um byte alterado pelo hash registrado", () => {
-  const status = fs.readFileSync(path.join(KIT, "trends-export-status-2026-10-15.csv"), "utf8");
+  const status = fs.readFileSync(path.join(KIT, require("./lib/pilot-config.js").getPilot("chocolate").trends.status_file), "utf8");
   if (!/GT-CHOC-A-12M,[^\n]*,captured,/.test(status)) return; // slot not captured yet: nothing real to check
   const real = fs.readFileSync(path.join(KIT, "GT-CHOC-A-12M.csv"), "utf8");
   const ok = runCli(real, ["--export-id", "GT-CHOC-A-12M"], {});

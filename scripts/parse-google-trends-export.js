@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 "use strict";
-/* Deterministic reader for a Google Trends "multiTimeline" CSV export (Chocolate pilot).
+/* Deterministic reader for a Google Trends "multiTimeline" CSV export of a category pilot (pilots.json).
 
    Usage:
-     node scripts/parse-google-trends-export.js --export-id GT-CHOC-A-12M --file <path/to/original.csv> [--out <observations.csv>] [--report <report.json>]
+     node scripts/parse-google-trends-export.js [--pilot <key>] --export-id <slot id> --file <path/to/original.csv> [--out <observations.csv>] [--report <report.json>]
      node scripts/parse-google-trends-export.js --file <path> --geo BR --category "All categories (cat=0)" --search-type "Web Search" --query-type "Search term" --source-url <url> --exported-at <ISO UTC>
 
    What it does: validates the export structure (metadata header, blank line, time header, one
    column per term, index values 0..100 or "<1"), computes the SHA-256 of the unchanged file,
-   cross-checks the registered slot in trends-export-status-2026-10-15.csv when --export-id is given,
+   cross-checks the registered slot in the Trends status file of the pilot when --export-id is given,
    and emits rows in the trends-observations template. Low-volume "<1" values are kept as "<1" and
    listed as limitations; nothing is interpolated, nothing is converted to zero.
    What it never does: download data, touch the status/manifest files, or accept a file whose
@@ -18,10 +18,13 @@ const path = require("path");
 const crypto = require("crypto");
 
 const ROOT = path.resolve(__dirname, "..");
-const KIT = path.join(ROOT, "docs", "pilot-chocolate", "capture-kit");
+const { getPilot, pilotArg } = require("./lib/pilot-config.js");
+// The pilot whose capture kit holds the registered slots; optional when only one pilot is registered.
+const PILOT = getPilot(pilotArg(process.argv.slice(2)), ROOT);
+const KIT = path.join(ROOT, PILOT.kit);
 /* PULSE_TRENDS_STATUS_FILE exists only so the parser tests can use synthetic slots without a registered hash;
    the real status file is always the default. */
-const STATUS = process.env.PULSE_TRENDS_STATUS_FILE ? path.resolve(process.env.PULSE_TRENDS_STATUS_FILE) : path.join(KIT, "trends-export-status-2026-10-15.csv");
+const STATUS = process.env.PULSE_TRENDS_STATUS_FILE ? path.resolve(process.env.PULSE_TRENDS_STATUS_FILE) : path.join(KIT, PILOT.trends.status_file);
 const TIME_HEADERS = { week: ["week", "semana"], month: ["month", "mês", "mes"], day: ["day", "dia"] };
 const CATEGORY_LINES = /^(category|categoria)\s*:\s*(.+)$/i;
 
