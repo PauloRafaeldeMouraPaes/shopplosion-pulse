@@ -45,6 +45,8 @@ jobs:
         run: node scripts/test-pulse-ask-ai.js index.html
       - name: Ask AI public evidence ranking (browser/server parity and retrieval floor)
         run: node scripts/test-pulse-public-rank.js
+      - name: Ask AI layers (shopper as a whole and category, never mixed)
+        run: node scripts/test-ask-ai-layers.mjs
       - name: Ask AI provider eval self-test (no network)
         run: node scripts/eval-ask-ai-providers.mjs --self-test
       - name: Run next-level data contract tests
