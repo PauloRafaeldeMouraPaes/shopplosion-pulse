@@ -39,6 +39,8 @@
     'worldpanel-lares-monoparentais-2025': { q: ['quem'], level: 'observado' },
     'worldpanel-50-mais-gasto-2025': { q: ['quem', 'quanto'], level: 'observado' },
     'worldpanel-repertorio-marcas-classes-2025': { q: ['escolha', 'quem'], level: 'observado' },
+    'ifb-chocolate-foodservice-abr2025-mar2026': { q: ['ocasiao', 'canal', 'quem', 'escolha'], level: 'declarado' },
+    'varejo360-tabletes-canal-sp-jan-fev-2026': { q: ['canal'], level: 'mercado' },
     'niq-full-view-2026-price': { q: ['preco', 'escolha'], level: 'declarado' },
     'niq-private-label-global': { q: ['escolha'], level: 'declarado' },
     'niq-ecommerce-2026': { q: ['canal'], level: 'declarado' },
