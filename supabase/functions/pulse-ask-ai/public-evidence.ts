@@ -1613,5 +1613,67 @@ export const PULSE_PUBLIC_EVIDENCE = [
       "quem compra",
       "2025"
     ]
+  },
+  {
+    "id": "ifb-chocolate-foodservice-abr2025-mar2026",
+    "categoria": "chocolate",
+    "tipo": "estudo de consumo fora do lar",
+    "fato": "Entre abril de 2025 e março de 2026, o consumo de chocolate no foodservice movimentou cerca de R$ 3 bilhões, alta de 5% sobre o período anterior, em mais de 129 milhões de pedidos. Lanche da tarde e refeições noturnas somaram quase 76% dos pedidos. Adolescentes de até 17 anos e adultos de 25 a 34 anos responderam por 27% do consumo cada. As compras se concentraram em híper e supermercados (30%) e lojas de conveniência (13%). Conveniência foi o principal motivo de consumo, citada por 57%, seguida de indulgência, por 53%.",
+    "contexto": "Dados do Instituto Foodservice Brasil (IFB) divulgados pela Agência O Globo no Dia Mundial do Chocolate, 07/07/2026; a reportagem não informa o método nem a amostra.",
+    "interpretacao": "Fora do lar, o chocolate é de lanche da tarde e da noite, comprado por conveniência e por indulgência, o ano todo e não só na Páscoa. Os dois grupos que mais consomem são adolescentes e adultos jovens.",
+    "hipotese": "A ocasião de lanche e o motivo de conveniência sustentam a categoria fora da Páscoa; canais de proximidade e conveniência podem pesar mais nessa missão do que nas compras de abastecimento.",
+    "acao": "Separar na leitura da categoria a ocasião de presente (Páscoa) da ocasião de lanche e indulgência, e conferir o peso de conveniência e proximidade nas vendas fora da Páscoa.",
+    "fonte": "Instituto Foodservice Brasil (IFB), via Agência O Globo (Folha de Pernambuco, 07/07/2026)",
+    "url": "https://www.folhape.com.br/economia/dia-do-chocolate-consumo-fora-do-lar-avanca-5-puxado-por/498949/",
+    "periodo": "Abril de 2025 a março de 2026; publicado em 07/07/2026",
+    "natureza": "Consumo de chocolate fora do lar (foodservice): valor, número de pedidos, ocasião, faixa etária, local de compra e motivo declarado, segundo dados do IFB relatados pela imprensa",
+    "universo_observado": "Consumo de chocolate no foodservice brasileiro, abril de 2025 a março de 2026, mais de 129 milhões de pedidos; a reportagem não informa amostra, método de coleta nem se os motivos vêm de pergunta a consumidores",
+    "representa": "Peso das ocasiões de lanche da tarde e refeições noturnas (quase 76% dos pedidos), dos grupos etários (27% cada), dos locais de compra (híper e supermercados 30%, conveniência 13%) e dos motivos citados (conveniência 57%, indulgência 53%) no consumo fora do lar",
+    "nao_representa": "Não representa a compra de chocolate para casa, a Páscoa, marcas, preços nem regiões; os percentuais não foram conferidos no estudo original do IFB, só na reportagem",
+    "fonte_primaria": "Instituto Foodservice Brasil (IFB): estudo de consumo de chocolate no foodservice, abril de 2025 a março de 2026 (não localizado em página pública do IFB)",
+    "fato_verificado_na_fonte": "SIM: R$ 3 bilhões, alta de 5%, 129 milhões de pedidos, quase 76% em lanche da tarde e refeições noturnas, 27% por grupo etário, 30% em híper e supermercados, 13% em conveniência, 57% e 53% constam no texto da reportagem da Folha de Pernambuco, consultado em 24/11/2026",
+    "alcance_para_pergunta": "DIRETO para a ocasião, o local e o motivo do consumo de chocolate fora do lar ao longo do ano; CONTEXTUAL para a compra de chocolate para casa",
+    "keywords": [
+      "fora do lar",
+      "foodservice",
+      "lanche da tarde",
+      "ocasião",
+      "conveniência",
+      "indulgência",
+      "onde compra",
+      "adolescentes",
+      "ano todo"
+    ]
+  },
+  {
+    "id": "varejo360-tabletes-canal-sp-jan-fev-2026",
+    "categoria": "chocolate",
+    "tipo": "vendas no varejo por canal",
+    "fato": "Nas vendas em reais de tabletes de chocolate no estado de São Paulo em janeiro e fevereiro de 2026, o supermercado teve 46,1% (44,8% em janeiro e fevereiro de 2025), o atacarejo 27,9% (29,4%), as lojas de desconto 13,4% (13,6%), o minimercado 5,5% (5,1%), o hipermercado 5,0% (5,2%) e o hortifruti 2,0% (1,8%).",
+    "contexto": "Varejo 360, participação das vendas em R$ por canal no estado de São Paulo, publicada pela Web Jasper em março de 2026; margem de erro de 1 ponto percentual com 95% de confiança.",
+    "interpretacao": "Fora do ovo de Páscoa, o tablete é vendido sobretudo no supermercado e no atacarejo, que somam três quartos das vendas em São Paulo. Em um ano, o supermercado e os canais de proximidade ganharam peso e o atacarejo perdeu.",
+    "hipotese": "O shopper de tablete compra na ida de abastecimento ou de reposição em loja de bairro mais do que no atacarejo; a perda do atacarejo pode refletir menos compra em volume com o preço alto.",
+    "acao": "Comparar o peso de supermercado, atacarejo e proximidade na categoria fora da Páscoa e acompanhar se a mudança de 2026 continua nos meses seguintes.",
+    "fonte": "Varejo 360 (publicado pela Web Jasper): tabletes de chocolate, participação das vendas em R$ por canal, estado de São Paulo",
+    "url": "https://webjasper.com.br/wp-content/uploads/2026/03/2026_03_Tabvletes_de_Chocolate_WJ-V360.pdf",
+    "periodo": "Janeiro e fevereiro de 2026 ante janeiro e fevereiro de 2025; publicado em março de 2026",
+    "natureza": "Participação de cada canal nas vendas em reais de tabletes de chocolate, medida pela Varejo 360",
+    "universo_observado": "Vendas de tabletes de chocolate no estado de São Paulo, janeiro e fevereiro de 2025 e de 2026; sete canais de autosserviço e proximidade; a página não informa amostra de lojas",
+    "representa": "Distribuição das vendas em R$ de tabletes entre supermercado, atacarejo, lojas de desconto, minimercado, hipermercado, hortifruti e demais canais, e a variação entre os dois anos",
+    "nao_representa": "Não representa ovos de Páscoa, bombons, outras regiões, vendas em unidades, farmácia, conveniência fora do autosserviço, chocolaterias nem o comércio eletrônico; a nota da fonte cita os anos de 2024 e 2025, diferente dos períodos da tabela, e não explica a diferença",
+    "fonte_primaria": "Varejo 360: participação das vendas em R$ por canal de vendas no estado de São Paulo, tabletes de chocolate",
+    "fato_verificado_na_fonte": "SIM: 46,1% e 44,8% em supermercado, 27,9% e 29,4% em atacarejo, 13,4% e 13,6% em loja de desconto, 5,5% e 5,1% em minimercado, 5,0% e 5,2% em hipermercado, 2,0% e 1,8% em hortifruti constam na tabela do documento, consultado em 24/11/2026",
+    "alcance_para_pergunta": "DIRETO para onde o shopper compra tablete de chocolate em São Paulo fora do período de ovos; CONTEXTUAL para outros formatos e regiões",
+    "keywords": [
+      "canal",
+      "onde compra",
+      "supermercado",
+      "atacarejo",
+      "proximidade",
+      "tablete",
+      "fora da Páscoa",
+      "São Paulo",
+      "2026"
+    ]
   }
 ] as const;
