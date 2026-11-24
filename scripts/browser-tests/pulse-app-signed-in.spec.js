@@ -402,8 +402,11 @@ test('Hoje shows the industry private signals right after the shopper questions'
   const order = await page.evaluate(() => {
     const map = document.querySelector('[data-shopper-map]');
     const sig = document.querySelector('[data-industry-signals]');
-    return map && sig ? Boolean(map.compareDocumentPosition(sig) & Node.DOCUMENT_POSITION_FOLLOWING) : null;
+    const market = document.querySelector('.pv4-section-title');
+    const after = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return map && sig && market ? after(map, sig) && after(sig, market) : null;
   });
+  // Shopper questions first, then the industry signals, then market context.
   expect(order).toBe(true);
 });
 
