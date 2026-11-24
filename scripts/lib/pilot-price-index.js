@@ -166,6 +166,9 @@ function buildPriceIndex(latest, previous, profile) {
     source: "Economiza Alagoas (SEFAZ/AL), página pública",
     scope: "Preço da última venda por EAN e loja nos 7 dias antes da captura; não mede volume, participação nem o Brasil",
     capture_date: latest.day, previous_capture_date: previous ? previous.day : null, municipalities: latest.places,
+    // Search terms of the capture that reached their category page (from the request log); a partial capture
+    // understates the store coverage of the brands reached by the missing terms.
+    capture_terms: latest.terms || null, previous_capture_terms: previous ? previous.terms || null : null,
     method: {
       one_observation_per: "EAN x loja (venda mais recente)",
       other_sale_unit_rule: `observação mais de ${String(UNIT_RATIO).replace(".", ",")} vezes acima ou abaixo da mediana do EAN fica fora das estatísticas`,

@@ -214,7 +214,17 @@ const nfce = fs.readdirSync(path.resolve(ROOT, KIT)).filter(f => /^economiza-ala
   const places = new Set(records.map(r => (r.municipio_bairro_cep || "").split(",")[0].trim()).filter(Boolean));
   const day = f.slice(18, 28); const d = new Date(day + "T00:00:00Z"); const monday = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * DAY).toISOString().slice(0, 10);
   const stores = new Set(records.map(r => r.inscricao_estadual || `${r.loja}|${r.endereco}`));
-  return { f, day, monday, rows: records.length, eans: eans.size, stores: stores.size, places: [...places].sort(), records };
+  // Request log of the same capture: which search terms reached their category page. A term that ended in a
+  // network or HTTP error (never retried, rules v1 section 3b) leaves the capture partial, and the page must say so.
+  const reqFile = `economiza-alagoas-requests-${day}.csv`;
+  let terms = null;
+  if (fs.existsSync(path.resolve(ROOT, KIT, reqFile))) {
+    const reqs = readCsv(`${KIT}/${reqFile}`).records;
+    const requested = [...new Set(reqs.map(r => r.search_term).filter(Boolean))];
+    const captured = new Set(reqs.filter(r => String(r.cards_total || "").trim() !== "").map(r => r.search_term));
+    terms = { requested: requested.length, captured: captured.size, not_captured: requested.filter(t => !captured.has(t)) };
+  }
+  return { f, day, monday, rows: records.length, eans: eans.size, stores: stores.size, places: [...places].sort(), records, terms };
 });
 const nfceWeeks = [...new Set(nfce.map(c => c.monday))].sort();
 const nfceLast = nfce[nfce.length - 1];
@@ -249,7 +259,7 @@ const status = [
 // Same facts as AUTONOMY_STATUS.md, no run date, so CI can require it to be current (--check).
 const median = xs => { const a = xs.filter(Number.isFinite).sort((x, y) => x - y); if (!a.length) return null; const m = Math.floor(a.length / 2); return Math.round((a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2) * 100) / 100; };
 const nfceSummary = nfce.map(c => ({ capture_date: c.day, week_of: c.monday, observations: c.rows, ean: c.eans, stores: c.stores, municipalities: c.places,
-  median_unit_price_brl: median(c.records.map(r => parseFloat(r.valor_unitario_brl))) }));
+  median_unit_price_brl: median(c.records.map(r => parseFloat(r.valor_unitario_brl))), terms: c.terms }));
 let topEan = [];
 if (nfceLast) {
   const by = new Map();
