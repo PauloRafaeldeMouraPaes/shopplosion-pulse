@@ -19,7 +19,7 @@ const session = {
   user: { id: userId, aud: 'authenticated', role: 'authenticated', email: 'teste@pulse.invalid', app_metadata: {}, user_metadata: {} },
 };
 
-async function signedIn(page, { documents = [], documentsStatus = 200 } = {}) {
+async function signedIn(page, { documents = [], documentsStatus = 200, signals = [] } = {}) {
   const calls = [];
   await page.addInitScript(([key, value]) => { try { localStorage.setItem(key, value); } catch (e) {} }, [`sb-${REF}-auth-token`, JSON.stringify(session)]);
   await page.route(`https://${REF}.supabase.co/**`, async (route) => {
@@ -27,6 +27,18 @@ async function signedIn(page, { documents = [], documentsStatus = 200 } = {}) {
     calls.push(url.pathname);
     if (url.pathname.endsWith('/functions/v1/pulse-auth-broker')) {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ industry_id: '00000000-0000-4000-8000-00000000b001', industry_name: 'Indústria Teste A', industry_slug: 'industria-teste-a', industry_status: 'active', role: 'member' }]) });
+    }
+    if (url.pathname.endsWith('/rest/v1/intelligence_signals')) {
+      // Production table columns (2026-11-24): latest_direction lives only in the intelligence_signal_timeline view.
+      // PostgREST answers 400 when a select names a column the table does not have.
+      const cols = ['id', 'industry_id', 'created_by', 'signal_type', 'title', 'summary', 'confidence', 'evidence', 'source_document_ids', 'status', 'observed_at', 'created_at', 'updated_at', 'fingerprint', 'signal_key'];
+      const asked = (url.searchParams.get('select') || '*').split(',').filter((c) => c !== '*');
+      const missing = asked.filter((c) => !cols.includes(c));
+      if (missing.length) return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: '42703', message: `column intelligence_signals.${missing[0]} does not exist` }) });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(signals.map(({ latest_direction, ...row }) => row)) });
+    }
+    if (url.pathname.endsWith('/rest/v1/intelligence_signal_timeline')) {
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(signals.map((x) => ({ signal_id: x.id, latest_direction: x.latest_direction || 'new' }))) });
     }
     if (url.pathname.endsWith('/auth/v1/user')) {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(session.user) });
@@ -375,4 +387,28 @@ test.describe('More than one category', () => {
     const keys2 = await page.locator('#pv4-results .result input[data-evidence-key]').evaluateAll((els) => els.map((e) => e.dataset.evidenceKey));
     expect(keys2[0]).not.toBe('teste-cafe-painel');
   });
+});
+
+test('Hoje shows the industry private signals right after the shopper questions', async ({ page }) => {
+  await signedIn(page, {
+    signals: [{ id: '00000000-0000-4000-8000-00000000e001', signal_type: 'price', title: 'Sinal privado de teste', summary: 'Resumo do sinal de teste.', confidence: 0.8, status: 'active', observed_at: '2026-11-23T15:15:11Z', created_at: '2026-10-10T22:32:29Z', signal_key: 'teste', latest_direction: 'stable', source_document_ids: [], evidence: [{ quote: 'Trecho de teste', source_url: 'https://exemplo.invalid/a', published_at: '2026-11-20T00:00:00Z' }] }],
+  });
+  await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+  const section = page.locator('[data-industry-signals]');
+  await expect(section).toBeVisible();
+  await expect(section).toContainText('Sinal privado de teste');
+  await expect(section).toContainText('Ver todos os sinais');
+  await expect(section.locator('.badge').first()).toHaveText('estável');
+  const order = await page.evaluate(() => {
+    const map = document.querySelector('[data-shopper-map]');
+    const sig = document.querySelector('[data-industry-signals]');
+    return map && sig ? Boolean(map.compareDocumentPosition(sig) & Node.DOCUMENT_POSITION_FOLLOWING) : null;
+  });
+  expect(order).toBe(true);
+});
+
+test('Hoje says when the industry has no active private signal', async ({ page }) => {
+  await signedIn(page);
+  await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-industry-signals]')).toContainText('Nenhum sinal ativo');
 });
