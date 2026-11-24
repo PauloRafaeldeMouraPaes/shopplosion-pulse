@@ -100,7 +100,8 @@ test('Hoje does not claim a fixed update date; the first case reads the latest P
   await expect(card).toContainText(latest.pmc.fato);
   await expect(card).toContainText(latest.ipca.fato);
   await expect(card.locator('[data-case-evidence]')).toHaveAttribute('data-case-evidence', latest.pmc.id);
-  await expect(page.locator('body')).toContainText('CONTRADIÇÃO: ALIMENTOS, JULHO DE 2026');
+  // The static July 2026 case was removed on 2026-11-24: the latest PMC and IPCA months above it already cover market context.
+  await expect(page.locator('body')).not.toContainText('CONTRADIÇÃO: ALIMENTOS, JULHO DE 2026');
 });
 
 test.describe('mobile scope bar', () => {
