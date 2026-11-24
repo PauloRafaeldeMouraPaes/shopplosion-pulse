@@ -1,0 +1,20 @@
+captured_at_utc,search_term,method,url,http_status,bytes,sha256,cards_total,cards_kept,note
+2026-11-24T00:05:19Z,chocolate lacta,GET,https://economizaalagoas.sefaz.al.gov.br/,200,12317,c6b185e76ca6f5fdd72d80d4a66806d9e73f04ef06e5dcdd3fd45e6808e0ea89,,,
+2026-11-24T00:05:19Z,chocolate lacta,POST,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm,200,12760,5ecbdf6aa8c0ab7daf737f07cd69f4101e11c0f87007f7f3b793b0c9d5fc7491,,,
+2026-11-24T00:05:19Z,chocolate lacta,GET,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm?codSegmentoGPC=50000000,200,1585527,12a868e75946dd96b7d99f39b04c68856d3d1bebd8fc9a20971a98bd8cec12e8,504,474,observations SHA-256 (uncompressed CSV) 75e5984cac6c405f0e61444e843fef37359d3c9bfdab200e435d96ae41f462b5
+2026-11-24T00:05:19Z,chocolate nestle,GET,https://economizaalagoas.sefaz.al.gov.br/,200,12317,c6b185e76ca6f5fdd72d80d4a66806d9e73f04ef06e5dcdd3fd45e6808e0ea89,,,
+2026-11-24T00:05:19Z,chocolate nestle,POST,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm,200,15647,02ce469bb917018418cf5d50fafe0ba9f692c44b1c8f6fef297bf0b029b98e07,,,
+2026-11-24T00:05:19Z,chocolate nestle,GET,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm?codSegmentoGPC=50000000,,0,,,,network error: The read operation timed out
+2026-11-24T00:05:19Z,chocolate garoto,GET,https://economizaalagoas.sefaz.al.gov.br/,,0,,,,network error: The read operation timed out
+2026-11-24T00:05:19Z,lindt,GET,https://economizaalagoas.sefaz.al.gov.br/,200,12317,c6b185e76ca6f5fdd72d80d4a66806d9e73f04ef06e5dcdd3fd45e6808e0ea89,,,
+2026-11-24T00:05:19Z,lindt,POST,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm,200,11619,7ed5341c8ac925e068e4b8417555a4b0584ca2ac188a097a31c4b25d99113135,,,
+2026-11-24T00:05:19Z,lindt,GET,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm?codSegmentoGPC=50000000,200,259646,8e89ffc2ee8da79771be63cc19f2ac4e9c1d85662fc3e47d5e8f7abb570e0cf1,78,77,observations SHA-256 (uncompressed CSV) 75e5984cac6c405f0e61444e843fef37359d3c9bfdab200e435d96ae41f462b5
+2026-11-24T00:05:19Z,ferrero rocher,GET,https://economizaalagoas.sefaz.al.gov.br/,200,12317,c6b185e76ca6f5fdd72d80d4a66806d9e73f04ef06e5dcdd3fd45e6808e0ea89,,,
+2026-11-24T00:05:19Z,ferrero rocher,POST,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm,200,12154,bd1237b77b7bc819949b7a82975584b7f0ed491d628528c2817e94476d891e24,,,
+2026-11-24T00:05:19Z,ferrero rocher,GET,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm?codSegmentoGPC=50000000,200,662638,53074fa49f901faf408509f67b5f50affe7111f4b164d7214d957d359aa51873,209,205,observations SHA-256 (uncompressed CSV) 75e5984cac6c405f0e61444e843fef37359d3c9bfdab200e435d96ae41f462b5
+2026-11-24T00:05:19Z,bombom,GET,https://economizaalagoas.sefaz.al.gov.br/,200,12317,c6b185e76ca6f5fdd72d80d4a66806d9e73f04ef06e5dcdd3fd45e6808e0ea89,,,
+2026-11-24T00:05:19Z,bombom,POST,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm,200,17977,3424741e79d81dd0fb98e1beeb44ca3af99740ed1517b796ff76bfa7df761b20,,,
+2026-11-24T00:05:19Z,bombom,GET,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm?codSegmentoGPC=50000000,200,11685475,4cb2938e126cfbe54fa516a0c71e01d5fac1de0a05a40c760935a13e8b03abbf,3756,3287,observations SHA-256 (uncompressed CSV) 75e5984cac6c405f0e61444e843fef37359d3c9bfdab200e435d96ae41f462b5
+2026-11-24T00:05:19Z,barra de chocolate,GET,https://economizaalagoas.sefaz.al.gov.br/,200,12317,c6b185e76ca6f5fdd72d80d4a66806d9e73f04ef06e5dcdd3fd45e6808e0ea89,,,
+2026-11-24T00:05:19Z,barra de chocolate,POST,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm,200,14479,bd729ebc0c4b1dab9120ec3e159245c084db606b1255db82f58337b56b43f339,,,
+2026-11-24T00:05:19Z,barra de chocolate,GET,https://economizaalagoas.sefaz.al.gov.br/exibicaoPrecoProduto.htm?codSegmentoGPC=50000000,200,11605658,8da67a5e7a2f5a6406a8dcdab493f9b35373f8436d6fd63fda83d142c3a88291,3681,2486,observations SHA-256 (uncompressed CSV) 75e5984cac6c405f0e61444e843fef37359d3c9bfdab200e435d96ae41f462b5

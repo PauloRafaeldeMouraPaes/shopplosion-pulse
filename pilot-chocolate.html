@@ -371,6 +371,7 @@ a:focus-visible { outline: 2px solid var(--brand-pulse-strong); outline-offset: 
   var LABEL = { 'captured/accepted': 'aceitos', 'captured/auto_accepted': 'aceitos por regra', 'captured/pending_review': 'em revisão', preliminary_only: 'preliminares', context_only: 'contexto', consolidated: 'consolidado', follow_up_required: 'em apuração', rejected: 'rejeitados' };
   var lab = function (k) { return LABEL[k] || k; };
   var cidade = function (c) { var m = { MACEIO: 'Maceió' }; return m[c] || String(c).toLowerCase().replace(/(^|\s)\S/g, function (x) { return x.toUpperCase(); }); };
+  var parcial = function (c) { var t = c && c.terms; if (!t || !t.not_captured || !t.not_captured.length) return ''; return ' Captura parcial: ' + fmt(t.not_captured.length) + ' de ' + fmt(t.requested) + ' termos de busca não responderam (' + esc(t.not_captured.join(', ')) + '), então lojas e EAN alcançados só por esses termos ficaram fora desta semana.'; };
   fetch('./pilot-chocolate-status.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (d) {
     var caps = (d.nfce && d.nfce.captures) || []; var last = caps[caps.length - 1];
     var b = d.baseline || {}; var html = '';
@@ -383,7 +384,7 @@ a:focus-visible { outline: 2px solid var(--brand-pulse-strong); outline-offset: 
     }
     html += '</div>';
     if (last) {
-      html += '<div class="limit"><strong>Preço praticado com EAN:</strong> ' + esc(d.nfce.source) + '; ' + esc(d.nfce.scope) + '. Última captura em ' + dia(last.capture_date) + ': ' + fmt(last.observations) + ' observações. Mostra preço de venda real por código de barras e loja; não mede volume, participação nem o Brasil.</div>';
+      html += '<div class="limit"><strong>Preço praticado com EAN:</strong> ' + esc(d.nfce.source) + '; ' + esc(d.nfce.scope) + '. Última captura em ' + dia(last.capture_date) + ': ' + fmt(last.observations) + ' observações. Mostra preço de venda real por código de barras e loja; não mede volume, participação nem o Brasil.' + parcial(last) + '</div>';
       var top = d.nfce.latest_top_ean_by_stores || [];
       if (top.length) {
         html += '<div class="live-table-wrap"><table class="live-table"><caption class="metric" style="caption-side:top;text-align:left">EAN vendidos em mais lojas na última captura</caption><thead><tr><th>Descrição na nota</th><th class="wide">EAN</th><th class="num">Lojas</th><th class="num">Mediana</th><th class="num wide">Mín.</th><th class="num wide">Máx.</th></tr></thead><tbody>';
