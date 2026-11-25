@@ -74,8 +74,8 @@ t("reading: facts by level in citation order, declared limits, gaps named, no ca
   const pick = ids => ids.map(id => evidence.find(e => e.id === id));
   const r = S.reading("O que o shopper faz quando o preço do chocolate sobe?", pick(["locomotiva-pascoa-2026-intencao-drivers", "kantar-chocolate-brasil-volume-q1-2025"]), evidence, "chocolate");
   assert.deepEqual(r.ordered.map(e => e.id), ["kantar-chocolate-brasil-volume-q1-2025", "locomotiva-pascoa-2026-intencao-drivers"]);
-  assert.match(r.text, /^LEITURA: \[E1\] Compra observada em painel \(2025-T1\): /);
-  assert.ok(r.text.includes("[E2] Declaração em pesquisa (Páscoa 2026): "));
+  assert.match(r.text, /^LEITURA: \[E1\] Chocolate: compra observada em painel \(2025-T1\): /);
+  assert.ok(r.text.includes("[E2] Chocolate: declaração em pesquisa (Páscoa 2026): "));
   for (const e of r.ordered) { assert.ok(r.text.includes(e.fato.trim())); assert.ok(r.text.includes(e.nao_representa.trim().replace(/\.$/, ""))); }
   for (const label of ["HIPÓTESE:", "RECOMENDAÇÃO:", "DESCONHECIDOS:", "ATUALIZAÇÃO: INSUFFICIENT"]) assert.ok(r.text.includes(label), label);
   assert.ok(r.text.includes("só a compra observada mostra o que fizeram"));
@@ -136,6 +136,18 @@ t("the base answers every shopper question for the shopper as a whole", () => {
   // The general layer is what every category reading starts from; a question with no general evidence is a gap in the base.
   const empty = S.coverage(evidence, S.CATEGORIES[0].key).filter(r => !r.general.count).map(r => r.key);
   assert.deepEqual(empty, []);
+});
+
+t("the reading names each layer and never passes another category off as general", () => {
+  const cats = S.categoriesIn(evidence).map(c => c.key);
+  if (cats.length < 2) return;
+  const [other, read] = cats;
+  const mine = evidence.find(e => e.categoria === read), theirs = evidence.find(e => e.categoria === other), general = evidence.find(e => !S.isCategoryEvidence(e) && S.entry(e));
+  const r = S.reading("Com que frequência o shopper compra?", [theirs, general, mine], evidence, read);
+  const lines = r.text.replace(/^LEITURA: /, "").split("\n").filter(l => /^\[E\d\]/.test(l));
+  assert.ok(lines[0].startsWith("[E1] " + S.category(read).label + ":"), lines[0]);
+  assert.ok(lines[1].startsWith("[E2] Shopper em geral:"), lines[1]);
+  assert.ok(lines[2].startsWith("[E3] Outra categoria (" + S.category(other).label + "), não vale para"), lines[2]);
 });
 
 console.log(`shopper map: ${n} tests passed`);
