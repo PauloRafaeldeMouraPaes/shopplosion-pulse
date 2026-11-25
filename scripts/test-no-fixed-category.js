@@ -19,6 +19,7 @@ const LOGIC_FILES = [
   "scripts/test-pilot-capture-kit-integrity.js",
   "supabase/functions/pulse-external-signal-worker/index.ts", "supabase/functions/pulse-external-signal-worker/quality.mjs",
   "supabase/functions/pulse-external-deterministic-backstop/index.ts", "supabase/functions/pulse-external-deterministic-backstop/quality.mjs",
+  "supabase/functions/pulse-external-deterministic-backstop/conversation.mjs", "supabase/functions/pulse-external-source-worker/social.mjs", "supabase/functions/pulse-external-source-worker/extract.mjs",
   "supabase/functions/pulse-external-source-worker/index.ts",
   "supabase/functions/pulse-ask-ai/index.ts", "supabase/functions/pulse-ask-ai/layers.mjs",
 ];
