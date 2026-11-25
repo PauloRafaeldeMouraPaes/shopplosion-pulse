@@ -54,6 +54,8 @@
     'niq-ecommerce-vendas-2026': { q: ['canal'], level: 'mercado' },
     'niq-ecommerce-motivos-2026': { q: ['canal', 'preco', 'escolha'], level: 'declarado' },
     'app-delivery-mercado-bebidas-2026': { q: ['canal', 'escolha'], level: 'mercado' },
+    'octadesk-opinionbox-redes-compra-online-2026': { q: ['canal', 'escolha'], level: 'declarado' },
+    'brain-preco-influenciadores-2025': { q: ['escolha', 'preco', 'quem'], level: 'declarado' },
     'kantar-copa-2026': { q: ['ocasiao'], level: 'declarado' },
     'niq-polarization-brazil': { q: ['preco'], level: 'mercado' },
     'niq-promo-polarization': { q: ['preco'], level: 'mercado' },
@@ -112,7 +114,7 @@
     quanto: ['frequencia', 'quantas vezes', 'unidades por', 'ticket', 'quanto compra', 'compra menos', 'comprando menos', 'volume por lar', 'por viagem'],
     ocasiao: ['ocasiao', 'missao', 'momento de consumo', 'presente', 'pascoa', 'natal', 'dia das', 'sazonal', 'copa'],
     canal: ['canal', 'onde compra', 'onde o shopper', 'atacarejo', 'supermercado', 'e-commerce', 'ecommerce', 'online', 'conveniencia', 'farmacia', 'formato de loja'],
-    escolha: ['escolhe', 'escolha', 'fator', 'decide', 'decisao', 'impulso', 'planejad', 'marca', 'embalagem', 'rotulo', 'atributo', 'prefere', 'preferencia', 'versao', 'variante', 'sabor', 'sem acucar', 'zero', 'light', 'tamanho'],
+    escolha: ['escolhe', 'escolha', 'fator', 'decide', 'decisao', 'impulso', 'planejad', 'marca', 'embalagem', 'rotulo', 'atributo', 'prefere', 'preferencia', 'versao', 'variante', 'sabor', 'sem acucar', 'zero', 'light', 'tamanho', 'influenciador', 'rede social', 'redes sociais', 'instagram', 'tiktok', 'youtube', 'avaliac', 'resenha'],
     preco: ['preco', 'caro', 'aumento', 'sobe', 'subiu', 'promocao', 'desconto', 'trocando', 'troca de', 'barato', 'trade down', 'downsizing', 'embalagem menor'],
   };
   const NO_DATA_TERMS = ['participacao de mercado', 'participacao da', 'participacao do', 'market share', 'share de', 'sell-out', 'sell out', 'vendas da marca', 'ranking de marcas', 'lider de mercado'];
