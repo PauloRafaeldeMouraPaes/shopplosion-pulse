@@ -134,6 +134,8 @@ test.describe('Ask AI interaction contract', () => {
     }));
     expect(audit.ids).toContain('locomotiva-pascoa-2026-intencao-drivers');
     expect(audit.ids).toContain('rico-preco-chocolate-barra-bombom-out-2026');
+    // Both layers: the category market context and the shopper as a whole on the same question.
+    expect(audit.ids).toContain('worldpanel-frequencia-volume-viagem-2t2026');
     expect(audit.text).toContain('INDIRETO para marca do piloto no Brasil');
     expect(audit.text).toContain('CONTEXTUAL para comportamento do shopper');
     expect(audit.text).toContain('não mede comportamento de compra');
