@@ -93,8 +93,8 @@ assert.match(intelligenceWorker, /select\('id,confidence,fingerprint,status'\)/,
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65, priorStatus: "dismissed", status: "active" }), false, "a status change that is not a resolution is not an event by itself (same rule as the trigger)");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.69996, priorStatus: "active", status: "active" }), true, "confidence is compared on the stored numeric(5,4) precision, as the trigger sees it");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.6999, priorStatus: "active", status: "active" }), false, "0.0499 on the stored precision stays below the threshold");
-assert.match(signalWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the main worker must preserve resolved signals");
-assert.match(backstopWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the backstop must preserve resolved signals");
+assert.match(signalWorker, /status:existing\?\.status==='resolved'\|\|existing\?\.status==='dismissed'\?existing\.status:'active'/, "the main worker must preserve resolved and dismissed signals");
+assert.match(backstopWorker, /status:existing\?\.status==='resolved'\|\|existing\?\.status==='dismissed'\?existing\.status:'active'/, "the backstop must preserve resolved and dismissed signals");
 assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.65, candidateDirection: "new" }), "new", "evidence-only changes must not be mislabeled as confidence increases");
 assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.70, candidateDirection: "stable" }), "up", "a meaningful confidence increase should be up");
 assert.equal(signalEventDirection({ priorConfidence: 0.70, confidence: 0.65, candidateDirection: "stable" }), "down", "a meaningful confidence decrease should be down");
@@ -117,7 +117,12 @@ assert.match(signalWorker, /duplicateIndex.*existing\.includes\(quoteNorm\).*quo
 assert.match(backstopWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /deterministicCandidate/);
 assert.match(backstopWorker, /normalize\("NFD"\).*replace\(\/\[\\u0300-\\u036f\]\/g/);
-assert.match(backstopWorker, /norm\(String\(candidate\.title\)\)/, "both workers must normalize signal identity consistently");
+assert.match(backstopWorker, /norm\(String\(candidate\.key\|\|candidate\.title\)\)/, "both workers must normalize signal identity consistently");
+assert.match(signalWorker, /identity=String\(s\.key\|\|s\.title\)/, "the signal worker keys a signal on its identity, not on its display title");
+// A dismissed or resolved signal keeps its state when the same evidence is seen again (AGENTS.md: preserve dismissed states).
+for (const [name, source] of [["signal worker", signalWorker], ["backstop", backstopWorker]]) {
+  assert.match(source, /status:existing\?\.status==='resolved'\|\|existing\?\.status==='dismissed'\?existing\.status:'active'/, `${name} must not reactivate a dismissed signal`);
+}
 const primaryQuality = readFileSync(resolve(root, "supabase/functions/pulse-external-signal-worker/quality.mjs"), "utf8");
 const backstopQuality = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/quality.mjs"), "utf8");
 assert.equal(backstopQuality, primaryQuality, "signal worker and deterministic backstop must share identical evidence quality rules");
@@ -184,6 +189,12 @@ assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "Lançamentos pa
   assert.ok(content.includes(c[0].evidence[0].quote), "the quote stays verbatim in the source");
   const long = "O consumo de refrigerante sem açúcar cresceu 13 vezes mais do que o das versões regulares entre 2024 e 2026, contribuindo com 83% para o crescimento dos não alcoólicos no período analisado pela consultoria.";
   const t = quality.deterministicCandidates({ id: "long", title: "x", content: long }, ["refrigerante"])[0].title;
+  // Identity stays the pre-2026-11-25 title, so signals already stored (and dismissed) keep their key.
+  const two = "Em 2024, foram produzidas 805 mil toneladas de chocolates no país. O número subiu para 814 mil toneladas no ano passado.";
+  const kept = quality.deterministicCandidates({ id: "two", title: "x", content: two }, ["chocolate"])[0];
+  assert.equal(kept.key, two, "a quote up to 180 characters keeps the whole quote as identity");
+  assert.equal(kept.title, "Em 2024, foram produzidas 805 mil toneladas de chocolates no país.");
+  assert.equal(quality.deterministicCandidates({ id: "long", title: "x", content: long }, ["refrigerante"])[0].key, long.slice(0, 177) + "...");
   const cut = t.replace(/\.\.\.$/, "");
   assert.ok(t.length <= 180 && t.endsWith("...") && long.startsWith(cut) && long[cut.length] === " ", `a long title is cut at a word boundary: ${t}`);
 }

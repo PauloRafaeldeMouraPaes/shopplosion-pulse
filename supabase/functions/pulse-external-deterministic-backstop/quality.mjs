@@ -81,15 +81,19 @@ export function deterministicCandidates(item, topicTerms) {
     const sentence = sentences[i];
     if (/varia[cç][aã]o/i.test(sentence) && !(/\d+(?:[,.]\d+)?\s*%/.test(sentence) || (sentence.match(/R\$\s*\d+(?:[,.]\d+)?/g) || []).length >= 2)) continue;
     if (!/(subiu|subiram|cresceu|cresceram|crescimento|avançou|passou|aument|queda|caiu|caíram|recuou|redu[cç][aã]o|reduziu|contra |declinou|diminuiu|mais do que|menos do que|dobrou|triplicou|varia[cç][aã]o|diferen[cç]a no valor|chegou a|chega a|pontos percentuais)/i.test(sentence)) continue;
+    let raw = sentence;
     let quote = stripLeadIn(sentence, item.title);
     const explicitTopic = MARKET_WORDS.test(quote) || topicMentions(quote, topicTerms) > 0;
-    if (!explicitTopic && i > 0) quote = sentences[i - 1] + " " + quote;
+    if (!explicitTopic && i > 0) { raw = sentences[i - 1] + " " + sentence; quote = raw; }
     if (!isGoodEvidenceQuote(quote, text, topicTerms) || seen.has(quote)) continue;
     seen.add(quote);
     const title = signalTitle(quote);
     candidates.push({
       signal_type: "change",
       title,
+      // Identity of the signal: the text it was keyed on before titles were cleaned (2026-11-25), so a signal
+      // someone dismissed keeps its key and is not created again under a new title.
+      key: raw.length <= 180 ? raw : raw.slice(0, 177) + "...",
       summary: "A fonte registra o seguinte dado quantitativo: " + quote + " O dado descreve o que a fonte reporta; isoladamente, não comprova mudança de compra, preferência ou comportamento individual do shopper. Tratar como sinal contextual a validar com evidências independentes.",
       confidence: 0.65,
       direction: "new",
