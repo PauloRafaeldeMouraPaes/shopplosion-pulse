@@ -44,6 +44,7 @@ jobs:
           fi
           python3 scripts/validate_edge_function_manifest.py
           node scripts/validate-external-signal-quality.mjs
+          node scripts/test-html-article-content.mjs
           for fn in $WORKERS; do grep -Fq "[functions.$fn]" supabase/config.toml; done
           # The trigger is the only event writer; a worker that inserts events would duplicate them.
           if grep -n "from('intelligence_signal_events').insert\|from(\"intelligence_signal_events\").insert" supabase/functions/pulse-external-signal-worker/index.ts supabase/functions/pulse-external-deterministic-backstop/index.ts supabase/functions/pulse-intelligence-worker/index.ts; then
