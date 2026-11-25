@@ -26,3 +26,22 @@ commit;
 ```
 
 Antes de rodar, conferir com `\d` as chaves estrangeiras das tabelas de sinais: se alguma tiver `on delete cascade`, os deletes intermediários são redundantes, não prejudiciais.
+
+## Ajustes de 25/11/2026 (dados, sem DDL)
+
+Depois do deploy dos signal workers (source v8, signal v20, backstop v17, run 45531959840):
+
+- `industries.signal_topic_terms` da indústria de demonstração ganhou `nao alcoolic` e `nao-alcoolic`: para um fabricante de refrigerantes, bebidas não alcoólicas são o mercado dele. Sem isso, a nova regra de relevância (tema no trecho, no título da fonte ou na frase vizinha) descartaria os sinais de bebidas não alcoólicas fora de casa.
+- `intelligence_sources.last_fetched_at` das cinco fontes da demonstração voltou a nulo para forçar a captura com o novo extrator; a página da Neogrid passou de 192 para 2.217 caracteres.
+- Três sinais da demonstração que a regra nova não gera mais ficaram `dismissed`: o de batata congelada para air fryer (fora do tema), o de cabeçalho da página NIQ e uma versão antiga do sinal de refrigerante sem açúcar, substituída pela nova.
+
+Conferido na mesma hora: a indústria piloto de chocolate não ganhou sinal novo, os 14 ativos seguem ativos e os 19 dispensados seguem dispensados.
+
+Rollback destes ajustes:
+
+```sql
+update industries set signal_topic_terms = array['refrigerante','guarana','soft drink','bebida gaseificada']::text[]
+ where id = '15670e94-5ad3-44bf-aba2-c09ee7d9dd10';
+```
+
+Os três sinais dispensados podem voltar a `active` pelo título, se for preciso; o rollback completo da demonstração continua sendo o bloco acima.
