@@ -79,22 +79,26 @@
     },
     {
       "slug": "pulse-external-source-worker",
-      "version": 7,
+      "version": 8,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "2b88ef5605b5eff15c04e571ba24dd9a9fa85b342b9cd90bc419c9bd04169e26",
+      "deployed_sha256": "bf9a7511d6bb25c7ef485a38e8d3b75e72f0ab0eafa3994f049060ed2c88f129",
       "source_path": "supabase/functions/pulse-external-source-worker/index.ts",
       "auth": "internal_worker_token",
       "deployment_drift": false,
       "drift_reason": "",
-      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45178411898 from 96956291 (2026-11-23)"
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45531959840 from e2f53abe (2026-11-25)",
+      "source_files": [
+        "supabase/functions/pulse-external-source-worker/index.ts",
+        "supabase/functions/pulse-external-source-worker/extract.mjs"
+      ]
     },
     {
       "slug": "pulse-external-signal-worker",
-      "version": 19,
+      "version": 20,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "4745281d9739bf5027a276ab560fb2d76d9b3f961d83e9fdadaef3b70112e309",
+      "deployed_sha256": "df87086cf6952f45e383ecf3d679bf10b1ada1080ac87afb4a570bd4abc6ad25",
       "source_path": "supabase/functions/pulse-external-signal-worker/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
@@ -103,14 +107,14 @@
       ],
       "deployment_drift": false,
       "drift_reason": "",
-      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45177494348 from c42f6f51 (2026-11-23)"
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45531959840 from e2f53abe (2026-11-25)"
     },
     {
       "slug": "pulse-external-deterministic-backstop",
-      "version": 16,
+      "version": 17,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "72c3b6a7e65eb31bb9291dcc77f50f94db28c8d6d9b7a48e2d2854fbadf21c82",
+      "deployed_sha256": "53e839e2b7b1b400c2063c713b1e650877e284bec1580a03078fd8952d7b7b57",
       "source_path": "supabase/functions/pulse-external-deterministic-backstop/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
@@ -119,7 +123,7 @@
       ],
       "deployment_drift": false,
       "drift_reason": "",
-      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45177494348 from c42f6f51 (2026-11-23)"
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45531959840 from e2f53abe (2026-11-25)"
     },
     {
       "slug": "pulse-index-bootstrap",
