@@ -4,7 +4,16 @@
    - Bluesky: public posts found by the topic terms (account in BLUESKY_HANDLE and BLUESKY_APP_PASSWORD; the public
      search answers 403 without login).
    No platform is scraped. Items keep the text and a link to the public post or comment; author names are not kept. */
-export const SOCIAL_SOURCE_TYPES = ["youtube", "bluesky"];
+/* intelligence_sources.source_type only accepts rss, json and html (check constraint), so a social source is a json
+   source whose url is the official endpoint of the platform. */
+export const SOCIAL_SOURCE_URLS = {
+  youtube: "https://www.googleapis.com/youtube/v3/search",
+  bluesky: "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
+};
+export function socialPlatform(sourceType, url) {
+  if (sourceType !== "json") return null;
+  return Object.keys(SOCIAL_SOURCE_URLS).find((k) => SOCIAL_SOURCE_URLS[k] === String(url || "").trim()) || null;
+}
 
 const DAY = 86400000;
 const plain = (v) => String(v || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -99,8 +108,8 @@ export async function blueskyItems({ terms, handle, appPassword, fetchFn = fetch
   return [...byUri.values()];
 }
 
-export async function socialItems(sourceType, { terms, env, fetchFn = fetch, now = Date.now() }) {
-  if (sourceType === "youtube") return youtubeItems({ terms, apiKey: env("YOUTUBE_API_KEY"), fetchFn, now });
-  if (sourceType === "bluesky") return blueskyItems({ terms, handle: env("BLUESKY_HANDLE"), appPassword: env("BLUESKY_APP_PASSWORD"), fetchFn, now });
-  throw new Error(`unknown_social_source:${sourceType}`);
+export async function socialItems(platform, { terms, env, fetchFn = fetch, now = Date.now() }) {
+  if (platform === "youtube") return youtubeItems({ terms, apiKey: env("YOUTUBE_API_KEY"), fetchFn, now });
+  if (platform === "bluesky") return blueskyItems({ terms, handle: env("BLUESKY_HANDLE"), appPassword: env("BLUESKY_APP_PASSWORD"), fetchFn, now });
+  throw new Error(`unknown_social_source:${platform}`);
 }

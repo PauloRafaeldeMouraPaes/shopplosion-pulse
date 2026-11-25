@@ -1,7 +1,7 @@
 // Online conversation: collectors read only official APIs with the industry topic terms, and the reading of themes
 // counts what is said without naming any category.
 import assert from "node:assert/strict";
-import { searchTerms, youtubeItems, blueskyItems, socialItems } from "../supabase/functions/pulse-external-source-worker/social.mjs";
+import { searchTerms, youtubeItems, blueskyItems, socialItems, socialPlatform, SOCIAL_SOURCE_URLS } from "../supabase/functions/pulse-external-source-worker/social.mjs";
 import { conversationSignals, THEMES } from "../supabase/functions/pulse-external-deterministic-backstop/conversation.mjs";
 
 const now = Date.parse("2026-11-25T12:00:00Z");
@@ -63,6 +63,11 @@ await assert.rejects(blueskyItems({ terms: ["cafe"], handle: "", appPassword: ""
 }
 
 await assert.rejects(socialItems("x", { terms: [], env: () => "" }), /unknown_social_source/);
+// A social source is a json source pointing at the official endpoint (source_type accepts only rss, json, html).
+assert.equal(socialPlatform("json", SOCIAL_SOURCE_URLS.youtube), "youtube");
+assert.equal(socialPlatform("json", SOCIAL_SOURCE_URLS.bluesky), "bluesky");
+assert.equal(socialPlatform("html", SOCIAL_SOURCE_URLS.youtube), null);
+assert.equal(socialPlatform("json", "https://example.com/feed.json"), null);
 
 // Conversation reading.
 {
@@ -94,9 +99,9 @@ console.log("social conversation: PASS");
 import { readFileSync } from "node:fs";
 const src = (p) => readFileSync(new URL(`../supabase/functions/${p}`, import.meta.url), "utf8");
 for (const w of ["pulse-external-signal-worker/index.ts", "pulse-external-deterministic-backstop/index.ts"]) {
-  assert.match(src(w), /in\('source_type',\['youtube','bluesky'\]\)/, `${w} must look up the social sources`);
+  for (const u of Object.values(SOCIAL_SOURCE_URLS)) assert.ok(src(w).includes(`'${u}'`), `${w} must look up the social sources by their endpoint`);
   assert.match(src(w), /\.not\('source_id','in',/, `${w} must exclude social items from the extraction`);
 }
 assert.match(src("pulse-external-deterministic-backstop/index.ts"), /conversationSignals\(/);
-assert.match(src("pulse-external-source-worker/index.ts"), /SOCIAL_SOURCE_TYPES\.includes\(s\.source_type\)/);
+assert.match(src("pulse-external-source-worker/index.ts"), /socialPlatform\(s\.source_type,s\.url\)/);
 console.log("social workers wiring: PASS");
