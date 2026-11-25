@@ -72,6 +72,9 @@ t("classify: shopper questions, market-share questions and text that is neither"
   assert.deepEqual(S.classify("O shopper prefere a versão regular ou a zero?").questions, ["escolha"]);
   assert.deepEqual(S.classify("Quem troca para sem açúcar escolhe por quê?").questions, ["escolha"]);
   assert.deepEqual(S.classify("Qual sabor o shopper leva mais?").questions, ["escolha"]);
+  // Social media and reviews are part of how the shopper chooses.
+  assert.ok(S.classify("O que influenciadores e redes sociais mudam na compra?").questions.includes("escolha"));
+  assert.ok(S.classify("O shopper lê avaliações antes de comprar?").questions.includes("escolha"));
 });
 
 t("hypothesis names every evidence level selected, never 'só em declaração' when market data is there", () => {
