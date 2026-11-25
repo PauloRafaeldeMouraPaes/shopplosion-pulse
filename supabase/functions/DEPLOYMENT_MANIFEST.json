@@ -5,10 +5,10 @@
   "functions": [
     {
       "slug": "pulse-ask-ai",
-      "version": 43,
+      "version": 44,
       "status": "ACTIVE",
       "verify_jwt": true,
-      "deployed_sha256": "1cefcb462ad5c39673f5115a72d02d98574f713e4b844e8583c4b4e698e913fb",
+      "deployed_sha256": "ee2f349dd629ef0981464eb0686b35a1d658787b24b820f75cc2fe63e5431575",
       "source_path": "supabase/functions/pulse-ask-ai/index.ts",
       "desired_verify_jwt": true,
       "deployment_drift": false,
@@ -79,26 +79,27 @@
     },
     {
       "slug": "pulse-external-source-worker",
-      "version": 8,
+      "version": 9,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "bf9a7511d6bb25c7ef485a38e8d3b75e72f0ab0eafa3994f049060ed2c88f129",
+      "deployed_sha256": "8646e9906c6e68ec764ab3c5e0eb921494638e89c765cd1ee7e3f80865c5d64a",
       "source_path": "supabase/functions/pulse-external-source-worker/index.ts",
       "auth": "internal_worker_token",
       "deployment_drift": false,
       "drift_reason": "",
-      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45531959840 from e2f53abe (2026-11-25)",
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45641809398 from 82c70cc0 (2026-11-25)",
       "source_files": [
         "supabase/functions/pulse-external-source-worker/index.ts",
-        "supabase/functions/pulse-external-source-worker/extract.mjs"
+        "supabase/functions/pulse-external-source-worker/extract.mjs",
+        "supabase/functions/pulse-external-source-worker/social.mjs"
       ]
     },
     {
       "slug": "pulse-external-signal-worker",
-      "version": 20,
+      "version": 21,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "df87086cf6952f45e383ecf3d679bf10b1ada1080ac87afb4a570bd4abc6ad25",
+      "deployed_sha256": "07509bfe8f40ac2d96532b68df35da6e330b28c76cbb462c90d04c6daa56d167",
       "source_path": "supabase/functions/pulse-external-signal-worker/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
@@ -107,23 +108,24 @@
       ],
       "deployment_drift": false,
       "drift_reason": "",
-      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45531959840 from e2f53abe (2026-11-25)"
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45641809398 from 82c70cc0 (2026-11-25)"
     },
     {
       "slug": "pulse-external-deterministic-backstop",
-      "version": 17,
+      "version": 18,
       "status": "ACTIVE",
       "verify_jwt": false,
-      "deployed_sha256": "53e839e2b7b1b400c2063c713b1e650877e284bec1580a03078fd8952d7b7b57",
+      "deployed_sha256": "3e545d81e97b2b078fdc39d9d8dfc71259d53e17c83c436a3129bccab24b0927",
       "source_path": "supabase/functions/pulse-external-deterministic-backstop/index.ts",
       "auth": "internal_worker_token",
       "source_files": [
         "supabase/functions/pulse-external-deterministic-backstop/index.ts",
-        "supabase/functions/pulse-external-deterministic-backstop/quality.mjs"
+        "supabase/functions/pulse-external-deterministic-backstop/quality.mjs",
+        "supabase/functions/pulse-external-deterministic-backstop/conversation.mjs"
       ],
       "deployment_drift": false,
       "drift_reason": "",
-      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45531959840 from e2f53abe (2026-11-25)"
+      "deployed_by": "pulse-supabase-signal-workers-deploy.yml run 45641809398 from 82c70cc0 (2026-11-25)"
     },
     {
       "slug": "pulse-index-bootstrap",
