@@ -23,6 +23,8 @@ jobs:
         run: node scripts/validate-study-evidence.js
       - name: Validate external signal evidence quality
         run: node scripts/validate-external-signal-quality.mjs
+      - name: Validate HTML article extraction of the source worker
+        run: node scripts/test-html-article-content.mjs
       - name: Validate condução dismissal/silence contract
         run: node scripts/validate-conducao-contract.js
       - name: Validate analysis publish/limits contract
