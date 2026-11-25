@@ -12,6 +12,9 @@
      node scripts/sync-public-evidence.js --add-source src.json # append PULSE_SOURCES entries (ids and org|title must be new)
      node scripts/sync-public-evidence.js --check              # exit 1 when a mirror differs from what would be generated
 
+   It also writes supabase/functions/pulse-ask-ai/categories.mjs from CATEGORIES in pulse-shopper-map.js, so the
+   Ask AI labels each evidence item as the shopper as a whole or one registered category without naming any category.
+
    Nothing here invents content: an item is written exactly as given, and the data-integrity and Ask AI tests still
    decide whether it is acceptable (required fields, source URL present in PULSE_SOURCES, parity). */
 const fs = require("node:fs");
@@ -21,6 +24,8 @@ const ROOT = process.cwd();
 const INDEX = path.join(ROOT, "index.html");
 const JS = path.join(ROOT, "pulse-public-evidence.js");
 const TS = path.join(ROOT, "supabase/functions/pulse-ask-ai/public-evidence.ts");
+const CATS = path.join(ROOT, "supabase/functions/pulse-ask-ai/categories.mjs");
+const catsText = () => { const S = require(path.join(ROOT, "pulse-shopper-map.js")); return `// Generated from CATEGORIES in pulse-shopper-map.js by scripts/sync-public-evidence.js; CI enforces exact synchronization.\nexport const PULSE_PRODUCT_CATEGORIES = ${JSON.stringify(S.CATEGORIES.map(c => ({ key: c.key, label: c.label, terms: c.terms })), null, 2)};\n`; };
 const MARKER = '<script type="application/json" id="pulse-public-evidence-json">';
 
 function readIndex() {
@@ -70,10 +75,12 @@ if (args.includes("--check")) {
   const bad = [];
   if (fs.readFileSync(JS, "utf8") !== expectedJs) bad.push("pulse-public-evidence.js");
   if (fs.readFileSync(TS, "utf8") !== expectedTs) bad.push("supabase/functions/pulse-ask-ai/public-evidence.ts");
+  if (!fs.existsSync(CATS) || fs.readFileSync(CATS, "utf8") !== catsText()) bad.push("supabase/functions/pulse-ask-ai/categories.mjs");
   console.log(bad.length ? `mirrors out of sync: ${bad.join(", ")}` : `three layers in sync (${evidence.length} items)`);
   process.exit(bad.length ? 1 : 0);
 }
 if (newHtml !== fs.readFileSync(INDEX, "utf8")) fs.writeFileSync(INDEX, newHtml);
 fs.writeFileSync(JS, expectedJs);
 fs.writeFileSync(TS, expectedTs);
+fs.writeFileSync(CATS, catsText());
 console.log(`three layers written (${evidence.length} items)`);

@@ -20,6 +20,7 @@ const LOGIC_FILES = [
   "supabase/functions/pulse-external-signal-worker/index.ts", "supabase/functions/pulse-external-signal-worker/quality.mjs",
   "supabase/functions/pulse-external-deterministic-backstop/index.ts", "supabase/functions/pulse-external-deterministic-backstop/quality.mjs",
   "supabase/functions/pulse-external-source-worker/index.ts",
+  "supabase/functions/pulse-ask-ai/index.ts", "supabase/functions/pulse-ask-ai/layers.mjs",
 ];
 const plain = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const words = new Set();
