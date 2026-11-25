@@ -93,8 +93,8 @@ assert.match(intelligenceWorker, /select\('id,confidence,fingerprint,status'\)/,
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.65, priorStatus: "dismissed", status: "active" }), false, "a status change that is not a resolution is not an event by itself (same rule as the trigger)");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.69996, priorStatus: "active", status: "active" }), true, "confidence is compared on the stored numeric(5,4) precision, as the trigger sees it");
 assert.equal(shouldRecordSignalEvent({ priorConfidence: 0.65, existingFingerprint: "same", fingerprint: "same", confidence: 0.6999, priorStatus: "active", status: "active" }), false, "0.0499 on the stored precision stays below the threshold");
-assert.match(signalWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the main worker must preserve resolved signals");
-assert.match(backstopWorker, /status:existing\?\.status==='resolved'\?'resolved':'active'/, "the backstop must preserve resolved signals");
+assert.match(signalWorker, /status:existing\?\.status==='resolved'\|\|existing\?\.status==='dismissed'\?existing\.status:'active'/, "the main worker must preserve resolved and dismissed signals");
+assert.match(backstopWorker, /status:existing\?\.status==='resolved'\|\|existing\?\.status==='dismissed'\?existing\.status:'active'/, "the backstop must preserve resolved and dismissed signals");
 assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.65, candidateDirection: "new" }), "new", "evidence-only changes must not be mislabeled as confidence increases");
 assert.equal(signalEventDirection({ priorConfidence: 0.65, confidence: 0.70, candidateDirection: "stable" }), "up", "a meaningful confidence increase should be up");
 assert.equal(signalEventDirection({ priorConfidence: 0.70, confidence: 0.65, candidateDirection: "stable" }), "down", "a meaningful confidence decrease should be down");
@@ -117,7 +117,12 @@ assert.match(signalWorker, /duplicateIndex.*existing\.includes\(quoteNorm\).*quo
 assert.match(backstopWorker, /isGoodEvidenceQuote/);
 assert.match(backstopWorker, /deterministicCandidate/);
 assert.match(backstopWorker, /normalize\("NFD"\).*replace\(\/\[\\u0300-\\u036f\]\/g/);
-assert.match(backstopWorker, /norm\(String\(candidate\.title\)\)/, "both workers must normalize signal identity consistently");
+assert.match(backstopWorker, /norm\(String\(candidate\.key\|\|candidate\.title\)\)/, "both workers must normalize signal identity consistently");
+assert.match(signalWorker, /identity=String\(s\.key\|\|s\.title\)/, "the signal worker keys a signal on its identity, not on its display title");
+// A dismissed or resolved signal keeps its state when the same evidence is seen again (AGENTS.md: preserve dismissed states).
+for (const [name, source] of [["signal worker", signalWorker], ["backstop", backstopWorker]]) {
+  assert.match(source, /status:existing\?\.status==='resolved'\|\|existing\?\.status==='dismissed'\?existing\.status:'active'/, `${name} must not reactivate a dismissed signal`);
+}
 const primaryQuality = readFileSync(resolve(root, "supabase/functions/pulse-external-signal-worker/quality.mjs"), "utf8");
 const backstopQuality = readFileSync(resolve(root, "supabase/functions/pulse-external-deterministic-backstop/quality.mjs"), "utf8");
 assert.equal(backstopQuality, primaryQuality, "signal worker and deterministic backstop must share identical evidence quality rules");
@@ -162,8 +167,37 @@ assert.ok(quality.deterministicCandidate(coffeeItem, coffeeTerms), "a quantified
 assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "O consumo de café em cápsula cresceu 12% em 2025.", sourceTitle: "", sourceContent: "", topicTerms: coffeeTerms }), true, "on topic for the coffee industry");
 assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "O consumo de café em cápsula cresceu 12% em 2025.", sourceTitle: "", sourceContent: "", topicTerms: CHOCOLATE_TERMS }), false, "the same signal is off topic for the chocolate industry");
 assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "A produção de chocolates avançou de 806 mil toneladas para 814 mil toneladas.", sourceTitle: "", sourceContent: "", topicTerms: coffeeTerms }), false, "a chocolate signal is off topic for the coffee industry");
-assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "Lançamentos passaram de 94 para 134.", sourceTitle: "Setor projeta crescimento", sourceContent: "O café torrado avançou. A cápsula de café ganhou espaço.", topicTerms: coffeeTerms }), true, "two mentions in the source text are enough");
-assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "Lançamentos passaram de 94 para 134.", sourceTitle: "Setor projeta crescimento", sourceContent: "O café torrado avançou.", topicTerms: coffeeTerms }), false, "one mention in the source text is not enough");
+assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "Lançamentos passaram de 94 para 134.", quote: "Lançamentos passaram de 94 para 134.", sourceTitle: "Setor projeta crescimento", sourceContent: "A cápsula de café ganhou espaço. Lançamentos passaram de 94 para 134. O setor segue otimista.", topicTerms: coffeeTerms }), true, "the topic in the sentence next to the quote is enough");
+assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: "Lançamentos passaram de 94 para 134.", quote: "Lançamentos passaram de 94 para 134.", sourceTitle: "Setor projeta crescimento", sourceContent: "O café torrado avançou. A cápsula de café ganhou espaço. O varejo abriu lojas. Lançamentos passaram de 94 para 134.", topicTerms: coffeeTerms }), false, "the topic far from the quote, in another part of the article, is not enough");
+// 2026-11-24, soft drink demo: a trends article mentions the category twice, but the quote is about frozen fries.
+{
+  const article = "Refrigerantes sem açúcar são os destaques da categoria não-alcoólica, com 32,9% das vendas. O refrigerante regular perde espaço. Na Copa, a cerveja cresce 8% em volume. O consumo no lar segue em alta. De 2020 até 2024, 33 milhões de unidades foram vendidas no Brasil, sendo o pico em 2024. Não à toa, um dos destaques são as batatas congeladas para Air Fryer, que cresce 19 vezes mais do que os demais produtos.";
+  const fries = "De 2020 até 2024, 33 milhões de unidades foram vendidas no Brasil, sendo o pico em 2024. Não à toa, um dos destaques são as batatas congeladas para Air Fryer, que cresce 19 vezes mais do que os demais produtos.";
+  const softTerms = ["refrigerante", "guarana", "soft drink"];
+  assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: fries, quote: fries, sourceTitle: "Tendências da Copa em 2026", sourceContent: article, topicTerms: softTerms }), false, "a quote about another product in a multi-topic article is off topic");
+  const zero = "Refrigerantes sem açúcar são os destaques da categoria não-alcoólica, com 32,9% das vendas.";
+  assert.equal(quality.isRelevantSignal({ confidence: 0.65, text: zero, quote: zero, sourceTitle: "Tendências da Copa em 2026", sourceContent: article, topicTerms: softTerms }), true, "the on-topic quote of the same article is kept");
+}
+// Titles: a heading repeated by the page layout and the source title glued before the data are not part of the title.
+{
+  const head = "Bebida não alcoólica cresce 32% fora de casa, com energético e proteico em alta";
+  const content = `${head} ${head} ${head} Divulgada nesta segunda pela Worldpanel, a edição 2026 registra alta de 32% em CRP no conjunto de bebidas não alcoólicas, contra 21% do mercado geral. O refrigerante segue líder.`;
+  const c = quality.deterministicCandidates({ id: "promo", title: head + " - Promoview - Insights", content }, ["nao alcoolic", "refrigerante"]);
+  assert.ok(c.length, "the quantified change is still extracted");
+  assert.ok(!c[0].title.includes(head), `the repeated heading is not in the title: ${c[0].title}`);
+  assert.ok(c[0].title.startsWith("Divulgada nesta segunda"), c[0].title);
+  assert.ok(content.includes(c[0].evidence[0].quote), "the quote stays verbatim in the source");
+  const long = "O consumo de refrigerante sem açúcar cresceu 13 vezes mais do que o das versões regulares entre 2024 e 2026, contribuindo com 83% para o crescimento dos não alcoólicos no período analisado pela consultoria.";
+  const t = quality.deterministicCandidates({ id: "long", title: "x", content: long }, ["refrigerante"])[0].title;
+  // Identity stays the pre-2026-11-25 title, so signals already stored (and dismissed) keep their key.
+  const two = "Em 2024, foram produzidas 805 mil toneladas de chocolates no país. O número subiu para 814 mil toneladas no ano passado.";
+  const kept = quality.deterministicCandidates({ id: "two", title: "x", content: two }, ["chocolate"])[0];
+  assert.equal(kept.key, two, "a quote up to 180 characters keeps the whole quote as identity");
+  assert.equal(kept.title, "Em 2024, foram produzidas 805 mil toneladas de chocolates no país.");
+  assert.equal(quality.deterministicCandidates({ id: "long", title: "x", content: long }, ["refrigerante"])[0].key, long.slice(0, 177) + "...");
+  const cut = t.replace(/\.\.\.$/, "");
+  assert.ok(t.length <= 180 && t.endsWith("...") && long.startsWith(cut) && long[cut.length] === " ", `a long title is cut at a word boundary: ${t}`);
+}
 // An industry that declared no topic receives nothing.
 for (const none of [undefined, null, [], ["", "a"]]) {
   assert.equal(quality.isRelevantSignal({ confidence: 0.9, text: "A produção de chocolates avançou de 806 para 814 mil toneladas.", sourceTitle: "Chocolate", sourceContent: "chocolate chocolate", topicTerms: none }), false, "no topic terms: the gate is closed");
