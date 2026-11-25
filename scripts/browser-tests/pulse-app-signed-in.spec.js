@@ -342,16 +342,18 @@ test.describe('More than one category', () => {
     await page.route('**/pulse-public-evidence.js*', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: evidence }));
   }
 
-  test('with one category there is no picker; with two, Hoje lets the person choose and remembers the choice', async ({ page }) => {
+  test('with more than one category Hoje lets the person choose and remembers the choice', async ({ page }) => {
     await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-shopper-map]')).toHaveAttribute('data-shopper-category', 'chocolate');
-    await expect(page.locator('#pv4-shopper-category')).toHaveCount(0);
+    const registered = await page.evaluate(() => window.PULSE_SHOPPER.categoriesIn(window.PULSE_EVIDENCE).map((c) => c.label));
+    if (registered.length > 1) await expect(page.locator('#pv4-shopper-category option')).toHaveText(registered);
+    else await expect(page.locator('#pv4-shopper-category')).toHaveCount(0);
 
     await withSecondCategory(page);
     await page.goto('/intelligence.html', { waitUntil: 'domcontentloaded' });
     const map = page.locator('[data-shopper-map]');
     await expect(map).toHaveAttribute('data-shopper-category', 'chocolate');
-    await expect(page.locator('#pv4-shopper-category option')).toHaveText(['Chocolate', 'Café']);
+    await expect(page.locator('#pv4-shopper-category option')).toHaveText([...registered, 'Café']);
     // Columns: the shopper as a whole first, then the category read. The invented coffee item is coffee only.
     await expect(map.locator('.pv4-shopper-row.head')).toContainText('Shopper em geral');
     expect(await map.locator('[data-shopper-question="quem"] .pv4-shopper-cell').nth(0).locator('[data-case-evidence="teste-cafe-painel"]').count()).toBe(0);

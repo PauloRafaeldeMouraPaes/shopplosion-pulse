@@ -10,5 +10,15 @@ export const PULSE_PRODUCT_CATEGORIES = [
       "ovo de pascoa",
       "ovos de pascoa"
     ]
+  },
+  {
+    "key": "refrigerantes",
+    "label": "Refrigerantes",
+    "terms": [
+      "refrigerante",
+      "guarana",
+      "bebida gaseificada",
+      "soft drink"
+    ]
   }
 ];

@@ -112,7 +112,8 @@ t("a second category needs only a registry entry, its evidence and its classific
   S.MAP["teste-cafe-painel"] = { q: ["quem"], level: "observado" };
   try {
     const base = evidence.concat([{ id: "teste-cafe-painel", categoria: "cafe", periodo: "2026-T1", fato: "Fato inventado para teste.", nao_representa: "Limite inventado para teste." }]);
-    assert.deepEqual(S.categoriesIn(base).map(c => c.key), ["chocolate", "cafe"]);
+    assert.deepEqual(S.categoriesIn(base).map(c => c.key), S.CATEGORIES.filter(c => base.some(e => e.categoria === c.key)).map(c => c.key));
+    assert.equal(S.categoriesIn(base).at(-1).key, "cafe");
     assert.equal(S.categoryOf("Quem compra café em cápsula?"), "cafe");
     const rows = S.coverage(base, "cafe");
     assert.equal(rows.find(r => r.key === "quem").category.count, 1);
@@ -126,7 +127,7 @@ t("a second category needs only a registry entry, its evidence and its classific
     assert.ok(r.text.includes("buscar evidência de café para: como reage ao preço"));
     assert.ok(!r.text.includes("chocolate"));
     assert.equal(S.activeCategory(base), "chocolate");
-    assert.equal(S.activeCategory(base.filter(e => e.categoria !== "chocolate")), "cafe");
+    assert.equal(S.activeCategory(base.filter(e => e.categoria === "cafe" || !S.isCategoryEvidence(e))), "cafe");
     assert.equal(S.setActiveCategory("inexistente"), false);
   } finally { S.CATEGORIES.pop(); delete S.MAP["teste-cafe-painel"]; }
 });
