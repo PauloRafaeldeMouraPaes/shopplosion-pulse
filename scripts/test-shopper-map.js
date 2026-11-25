@@ -68,6 +68,24 @@ t("classify: shopper questions, market-share questions and text that is neither"
   assert.deepEqual(S.classify("Qual é a participação de mercado em chocolate?"), { questions: [], noMarketData: true });
   assert.deepEqual(S.classify("Como está o varejo?"), { questions: [], noMarketData: false });
   assert.deepEqual(S.classify("   "), { questions: [], noMarketData: false });
+  // A product version or variant (zero, sem açúcar, sabor, tamanho) is a choice question, in any category.
+  assert.deepEqual(S.classify("O shopper prefere a versão regular ou a zero?").questions, ["escolha"]);
+  assert.deepEqual(S.classify("Quem troca para sem açúcar escolhe por quê?").questions, ["escolha"]);
+  assert.deepEqual(S.classify("Qual sabor o shopper leva mais?").questions, ["escolha"]);
+});
+
+t("hypothesis names every evidence level selected, never 'só em declaração' when market data is there", () => {
+  const fake = (id, level) => { S.MAP[id] = { q: ["escolha"], level }; return { id, periodo: "2026", fato: "Fato de teste.", nao_representa: "Limite de teste." }; };
+  try {
+    const decl = fake("teste-h-decl", "declarado"), merc = fake("teste-h-merc", "mercado"), obs = fake("teste-h-obs", "observado");
+    const hyp = sel => S.reading("escolha", sel, evidence, null).text.split("HIPÓTESE: ")[1].split("\n")[0];
+    assert.ok(!hyp([decl, merc]).includes("só em declaração"));
+    assert.match(hyp([decl, merc]), /declaração/); assert.match(hyp([decl, merc]), /indicadores de mercado/); assert.match(hyp([decl, merc]), /não compra realizada/);
+    assert.match(hyp([decl]), /só em declaração/);
+    assert.match(hyp([obs, merc]), /compra observada/); assert.match(hyp([obs, merc]), /indicadores de mercado/);
+    assert.match(hyp([obs, decl, merc]), /indicadores de mercado/);
+    assert.match(hyp([merc]), /^As evidências selecionadas são indicadores de mercado/);
+  } finally { for (const k of ["teste-h-decl", "teste-h-merc", "teste-h-obs"]) delete S.MAP[k]; }
 });
 
 t("reading: facts by level in citation order, declared limits, gaps named, no cause inferred", () => {

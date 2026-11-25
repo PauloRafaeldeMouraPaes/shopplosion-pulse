@@ -108,7 +108,7 @@
     quanto: ['frequencia', 'quantas vezes', 'unidades por', 'ticket', 'quanto compra', 'compra menos', 'comprando menos', 'volume por lar', 'por viagem'],
     ocasiao: ['ocasiao', 'missao', 'momento de consumo', 'presente', 'pascoa', 'natal', 'dia das', 'sazonal', 'copa'],
     canal: ['canal', 'onde compra', 'onde o shopper', 'atacarejo', 'supermercado', 'e-commerce', 'ecommerce', 'online', 'conveniencia', 'farmacia', 'formato de loja'],
-    escolha: ['escolhe', 'escolha', 'fator', 'decide', 'decisao', 'impulso', 'planejad', 'marca', 'embalagem', 'rotulo', 'atributo'],
+    escolha: ['escolhe', 'escolha', 'fator', 'decide', 'decisao', 'impulso', 'planejad', 'marca', 'embalagem', 'rotulo', 'atributo', 'prefere', 'preferencia', 'versao', 'variante', 'sabor', 'sem acucar', 'zero', 'light', 'tamanho'],
     preco: ['preco', 'caro', 'aumento', 'sobe', 'subiu', 'promocao', 'desconto', 'trocando', 'troca de', 'barato', 'trade down', 'downsizing', 'embalagem menor'],
   };
   const NO_DATA_TERMS = ['participacao de mercado', 'participacao da', 'participacao do', 'market share', 'share de', 'sell-out', 'sell out', 'vendas da marca', 'ranking de marcas', 'lider de mercado'];
@@ -138,9 +138,11 @@
     const cov = coverage(allEvidence, categoryKey);
     const gaps = asked.map(k => cov.find(r => r.key === k)).filter(r => r && !r.category.count).map(r => r.label.toLowerCase());
     const leitura = ordered.map((x, n) => `[E${n + 1}] ${layerName(x.e)}: ${LEVELS[x.m.level]}${shortPeriod(x.e.periodo) ? ' (' + shortPeriod(x.e.periodo) + ')' : ''}: ${String(x.e.fato || '').trim()}`).join('\n');
+    const marketNote = ' Os indicadores de mercado dão o contexto de preço, vendas ou oferta, não o comportamento do shopper.';
     const hipotese = levels.has('observado') && levels.has('declarado')
-      ? 'Há compra observada e declaração entre as evidências. A declaração mostra o que as pessoas dizem; só a compra observada mostra o que fizeram. Nenhuma das duas prova, sozinha, a causa da mudança.'
-      : levels.has('observado') ? 'A compra observada mostra o que mudou, não por que mudou.'
+      ? 'Há compra observada e declaração entre as evidências. A declaração mostra o que as pessoas dizem; só a compra observada mostra o que fizeram. Nenhuma das duas prova, sozinha, a causa da mudança.' + (levels.has('mercado') ? marketNote : '')
+      : levels.has('observado') ? 'A compra observada mostra o que mudou, não por que mudou.' + (levels.has('mercado') ? marketNote : '')
+      : levels.has('declarado') && levels.has('mercado') ? 'A leitura junta declaração e indicadores de mercado, sem compra observada: mostra intenção, percepção e contexto de mercado, não compra realizada.'
       : levels.has('declarado') ? 'A leitura se apoia só em declaração: mostra intenção e percepção, não compra realizada.'
       : 'As evidências selecionadas são indicadores de mercado: descrevem preço, vendas ou oferta, não o comportamento de um shopper.';
     const recomendacao = gaps.length
