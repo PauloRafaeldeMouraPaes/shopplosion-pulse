@@ -24,3 +24,4 @@
 2026-11-24 17:38 [shopplosion-pulse] checkpoint: none logged; no user correction; no incident (Hoje reordered: shopper questions and industry signals ahead of market context)
 2026-11-24 20:27 [shopplosion-pulse] checkpoint: none logged; user correction: owner found it odd that Hoje kept a fixed July case built on live data (not an observation: content cleanup the owner asked for, applied in this PR); no incident
 2026-11-24 20:58 [shopplosion-pulse] checkpoint: none logged; no user correction; incident: regenerating the local CI command list pulled in data-writing scripts (apply-pulse-data-update, cleanup_pulse, pulse_product_v6); one failed before writing, the others left no diff; list filtered again
+2026-11-24 21:27 [shopplosion-pulse] checkpoint: none logged; no user correction; incident: a Varejo 360 refrigerante item was first classed as observed purchase without the source stating a panel; the panel-nature test caught it and the item was dropped

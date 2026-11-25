@@ -22,6 +22,7 @@
      the pages names a category. `prices` and `pilot` are optional: the per-item price file and the status page of a pilot, when the category has one. */
   const CATEGORIES = [
     { key: 'chocolate', label: 'Chocolate', terms: ['chocolate', 'bombom', 'cacau', 'ovo de pascoa', 'ovos de pascoa'], prices: './pilot-chocolate-prices.json', pilot: './pilot-chocolate.html' },
+    { key: 'refrigerantes', label: 'Refrigerantes', terms: ['refrigerante', 'guarana', 'bebida gaseificada', 'soft drink'] },
   ];
   const LEVELS = { observado: 'compra observada em painel', declarado: 'declaração em pesquisa', mercado: 'indicador de mercado, não por shopper' };
   const LEVEL_ORDER = ['observado', 'declarado', 'mercado'];
@@ -41,6 +42,9 @@
     'worldpanel-repertorio-marcas-classes-2025': { q: ['escolha', 'quem'], level: 'observado' },
     'ifb-chocolate-foodservice-abr2025-mar2026': { q: ['ocasiao', 'canal', 'quem', 'escolha'], level: 'declarado' },
     'varejo360-tabletes-canal-sp-jan-fev-2026': { q: ['canal'], level: 'mercado' },
+    'worldpanel-refrigerantes-fora-do-lar-2026': { q: ['canal', 'quanto'], level: 'observado' },
+    'neogrid-refrigerantes-zero-2024-2026': { q: ['escolha', 'preco'], level: 'mercado' },
+    'niq-refrigerantes-sem-acucar-2026': { q: ['escolha'], level: 'mercado' },
     'niq-full-view-2026-price': { q: ['preco', 'escolha'], level: 'declarado' },
     'niq-private-label-global': { q: ['escolha'], level: 'declarado' },
     'niq-ecommerce-2026': { q: ['canal'], level: 'declarado' },
