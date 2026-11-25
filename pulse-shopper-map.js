@@ -128,13 +128,16 @@
   function reading(question, selected, allEvidence, categoryKey) {
     const name = ((category(categoryKey) || {}).label || String(categoryKey || '')).toLowerCase();
     const rows = (Array.isArray(selected) ? selected : []).filter(Boolean).map((e, i) => ({ e, i, m: entry(e) || { q: [], level: 'mercado' } }));
-    const ordered = rows.slice().sort((a, b) => LEVEL_ORDER.indexOf(a.m.level) - LEVEL_ORDER.indexOf(b.m.level) || a.i - b.i).slice(0, 4);
+    // Two layers: the category read first, then the shopper as a whole; another registered category is said to be one and comes last.
+    const layer = e => (categoryKey && e.categoria === categoryKey) ? 0 : isCategoryEvidence(e) ? 2 : 1;
+    const layerName = e => { const l = layer(e); if (l === 0) return (category(categoryKey) || {}).label || 'Categoria'; if (l === 1) return 'Shopper em geral'; return `Outra categoria (${(category(e.categoria) || {}).label || e.categoria}), não vale para ${name || 'a categoria lida'}`; };
+    const ordered = rows.slice().sort((a, b) => layer(a.e) - layer(b.e) || LEVEL_ORDER.indexOf(a.m.level) - LEVEL_ORDER.indexOf(b.m.level) || a.i - b.i).slice(0, 4);
     if (!ordered.length) return { text: '', ordered: [] };
     const levels = new Set(ordered.map(x => x.m.level));
     const asked = classify(question).questions;
     const cov = coverage(allEvidence, categoryKey);
     const gaps = asked.map(k => cov.find(r => r.key === k)).filter(r => r && !r.category.count).map(r => r.label.toLowerCase());
-    const leitura = ordered.map((x, n) => `[E${n + 1}] ${upperFirst(LEVELS[x.m.level])}${shortPeriod(x.e.periodo) ? ' (' + shortPeriod(x.e.periodo) + ')' : ''}: ${String(x.e.fato || '').trim()}`).join('\n');
+    const leitura = ordered.map((x, n) => `[E${n + 1}] ${layerName(x.e)}: ${LEVELS[x.m.level]}${shortPeriod(x.e.periodo) ? ' (' + shortPeriod(x.e.periodo) + ')' : ''}: ${String(x.e.fato || '').trim()}`).join('\n');
     const hipotese = levels.has('observado') && levels.has('declarado')
       ? 'Há compra observada e declaração entre as evidências. A declaração mostra o que as pessoas dizem; só a compra observada mostra o que fizeram. Nenhuma das duas prova, sozinha, a causa da mudança.'
       : levels.has('observado') ? 'A compra observada mostra o que mudou, não por que mudou.'

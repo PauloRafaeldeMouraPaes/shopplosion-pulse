@@ -313,8 +313,8 @@ test.describe('Shopper insights in Universo and in the public reading', () => {
     for (const id of ['locomotiva-pascoa-2026-intencao-drivers', 'kantar-chocolate-brasil-volume-q1-2025']) await page.locator(`#pv4-results input[data-evidence-key="${id}"]`).check();
     await page.locator('button:visible:has-text("Gerar resposta")').first().click();
     const answer = page.locator('#pv4-response');
-    await expect(answer).toContainText('[E1] Compra observada em painel (2025-T1):');
-    await expect(answer).toContainText('[E2] Declaração em pesquisa (Páscoa 2026):');
+    await expect(answer).toContainText('[E1] Chocolate: compra observada em painel (2025-T1):');
+    await expect(answer).toContainText('[E2] Chocolate: declaração em pesquisa (Páscoa 2026):');
     await expect(answer).toContainText('só a compra observada mostra o que fizeram');
     await expect(answer).toContainText('[E1] Não comprova motivo individual da mudança');
     await expect(page.locator('.pv4-citation-line')).toContainText('[E1] Mercado publicado: kantar-chocolate-brasil-volume-q1-2025');
@@ -390,6 +390,20 @@ test.describe('More than one category', () => {
     const keys2 = await page.locator('#pv4-results .result input[data-evidence-key]').evaluateAll((els) => els.map((e) => e.dataset.evidenceKey));
     expect(keys2[0]).not.toBe('teste-cafe-painel');
   });
+});
+
+test('Investigação never ranks another category as if it were the shopper as a whole', async ({ page }) => {
+  // Found in the 2026-11-24 demo: for a soft drink frequency question, a chocolate panel item outranked the soft drink context.
+  await page.goto('/ask.html', { waitUntil: 'domcontentloaded' });
+  const cats = await page.evaluate(() => window.PULSE_SHOPPER.categoriesIn(window.PULSE_EVIDENCE).map((c) => c.key));
+  test.skip(cats.length < 2, 'needs two registered categories with evidence');
+  const [first, second] = cats;
+  const term = await page.evaluate((k) => window.PULSE_SHOPPER.CATEGORIES.find((c) => c.key === k).terms[0], second);
+  await page.locator('textarea:visible, input[type=text]:visible').first().fill(`Com que frequência o shopper compra ${term}?`);
+  await page.locator('button:visible:has-text("Buscar evidências")').first().click();
+  const keys = await page.locator('#pv4-results .result input[data-evidence-key]').evaluateAll((els) => els.map((e) => e.dataset.evidenceKey));
+  const cat = await page.evaluate((ks) => ks.map((k) => (window.PULSE_EVIDENCE.find((e) => e.id === k) || {}).categoria), keys);
+  expect(cat.slice(0, 6)).not.toContain(first);
 });
 
 test('Hoje shows the industry private signals right after the shopper questions', async ({ page }) => {
